@@ -74,18 +74,6 @@ namespace ESPINA
               int GetWidgetState()
               { return m_widgetState; }
 
-              /** \brief Initialize the skeleton widget from a user supplied vtkPolyData.
-               * \param[in] pd vtkPolyData raw pointer.
-               *
-               */
-              virtual void Initialize(vtkSmartPointer<vtkPolyData> pd);
-
-              /** \brief Initialize the skeleton with empty data.
-               *
-               */
-              virtual void Initialize()
-              { this->Initialize(nullptr); }
-
               /** \brief Sets the orientation of the widget.
                * \param[in] plane orientation plane.
                *

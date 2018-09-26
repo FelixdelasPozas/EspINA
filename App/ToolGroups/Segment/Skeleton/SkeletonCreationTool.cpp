@@ -323,12 +323,15 @@ void SkeletonCreationTool::initTool(bool value)
     connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
             this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
 
-    for(auto widget: m_skeletonWidgets)
-    {
-      widget->initialize(nullptr);
-    }
+    SkeletonWidget2D::initializeData(nullptr);
 
     updateStrokes();
+
+    for(auto widget: m_skeletonWidgets)
+    {
+      widget->updateRepresentation();
+    }
+
     onStrokeChanged(m_strokeCombo->currentIndex());
   }
   else
@@ -607,12 +610,18 @@ void SkeletonCreationTool::onNextButtonPressed()
   auto index    = std::min(std::max(0, m_strokeCombo->currentIndex()), strokes.size()-1);
   auto stroke   = strokes.at(index);
 
+  if(!m_skeletonWidgets.isEmpty())
+  {
+    m_skeletonWidgets.first()->stop();
+  }
+
+  SkeletonWidget2D::initializeData(nullptr);
+
   for(auto widget: m_skeletonWidgets)
   {
-    widget->stop();
-    widget->initialize(nullptr);
     widget->setStroke(stroke);
     widget->setRepresentationTextColor(category->color());
+    widget->updateRepresentation();
   }
 
   for(auto widget: m_pointWidgets)

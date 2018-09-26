@@ -132,12 +132,15 @@ void SkeletonEditionTool::initTool(bool value)
     connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
             this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
 
-    for(auto widget: m_widgets)
-    {
-      widget->initialize(readLockSkeleton(m_item->output())->skeleton());
-    }
+
+    SkeletonWidget2D::initializeData(readLockSkeleton(m_item->output())->skeleton());
 
     onStrokeTypeChanged(m_strokeCombo->currentIndex());
+
+    for(auto widget: m_widgets)
+    {
+      widget->updateRepresentation();
+    }
 
     updateWidgetsMode();
     m_item->invalidateRepresentations();
@@ -721,9 +724,12 @@ void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentatio
 
       updateStrokes();
 
+      SkeletonWidget2D::ClearRepresentation();
+      SkeletonWidget2D::initializeData(readLockSkeleton(m_item->output())->skeleton());
+
       for(auto widget: m_widgets)
       {
-        widget->initialize(readLockSkeleton(m_item->output())->skeleton());
+        widget->updateRepresentation();
       }
 
       onStrokeTypeChanged(m_strokeCombo->currentIndex());

@@ -25,6 +25,7 @@
 #include <GUI/View/View2D.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
+#include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
 
 // VTK
 #include <vtkRenderWindow.h>
@@ -76,9 +77,9 @@ SkeletonWidget2D::~SkeletonWidget2D()
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonWidget2D::initialize(vtkSmartPointer<vtkPolyData> pd)
+void SkeletonWidget2D::initializeData(vtkSmartPointer<vtkPolyData> pd)
 {
-  m_widget->Initialize(pd);
+  vtkSkeletonWidgetRepresentation::Initialize(pd);
 }
 
 //-----------------------------------------------------------------------------
@@ -500,7 +501,9 @@ void SkeletonWidget2D::stop()
     if (m_widget->numberOfPoints() < 2)
     {
       // not allowed strokes of only one point.
-      m_widget->Initialize();
+      initializeData(nullptr);
+
+      m_widget->UpdateRepresentation();
     }
     else
     {
@@ -591,4 +594,10 @@ void SkeletonWidget2D::setStrokeHueModification(const bool value)
 const bool SkeletonWidget2D::strokeHueModification() const
 {
   return m_widget->strokeHueModification();
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::ClearRepresentation()
+{
+  vtkSkeletonWidgetRepresentation::ClearRepresentation();
 }

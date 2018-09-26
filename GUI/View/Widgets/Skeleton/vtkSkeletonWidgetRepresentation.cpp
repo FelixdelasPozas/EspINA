@@ -1331,7 +1331,9 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 
   Core::cleanSkeletonStrokes(s_skeleton);
 
-  removeIsolatedNodes();
+  Core::removeIsolatedNodes(s_skeleton.nodes);
+
+  Core::mergeSamePositionNodes(s_skeleton.nodes);
 
   performSpineSplitting();
 
@@ -1399,22 +1401,15 @@ void vtkSkeletonWidgetRepresentation::FindClosestNode(const int X, const int Y, 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd)
 {
-  {
-    QMutexLocker lock(&s_skeletonMutex);
-    Q_ASSERT(s_skeleton.nodes.isEmpty());
-  }
+  if(pd == nullptr || pd->GetNumberOfPoints() <= 0) return; // Yeah right.. build from nothing!
 
-  auto nPoints = pd->GetNumberOfPoints();
-  if (nPoints <= 0) return; // Yeah right.. build from nothing!
+  QMutexLocker lock(&s_skeletonMutex);
+  Q_ASSERT(s_skeleton.nodes.isEmpty());
 
-  {
-    QMutexLocker lock(&s_skeletonMutex);
-    s_skeleton = Core::toSkeletonDefinition(pd);
-  }
-
+  s_skeleton = Core::toSkeletonDefinition(pd);
   Core::cleanSkeletonStrokes(s_skeleton);
-
-  BuildRepresentation();
+  Core::removeIsolatedNodes(s_skeleton.nodes);
+  Core::mergeSamePositionNodes(s_skeleton.nodes);
 }
 
 //-----------------------------------------------------------------------------
@@ -1812,22 +1807,6 @@ bool vtkSkeletonWidgetRepresentation::switchToStroke(const Core::SkeletonStroke&
   s_currentVertex = newNode;
 
   return false;
-}
-
-//--------------------------------------------------------------------
-void vtkSkeletonWidgetRepresentation::removeIsolatedNodes()
-{
-  SkeletonNodes toRemove;
-  for(auto node: s_skeleton.nodes)
-  {
-    if(node->connections.keys().contains(node)) node->connections.remove(node);
-    if(node->connections.isEmpty()) toRemove << node;
-  }
-
-  for(auto node: toRemove)
-  {
-    deleteNode(node);
-  }
 }
 
 //--------------------------------------------------------------------

@@ -91,11 +91,11 @@ namespace ESPINA
                */
               void setStroke(const Core::SkeletonStroke &stroke);
 
-              /** \brief Initialize the vtkWidgets with a polydata.
-               * \param[in] pd VtkPolyData smartPointer.
+              /** \brief Initialize skeleton data structure.
+               * \param[in] pd Skeleton vtkPolyData smartPointer.
                *
                */
-              void initialize(vtkSmartPointer<vtkPolyData> pd);
+              static void initializeData(vtkSmartPointer<vtkPolyData> pd);
 
               /** \brief Sets the operating mode of the widget.
                *
@@ -113,11 +113,10 @@ namespace ESPINA
                */
               void stop();
 
-              /** \brief Orders the vtkWidget to clean the static skeleton representation.
+              /** \brief Clears the skeleton data.
                *
                */
-              void ClearRepresentation()
-              { m_widget->ClearRepresentation(); }
+              static void ClearRepresentation();
 
               virtual void setPlane(Plane plane);
 

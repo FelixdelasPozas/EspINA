@@ -37,6 +37,7 @@
 
 // C++
 #include <cmath>
+#include <cstring>
 
 class vtkPolyData;
 
@@ -77,7 +78,10 @@ namespace ESPINA
          */
         bool operator==(const SkeletonStroke &other) const
         {
-          return name == other.name && colorHue == other.colorHue && type == other.type && useMeasure == other.useMeasure;
+          return (name       == other.name)     &&
+                 (colorHue   == other.colorHue) &&
+                 (type       == other.type)     &&
+                 (useMeasure == other.useMeasure);
         }
 
         /** \brief Operator != for skeleton strokes.
@@ -155,9 +159,7 @@ namespace ESPINA
        *
        */
       bool operator==(const SkeletonEdge &other) const
-      { return (strokeIndex  == other.strokeIndex)  &&
-               (strokeNumber == other.strokeNumber) &&
-               (parentEdge   == other.parentEdge); }
+      { return std::memcmp(&other, this, sizeof(SkeletonEdge)) == 0; }
 
       /** \brief Operator < for SkeletonEdge struct.
        * \param[in] other SkeletonEdge struct reference to compare.
@@ -171,6 +173,13 @@ namespace ESPINA
        */
       bool isOrphan() const
       { return parentEdge == -1; }
+
+      /** \brief Operator = for SkeletonEdge struct.
+       * \param[in] other SkeletonEdge struct values to assign.
+       *
+       */
+      SkeletonEdge &operator=(const SkeletonEdge &other)
+      { std::memcpy(this, &other, sizeof(SkeletonEdge)); return *this; }
     };
 
     using SkeletonEdges = QList<struct SkeletonEdge>;
@@ -203,7 +212,7 @@ namespace ESPINA
        */
       explicit SkeletonNode(const double worldPos[3])
       {
-        ::memcpy(position, worldPos, 3*sizeof(double));
+        std::memcpy(position, worldPos, 3*sizeof(double));
       }
 
       /** \brief SkeletonNode struct constructor with initializer list.
@@ -326,6 +335,18 @@ namespace ESPINA
         SkeletonEdges             edges;   /** edges definitions of the skeleton. */
         SkeletonStrokes           strokes; /** list of used strokes.              */
         QMap<SkeletonStroke, int> count;   /** maps strokes and times used.       */
+
+        /** brief Initializes the structure.
+         *
+         */
+        void clear()
+        {
+          for(auto node: nodes) delete node;
+          nodes.clear();
+          edges.clear();
+          strokes.clear();
+          count.clear();
+        }
     };
 
     /** \brief Operator << for QDebug and a skeleton in nodes list form.
@@ -496,6 +517,18 @@ namespace ESPINA
      *
      */
     void EspinaCore_EXPORT cleanSkeletonStrokes(SkeletonDefinition &skeleton);
+
+    /** \brief Helper method that removes nodes without connetions from the list of given nodes.
+     * \param[in] nodes List of nodes.
+     *
+     */
+    void EspinaCore_EXPORT removeIsolatedNodes(SkeletonNodes &nodes);
+
+    /** \brief Helper method that merges nodes with the same position.
+     * \param[in] nodes List of nodes.
+     *
+     */
+    void EspinaCore_EXPORT mergeSamePositionNodes(SkeletonNodes &nodes);
 
   } // namespace Core
 } // namespace ESPINA

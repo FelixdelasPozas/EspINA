@@ -381,6 +381,12 @@ namespace ESPINA
                */
               static void ClearRepresentation();
 
+              /** \brief Build a skeleton representation from externally supplied PolyData.
+               * \param[in] data vtkPolyData smart pointer.
+               *
+               */
+              static void Initialize(vtkSmartPointer<vtkPolyData> data = nullptr);
+
               /** \brief Using the last three points connects the first and last with the current stroke and creates
                *  a connection using the given stroke, the second point and the closest point to the first-last segment.
                *  Returns true on success and false if a connection cannot be created (less than three nodes in the skeleton).
@@ -457,12 +463,6 @@ namespace ESPINA
                */
               void FindClosestNode(const int X, const int Y, double worldPos[3], int &nodeIndex) const;
 
-              /** \brief Build a skeleton representation from externally supplied PolyData.
-               * \param[in] data vtkPolyData smart pointer.
-               *
-               */
-              void Initialize(vtkSmartPointer<vtkPolyData> data);
-
               /** \brief Returns the shortest distance to the skeleton given a point in world coordinates.
                * \param[in] X x display coordinate.
                * \param[in] Y y display coordinate.
@@ -482,11 +482,6 @@ namespace ESPINA
                *
                */
               void performSpineSplitting();
-
-              /** \brief Removes nodes from the list of nodes if they have no connections.
-               *
-               */
-              void removeIsolatedNodes();
 
               /** \brief Helper method to obtain the paths of a given node.
                * \param[in] node Skeleton node.

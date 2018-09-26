@@ -118,54 +118,6 @@ void vtkSkeletonWidget::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidget::Initialize(vtkSmartPointer<vtkPolyData> pd)
-{
-  if (!WidgetRep)
-  {
-    CreateDefaultRepresentation();
-    WidgetRep->SetRenderer(GetCurrentRenderer());
-  }
-
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-
-  rep->ClearRepresentation();
-
-  if (pd == nullptr)
-  {
-    rep->VisibilityOff();
-  }
-  else
-  {
-    rep->Initialize(pd);
-  }
-
-  m_widgetState = vtkSkeletonWidget::Define;
-
-  if (GetCurrentRenderer() != nullptr)
-  {
-    if (pd == nullptr)
-    {
-      SetCursor(vtkSkeletonWidgetRepresentation::Outside);
-    }
-    else
-    {
-      int X, Y;
-      Interactor->GetEventPosition(X,Y);
-      rep->ComputeInteractionState(X, Y);
-      int wState = WidgetRep->GetInteractionState();
-
-      SetCursor(wState);
-    }
-  }
-
-  if(rep->GetNeedToRender())
-  {
-    Render();
-    rep->NeedToRenderOff();
-  }
-}
-
-//-----------------------------------------------------------------------------
 void vtkSkeletonWidget::SetOrientation(Plane plane)
 {
   if (m_orientation == Plane::UNDEFINED)
@@ -491,10 +443,27 @@ void vtkSkeletonWidget::SetShift(const Nm shift)
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::UpdateRepresentation()
 {
-  if (!WidgetRep) return;
+  if (!WidgetRep)
+  {
+    CreateDefaultRepresentation();
+    WidgetRep->SetRenderer(GetCurrentRenderer());
+  }
 
   auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
   rep->BuildRepresentation();
+
+  m_widgetState = vtkSkeletonWidget::Define;
+
+  if (GetCurrentRenderer() != nullptr)
+  {
+    int X, Y;
+    Interactor->GetEventPosition(X,Y);
+    rep->ComputeInteractionState(X, Y);
+    int wState = WidgetRep->GetInteractionState();
+
+    SetCursor(wState);
+  }
+
   rep->NeedToRenderOff();
   Render();
 }

@@ -67,12 +67,7 @@ const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<
 
   for(int i = 0; i < edgeIndexes->GetNumberOfTuples(); ++i)
   {
-    SkeletonEdge edge;
-    edge.strokeIndex  = edgeIndexes->GetValue(i);
-    edge.strokeNumber = edgeNumbers->GetValue(i);
-    edge.parentEdge   = edgeParents->GetValue(i);
-
-    result.edges << edge;
+    result.edges << SkeletonEdge{edgeIndexes->GetValue(i), edgeNumbers->GetValue(i), edgeParents->GetValue(i)};
   }
 
   // strokes information.
@@ -330,8 +325,8 @@ const double Core::closestDistanceAndNode(const double position[3], const Skelet
   double *pos_i, *pos_j;
   double projection[3];
   double result = VTK_DOUBLE_MAX;
-  unsigned int segmentNode1Index = VTK_INT_MAX;
-  unsigned int segmentNode2Index = VTK_INT_MAX;
+  int segmentNode1Index = VTK_INT_MAX;
+  int segmentNode2Index = VTK_INT_MAX;
 
   // build temporary map to accelerate access to lines
   QMap<SkeletonNode *, unsigned int> locator;
@@ -364,14 +359,14 @@ const double Core::closestDistanceAndNode(const double position[3], const Skelet
 
       if(r <= 0)
       {
-        ::memcpy(projection, pos_i, 3*sizeof(double));
+        std::memcpy(projection, pos_i, 3*sizeof(double));
         segmentNode1Index = segmentNode2Index = i;
       }
       else
       {
         if(r >= 1)
         {
-          ::memcpy(projection, pos_j, 3*sizeof(double));
+          std::memcpy(projection, pos_j, 3*sizeof(double));
           segmentNode1Index = segmentNode2Index = locator[connections[j]];
         }
         else
@@ -399,19 +394,19 @@ const double Core::closestDistanceAndNode(const double position[3], const Skelet
       {
         node_i = segmentNode1Index;
         node_j = segmentNode2Index;
-        ::memcpy(worldPosition, projection, 3*sizeof(double));
+        std::memcpy(worldPosition, projection, 3*sizeof(double));
         result = pointDistance;
       }
     }
   }
 
-  return ::sqrt(result);
+  return std::sqrt(result);
 }
 
 //--------------------------------------------------------------------
 const double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
 {
-  double result = -1;
+  double result = -1.;
 
   auto pos_i = node_i->position;
   auto pos_j = node_j->position;
@@ -431,13 +426,13 @@ const double Core::closestPointToSegment(const double position[3], const Skeleto
 
   if(r <= 0)
   {
-    ::memcpy(closestPoint, pos_i, 3*sizeof(double));
+    std::memcpy(closestPoint, pos_i, 3*sizeof(double));
   }
   else
   {
     if(r >= 1)
     {
-      ::memcpy(closestPoint, pos_j, 3*sizeof(double));
+      std::memcpy(closestPoint, pos_j, 3*sizeof(double));
     }
     else
     {
@@ -449,14 +444,14 @@ const double Core::closestPointToSegment(const double position[3], const Skeleto
 
   result = vtkMath::Distance2BetweenPoints(closestPoint, position);
 
-  return ::sqrt(result);
+  return std::sqrt(result);
 }
 
 //--------------------------------------------------------------------
 bool Core::SkeletonNode::operator==(const Core::SkeletonNode &other) const
 {
-  return ((::memcmp(position, other.position, 3*sizeof(double))) &&
-          (connections == other.connections) &&
+  return ((std::memcmp(position, other.position, 3*sizeof(double))) &&
+          (connections == other.connections)                        &&
           (flags == other.flags));
 }
 
@@ -503,6 +498,7 @@ bool Core::Path::operator<(const Core::Path &other) const
 
   if(this->seen.size() != other.seen.size()) return this->seen.size() < other.seen.size();
 
+  // arbitrary, based on pointers value
   auto seen1 = seen;
   auto seen2 = other.seen;
 
@@ -663,7 +659,7 @@ QDebug Core::operator <<(QDebug stream, const SkeletonDefinition& skeleton)
 
   for(auto component: components)
   {
-    auto pathList = Core::paths(skeleton.nodes, skeleton.edges, skeleton.strokes);
+    auto pathList = Core::paths(component, skeleton.edges, skeleton.strokes);
 
     stream << "\n- component" << components.indexOf(component) + 1 << "paths:" << pathList.size();
     for(auto path: pathList)
@@ -1090,4 +1086,67 @@ void ESPINA::Core::cleanSkeletonStrokes(SkeletonDefinition& skeleton)
   }
 
   skeleton.strokes = cleanSkeleton.strokes;
+}
+
+//--------------------------------------------------------------------
+void ESPINA::Core::removeIsolatedNodes(SkeletonNodes &nodes)
+{
+  SkeletonNodes toRemove;
+  for(auto node: nodes)
+  {
+    if(node->connections.keys().contains(node)) node->connections.remove(node);
+    if(node->connections.isEmpty()) toRemove << node;
+  }
+
+  for(auto node: toRemove)
+  {
+    nodes.removeAll(node);
+    delete node;
+  }
+}
+
+//--------------------------------------------------------------------
+void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
+{
+  auto nodesNum = nodes.size();
+  SkeletonNodes toRemove;
+
+  for(int i = 0; i < nodesNum; ++i)
+  {
+    auto node = nodes.at(i);
+
+    for(int j = i + 1; j < nodesNum; ++j)
+    {
+      auto otherNode = nodes.at(j);
+
+      if(std::memcmp(node->position, otherNode->position, 3*sizeof(double)) == 0)
+      {
+        toRemove << otherNode;
+
+        for(auto key: otherNode->connections.keys())
+        {
+          if(key == node)
+          {
+            Q_ASSERT(node->connections.keys().contains(otherNode));
+            node->connections.remove(otherNode);
+          }
+          else
+          {
+            node->connections.insert(key, otherNode->connections[key]);
+            key->connections.insert(node, key->connections[otherNode]);
+            key->connections.remove(otherNode);
+          }
+        }
+
+        otherNode->connections.clear();
+        if(node->connections.isEmpty()) toRemove << node;
+      }
+    }
+  }
+
+  for(auto node: toRemove)
+  {
+    nodes.removeAll(node);
+    delete node;
+  }
 }
