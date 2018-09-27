@@ -306,7 +306,7 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     connectedComponents->SetInputData(graph);
     connectedComponents->Update();
     auto outputGraph = connectedComponents->GetOutput();
-    auto components = vtkIntArray::SafeDownCast( outputGraph->GetVertexData()->GetArray("component"));
+    auto components = vtkIntArray::SafeDownCast(outputGraph->GetVertexData()->GetArray("component"));
 
     double *range = components->GetRange(0);
     // std::cout << "components: " << range[0] << " to "<< range[1] << std::endl;
@@ -314,9 +314,50 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     std::vector<double> perimeters;
     perimeters.resize(range[1]+1);
 
+    // will project perimeter points to plane and compute its bounds for perimeter inclusion
+    std::vector<Bounds> perimeterBounds;
+    perimeterBounds.resize(range[1]+1);
+
+    // helper method to include a point in a Bounds structure.
+    auto includePointInBounds = [](Bounds &bounds, double p[3])
+    {
+      if(bounds.areValid())
+      {
+        bounds[0] = std::min(bounds[0], p[0]);
+        bounds[1] = std::max(bounds[1], p[0]);
+        bounds[2] = std::min(bounds[2], p[1]);
+        bounds[3] = std::max(bounds[3], p[1]);
+        bounds[4] = std::min(bounds[4], p[2]);
+        bounds[5] = std::max(bounds[5], p[2]);
+      }
+      else
+      {
+        bounds = Bounds{p[0], p[0], p[1], p[1], p[2], p[2]};
+      }
+    };
+
+    auto originArray = vtkDoubleArray::SafeDownCast(asMesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_ORIGIN));
+    auto normalArray = vtkDoubleArray::SafeDownCast(asMesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_NORMAL));
+
+    if (!originArray || !normalArray)
+    {
+      m_hasErrors = true;
+      return UNDEFINED;
+    }
+
+    double origin[3], normal[3];
+    for (int i = 0; i < 3; ++i)
+    {
+      origin[i] = originArray->GetValue(i);
+      normal[i] = normalArray->GetValue(i);
+    }
+
+    auto plane = vtkSmartPointer<vtkPlane>::New();
+    plane->SetOrigin(origin);
+    plane->SetNormal(normal);
+
     auto edgeListIterator = EdgeListIterator::New();
     graph->GetEdges(edgeListIterator);
-
     while(edgeListIterator->HasNext())
     {
       auto edge = edgeListIterator->Next();
@@ -339,21 +380,50 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
 
       double edge_length = sqrt(vtkMath::Distance2BetweenPoints(x, y));
       // std::cout << edge_length << std::endl;
-      perimeters[components->GetValue(edge.Source)] += edge_length;
-      //perimeters[components->GetValue(edge.Source)] += 1;
+
+      auto index = components->GetValue(edge.Source);
+      perimeters[index] += edge_length;
+
+      double p[3];
+      plane->ProjectPoint(x,p);
+      includePointInBounds(perimeterBounds[index], p);
+      plane->ProjectPoint(y,p);
+      includePointInBounds(perimeterBounds[index], p);
     }
 
-// @felix modified 20/09/2018 return the sum, not the max of the vector.
-//    double max_per = 0.0;
-//      // std::cout << "myvector contains:";
-//    for (unsigned int i=0;i<perimeters.size();i++)
-//    {
-//      // std::cout << " " << perimeters[i];
-//      max_per = std::max(perimeters[i], max_per);
-//    }
-//    totalPerimeter = max_per;
+    auto isIncluded = [](const Bounds &container, const Bounds &bounds)
+    {
+      return (bounds[0] >= container[0] && bounds[1] <= container[1] &&
+              bounds[2] >= container[2] && bounds[3] <= container[3] &&
+              bounds[4] >= container[4] && bounds[5] <= container[5]);
+    };
 
-    totalPerimeter = std::accumulate(perimeters.begin(), perimeters.end(), 0.0);
+// @felix Modified 27/09/2018
+// Asked solution: Return only the sum of external perimeters, without adding the perimeters of the perforations.
+// Bounding box method works for the majority of the real-life cases, but not all. A correct implementation
+// would be:
+// - Test intersection with bounding boxes to obtain candidates.
+// - If true then use shooting algorithm in the plane containing both contours to check for real contour nesting (this
+//   is O(n) but much more expensive than the method implemented).
+//
+//
+    for(unsigned int i = 0; i < perimeterBounds.size(); ++i)
+    {
+      auto iBounds = perimeterBounds.at(i);
+      bool isPerforation = false;
+      for(unsigned int j = 0; j < perimeterBounds.size() && !isPerforation; ++j)
+      {
+        if(i == j) continue;
+        auto jBounds = perimeterBounds.at(j);
+
+        isPerforation = isIncluded(jBounds, iBounds);
+      }
+
+      if(!isPerforation)
+      {
+        totalPerimeter += perimeters[i];
+      }
+    }
   }
   catch (...)
   {
