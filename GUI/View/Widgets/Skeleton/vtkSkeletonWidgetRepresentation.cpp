@@ -1595,28 +1595,53 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
       s_skeleton.nodes.removeAll(connectionNode);
       delete connectionNode;
     }
+  }
 
-    auto &edge = s_skeleton.edges.at(m_currentEdgeIndex);
-    if(edge.parentEdge == -1)
+  auto &edge = s_skeleton.edges.at(m_currentEdgeIndex);
+
+  int candidate = -1;
+  int candidateStrokeIndex = -1;
+  int nonPrioritary = -1;
+  int nonPrioritaryStrokeIndex = -1;
+  for (auto connection : closestNode->connections.values())
+  {
+    if (connection == m_currentEdgeIndex) continue; // cannot be parent of itself
+    const auto &otherEdge = s_skeleton.edges.at(connection);
+    const auto &stroke = s_skeleton.strokes.at(otherEdge.strokeIndex);
+    if (stroke.useMeasure)
     {
-      int candidate = -1;
-      int nonPrioritary = -1;
-      for(auto connection: closestNode->connections.values())
+      if (candidate == -1 || otherEdge.strokeIndex < candidateStrokeIndex)
       {
-        if(connection == m_currentEdgeIndex) continue; // cannot be parent of itself
-        const auto &otherEdge = s_skeleton.edges.at(connection);
-        const auto &stroke    = s_skeleton.strokes.at(otherEdge.strokeIndex);
-        if(stroke.useMeasure)
-        {
-          candidate = connection;
-        }
-        else
-        {
-          nonPrioritary = connection;
-        }
+        candidate = connection;
+        candidateStrokeIndex = otherEdge.strokeIndex;
       }
+    }
+    else
+    {
+      if (nonPrioritary == -1 || otherEdge.strokeIndex < nonPrioritaryStrokeIndex)
+      {
+        nonPrioritary = connection;
+        nonPrioritaryStrokeIndex = otherEdge.strokeIndex;
+      }
+    }
+  }
 
-      s_skeleton.edges[m_currentEdgeIndex].parentEdge = (candidate != -1 ? candidate : nonPrioritary);
+  auto edgeValue = candidate != -1 ? candidate : nonPrioritary;
+
+  if (edge.parentEdge == -1)
+  {
+    s_skeleton.edges[m_currentEdgeIndex].parentEdge = edgeValue;
+  }
+  else
+  {
+    if (edgeValue != -1)
+    {
+      auto &candidateEdge = s_skeleton.edges.at(edgeValue);
+      auto &candidateStroke = s_skeleton.strokes.at(candidateEdge.strokeIndex);
+      if (candidateStroke.name.startsWith("Shaft"))
+      {
+        s_skeleton.edges[m_currentEdgeIndex].parentEdge = edgeValue;
+      }
     }
   }
 

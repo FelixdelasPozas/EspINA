@@ -952,7 +952,7 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, con
           auto strokeUse = strokes.at(edges.at(stroke->path.edge).strokeIndex).useMeasure;
           auto otherStrokeUse = strokes.at(edges.at(otherStroke->path.edge).strokeIndex).useMeasure;
 
-          if ((strokeUse != otherStrokeUse) && strokeUse == false)
+          if (((strokeUse != otherStrokeUse) && strokeUse == false) || otherStroke->path.note.startsWith("Shaft", Qt::CaseInsensitive))
           {
             assignTo(stroke, otherStroke);
             break;
