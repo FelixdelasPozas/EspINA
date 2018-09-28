@@ -42,6 +42,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkCurvatures.h>
 #include <vtkBoostConnectedComponents.h>
+#include <vtkLine.h>
 
 using IdList = vtkSmartPointer<vtkIdList>;
 using IdTypeArray = vtkSmartPointer<vtkIdTypeArray>;
@@ -257,7 +258,6 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
   {
     asMesh->BuildLinks();
 
-    // std::cout << "Points: " << mesh->GetNumberOfPoints() << std::endl;
     auto numCells = asMesh->GetNumberOfCells();
     auto graph    = MutableUndirectedGraph::New();
     auto pedigree = IdTypeArray::New();
@@ -311,14 +311,28 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     double *range = components->GetRange(0);
     // std::cout << "components: " << range[0] << " to "<< range[1] << std::endl;
 
-    std::vector<double> perimeters;
+    /** \struct PerimeterData
+     * \brief Contains all data required to compute inclusion and the length of the perimeter. We store the
+     *        points in raw form instead of using vtkLine or similar to try to reduce memory footprint and be faster.
+     */
+    struct PerimeterData
+    {
+        Bounds              bounds;  /** bounds of the perimeter in the projected plane. */
+        std::vector<double> points;  /** projected points on the plane.                  */
+        double              length;  /** length of the non-projeted perimeter.           */
+
+        /** \brief PerimeterData struct constructor.
+         *
+         */
+        PerimeterData(): bounds{Bounds()}, points{std::vector<double>()}, length{0.} {};
+    };
+
+    std::vector<PerimeterData> perimeters;
     perimeters.resize(range[1]+1);
 
-    // will project perimeter points to plane and compute its bounds for perimeter inclusion
-    std::vector<Bounds> perimeterBounds;
-    perimeterBounds.resize(range[1]+1);
-
     // helper method to include a point in a Bounds structure.
+    // param[inout] bounds Bounds object to be expanded to include point p
+    // param[in] p Point coordinates.
     auto includePointInBounds = [](Bounds &bounds, double p[3])
     {
       if(bounds.areValid())
@@ -334,6 +348,16 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
       {
         bounds = Bounds{p[0], p[0], p[1], p[1], p[2], p[2]};
       }
+    };
+
+    // helper method that returs true if the second Bounds are included in the first Bounds given and false otherwise.
+    // param[in] container Bounds object to test if contains the second Bounds object.
+    // param[in] bounds Bounds object to test for inclusion.
+    auto isIncluded = [](const Bounds &container, const Bounds &bounds)
+    {
+      return (bounds[0] >= container[0] && bounds[1] <= container[1] &&
+              bounds[2] >= container[2] && bounds[3] <= container[3] &&
+              bounds[4] >= container[4] && bounds[5] <= container[5]);
     };
 
     auto originArray = vtkDoubleArray::SafeDownCast(asMesh->GetPointData()->GetArray(AppositionSurfaceFilter::MESH_ORIGIN));
@@ -378,50 +402,73 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
       // std::cout << "X: " << x[0] << " " << x[1] << " " << x[2] << " Point: " << pedigree->GetValue(edge.Source) << std::endl;
       // std::cout << "Y: " << y[0] << " " << y[1] << " " << y[2] << " Point: " << pedigree->GetValue(edge.Target) << std::endl;
 
-      double edge_length = sqrt(vtkMath::Distance2BetweenPoints(x, y));
-      // std::cout << edge_length << std::endl;
+      auto edgeLength = std::sqrt(vtkMath::Distance2BetweenPoints(x, y));
 
       auto index = components->GetValue(edge.Source);
-      perimeters[index] += edge_length;
+      perimeters[index].length += edgeLength;
 
-      double p[3];
-      plane->ProjectPoint(x,p);
-      includePointInBounds(perimeterBounds[index], p);
-      plane->ProjectPoint(y,p);
-      includePointInBounds(perimeterBounds[index], p);
+      double projected[3];
+      plane->ProjectPoint(x,projected);
+      includePointInBounds(perimeters[index].bounds, projected);
+      perimeters[index].points.push_back(projected[0]);
+      perimeters[index].points.push_back(projected[1]);
+      perimeters[index].points.push_back(projected[2]);
+
+      plane->ProjectPoint(y,projected);
+      includePointInBounds(perimeters[index].bounds, projected);
+      perimeters[index].points.push_back(projected[0]);
+      perimeters[index].points.push_back(projected[1]);
+      perimeters[index].points.push_back(projected[2]);
     }
-
-    auto isIncluded = [](const Bounds &container, const Bounds &bounds)
-    {
-      return (bounds[0] >= container[0] && bounds[1] <= container[1] &&
-              bounds[2] >= container[2] && bounds[3] <= container[3] &&
-              bounds[4] >= container[4] && bounds[5] <= container[5]);
-    };
 
 // @felix Modified 27/09/2018
 // Asked solution: Return only the sum of external perimeters, without adding the perimeters of the perforations.
-// Bounding box method works for the majority of the real-life cases, but not all. A correct implementation
-// would be:
-// - Test intersection with bounding boxes to obtain candidates.
-// - If true then use shooting algorithm in the plane containing both contours to check for real contour nesting (this
-//   is O(n) but much more expensive than the method implemented).
+// Bounding box method works for the majority of the real-life cases, but not all. Correct implementation is:
+// A) Test intersection with bounding boxes to obtain candidates. If no inclusion detected add the length to the total.
+// B) If inclusion detected with bounding boxes the use the shooting algorithm in the plane containing both contours to
+//    check for real contour nesting.
 //
-//
-    for(unsigned int i = 0; i < perimeterBounds.size(); ++i)
+    for(unsigned int i = 0; i < perimeters.size(); ++i)
     {
-      auto iBounds = perimeterBounds.at(i);
-      bool isPerforation = false;
-      for(unsigned int j = 0; j < perimeterBounds.size() && !isPerforation; ++j)
+      bool isInside = false;
+      auto iBounds = perimeters.at(i).bounds;
+      for(unsigned int j = 0; j < perimeters.size() && !isInside; ++j)
       {
         if(i == j) continue;
-        auto jBounds = perimeterBounds.at(j);
+        auto jBounds = perimeters.at(j).bounds;
 
-        isPerforation = isIncluded(jBounds, iBounds);
+        if(isIncluded(jBounds, iBounds))
+        {
+          // test with ray-casting algorithm (shooting algorithm)
+          double max[3]{2*jBounds[1], 2*jBounds[3], 2*jBounds[5]};
+          double pMax[3];
+          plane->ProjectPoint(max, pMax);
+          double jx[3], jy[3];
+          double p[3]{perimeters.at(i).points[0], perimeters.at(i).points[1], perimeters.at(i).points[2]};
+          auto &points = perimeters.at(j).points;
+          double u,v;
+
+          int count = 0;
+          for(unsigned int k = 0; k < points.size(); k += 6)
+          {
+            std::memcpy(jx, &points[k+0], 3*sizeof(double));
+            std::memcpy(jy, &points[k+3], 3*sizeof(double));
+
+            vtkLine::Intersection(pMax, p, jx, jy, u, v);
+
+            if((0.0 <= u) && (u <= 1.0) && (0.0 <= v) && (v <= 1.0)) ++count;
+          }
+
+          if(count % 2 != 0)
+          {
+            isInside = true;
+          }
+        }
       }
 
-      if(!isPerforation)
+      if(!isInside)
       {
-        totalPerimeter += perimeters[i];
+        totalPerimeter += perimeters[i].length;
       }
     }
   }
