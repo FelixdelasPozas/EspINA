@@ -1,6 +1,6 @@
 /*
 
-1 Copyright (C) 2016 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2016 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -170,7 +170,16 @@ namespace ESPINA
                                                           const unsigned int             length)
     : StreamedVolume<T>()
     {
-      this->m_fileName     = fileName.absoluteFilePath();
+      this->m_fileName = fileName.absoluteFilePath();
+
+      if(!this->m_fileName.fileName().endsWith(".mhd", Qt::CaseInsensitive))
+      {
+        auto message = QObject::tr("Invalid file name, file must be a MetaImage file (MHD). File: %1").arg(this->m_fileName.absoluteFilePath());
+        auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
       this->m_vectorLength = length;
 
       typename T::PixelType pixelType;
@@ -178,10 +187,13 @@ namespace ESPINA
 
       if(fileName.exists())
       {
+        const QString utfFilename = fileName.absoluteFilePath().toUtf8();
+        const QString asciiFilename = utfFilename.toAscii();
+
         // discards region, spacing and length parameters
         auto reader = itk::ImageFileReader<T>::New();
         reader->ReleaseDataFlagOn();
-        reader->SetFileName(this->m_fileName.absoluteFilePath().toStdString());
+        reader->SetFileName(asciiFilename.toStdString());
         reader->SetNumberOfThreads(1);
         reader->UpdateOutputInformation();
 
@@ -256,16 +268,21 @@ namespace ESPINA
         image->Allocate();
         image->Update();
 
+        const QString utfFilename = fileName.absoluteFilePath().toUtf8();
+        const QString asciiFilename = utfFilename.toAscii();
+
         auto writer = itk::ImageFileWriter<T>::New();
-        writer->SetFileName(this->m_fileName.absoluteFilePath().toStdString());
+        writer->SetFileName(asciiFilename.toStdString());
         writer->SetInput(image);
         writer->SetImageIO(itk::MetaImageIO::New());
         writer->Update();
 
-        QFile headerFile{this->m_fileName.absoluteFilePath()};
+        auto baseFileName = this->m_fileName.path() + QDir::separator() + this->fileName().completeBaseName();
+        auto headerFileName = baseFileName + ".mhd";
+        QFile headerFile{headerFileName};
         if(!headerFile.open(QIODevice::ReadWrite))
         {
-          auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
+          auto message = QObject::tr("Couldn't open header file: %1, error: %2").arg(headerFileName).arg(headerFile.errorString());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -288,14 +305,13 @@ namespace ESPINA
 
         if(headerFile.error() != QFile::NoError)
         {
-          auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(this->m_fileName.absoluteFilePath()).arg(headerFile.errorString());
+          auto message = QObject::tr("Couldn't close header file: %1, error: %2").arg(headerFileName).arg(headerFile.errorString());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
         }
 
-        auto dataFilename = headerFile.fileName().replace(".mhd", ".raw", Qt::CaseInsensitive);
-
+        auto dataFilename = baseFileName + ".raw";
         QFile dataFile{dataFilename};
         if(!dataFile.open(QIODevice::WriteOnly|QIODevice::Truncate))
         {
@@ -658,13 +674,11 @@ namespace ESPINA
       image->SetOrigin(origin);
       image->SetRegions(region);
 
-      auto dataFile = this->m_fileName.absoluteFilePath();
-      dataFile = dataFile.replace(".mhd", ".raw");
-
-      QFile file{dataFile};
+      auto dataFileName = this->m_fileName.path() + QDir::separator() + this->m_fileName.completeBaseName() + ".raw";
+      QFile file{dataFileName};
       if(!file.open(QIODevice::ReadWrite))
       {
-        auto message = QObject::tr("Couldn't open raw file '%1'. Reason: %2.").arg(dataFile).arg(file.errorString());
+        auto message = QObject::tr("Couldn't open raw file '%1'. Reason: %2.").arg(dataFileName).arg(file.errorString());
         auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -692,7 +706,7 @@ namespace ESPINA
         typename T::PixelType value = it.Get();
         if(!file.seek(position))
         {
-          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName.absoluteFilePath());
+          auto message = QObject::tr("Unable to seek to pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(dataFileName);
           auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -700,7 +714,7 @@ namespace ESPINA
 
         if(dataSize != file.write(reinterpret_cast<const char *>(&value), dataSize))
         {
-          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(this->m_fileName.absoluteFilePath());
+          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(position).arg(file.size()).arg(dataFileName);
           auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
@@ -711,7 +725,7 @@ namespace ESPINA
 
       if(!file.flush() || (file.error() != QFile::NoError))
       {
-        auto message = QObject::tr("Error finishing write operation in file: %3").arg(this->m_fileName.absoluteFilePath());
+        auto message = QObject::tr("Error finishing write operation in file: %3").arg(dataFileName);
         auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -772,9 +786,7 @@ namespace ESPINA
       image->SetOrigin(origin);
       image->SetRegions(region);
 
-      auto dataFile = this->m_fileName.absoluteFilePath();
-      dataFile = dataFile.replace(".mhd", ".raw");
-
+      auto dataFile = this->m_fileName.path() + QDir::separator() + this->m_fileName.completeBaseName() + ".raw";
       QFile file{dataFile};
       if(!file.open(QIODevice::ReadWrite))
       {

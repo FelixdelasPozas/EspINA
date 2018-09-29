@@ -43,6 +43,10 @@ namespace ESPINA
   {
     namespace View
     {
+      /** \class ViewState
+       * \brief Contains and exposes the current View's state.
+       *
+       */
       class EspinaGUI_EXPORT ViewState
       : public QObject
       {
@@ -117,12 +121,12 @@ namespace ESPINA
         /** \brief Adds slice selector to all views sharing the view state
          *
          */
-        void addSliceSelectors(SliceSelectorSPtr selector, SliceSelectionType type);
+        void addSliceSelectors(GUI::Widgets::SliceSelectorSPtr selector, GUI::Widgets::SliceSelectionType type);
 
         /** \brief Removes slice selector from all views sharing the view state
          *
          */
-        void removeSliceSelectors(SliceSelectorSPtr selector);
+        void removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr selector);
 
         /** \brief Returns the list of active widgets in the scene actually.
          *
@@ -211,9 +215,9 @@ namespace ESPINA
 
         void widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
-        void sliceSelectorAdded(SliceSelectorSPtr selector, SliceSelectionType type);
+        void sliceSelectorAdded(GUI::Widgets::SliceSelectorSPtr selector, GUI::Widgets::SliceSelectionType type);
 
-        void sliceSelectorRemoved(SliceSelectorSPtr selector);
+        void sliceSelectorRemoved(GUI::Widgets::SliceSelectorSPtr selector);
 
         void resetViewCamera();
 

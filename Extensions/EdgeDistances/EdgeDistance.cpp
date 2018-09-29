@@ -66,7 +66,7 @@ Snapshot EdgeDistance::snapshot() const
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList EdgeDistance::availableInformation() const
+const SegmentationExtension::InformationKeyList EdgeDistance::availableInformation() const
 {
   InformationKeyList keys;
 
@@ -169,7 +169,7 @@ void EdgeDistance::updateDistances() const
 }
 
 //-----------------------------------------------------------------------------
-QString EdgeDistance::toolTipText() const
+const QString EdgeDistance::toolTipText() const
 {
   QString tooltip;
 

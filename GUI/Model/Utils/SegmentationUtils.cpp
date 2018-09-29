@@ -32,6 +32,7 @@
 #include <vtkDoubleArray.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SegmentationAdapterPtr ESPINA::GUI::Model::Utils::segmentationPtr(ItemAdapterPtr item)
@@ -101,4 +102,77 @@ ConnectionList ESPINA::GUI::Model::Utils::connections(vtkSmartPointer<vtkPolyDat
   }
 
   return connections;
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSPtr ESPINA::GUI::Model::Utils::axonOf(const SegmentationAdapterPtr synapse)
+{
+  SegmentationAdapterSPtr result = nullptr;
+
+  if(synapse)
+  {
+    auto model = synapse->model();
+    auto synapseSPtr = model->smartPointer(synapse);
+    if(synapseSPtr)
+    {
+      for(auto connection: model->connections(synapseSPtr))
+      {
+        if(connection.item2->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))
+        {
+          result = connection.item2;
+          break;
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+SegmentationAdapterSPtr ESPINA::GUI::Model::Utils::dendriteOf(const SegmentationAdapterPtr synapse)
+{
+  SegmentationAdapterSPtr result = nullptr;
+
+  if(synapse)
+  {
+    auto model = synapse->model();
+    auto synapseSPtr = model->smartPointer(synapse);
+    if(synapseSPtr)
+    {
+      for(auto connection: model->connections(synapseSPtr))
+      {
+        if(connection.item2->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
+        {
+          result = connection.item2;
+          break;
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+const QString ESPINA::GUI::Model::Utils::segmentationListNames(const SegmentationAdapterList& list)
+{
+  QString result;
+  for(auto segmentation: list)
+  {
+    if(segmentation != list.first())
+    {
+      result += (segmentation != list.last() ? ", ":" and ");
+    }
+
+    result += "'" + segmentation->data(Qt::DisplayRole).toString() + "'";
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+const QString ESPINA::GUI::Model::Utils::segmentationListNames(const SegmentationAdapterSList& list)
+{
+  return segmentationListNames(rawList(list));
 }

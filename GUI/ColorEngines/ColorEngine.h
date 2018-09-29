@@ -53,9 +53,9 @@ namespace ESPINA
       public:
         enum Components
         {
-          None         = 0x0,
-          Color        = 0x1,
-          Transparency = 0x2
+          None         = 0,
+          Color        = 1 << 0,
+          Transparency = 1 << 1
         };
         Q_DECLARE_FLAGS(Composition, Components)
 
@@ -108,6 +108,11 @@ namespace ESPINA
          *
          */
         virtual Composition supportedComposition() const = 0;
+
+        /** \brief Clones the color engine.
+         *
+         */
+        virtual ColorEngineSPtr clone() = 0;
 
       public slots:
         /** \brief Notifies Color Engine observers that it has been requested to be used

@@ -69,7 +69,7 @@ void SegmentationTags::onExtendedItemSet(Segmentation* item)
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList SegmentationTags::availableInformation() const
+const SegmentationExtension::InformationKeyList SegmentationTags::availableInformation() const
 {
   InformationKeyList keys;
 
@@ -79,7 +79,7 @@ SegmentationExtension::InformationKeyList SegmentationTags::availableInformation
 }
 
 //------------------------------------------------------------------------
-QString SegmentationTags::toolTipText() const
+const QString SegmentationTags::toolTipText() const
 {
   QString toolTip;
   auto tagList = tags();

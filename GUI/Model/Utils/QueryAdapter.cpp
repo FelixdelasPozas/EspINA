@@ -39,8 +39,6 @@ ChannelAdapterSList QueryAdapter::channels(SampleAdapterPtr sample)
   auto adaptedSample = sample->m_sample;
   auto model = sample->model();
 
-  ChannelAdapterSList adaptedChannels;
-
   return smartPointer(model, QueryRelations::channels(adaptedSample));
 }
 

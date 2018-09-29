@@ -424,6 +424,44 @@ QTableView::indicator:unchecked {
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="lockCF">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Current CF properties can be manually edited.</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="rsc/CountingFrame.qrc">
+             <normaloff>:/unlock.svg</normaloff>:/unlock.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>22</width>
+             <height>22</height>
+            </size>
+           </property>
+           <property name="flat">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QPushButton" name="resetCF">
            <property name="enabled">
             <bool>false</bool>

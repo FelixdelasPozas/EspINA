@@ -33,6 +33,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations::Managers;
 
 // BEGIN DEBUG Only
@@ -329,8 +330,10 @@ void SeedGrowSegmentationRefineWidget::onROIChanged()
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onDiscardROIModifications()
 {
+  WaitingCursor cursor;
+
   auto undoStack = getUndoStack();
-  undoStack->beginMacro(tr("Discard ROI modifications"));
+  undoStack->beginMacro(tr("Discard ROI modifications of '%1'.").arg(m_segmentation->data().toString()));
   undoStack->push(new DiscardROIModificationsCommand(m_roiTools, m_filter));
   undoStack->endMacro();
 }
@@ -364,13 +367,17 @@ void SeedGrowSegmentationRefineWidget::modifyFilter()
     auto threshold = m_gui->threshold->value();
     auto radius = m_gui->closingRadius->value();
 
-    undoStack->beginMacro("Modify Grey Level Segmentation Parameters");
-    undoStack->push(new SGSFilterModification(m_segmentation, roi, threshold, radius));
-    undoStack->endMacro();
+    {
+      WaitingCursor cursor;
+
+      undoStack->beginMacro(tr("Modify grey level segmentation parameters of '%1'.").arg(m_segmentation->data().toString()));
+      undoStack->push(new SGSFilterModification(m_segmentation, roi, threshold, radius));
+      undoStack->endMacro();
+    }
 
     if (m_filter->isTouchingROI())
     {
-      auto message = tr("New segmentation may be incomplete due to ROI restriction.");
+      auto message = tr("New segmentation may be incomplete due to ROI restrictions.");
 
       GUI::DefaultDialogs::InformationMessage(message, dialogTitle());
     }

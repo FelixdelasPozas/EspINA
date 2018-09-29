@@ -44,7 +44,7 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
   QStack<CategorySPtr> stack;
 
-  CategorySPtr parent;
+  CategorySPtr parent{nullptr};
 
   while (!stream.atEnd())
   {

@@ -38,7 +38,7 @@ namespace ESPINA
   : public QObject
   , public NeuroItem
   {
-    Q_OBJECT
+      Q_OBJECT
     public:
       /** \brief ViewItem class constructor.
        * \param[in] input input object smart pointer.
@@ -137,7 +137,7 @@ namespace ESPINA
       void outputModified();
 
     private:
-      InputSPtr m_input; /** input of the item. */
+      InputSPtr m_input;       /** input of the item. */
       bool m_isOutputModified; /** sticky bit         */
   };
 

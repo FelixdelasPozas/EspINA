@@ -28,6 +28,7 @@
 
 // Qt
 #include <QList>
+#include <QReadWriteLock>
 
 namespace ESPINA
 {
@@ -61,12 +62,32 @@ namespace ESPINA
          */
         virtual void remove(ColorEngineSPtr engine);
 
+        /** \brief Returns the list of active color engines in this color engine.
+         *
+         */
+        const QList<ColorEngineSPtr> activeEngines() const;
+
+        /** \brief Returns the list of registered color engines within this color engine.
+         *
+         */
+        const QList<ColorEngineSPtr> availableEngines() const;
+
+        /** \brief Returns the engine with the given id or nullptr if not registered in this engine.
+         *
+         */
+        const ColorEngineSPtr getEngine(const QString &engineId);
+
+        virtual ColorEngineSPtr clone()
+        { return std::make_shared<MultiColorEngine>(); }
+
       private slots:
         void onColorEngineActivated(bool active);
 
       private:
-        QList<ColorEngine *>   m_activeEngines;
-        QList<ColorEngineSPtr> m_availableEngines;
+        mutable QReadWriteLock m_lock;             /** protection mutex.               */
+
+        QList<ColorEngine *>   m_activeEngines;    /** list of active engines.         */
+        QList<ColorEngineSPtr> m_availableEngines; /** list of all registered engines. */
       };
     }
   }

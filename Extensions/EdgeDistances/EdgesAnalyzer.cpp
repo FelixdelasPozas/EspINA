@@ -54,7 +54,7 @@ EdgesAnalyzer::~EdgesAnalyzer()
 //------------------------------------------------------------------------
 void EdgesAnalyzer::run()
 {
-  auto volume = readLockVolume(m_extension->m_extendedItem->output());
+  auto volume = readLockVolume(m_extension->m_extendedItem->output(), DataUpdatePolicy::Ignore);
 
   m_useDistanceToBounds = 0;
   m_bgIntensity         = 0;

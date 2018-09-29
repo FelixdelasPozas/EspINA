@@ -23,11 +23,8 @@
 #define APP_TOOLGROUPS_ANALYZE_REPORTS_ADJACENCYMATRIXREPORT_H_
 
 // ESPINA
-#include <GUI/Types.h>
+#include <Support/Context.h>
 #include <Support/Report.h>
-
-// Qt
-#include <QString>
 
 namespace ESPINA
 {

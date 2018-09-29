@@ -77,17 +77,23 @@ State CountingFrameExtension::state() const
   {
     Nm inclusion[3], exclusion[3];
     cf->margins(inclusion, exclusion);
-    // Id,Type,Constraint,Left, Top, Front, Right, Bottom, Back
-    state += QString("%1%2,%3,%4,%5,%6,%7,%8,%9,%10").arg(br)
-                                                     .arg(cf->id())
-                                                     .arg(cf->cfType())
-                                                     .arg(cf->categoryConstraint())
-                                                     .arg(inclusion[0])
-                                                     .arg(inclusion[1])
-                                                     .arg(inclusion[2])
-                                                     .arg(exclusion[0])
-                                                     .arg(exclusion[1])
-                                                     .arg(exclusion[2]);
+    // Id,Type,Constraint
+    state += QString("%1%2,%3,%4,").arg(br)
+                                   .arg(cf->id())
+                                   .arg(static_cast<int>(cf->cfType()))
+                                   .arg(cf->categoryConstraint());
+
+    // Left, Top, Front, Right, Bottom, Back
+    state += QString("%1,%2,%3,%4,%5,%6,").arg(inclusion[0])
+                                          .arg(inclusion[1])
+                                          .arg(inclusion[2])
+                                          .arg(exclusion[0])
+                                          .arg(exclusion[1])
+                                          .arg(exclusion[2]);
+
+    // Editable
+    state += QString("%1").arg(cf->isEditable() ? "true":"false");
+
     br = '\n';
   }
 
@@ -138,7 +144,9 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
     const int CONSTRAINT_POS      = 2;
     const int INCLUSION_START_POS = 3;
     const int EXCLUSION_START_POS = 6;
-    const int NUM_FIELDS          = 9;
+    const int EDITABLE_POS        = 9;
+    const int NUM_FIELDS_OLD      = 9;
+    const int NUM_FIELDS_NEW      = 10;
 
     if (!m_prevState.isEmpty())
     {
@@ -146,9 +154,10 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
       {
         auto params = cfEntry.split(",");
 
-        if (params.size() % NUM_FIELDS != 0)
+        if((params.size() != NUM_FIELDS_OLD) && (params.size() != NUM_FIELDS_NEW))
         {
           qWarning() << "Invalid CF Extension state:\n" << m_prevState;
+          qWarning() << tr("Invalid number of parameters '%1', expected '%2' (old) or '%3' (new)").arg(params.size()).arg(NUM_FIELDS_OLD).arg(NUM_FIELDS_NEW);
         }
         else
         {
@@ -163,7 +172,13 @@ void CountingFrameExtension::onExtendedItemSet(Channel *channel)
             exclusion[i] = params[EXCLUSION_START_POS + i].toDouble();
           }
 
-          createCountingFrame(type, inclusion, exclusion, params[CONSTRAINT_POS], params[ID_POS]);
+          bool editable = true;
+          if(params.size() == NUM_FIELDS_NEW)
+          {
+            editable = params[EDITABLE_POS].simplified().compare("true", Qt::CaseInsensitive) == 0;
+          }
+
+          createCountingFrame(type, inclusion, exclusion, params[CONSTRAINT_POS], params[ID_POS], editable);
         }
       }
     }
@@ -175,7 +190,8 @@ void CountingFrameExtension::createCountingFrame(CFType type,
                                                  Nm inclusion[3],
                                                  Nm exclusion[3],
                                                  const QString &constraint,
-                                                 const CountingFrame::Id &id)
+                                                 const CountingFrame::Id &id,
+                                                 const bool editable)
 {
   CountingFrameCreator::Data data;
   data.type       = type;
@@ -184,6 +200,7 @@ void CountingFrameExtension::createCountingFrame(CFType type,
   data.extension  = this;
   data.id         = (id.isEmpty() ? m_manager->defaultCountingFrameId(constraint) : id);
   data.constraint = constraint;
+  data.editable   = editable;
 
   auto task = std::make_shared<CountingFrameCreator>(data, m_scheduler, m_factory);
   task->setDescription(tr("Creating CF %1: %2").arg(id.isEmpty() ? "" : id).arg(m_extendedItem->name()));

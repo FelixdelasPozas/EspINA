@@ -80,7 +80,7 @@ int io_save_merged_analysis( int argc, char** argv )
   class DummyFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "DummyFilter";

@@ -74,6 +74,9 @@ namespace ESPINA
        */
       void addTool(Support::Widgets::ToolSPtr tool);
 
+      void setShortcut(const QKeySequence &shortcut);
+      void setToolTip(const QString &tip);
+
     public slots:
       /** \brief Aborts all the tools of the group.
        *

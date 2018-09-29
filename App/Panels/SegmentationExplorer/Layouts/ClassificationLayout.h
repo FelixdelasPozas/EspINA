@@ -31,6 +31,7 @@
 #include <QItemDelegate>
 
 class QUndoStack;
+class QMenu;
 
 namespace ESPINA
 {
@@ -81,7 +82,7 @@ namespace ESPINA
        * \brief Implements the sorting algorithm for segmentations in the layout.
        *
        */
-      class SortFilter
+      class ClassificationSortFilter
       : public SegmentationFilterProxyModel
       {
         protected:
@@ -94,8 +95,8 @@ namespace ESPINA
        * \param[in] context ESPINA context
        *
        */
-      explicit ClassificationLayout(CheckableTreeView              *view,
-                                    Support::Context               &context);
+      explicit ClassificationLayout(CheckableTreeView *view,
+                                    Support::Context  &context);
 
       /** \brief ClassificationLayout virtual destructor.
        *
@@ -107,11 +108,9 @@ namespace ESPINA
       virtual QAbstractItemModel* model() override
       { return m_sort.get(); }
 
-      virtual ItemAdapterPtr item(const QModelIndex& index) const override
-      { return itemAdapter(m_sort->mapToSource(index)); }
+      virtual ItemAdapterPtr item(const QModelIndex& index) const override;
 
-      virtual QModelIndex index(ItemAdapterPtr item) const override
-      { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
+      virtual QModelIndex index(ItemAdapterPtr item) const override;
 
       virtual void setFilterRegExp(const QString &regExp) override
       { m_sort->setFilterRegExp(regExp); }
@@ -125,6 +124,9 @@ namespace ESPINA
       virtual bool hasInformationToShow() override;
 
       virtual QItemDelegate *itemDelegate() const override;
+
+    public slots:
+      virtual void updateSelection();
 
     signals:
       void categorySelected(bool value);
@@ -177,10 +179,10 @@ namespace ESPINA
       void categoriesDropped(CategoryAdapterList subCategories,
                              CategoryAdapterPtr  category);
 
-      /** \brief Updated the controls of the UI based on the current selection.
-       *
+      /** \brief Changes the category of the selected segmentation.
+       * \param[in] index const QModelIndex referece of the item.
        */
-      void updateSelection();
+      void changeSegmentationsCategory(const QModelIndex &index);
 
     private:
       /** \brief Returns selected categories and/or segmentations.
@@ -246,14 +248,24 @@ namespace ESPINA
        */
       void displayCurrentIndex();
 
-    private:
-      std::shared_ptr<ClassificationProxy> m_proxy;                 /** proxy model.                              */
-      std::shared_ptr<SortFilter>          m_sort;                  /** model filter and sorter.                  */
+      /** \brief Helper method that returns a name with no collisions in the parent sub-categories.
+       * \param[in] category Category adapter pointer.
+       * \param[in] suggested Suggested category name.
+       *
+       */
+      const QString uniqueCategoryName(const CategoryAdapterPtr category, const QString &suggested);
 
-      CategoryItemDelegate                *m_delegate;              /** delegate item for categories.             */
+      /** \brief Helper method to create and insert an entry to change segmentations' category in the context menu.
+       * \param[in] menu Menu to add the entry as the first menu entry.
+       *
+       */
+      void createChangeCategoryMenu(QMenu *menu);
 
-      CategoryAdapterList                  m_selectedCategories;    /** list of currently selected categories.    */
-      SegmentationAdapterList              m_selectedSegmentations; /** list of currently selected segmentations. */
+      std::shared_ptr<ClassificationProxy>      m_proxy;                 /** proxy model.                              */
+      std::shared_ptr<ClassificationSortFilter> m_sort;                  /** model filter and sorter.                  */
+      CategoryItemDelegate                     *m_delegate;              /** delegate item for categories.             */
+      CategoryAdapterList                       m_selectedCategories;    /** list of currently selected categories.    */
+      SegmentationAdapterList                   m_selectedSegmentations; /** list of currently selected segmentations. */
   };
 
 } // namespace ESPINA

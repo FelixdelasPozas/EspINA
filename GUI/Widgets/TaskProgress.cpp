@@ -32,6 +32,7 @@
 
 using namespace ESPINA;
 
+//------------------------------------------------------------------------
 TaskProgress::TaskProgress(TaskSPtr task)
 : QWidget()
 , m_task(task)
@@ -64,17 +65,19 @@ void TaskProgress::showEvent(QShowEvent *event)
 //------------------------------------------------------------------------
 void TaskProgress::updateProgress(int value)
 {
+  QString text;
   if(m_task->isAborted())
   {
     emit aborted();
-    return;
+    text = tr("Stopping: ");
   }
 
-  QString text = m_task->description();
-
+  text += m_task->description();
   int valueWidth = m_progressBar->fontMetrics().width(": 100%");
   int charWidht  = m_progressBar->fontMetrics().width("A");
   int maxLength  = (m_progressBar->width() - valueWidth) / charWidht;
+
+  m_progressBar->setToolTip(text);
 
   if (text.length() > maxLength)
   {
@@ -84,7 +87,7 @@ void TaskProgress::updateProgress(int value)
   m_progressBar->setFormat(text + QString(": %1%").arg(value));
   m_progressBar->setValue(value);
 
-  if(value >= 100 || value <= 0 || m_task->hasFinished())
+  if(value >= 100 || value < 0 || m_task->hasFinished() || !m_task->isRunning())
   {
     if(isVisible()) hide();
   }
@@ -98,6 +101,6 @@ void TaskProgress::updateProgress(int value)
 void TaskProgress::onCancel()
 {
   m_task->abort();
-
-  emit aborted();
+  m_cancelButton->setEnabled(false);
+  updateProgress(m_task->progress());
 }

@@ -51,12 +51,13 @@ namespace ESPINA
       public:
         struct Data
         {
-          CountingFrameExtension *extension;    /** extension owner of the CF. */
-          CFType                  type;         /** type of the CF to create.  */
-          NmVector3               inclusion;    /** CF inclusion margins.      */
-          NmVector3               exclusion;    /** CF exclusion margins.      */
-          CountingFrame::Id       id;           /** CF identificator.          */
-          QString                 constraint;   /** CF constraint.             */
+          CountingFrameExtension *extension;    /** extension owner of the CF.            */
+          CFType                  type;         /** type of the CF to create.             */
+          NmVector3               inclusion;    /** CF inclusion margins.                 */
+          NmVector3               exclusion;    /** CF exclusion margins.                 */
+          CountingFrame::Id       id;           /** CF identificator.                     */
+          QString                 constraint;   /** CF constraint.                        */
+          bool                    editable;     /** true if editable and false otherwise. */
         };
 
       public:
@@ -71,7 +72,8 @@ namespace ESPINA
         /** \brief CountingFrameCreate class virtual destructor.
          *
          */
-        virtual ~CountingFrameCreator();
+        virtual ~CountingFrameCreator()
+        {};
 
         /** \brief Method to obtain the created counting frame.
          *

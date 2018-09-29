@@ -54,6 +54,13 @@ namespace QtModelUtils
    *
    */
   bool EspinaGUI_EXPORT isLeafNode(const QModelIndex &index);
+
+  /** \brief Writes all QObject properties to the debug stream.
+   * \param[in] obj Pointer to QObject to inspect its properties.
+   *
+   */
+  void EspinaGUI_EXPORT dumpQObjectProperties(QObject *obj);
+
 } // namespace QtModelUtils
 
 #endif // QTMODELUTILS_H

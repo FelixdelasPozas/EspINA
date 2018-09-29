@@ -26,11 +26,13 @@
 
 using namespace ESPINA;
 using namespace ESPINA::SkeletonToolsUtils;
+using namespace ESPINA::GUI::Representations::Settings;
 
 //--------------------------------------------------------------------
-SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler)
-: SkeletonWidget2D{handler}
+SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler, SkeletonPoolSettingsSPtr settings)
+: SkeletonWidget2D{handler, settings}
 , m_toolHandler   {handler}
+, m_settings      {settings}
 {
   connect(handler.get(), SIGNAL(signalConnection(const QString, const int, const Plane)),
           this,          SLOT(onConnectionSignaled(const QString, const int, const Plane)), Qt::DirectConnection);
@@ -40,13 +42,25 @@ SkeletonToolWidget2D::SkeletonToolWidget2D(SkeletonToolsEventHandlerSPtr handler
 }
 
 //--------------------------------------------------------------------
+SkeletonToolWidget2D::~SkeletonToolWidget2D()
+{
+  disconnect(m_toolHandler.get(), SIGNAL(signalConnection(const QString, const int, const Plane)),
+             this,                SLOT(onConnectionSignaled(const QString, const int, const Plane)));
+
+  disconnect(m_toolHandler.get(), SIGNAL(changeStrokeTo(const QString, const int, const Plane)),
+             this,                SLOT(onStrokeChangeSignaled(const QString, const int, const Plane)));
+}
+//--------------------------------------------------------------------
 void SkeletonToolWidget2D::onConnectionSignaled(const QString &category, const int strokeIndex, const Plane plane)
 {
   if(!m_widget || !m_view) return;
   auto view2d = view2D_cast(m_view);
   if(!view2d || view2d->plane() != plane) return;
 
-  m_widget->createConnection(STROKES[category].at(strokeIndex));
+  auto &strokes = STROKES[category];
+  auto index = std::min(std::max(0, strokeIndex), strokes.size() -1);
+
+  m_widget->createConnection(strokes.at(index));
 }
 
 //--------------------------------------------------------------------
@@ -56,7 +70,10 @@ void SkeletonToolWidget2D::onStrokeChangeSignaled(const QString &category, const
   auto view2d = view2D_cast(m_view);
   if(!view2d || view2d->plane() != plane) return;
 
-  m_widget->changeStroke(STROKES[category].at(strokeIndex));
+  auto &strokes = STROKES[category];
+  auto index = std::min(std::max(0, strokeIndex), strokes.size() -1);
+
+  m_widget->changeStroke(strokes.at(index));
 }
 
 //--------------------------------------------------------------------
@@ -68,7 +85,7 @@ bool SkeletonToolWidget2D::isStartNode(const NmVector3 &point)
 }
 
 //--------------------------------------------------------------------
-GUI::Representations::Managers::TemporalRepresentation2DSPtr ESPINA::SkeletonToolWidget2D::cloneImplementation()
+GUI::Representations::Managers::TemporalRepresentation2DSPtr SkeletonToolWidget2D::cloneImplementation()
 {
-  return std::make_shared<SkeletonToolWidget2D>(m_toolHandler);
+  return std::make_shared<SkeletonToolWidget2D>(m_toolHandler, m_settings);
 }

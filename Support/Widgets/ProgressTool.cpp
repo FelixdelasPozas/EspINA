@@ -176,7 +176,18 @@ QString ProgressTool::positionName() const
 //----------------------------------------------------------------------------
 void ProgressTool::setToolTip(const QString &tooltip)
 {
-  m_action->setActionToolTip(tooltip);
+  QString shortcutText;
+  for(auto cut: shortcuts())
+  {
+    auto singleShortcutText = tr(" (%1)").arg(cut.toString());
+    if(tooltip.contains(singleShortcutText)) singleShortcutText.clear();
+    shortcutText += singleShortcutText;
+  }
+
+  // do not add if already there.
+  if(!shortcutText.isEmpty() && tooltip.endsWith(shortcutText)) shortcutText.clear();
+
+  m_action->setActionToolTip(tooltip + shortcutText);
 }
 
 //----------------------------------------------------------------------------
@@ -321,6 +332,8 @@ void ProgressTool::setShortcut(QKeySequence keySequence)
   if(!m_shortcutSequences.contains(keySequence))
   {
     m_shortcutSequences << keySequence;
+
+    setToolTip(m_action->toolTip());
   }
 }
 

@@ -69,20 +69,21 @@ namespace ESPINA
           QString printElapsed() const;
 
         private:
+          /** \brief Returns "X hours, Y minutes, Z seconds" formated time units.
+           *
+           * \param[in] time current time.
+           */
+          QString prettyPrint(std::chrono::milliseconds::rep endTime) const;
+
           /** \brief Returns the adequate string for the templated time units.
            *
            */
           QString printUnits() const;
 
-          /** \brief Returns "X hours, Y minutes, Z seconds" formated time units.
-           *
-           * \param[in] time current time.
-           */
-          QString prettyPrint(std::chrono::high_resolution_clock::time_point time) const;
-
         private:
           const QString m_id; /** Timer identifier */
           std::chrono::high_resolution_clock::time_point m_startTime; /** Timer creation time. */
+
       };
 
       //------------------------------------------------------------------------
@@ -122,41 +123,17 @@ namespace ESPINA
         auto endTime = std::chrono::high_resolution_clock::now();
 
         QString message = m_id + " execution time: ";
-        if (std::is_same<TimeUnits, std::chrono::milliseconds>::value)
-        {
-          message += prettyPrint(endTime);
-        }
-        else
-        {
-          auto number = std::chrono::duration_cast<TimeUnits>(endTime - m_startTime).count();
-          message += QString::number(number) + ' ' + printUnits();
-        }
+
+        auto duration = std::chrono::duration_cast<TimeUnits>(endTime - m_startTime).count();
+        message += (std::is_same<TimeUnits, std::chrono::milliseconds>::value)? prettyPrint(duration) : QString::number(duration) + ' ' + printUnits();
 
         return message;
       }
 
       //------------------------------------------------------------------------
       template<typename TimeUnits>
-      inline QString BlockTimer<TimeUnits>::printUnits() const
+      inline QString BlockTimer<TimeUnits>::prettyPrint(std::chrono::milliseconds::rep timeMilis) const
       {
-        if (std::is_same<typename TimeUnits::period, std::chrono::nanoseconds::period>::value) return "nanoseconds";
-
-        if (std::is_same<typename TimeUnits::period, std::chrono::microseconds::period>::value) return "microseconds";
-
-        if (std::is_same<typename TimeUnits::period, std::chrono::seconds::period>::value) return "seconds";
-
-        if (std::is_same<typename TimeUnits::period, std::chrono::minutes::period>::value) return "minutes";
-
-        if (std::is_same<typename TimeUnits::period, std::chrono::hours::period>::value) return "hours";
-
-        return "unknown units";
-      }
-
-      //------------------------------------------------------------------------
-      template<typename TimeUnits>
-      inline QString BlockTimer<TimeUnits>::prettyPrint(std::chrono::high_resolution_clock::time_point time) const
-      {
-        auto timeMilis = std::chrono::duration_cast<std::chrono::milliseconds>(time - m_startTime).count();
         auto timeSeconds = timeMilis/1000;
 
         auto hours = timeSeconds / 3600;
@@ -172,6 +149,25 @@ namespace ESPINA
         if (message.endsWith(", ")) message.chop(2);
 
         return message;
+      }
+
+      //------------------------------------------------------------------------
+      template<typename TimeUnits>
+      inline QString BlockTimer<TimeUnits>::printUnits() const
+      {
+        if (std::is_same<typename TimeUnits::period, std::chrono::nanoseconds::period>::value) return "nanoseconds";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::microseconds::period>::value) return "microseconds";
+
+        // std::chrono::milliseconds used for prettyPrint() function
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::seconds::period>::value) return "seconds";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::minutes::period>::value) return "minutes";
+
+        if (std::is_same<typename TimeUnits::period, std::chrono::hours::period>::value) return "hours";
+
+        return "unknown units";
       }
 
     } // namespace Utils

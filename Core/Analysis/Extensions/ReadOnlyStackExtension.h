@@ -75,13 +75,13 @@ namespace ESPINA
         virtual Snapshot snapshot() const
         { return Snapshot(); }
 
-        virtual TypeList dependencies() const
+        virtual const TypeList dependencies() const
         { return TypeList(); }
 
-        virtual InformationKeyList availableInformation() const
+        virtual const InformationKeyList availableInformation() const
         { return InformationKeyList(); }
 
-        virtual QString toolTipText() const
+        virtual const QString toolTipText() const
         { return tr("%1 as Read-Only").arg(m_type); }
 
       protected:

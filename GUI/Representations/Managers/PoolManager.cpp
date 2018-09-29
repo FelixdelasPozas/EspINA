@@ -50,11 +50,12 @@ void PoolManager::displayRepresentations(const FrameCSPtr frame)
     {
       for (auto actor: itemActors)
       {
-        setFlag(HAS_ACTORS, true);
         m_view->addActor(actor);
         m_viewActors << actor;
       }
     }
+
+    setFlag(HAS_ACTORS, !m_viewActors.isEmpty());
   }
 }
 

@@ -32,13 +32,14 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI::Model::Utils;
 
-typedef QSet<ItemAdapterPtr > SegmentationSet;
+using SegmentationSet = QSet<ItemAdapterPtr>;
 
-enum DragSourceEnum {
-  NoSource           = 0x0,
-  SegmentationSource = 0x1,
-  CategorySource     = 0x2,
-  InvalidSource      = 0x3
+enum DragSourceEnum
+{
+  NoSource           = 0,
+  SegmentationSource = 1 << 0,
+  CategorySource     = 1 << 1,
+  InvalidSource      = SegmentationSource|CategorySource
 };
 Q_DECLARE_FLAGS(DragSource, DragSourceEnum);
 
@@ -64,6 +65,8 @@ ClassificationProxy::~ClassificationProxy()
 //------------------------------------------------------------------------
 void ClassificationProxy::setSourceModel(ModelAdapterSPtr sourceModel)
 {
+  if(m_model == sourceModel) return;
+
   if (m_model)
   {
     disconnect(m_model.get(), SIGNAL(rowsInserted(const QModelIndex&, int, int)),
@@ -119,25 +122,28 @@ QVariant ClassificationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
   auto item = itemAdapter(proxyIndex);
 
-  if (isSegmentation(item)) return item->data(role);
-
-  if (isCategory(item))
+  if(item)
   {
-    auto category = toProxyPtr(toCategoryAdapterPtr(item));
+    if (isSegmentation(item)) return item->data(role);
 
-    if (Qt::DisplayRole == role)
+    if (isCategory(item))
     {
-      const int totalSegs = numSegmentations(category, true);
+      auto category = toProxyPtr(toCategoryAdapterPtr(item));
 
-      return item->data(role).toString() + categorySuffix(totalSegs);
-    }
-    else if (Qt::CheckStateRole == role)
-    {
-      return m_categoryVisibility[category];
-    }
-    else
-    {
-      return item->data(role);
+      if (Qt::DisplayRole == role)
+      {
+        const int totalSegs = numSegmentations(category, true);
+
+        return item->data(role).toString() + categorySuffix(totalSegs);
+      }
+      else if (Qt::CheckStateRole == role)
+      {
+        return m_categoryVisibility[category];
+      }
+      else
+      {
+        return item->data(role);
+      }
     }
   }
 
@@ -239,32 +245,36 @@ QModelIndex ClassificationProxy::parent(const QModelIndex& child) const
   auto childItem = itemAdapter(child);
 
   QModelIndex parent;
-  switch (childItem->type())
-  {
-    case ItemAdapter::Type::CATEGORY:
-    {
-      auto childCategory        = toCategoryAdapterPtr(childItem);
-      auto sourceParentCategory = childCategory->parent();
-      auto proxyParentCategory  = toProxyPtr(sourceParentCategory);
 
-      parent = categoryIndex(proxyParentCategory);
-      break;
-    }
-    case ItemAdapter::Type::SEGMENTATION:
+  if(childItem)
+  {
+    switch (childItem->type())
     {
-      for(auto category : m_categorySegmentations.keys())
+      case ItemAdapter::Type::CATEGORY:
       {
-        if (m_categorySegmentations[category].contains(childItem))
-        {
-          parent = categoryIndex(category);
-          break;
-        }
+        auto childCategory        = toCategoryAdapterPtr(childItem);
+        auto sourceParentCategory = childCategory->parent();
+        auto proxyParentCategory  = toProxyPtr(sourceParentCategory);
+
+        parent = categoryIndex(proxyParentCategory);
+        break;
       }
-      break;
+      case ItemAdapter::Type::SEGMENTATION:
+      {
+        for(auto category : m_categorySegmentations.keys())
+        {
+          if (m_categorySegmentations[category].contains(childItem))
+          {
+            parent = categoryIndex(category);
+            break;
+          }
+        }
+        break;
+      }
+      default:
+        Q_ASSERT(false);
+        break;
     }
-    default:
-      Q_ASSERT(false);
-      break;
   }
 
   return parent;
@@ -364,6 +374,8 @@ Qt::ItemFlags ClassificationProxy::flags(const QModelIndex& index) const
   if (index.isValid())
   {
     auto sourceItem = itemAdapter(index);
+    if(!sourceItem) return Qt::ItemFlags();
+
     if (isCategory(sourceItem))
     {
       indexFlags = indexFlags | Qt::ItemIsDragEnabled | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
@@ -672,11 +684,11 @@ void ClassificationProxy::sourceRowsInserted(const QModelIndex& sourceParent, in
   }
   else
   {
-    ItemAdapterPtr parentItem = itemAdapter(sourceParent);
-    if (isCategory(parentItem))
+    auto parentItem = itemAdapter(sourceParent);
+    if(parentItem && isCategory(parentItem))
     {
-      beginInsertRows(mapFromSource(sourceParent), start, end);
-      for (int row = start; row <= end; row++)
+      beginInsertRows(mapFromSource(sourceParent), start,end);
+      for(int row = start; row <= end; row++)
       {
         auto sourceItem           = itemAdapter(m_model->index(row, 0, sourceParent));
         auto sourceCategory       = toCategoryAdapterPtr(sourceItem);
@@ -685,7 +697,7 @@ void ClassificationProxy::sourceRowsInserted(const QModelIndex& sourceParent, in
         auto proxyParentCategory  = toProxyPtr(sourceParentCategory);
         auto proxyCategory        = createProxyCategory(sourceCategory);
 
-        if (sourceParentCategory != m_model->classification()->root().get())
+        if(sourceParentCategory != m_model->classification()->root().get())
         {
           m_numCategories[proxyParentCategory] += 1;
         }

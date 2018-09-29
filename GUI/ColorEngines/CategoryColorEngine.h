@@ -42,7 +42,7 @@ namespace ESPINA
          *
          */
         explicit CategoryColorEngine()
-        : ColorEngine("CategoryColorEngine", tr("Category"))
+        : ColorEngine("CategoryColorEngine", tr("Color by category."))
         {}
 
         virtual QColor color(ConstSegmentationAdapterPtr seg);
@@ -51,6 +51,9 @@ namespace ESPINA
 
         virtual ColorEngine::Composition supportedComposition() const
         { return ColorEngine::Color; }
+
+        virtual ColorEngineSPtr clone()
+        { return std::make_shared<CategoryColorEngine>(); }
 
       protected slots:
         /** \brief Updates the internal color tables when a category color changes.

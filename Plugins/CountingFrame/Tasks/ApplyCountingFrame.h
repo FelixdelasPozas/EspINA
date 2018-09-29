@@ -66,7 +66,7 @@ namespace ESPINA
         /** \brief ApplySegmentationCountingFrame class virtual destructor.
          *
          */
-        ~ApplySegmentationCountingFrame()
+        virtual ~ApplySegmentationCountingFrame()
         {};
 
       signals:

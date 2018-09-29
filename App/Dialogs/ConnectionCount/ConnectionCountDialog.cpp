@@ -78,7 +78,7 @@ void ConnectionCountDialog::onItemDoubleClicked(QListWidgetItem *item)
 //--------------------------------------------------------------------
 void ConnectionCountDialog::connectSignals()
 {
-  for(auto list: {m_fullList, m_halfList, m_noneList})
+  for(auto list: {m_fullList, m_halfList, m_noneList, m_invalidList})
   {
     connect(list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(onItemDoubleClicked(QListWidgetItem *)));
   }
@@ -141,14 +141,16 @@ void ConnectionCountDialog::addSegmentationToLists(const SegmentationAdapterSPtr
     default:
       // more than 2 connections? show the error.
       {
-        item->setIcon(QIcon("./espina/warning.svg"));
+        item->setIcon(QIcon(":/espina/warning.svg"));
+        item->setBackgroundColor(Qt::red);
+        item->setTextColor(Qt::white);
         auto text = tr("%1 has more than two connections!").arg(name);
         for(auto connection: connections)
         {
           text += tr("\nConnected to: %1").arg(connection.item2->data().toString());
         }
         item->setToolTip(text);
-        m_fullList->addItem(item);
+        m_invalidList->addItem(item);
       }
       break;
   }
@@ -160,11 +162,13 @@ void ConnectionCountDialog::updateLabels()
   auto full = m_fullList->model()->rowCount();
   auto half = m_halfList->model()->rowCount();
   auto none = m_noneList->model()->rowCount();
+  auto invalid = m_invalidList->model()->rowCount();
 
   m_noneLabel->setText(tr("<b>%1</b>").arg(QString::number(none)));
   m_halfLabel->setText(tr("<b>%1</b>").arg(QString::number(half)));
   m_fullLabel->setText(tr("<b>%1</b>").arg(QString::number(full)));
-  m_totalLabel->setText(tr("<b>%1</b>").arg(QString::number(full + half + none)));
+  m_invalidLabel->setText(tr("<b>%1</b>").arg(QString::number(invalid)));
+  m_totalLabel->setText(tr("<b>%1</b>").arg(QString::number(full + half + none + invalid)));
 }
 
 //--------------------------------------------------------------------
@@ -173,6 +177,7 @@ void ConnectionCountDialog::updateList()
   m_noneList->clear();
   m_halfList->clear();
   m_fullList->clear();
+  m_invalidList->clear();
 
   for(auto seg: getModel()->segmentations())
   {
@@ -183,4 +188,16 @@ void ConnectionCountDialog::updateList()
   }
 
   updateLabels();
+
+  updateInvalidVisibility();
+}
+
+//--------------------------------------------------------------------
+void ConnectionCountDialog::updateInvalidVisibility()
+{
+  auto isVisible = m_invalidList->model()->rowCount() != 0;
+
+  m_invalidList->setVisible(isVisible);
+  m_invalidLabel->setVisible(isVisible);
+  m_invalidTextLabel->setVisible(isVisible);
 }

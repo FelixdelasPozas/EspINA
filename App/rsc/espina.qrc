@@ -3,8 +3,6 @@
     <file>accept.png</file>
     <file>active_stack.svg</file>
     <file>add.svg</file>
-    <file>add_child.svg</file>
-    <file>apply.svg</file>
     <file>apposition_surface.svg</file>
     <file>best_pixel_selector.svg</file>
     <file>brush_2D.svg</file>
@@ -15,11 +13,10 @@
     <file>centerIn.png</file>
     <file>cesvima.svg</file>
     <file>checklist.svg</file>
+    <file>morphological_close.svg</file>
     <file>color_engine_switch_category.svg</file>
     <file>color_engine_switch_number.svg</file>
     <file>color_engine_switch_property.svg</file>
-    <file>connection.svg</file>
-    <file>connectionTool.svg</file>
     <file>create_category.svg</file>
     <file>create_seg_from_parts.svg</file>
     <file>create_subcategory.svg</file>
@@ -27,7 +24,6 @@
     <file>cross-minus.png</file>
     <file>cross-plus.png</file>
     <file>crossRegion.svg</file>
-    <file>dashed-line.svg</file>
     <file>database.png</file>
     <file>display_crosshairs.svg</file>
     <file>display_segmentation_contours.svg</file>
@@ -39,7 +35,6 @@
     <file>display_stacks.svg</file>
     <file>display_view_thumbnail.svg</file>
     <file>display_view_scalebar.svg</file>
-    <file>display_volume.svg</file>
     <file>down.svg</file>
     <file>drawing_contour.svg</file>
     <file>edges-image.png</file>
@@ -52,38 +47,32 @@
     <file>export_scene.svg</file>
     <file>exit.svg</file>
     <file>file_add.svg</file>
-    <file>file_auto_save.svg</file>
     <file>file_open.svg</file>
-    <file>file_open_classification.svg</file>
+    <file>file_auto_save.svg</file>
     <file>file_save.svg</file>
     <file>file_save_as.svg</file>
-    <file>file_save_classification.svg</file>
-    <file>fill_holes.svg</file>
     <file>fill_holes_2D.svg</file>
+    <file>fill_holes.svg</file>
     <file>from_slice.svg</file>
-    <file>fullscreen.svg</file>
     <file>grey_level_segmentation.svg</file>
-    <file>GPU.svg</file>
     <file>hide_all.svg</file>
     <file>info.svg</file>
     <file>leftIn.png</file>
     <file>leftOut.png</file>
-    <file>line.svg</file>
-    <file>logical_union.svg</file>
-    <file>logical_difference.svg</file>
-    <file>logical_difference_erase.svg</file>
     <file>manual_edition.svg</file>
     <file>manual_segmentation.svg</file>
     <file>measure_length.svg</file>
-    <file>measure_selection.svg</file>
-    <file>morphological_close.svg</file>
+    <file>measure_selection.svg</file>    
     <file>morphological_dilate.svg</file>
     <file>morphological_erode.svg</file>
-    <file>morphological_open.svg</file>
+    <file>logical_union.svg</file>
+    <file>logical_difference.svg</file>
+    <file>logical_difference_erase.svg</file>
     <file>multi_stroke.svg</file>
+    <file>tag_create.svg</file>
     <file>next_segmentation.svg</file>
-    <file>next_tubular.svg</file>
     <file>note.svg</file>
+    <file>morphological_open.svg</file>
     <file>panel_3d.svg</file>
     <file>panel_xz.svg</file>
     <file>panel_yz.svg</file>
@@ -115,11 +104,9 @@
     <file>show_partially.svg</file>
     <file>show_planes.svg</file>
     <file>single_stroke.svg</file>
-    <file>skeletonInspector.svg</file>
-    <file>slice_interpolation.svg</file>
     <file>snapshot_scene.svg</file>
     <file>tag.svg</file>
-    <file>tag_create.svg</file>
+    <file>apply.svg</file>
     <file>to_slice.svg</file>
     <file>toolgroup_analyze.svg</file>
     <file>toolgroup_explore.svg</file>
@@ -130,8 +117,6 @@
     <file>toolgroup_visualize.svg</file>
     <file>trash-full.svg</file>
     <file>tubular.svg</file>
-    <file>tubular_id.svg</file>
-    <file>tubular_move.svg</file>
     <file>up.svg</file>
     <file>upm.gif</file>
     <file>view-refresh.svg</file>
@@ -145,5 +130,26 @@
     <file>zoom_cursor.png</file>
     <file>zoom_region.svg</file>
     <file>zoom_tools.png</file>
+    <file>file_open_classification.svg</file>
+    <file>file_save_classification.svg</file>
+    <file>fullscreen.svg</file>
+    <file>GPU.svg</file>
+    <file>display_volume.svg</file>
+    <file>next_tubular.svg</file>
+    <file>tubular_id.svg</file>
+    <file>tubular_move.svg</file>
+    <file>connectionTool.svg</file>
+    <file>connection.svg</file>
+    <file>line.svg</file>
+    <file>dashed-line.svg</file>
+    <file>skeletonInspector.svg</file>
+    <file>Logo_URJC.svg</file>
+    <file>truncate.svg</file>
+    <file>cross-scissors.png</file>
+    <file>domains.svg</file>
+    <file>skeletonColors.svg</file>
+    <file>log.svg</file>
+    <file>clipboard_copy.svg</file>
+    <file>slice_interpolation.svg</file>
   </qresource>
 </RCC>

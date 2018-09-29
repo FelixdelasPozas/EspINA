@@ -115,6 +115,8 @@ bool VolumetricStreamReader::needUpdate() const
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute()
 {
+  if(!needUpdate()) return;
+
   m_changedStreaming = false;
 
   if (!m_fileName.exists() || !m_fileName.isReadable())
@@ -209,13 +211,9 @@ void VolumetricStreamReader::execute()
   {
     if(!canExecute()) return;
 
-    auto fileName = m_fileName.absoluteFilePath().toUtf8();
-    fileName.detach();
-    auto filename = fileName.constData();
-
     try
     {
-      image = readVolumeWithProgress<itkVolumeType>(filename, this);
+      image = readVolumeWithProgress<itkVolumeType>(m_fileName.absoluteFilePath(), this);
       if(!canExecute()) return;
     }
     catch(const itk::ExceptionObject &e)

@@ -39,7 +39,7 @@ using namespace ESPINA::CF;
 //-----------------------------------------------------------------------------
 CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *parent)
 : QDialog  {parent}
-, m_type   {CF::ADAPTIVE}
+, m_type   {CFType::ADAPTIVE}
 , m_proxy  {std::make_shared<ChannelProxy>(context.model())}
 , m_stack  {nullptr}
 , m_model  {context.model()}
@@ -78,9 +78,14 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *p
   categorySelector->setModel(model.get());
   categorySelector->setRootModelIndex(model->classificationRoot());
 
-  for(auto channel: model->channels())
+  auto activeStack = context.viewState().selection()->activeChannel();
+  auto activeIndex = 0;
+  auto stacks      = model->channels();
+  for(int i = 0; i < stacks.size(); ++i)
   {
-    m_stackNames << channel->data().toString();
+    auto stack = stacks.at(i);
+    m_stackNames << stack->data().toString();
+    if(stack.get() == activeStack) activeIndex = i;
   }
   auto stackModel = new QStringListModel(m_stackNames);
   channelSelector->setModel(stackModel);
@@ -92,14 +97,15 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *p
           this,            SLOT(channelSelected()));
 
   // use first channel as default to force CF type selection using edges extension.
-  channelSelector->setCurrentIndex(0);
+  // 2018-06-12 Changed to active stack by default.
+  channelSelector->setCurrentIndex(std::min(activeIndex, stacks.size()-1));
   channelSelected();
 }
 
 //------------------------------------------------------------------------
 void CFTypeSelectorDialog::setType(CFType type)
 {
-  if (ORTOGONAL == type)
+  if (CFType::ORTOGONAL == type)
   {
     orthogonalRadio->setChecked(true);
   }
@@ -157,11 +163,11 @@ void CFTypeSelectorDialog::channelSelected()
     auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
     if (edgesExtension->useDistanceToBounds())
     {
-      setType(CF::ORTOGONAL);
+      setType(CFType::ORTOGONAL);
     }
     else
     {
-      setType(CF::ADAPTIVE);
+      setType(CFType::ADAPTIVE);
     }
   }
 }
@@ -184,5 +190,5 @@ void CFTypeSelectorDialog::radioChanged(bool value)
   thresholdBox  ->setEnabled(adaptiveChecked);
   thresholdLabel->setEnabled(adaptiveChecked);
 
-  m_type = adaptiveRadio->isChecked()?ADAPTIVE:ORTOGONAL;
+  m_type = adaptiveRadio->isChecked()? CFType::ADAPTIVE : CFType::ORTOGONAL;
 }

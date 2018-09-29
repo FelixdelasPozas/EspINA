@@ -43,9 +43,10 @@ using SliceRepresentationYZ = vtkCountingFrameRepresentationYZ;
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
-: Plane{ESPINA::Plane::XY}
-, Slice{0}
-, Depth{0}
+: Plane   {ESPINA::Plane::XY}
+, Slice   {0}
+, Depth   {0}
+, Editable{true}
 {
   this->WidgetState = vtkCountingFrameSliceWidget::Start;
   this->ManagesCursor = 1;
@@ -107,6 +108,7 @@ vtkCountingFrameSliceWidget::~vtkCountingFrameSliceWidget()
 void vtkCountingFrameSliceWidget::SelectAction(vtkAbstractWidget *w)
 {
   auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
@@ -149,6 +151,7 @@ void vtkCountingFrameSliceWidget::SelectAction(vtkAbstractWidget *w)
 void vtkCountingFrameSliceWidget::TranslateAction(vtkAbstractWidget *w)
 {
   auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
@@ -189,6 +192,7 @@ void vtkCountingFrameSliceWidget::TranslateAction(vtkAbstractWidget *w)
 void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
 {
   auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
 
   // compute some info we need for all cases
   int X = self->Interactor->GetEventPosition()[0];
@@ -223,32 +227,41 @@ void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetCursor(int state)
 {
-  switch (state)
+  if(!Editable)
   {
-    case SliceRepresentation::Translating:
-      this->RequestCursorShape(VTK_CURSOR_SIZEALL);
-      break;
-    case SliceRepresentation::MoveLeft:
-    case SliceRepresentation::MoveRight:
-      this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-      break;
-    case SliceRepresentation::MoveTop:
-    case SliceRepresentation::MoveBottom:
-      this->RequestCursorShape(VTK_CURSOR_SIZENS);
-      break;
-    case SliceRepresentation::Outside:
-      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-      break;
-    default:
-      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-      break;
-  };
+    this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+  }
+  else
+  {
+    switch (state)
+    {
+      case SliceRepresentation::Translating:
+        this->RequestCursorShape(VTK_CURSOR_SIZEALL);
+        break;
+      case SliceRepresentation::MoveLeft:
+      case SliceRepresentation::MoveRight:
+        this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+        break;
+      case SliceRepresentation::MoveTop:
+      case SliceRepresentation::MoveBottom:
+        this->RequestCursorShape(VTK_CURSOR_SIZENS);
+        break;
+      case SliceRepresentation::Outside:
+        this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+        break;
+      default:
+        this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+        break;
+    };
+  }
 }
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 {
   auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
+
   auto rep = SliceRepresentation::SafeDownCast(self->WidgetRep);
 
   if (self->WidgetState == vtkCountingFrameSliceWidget::Start)

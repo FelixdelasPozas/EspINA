@@ -45,7 +45,7 @@ namespace ESPINA
     public:
       static const Filter::Type AS_FILTER; /** apposition surface filter signature. */
 
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
     private:
@@ -81,11 +81,16 @@ namespace ESPINA
 
     virtual FilterFactorySList filterFactories() const;
 
-    /** \brief Returns true if the segmentation given is of a correct category.
-     * \param[in] segmentation segmentation to check for correct category.
+    /** \brief Returns true if the segmentation given is of Synapse category and valid data.
+     * \param[in] segmentation segmentation to check for Synapse category.
      *
      */
     static bool isValidSynapse(SegmentationAdapterPtr segmentation);
+
+    /** \brief Returns true if the segmentation given is of SAS category and has valid data.
+     * \param[in] segmentation segmentation to check for being a SAS.
+     */
+    static bool isValidSAS(SegmentationAdapterPtr segmentation);
 
     /** \brief Returs the apposition surface segmentation corresponding to the given segmentation.
      * \param[in] segmentation to search for it's corresponding SAS.

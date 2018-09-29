@@ -1,8 +1,7 @@
 /*
 
-    Copyright (C) 2014
-    Jorge Pe�a Pastor<jpena@cesvima.upm.es>,
-    Felix de las Pozas<fpozas@cesvima.upm.es>
+    Copyright (C) 2014    Jorge Peña Pastor <jpena@cesvima.upm.es>,
+                          Felix de las Pozas <fpozas@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -22,14 +21,15 @@
 
 // ESPINA
 #include "ModelUtils.h"
-
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QString>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Model;
 
 //------------------------------------------------------------------------

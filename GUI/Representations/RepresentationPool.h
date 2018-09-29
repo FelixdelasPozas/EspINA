@@ -90,6 +90,7 @@ namespace ESPINA
   };
 
   using PoolSettingsSPtr = std::shared_ptr<PoolSettings>;
+  using PoolSettingsSList = QList<PoolSettingsSPtr>;
 
   class EspinaGUI_EXPORT RepresentationPool
   : public QObject

@@ -27,13 +27,13 @@
 #include <vtkGlyphSource2D.h>
 #include <vtkSphereSource.h>
 #include <vtkPolyData.h>
-#include <vtkFollower.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkPoints.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkActor.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
@@ -43,6 +43,7 @@ using namespace ESPINA::GUI::Representations::Managers;
 ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr model)
 : RepresentationManager{flags, flags.testFlag(ESPINA::VIEW_2D) ? RepresentationManager::NEEDS_ACTORS : RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
 , m_model              {model}
+, m_object             {nullptr}
 , m_points             {nullptr}
 , m_polyData           {nullptr}
 , m_transformFilter    {nullptr}
@@ -56,9 +57,7 @@ ConnectionsManager::ConnectionsManager(ViewTypeFlags flags, ModelAdapterSPtr mod
   setName("ConnectionsManager");
   setDescription("Displays a representation of connection points.");
 
-  connectSignals();
-
-  getConnectionData();
+  setConnectionsObject(model.get());
 }
 
 //--------------------------------------------------------------------
@@ -99,7 +98,7 @@ void ConnectionsManager::onConnectionRemoved(Connection connection)
 //--------------------------------------------------------------------
 bool ConnectionsManager::hasRepresentations() const
 {
-  return !m_connections.isEmpty();
+  return true;
 }
 
 //--------------------------------------------------------------------
@@ -137,7 +136,7 @@ void ConnectionsManager::displayRepresentations(const FrameCSPtr frame)
 {
   updateActor(frame);
 
-  if (!hasActors() && hasRepresentations() && m_actor)
+  if (!hasActors() && m_actor)
   {
     setFlag(HAS_ACTORS, true);
     m_view->addActor(m_actor);
@@ -173,7 +172,10 @@ void ConnectionsManager::onShow(const FrameCSPtr frame)
 //--------------------------------------------------------------------
 RepresentationManagerSPtr ConnectionsManager::cloneImplementation()
 {
-  return std::make_shared<ConnectionsManager>(supportedViews(), m_model);
+  auto clone = std::make_shared<ConnectionsManager>(supportedViews(), m_model);
+  clone->setConnectionsObject(m_object);
+
+  return clone;
 }
 
 //--------------------------------------------------------------------
@@ -194,9 +196,14 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
-    auto max = std::max(spacing[0], std::max(spacing[1], spacing[2]));
+    auto minSpacing = std::numeric_limits<double>::max();
+    for(auto i: {0,1,2})
+    {
+      if(i == planeIndex) continue;
+      minSpacing = std::min(minSpacing, spacing[i]);
+    }
 
-    m_glyph2D->SetScale(m_scale*max);
+    m_glyph2D->SetScale(m_scale*minSpacing);
     m_glyph2D->Update();
 
     if(m_transformFilter)
@@ -215,9 +222,9 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   }
   else
   {
-    auto min = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    auto minSpacing = std::min(spacing[0], std::min(spacing[1], spacing[2]));
 
-    m_glyph3D->SetRadius(m_scale*min);
+    m_glyph3D->SetRadius(m_scale*minSpacing);
     m_glyph3D->Update();
 
     for(auto connection: m_connections)
@@ -230,12 +237,13 @@ void ConnectionsManager::updateActor(const FrameCSPtr frame)
   m_polyData->Modified();
   m_glyph->Update();
   m_actor->Modified();
+  m_actor->SetVisibility(m_points->GetNumberOfPoints() != 0);
 }
 
 //--------------------------------------------------------------------
 void ConnectionsManager::setRepresentationSize(int size)
 {
-  size = std::min(std::max(1, size), 15);
+  size = std::min(std::max(1, size), 30);
 
   for(auto child: m_childs)
   {
@@ -258,18 +266,37 @@ void ConnectionsManager::setRepresentationSize(int size)
 //--------------------------------------------------------------------
 void ConnectionsManager::connectSignals()
 {
-  connect(m_model.get(), SIGNAL(connectionAdded(Connection)),
-          this,          SLOT(onConnectionAdded(Connection)));
+  if(m_object)
+  {
+    connect(m_object, SIGNAL(connectionAdded(Connection)),
+            this,     SLOT(onConnectionAdded(Connection)));
 
-  connect(m_model.get(), SIGNAL(connectionRemoved(Connection)),
-          this,          SLOT(onConnectionRemoved(Connection)));
+    connect(m_object, SIGNAL(connectionRemoved(Connection)),
+            this,     SLOT(onConnectionRemoved(Connection)));
 
-  connect(m_model.get(), SIGNAL(aboutToBeReset()),
-          this,          SLOT(resetConnections()));
+    connect(m_object, SIGNAL(aboutToBeReset()),
+            this,     SLOT(resetConnections()));
+  }
 }
 
 //--------------------------------------------------------------------
-void ConnectionsManager::getConnectionData()
+void ConnectionsManager::disconnectSignals()
+{
+  if(m_object)
+  {
+    disconnect(m_object, SIGNAL(connectionAdded(Connection)),
+               this,     SLOT(onConnectionAdded(Connection)));
+
+    disconnect(m_object, SIGNAL(connectionRemoved(Connection)),
+               this,     SLOT(onConnectionRemoved(Connection)));
+
+    disconnect(m_object, SIGNAL(aboutToBeReset()),
+               this,     SLOT(resetConnections()));
+  }
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::getModelConnectionData()
 {
   for(auto seg: m_model->segmentations())
   {
@@ -299,16 +326,7 @@ void ConnectionsManager::resetConnections()
 //--------------------------------------------------------------------
 void ConnectionsManager::shutdown()
 {
-  disconnect(m_model.get(), SIGNAL(connectionAdded(Connection)),
-             this,          SLOT(onConnectionAdded(Connection)));
-
-  disconnect(m_model.get(), SIGNAL(connectionRemoved(Connection)),
-             this,          SLOT(onConnectionRemoved(Connection)));
-
-  disconnect(m_model.get(), SIGNAL(aboutToBeReset()),
-             this,          SLOT(resetConnections()));
-
-  resetConnections();
+  setConnectionsObject(nullptr);
 
   RepresentationManager::shutdown();
 }
@@ -335,14 +353,18 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
   if(view2d)
   {
     auto planeIndex = normalCoordinateIndex(view2d->plane());
-    spacing[planeIndex] = spacing[(planeIndex+1) % 3];
-    auto max = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    auto minSpacing = std::numeric_limits<double>::max();
+    for(auto i: {0,1,2})
+    {
+      if(i == planeIndex) continue;
+      minSpacing = std::min(minSpacing, spacing[i]);
+    }
 
     m_glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
     m_glyph2D->SetGlyphTypeToCircle();
     m_glyph2D->SetFilled(false);
     m_glyph2D->SetCenter(0,0,0);
-    m_glyph2D->SetScale(m_scale*2*max);
+    m_glyph2D->SetScale(m_scale*minSpacing);
     m_glyph2D->SetColor(1,1,1);
     m_glyph2D->Update();
 
@@ -380,8 +402,29 @@ void ConnectionsManager::buildVTKPipeline(const FrameCSPtr frame)
     m_glyph->SetSourceData(m_glyph3D->GetOutput());
   }
 
-  m_actor = vtkSmartPointer<vtkFollower>::New();
+  m_actor = vtkSmartPointer<vtkActor>::New();
   m_actor->SetMapper(m_glyph);
-  m_actor->GetProperty()->SetColor(1,1,1);
-  m_actor->GetProperty()->SetLineWidth(2);
+}
+
+//--------------------------------------------------------------------
+void ConnectionsManager::setConnectionsObject(QObject* object)
+{
+  disconnectSignals();
+
+  resetConnections();
+
+  m_object = object;
+
+  if(m_object == m_model.get())
+  {
+    getModelConnectionData();
+  }
+
+  connectSignals();
+
+  for(auto child: m_childs)
+  {
+    auto clone = dynamic_cast<ConnectionsManager *>(child);
+    if(clone) clone->setConnectionsObject(object);
+  }
 }

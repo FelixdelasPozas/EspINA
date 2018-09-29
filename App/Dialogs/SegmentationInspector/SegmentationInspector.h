@@ -114,8 +114,10 @@ namespace ESPINA
 
     signals:
       void inspectorClosed(SegmentationInspector *inspector);
-
       void segmentationsUpdated();
+      void connectionAdded(Connection connection);
+      void connectionRemoved(Connection connection);
+      void aboutToBeReset();
 
     protected:
       virtual void showEvent(QShowEvent *event) override;
@@ -128,6 +130,18 @@ namespace ESPINA
        *
        */
       void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
+
+      /** \brief Emits a connection added signal if the given connection belongs to any shown segmentation.
+       * \param[in] connection Connection object.
+       *
+       */
+      void onConnectionAdded(Connection connection);
+
+      /** \brief Emits a connection removed signal if the given connection belongs to any shown segmentation.
+       * \param[in] connection Connection object.
+       *
+       */
+      void onConnectionRemoved(Connection connection);
 
     private:
       /** \brief Helper method to connect the QObject signals to its respective slots.
@@ -175,6 +189,11 @@ namespace ESPINA
        *
        */
       QHBoxLayout *createReportLayout();
+
+      /** \brief Helper method to emit the connections to the connection managers.
+       *
+       */
+      void emitConnectionSignals();
 
     private:
       SegmentationAdapterList m_segmentations;        /** list of segmentations in the view.                     */

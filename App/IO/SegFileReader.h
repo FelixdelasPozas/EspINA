@@ -31,10 +31,10 @@ namespace ESPINA {
   : public IO::AnalysisReader
   {
   public:
-    virtual QString type() const override
+    virtual const QString type() const override
     { return "SegFileReader"; }
 
-    virtual ExtensionList supportedFileExtensions() const override;
+    virtual const ExtensionList supportedFileExtensions() const override;
 
     virtual AnalysisSPtr read(const QFileInfo&      file,
                               CoreFactorySPtr       factory,

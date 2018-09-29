@@ -74,7 +74,7 @@ RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActor
   {
     vtkSmartPointer<vtkImageData> volume = nullptr;
     {
-      auto data = readLockVolume(segmentation->output());
+      auto data = readLockVolume(segmentation->output(), DataUpdatePolicy::Ignore);
       volume    = vtkImage(data, data->bounds());
     }
 
@@ -90,7 +90,17 @@ RepresentationPipeline::ActorList SegmentationVolumetricGPUPipeline::createActor
     mapper->SetInputData(volume);
     mapper->Update();
 
-    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
+
+    color = s_highlighter.color(color, item->isSelected());
 
     auto colorFunction = vtkSmartPointer<vtkColorTransferFunction>::New();
     colorFunction->AllowDuplicateScalarsOff();
@@ -136,7 +146,17 @@ void SegmentationVolumetricGPUPipeline::updateColors(ActorList                 &
   {
     auto segmentation = segmentationPtr(item);
 
-    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
+
+    color = s_highlighter.color(color, item->isSelected());
 
     auto actor = dynamic_cast<vtkVolume *>(actors.first().Get());
 

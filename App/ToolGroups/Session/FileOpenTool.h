@@ -92,6 +92,13 @@ namespace ESPINA
     void onTriggered();
 
   private:
+    /** \brief Helper method that returns true if the given filename is the current autosave file.
+     * \param[in] fileName Absolute file path.
+     *
+     */
+    const bool isAutoSaveFile(const QString &fileName);
+
+  private:
     EspinaErrorHandlerSPtr m_errorHandler;  /** application error handler                                                    */
     QStringList            m_loadedFiles;   /** list of file names to be loaded in the task.                                 */
     EspinaMainWindow      *m_closeCallback; /** application pointer, used to close current session before loading a new one. */

@@ -60,7 +60,7 @@ namespace ESPINA
         virtual ~OrthogonalCountingFrame();
 
         virtual CFType cfType() const
-        { return CF::ORTOGONAL; }
+        { return CFType::ORTOGONAL; }
 
         virtual QString typeName() const { return ORTOGONAL_CF; }
 

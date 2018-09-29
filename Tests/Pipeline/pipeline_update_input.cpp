@@ -48,7 +48,7 @@ int pipeline_update_input( int argc, char** argv )
   : public FilterFactory
   {
     public:
-      virtual FilterTypeList providedFilters() const
+      virtual const FilterTypeList providedFilters() const
       {
         FilterTypeList list;
         list << "SGS";

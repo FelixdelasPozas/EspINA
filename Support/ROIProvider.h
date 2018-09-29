@@ -27,25 +27,33 @@
 
 namespace ESPINA
 {
+  /** \class ROIProvider
+   * \brief API for classes than can manage and provide a ROI.
+   *
+   */
   class EspinaSupport_EXPORT ROIProvider
   {
-  public:
-    virtual ~ROIProvider() {}
+    public:
+      /** \brief ROIProvider calss virtual destructor.
+       *
+       */
+      virtual ~ROIProvider() {}
 
-    /** \brief Returns current ROI reference
-     *
-     *  After this operation the ROI is still available from the ROI provider
-     */
-    virtual ROISPtr currentROI() = 0;
+      /** \brief Returns current ROI reference
+       *
+       *  After this operation the ROI is still available from the ROI provider
+       */
+      virtual ROISPtr currentROI() = 0;
 
-    /** \brief Release the current ROI
-     *
-     *  After this operation the ROI won't be available from the ROI provider
-     */
-    virtual void consumeROI() = 0;
+      /** \brief Release the current ROI
+       *
+       *  After this operation the ROI won't be available from the ROI provider
+       */
+      virtual void consumeROI() = 0;
   };
 
-  using ROIProviderPtr = ROIProvider *;
+  using ROIProviderPtr  = ROIProvider *;
+  using ROIProviderSPtr = std::shared_ptr<ROIProvider>;
 
 } // namespace ESPINA
 

@@ -55,7 +55,7 @@ int pipeline_update_request_edited_input_with_fetch_behaviour( int argc, char** 
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "DummyChannelReader" << "SGS" << "Dilate";

@@ -121,6 +121,11 @@ namespace ESPINA
        */
       void setSaveInThread(const bool value);
 
+      /** \brief Returns the path and name of the autosave file.
+       *
+       */
+      QString autosaveFile() const;
+
     signals:
       void restoreFromFile(const QString);
 
@@ -131,9 +136,6 @@ namespace ESPINA
        *
        */
       void autoSave();
-
-    private:
-      QString autosaveFile() const;
 
     private:
       QDir   m_path;     /** auto save file path.                              */

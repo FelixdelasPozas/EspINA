@@ -33,82 +33,104 @@ namespace ESPINA
   {
     namespace Representations
     {
-      /** \class SegmentationSkeletonPoolSettins
-       * \brief Implements the settings for the Skeleton representation, to be used by pools.
-       *
-       */
-      class EspinaGUI_EXPORT SegmentationSkeletonPoolSettings
-      : public PoolSettings
+      namespace Settings
       {
-        public:
-          /** \brief SegmentationSkeletonPoolSettings class constructor.
-           *
-           */
-          SegmentationSkeletonPoolSettings();
+        /** \class SegmentationSkeletonPoolSettins
+         * \brief Implements the settings for the Skeleton representation, to be used by pools.
+         *
+         */
+        class EspinaGUI_EXPORT SegmentationSkeletonPoolSettings
+        : public PoolSettings
+        {
+          public:
+            /** \brief SegmentationSkeletonPoolSettings class constructor.
+             *
+             */
+            SegmentationSkeletonPoolSettings();
 
-          /** \brief SegmentationSkeletonPoolSettings class virtual destructor.
-           *
-           */
-          virtual ~SegmentationSkeletonPoolSettings()
-          {};
+            /** \brief SegmentationSkeletonPoolSettings class virtual destructor.
+             *
+             */
+            virtual ~SegmentationSkeletonPoolSettings()
+            {};
 
-          /** \brief Sets the skeleton representation opacity value.
-           * \param[in] opacity value in [0,1]
-           *
-           */
-          void setOpacity(const double opacity);
+            /** \brief Sets the skeleton representation opacity value.
+             * \param[in] opacity value in [0,1]
+             *
+             */
+            void setOpacity(const double opacity);
 
-          /** \brief Returns the opacity value.
-           *
-           */
-          double opacity() const;
+            /** \brief Returns the opacity value.
+             *
+             */
+            double opacity() const;
 
-          /** \brief Sets the skeleton representation width value.
-           * \param[in] width integer value in [1-max].
-           *
-           */
-          void setWidth(const int width);
+            /** \brief Sets the skeleton representation width value.
+             * \param[in] width integer value in [1-max].
+             *
+             */
+            void setWidth(const int width);
 
-          /** \brief Returns the width value.
-           *
-           */
-          int width() const;
+            /** \brief Returns the width value.
+             *
+             */
+            int width() const;
 
-          /** \brief Enables/disables the showing of node annotations in the representation.
-           * \param[in] value true to enable and false otherwise.
-           *
-           */
-          void setShowAnnotations(bool value);
+            /** \brief Enables/disables the showing of node annotations in the representation.
+             * \param[in] value true to enable and false otherwise.
+             *
+             */
+            void setShowAnnotations(bool value);
 
-          /** \brief Returns the value of the node annotations visibility setting.
-           *
-           */
-          bool showAnnotations() const;
+            /** \brief Returns the value of the node annotations visibility setting.
+             *
+             */
+            bool showAnnotations() const;
 
-          /** \brief Helper method to get the skeleton width value from a representation state object.
-           * \param[in] state representation state object.
-           *
-           */
-          static int getWidth(const RepresentationState &state);
+            /** \brief Sets the size of the annotations' text.
+             * \param[in] size Font size.
+             *
+             */
+            void setAnnotationsSize(int size);
 
-          /** \brief Helper method to get the skeleton opacity value from a representation state object.
-           * \param[in] state representation state object.
-           *
-           */
-          static double getOpacity(const RepresentationState &state);
+            /** \brief Returns the annotations size value.
+             *
+             */
+            int annotationsSize() const;
 
-          /** \brief Helper method to get the show annotations value from a representation state object.
-           * \param[in] state representation state object.
-           *
-           */
-          static bool getShowAnnotations(const RepresentationState &state);
+            /** \brief Helper method to get the skeleton width value from a representation state object.
+             * \param[in] state representation state object.
+             *
+             */
+            static int getWidth(const RepresentationState &state);
 
-        private:
-          static const QString WIDTH;   /** width setting identifier                   */
-          static const QString SHOWIDS; /** anootations visibility setting identifier. */
-          static const QString OPACITY; /** opacity setting identifier.                */
-      };
+            /** \brief Helper method to get the skeleton opacity value from a representation state object.
+             * \param[in] state representation state object.
+             *
+             */
+            static double getOpacity(const RepresentationState &state);
 
+            /** \brief Helper method to get the show annotations value from a representation state object.
+             * \param[in] state representation state object.
+             *
+             */
+            static bool getShowAnnotations(const RepresentationState &state);
+
+            /** \brief Helper method to get the annotations' text from a representation state object.
+             * \param[in] state representation state object.
+             *
+             */
+            static int getAnnotationsSize(const RepresentationState &state);
+
+          private:
+            static const QString WIDTH;   /** width setting identifier                   */
+            static const QString SHOWIDS; /** annotations visibility setting identifier. */
+            static const QString OPACITY; /** opacity setting identifier.                */
+            static const QString IDSSIZE; /** annotations' text size.                    */
+        };
+
+        using SkeletonPoolSettingsSPtr = std::shared_ptr<SegmentationSkeletonPoolSettings>;
+      } // namespace Settings
     } // namespace Representations
   } // namespace GUI
 } // namespace ESPINA

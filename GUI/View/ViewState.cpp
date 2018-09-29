@@ -29,6 +29,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::View;
 

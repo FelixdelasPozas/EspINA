@@ -155,11 +155,22 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
     return progress;
   }
 
-  if (role == Qt::BackgroundRole)
+  if(role == Qt::ForegroundRole || role == Qt::BackgroundRole)
   {
-    auto disabled = m_pendingInformation.contains(segmentation) && !m_pendingInformation[segmentation]->hasFinished();
+    if(proxyIndex.column() == 0) return QAbstractProxyModel::data(proxyIndex, role);
 
-    return disabled?Qt::lightGray:QAbstractProxyModel::data(proxyIndex, role);
+    if(!m_pendingInformation.contains(segmentation) || !m_pendingInformation[segmentation]->hasFinished())
+    {
+      return role == Qt::ForegroundRole ? Qt::black : Qt::lightGray;
+    }
+
+    auto info = data(proxyIndex, Qt::DisplayRole);
+    if(info.canConvert(QVariant::String) && (info.toString().contains("Fail", Qt::CaseInsensitive) || info.toString().contains("Error", Qt::CaseInsensitive)))
+    {
+      return role == Qt::ForegroundRole ? Qt::white : Qt::red;
+    }
+
+    return QAbstractProxyModel::data(proxyIndex, role);
   }
 
   if(role == Qt::ToolTipRole)
@@ -191,6 +202,10 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
     if (segmentation->hasInformation(key) || isSASInformation(key))
     {
       auto sas =  AppositionSurfacePlugin::segmentationSAS(segmentation);
+      if(!sas && isSASInformation(key))
+      {
+        return tr("No SAS has been created for %1.").arg(segmentation->data().toString());
+      }
 
       if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
       {

@@ -64,7 +64,7 @@ using Label2VolumeFilter    = itk::LabelMapToLabelImageFilter<LabelMap, itkVolum
 static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
 
 //---------------------------------------------------------------------------
-IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
+const IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 {
   ExtensionList supportedExtensions;
 
@@ -148,8 +148,11 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
 
   analysis->setClassification(classification);
 
+  const QString utfFilename = localFile.absoluteFilePath().toUtf8();
+  const QString asciiFilename = utfFilename.toAscii();
+
   // Read the original image, whose pixels are indeed labelmap object ids
-  labelMapReader->SetFileName(localFile.absoluteFilePath().toUtf8().data());
+  labelMapReader->SetFileName(utfFilename.toStdString());
   labelMapReader->SetUseStreaming(false);
   labelMapReader->SetNumberOfThreads(1);
   labelMapReader->SetImageIO(itk::MetaImageIO::New());

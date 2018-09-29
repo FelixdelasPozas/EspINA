@@ -56,7 +56,7 @@ namespace ESPINA
     {
     public:
       static Filter::Type dummyType() { return "DummyFilter"; }
-      virtual FilterTypeList providedFilters() const
+      virtual const FilterTypeList providedFilters() const
       { FilterTypeList list; list << dummyType(); return list; }
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const

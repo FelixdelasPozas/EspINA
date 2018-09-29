@@ -67,19 +67,14 @@ namespace ESPINA
       virtual Snapshot snapshot() const
       { return Snapshot(); }
 
-      virtual TypeList dependencies() const
+      virtual const TypeList dependencies() const
       { return TypeList(); }
 
-      virtual InformationKeyList availableInformation() const;
+      virtual const InformationKeyList availableInformation() const;
 
       virtual bool validCategory(const QString &classificationName) const;
 
       virtual bool validData(const OutputSPtr output) const;
-
-      /** \brief Sets the origin segmentation for the SAS segmentation. Right now there is no
-       * other way to inject that information to the SAS extension.
-       */
-      void setOriginSegmentation(SegmentationAdapterSPtr segmentation);
 
       /** \brief Helper method that adds the SAS prefix to the given key.
        * \param[in] value segmentation extension key.
@@ -107,7 +102,7 @@ namespace ESPINA
       /** \brief Computes SAS area.
        * \param[in] asMesh SAS polydata smart pointer.
        */
-      Nm computeArea(const vtkSmartPointer<vtkPolyData> &asMesh) const;
+      Nm computeArea(const vtkSmartPointer<vtkPolyData> asMesh) const;
 
       /** \brief Returns true if the specified cell is part of the perimeter.
        * \param[in] asMesh SAS polydata smart pointer.
@@ -115,24 +110,24 @@ namespace ESPINA
        * \param[in] p1
        * \param[in] p2
        */
-      bool isPerimeter(const vtkSmartPointer<vtkPolyData> &asMesh, const vtkIdType cellId, const vtkIdType p1, const vtkIdType p2) const;
+      bool isPerimeter(const vtkSmartPointer<vtkPolyData> asMesh, const vtkIdType cellId, const vtkIdType p1, const vtkIdType p2) const;
 
       /** \brief Returns the perimeter of the SAS.
        * \param[in] asMesh SAS polydata smart pointer.
        *
        */
-      Nm computePerimeter(const vtkSmartPointer<vtkPolyData> &asMesh) const;
+      Nm computePerimeter(const vtkSmartPointer<vtkPolyData> asMesh) const;
 
       /** \brief Returns the projection of the SAS polydata to a plane.
        * \param[in] asMesh SAS polydata smart pointer.
        */
-      vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> &mesh) const;
+      vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> mesh) const;
 
       /** \brief Returns the tortuosity of the SAS.
        * \param[in] asMesh SAS polydata smart pointer.
        * \param[in] asArea area of the SAS.
        */
-      double computeTortuosity(const vtkSmartPointer<vtkPolyData> &asMesh, const Nm asArea) const;
+      double computeTortuosity(const vtkSmartPointer<vtkPolyData> asMesh, const Nm asArea) const;
 
       /** \brief Computes SAS curvatures.
        * \param[in] asMesh SAS polydata smart pointer.
@@ -141,7 +136,7 @@ namespace ESPINA
        * \param[out] minCurvature
        * \param[out] maxCurvature
        */
-      void computeCurvatures(const vtkSmartPointer<vtkPolyData> &asMesh,
+      void computeCurvatures(const vtkSmartPointer<vtkPolyData> asMesh,
                              vtkSmartPointer<vtkDoubleArray> gaussCurvature,
                              vtkSmartPointer<vtkDoubleArray> meanCurvature,
                              vtkSmartPointer<vtkDoubleArray> minCurvature,
@@ -153,7 +148,15 @@ namespace ESPINA
        */
       bool computeInformation() const;
 
+      /** \brief Tries to get the SAS origin synapse from the model.
+       *
+       */
+      void obtainOriginSynapse() const;
+
       static const QString SAS_PREFIX;
+
+      mutable bool             m_hasErrors; /** false if the computation process finished without errors, true otherwise. */
+      mutable SegmentationSPtr m_synapse;   /** synapse the SAS is generated from.                                        */
 
       friend class ASExtensionFactory;
   };

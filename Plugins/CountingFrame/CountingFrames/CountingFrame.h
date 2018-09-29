@@ -47,10 +47,10 @@ namespace ESPINA
 
   namespace CF
   {
-    enum CFType
+    enum class CFType
     {
-      ADAPTIVE,
-      ORTOGONAL
+      ADAPTIVE = 0,
+      ORTOGONAL = 1
     };
 
     class vtkCountingFrameCommand;
@@ -274,6 +274,17 @@ namespace ESPINA
        */
       vtkSmartPointer<vtkPolyData> innerFramePolyData() const;
 
+      /** \brief Sets the CF as editable/non-editable. setMargins() won't modify the margins if the CF is non-editable.
+       * \param[in] value True to set editable and false otherwise.
+       *
+       */
+      void setEditable(const bool value);
+
+      /** \brief Returns true if the CF is editable and false otherwise.
+       *
+       */
+      const bool isEditable() const;
+
     signals:
       void modified(CountingFrame *);
 
@@ -381,6 +392,8 @@ namespace ESPINA
 
       QList<vtkCountingFrameSliceWidget *> m_widgets2D;   /** list of 2D widgets of this counting frame. */
       QList<vtkCountingFrame3DWidget    *> m_widgets3D;   /** list of 3D widgets of this counting frame. */
+
+      bool m_editable;                                    /** true if the CF margins can be modified and false otherwise. */
     };
 
     /** operator< for counting frames to use with std::sort

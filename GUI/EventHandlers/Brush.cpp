@@ -130,6 +130,7 @@ void Brush::setRadius(const int value)
     m_radius = 5;
   }
   else
+  {
     if (value > 40)
     {
       m_radius = 40;
@@ -138,6 +139,7 @@ void Brush::setRadius(const int value)
     {
       m_radius = value;
     }
+  }
 
   updateCursor();
 
@@ -219,9 +221,9 @@ Brush::Stroke Brush::createStroke(PointTracker::Track track)
 
   for(auto point: track)
   {
-    if (fabs(last[0] - point[0]) > MIN_DELTA
-     || fabs(last[1] - point[1]) > MIN_DELTA
-     || fabs(last[2] - point[2]) > MIN_DELTA)
+    if (fabs(last[0] - point[0]) > MIN_DELTA ||
+        fabs(last[1] - point[1]) > MIN_DELTA ||
+        fabs(last[2] - point[2]) > MIN_DELTA)
     {
       stroke << createStrokePoint(point);
       last = point;
@@ -246,11 +248,14 @@ void Brush::updateCursor()
 
   if (m_image.isValid())
   {
-    auto pos     = m_radius/2;
-    auto topLeft = QPoint(pos, pos);
-    auto image   = m_image.value<QImage>().scaledToWidth(m_radius);
-
-    painter.drawImage(topLeft, image);
+    auto pos         = m_radius/2;
+    auto topLeft     = QPoint(pos, pos);
+    auto cursorImage = m_image.value<QImage>();
+    if(!cursorImage.isNull())
+    {
+      auto scaledImage = cursorImage.scaledToWidth(m_radius);
+      painter.drawImage(topLeft, scaledImage);
+    }
   }
 
   setCursor(QCursor(pixmap));

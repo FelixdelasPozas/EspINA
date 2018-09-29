@@ -20,11 +20,13 @@
 
 // ESPINA
 #include "RemoveSegmentations.h"
+#include <Core/Analysis/Connections.h>
 
 // Qt
 #include <QStack>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 //------------------------------------------------------------------------
 RemoveSegmentations::RemoveSegmentations(SegmentationAdapterPtr segmentation,
@@ -67,7 +69,14 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 
     m_segmentations << m_model->smartPointer(segmentation);
 
-    m_relations << m_model->relations(segmentation, ESPINA::RELATION_INOUT);
+    for(auto relation: m_model->relations(segmentation, ESPINA::RELATION_INOUT))
+    {
+      // Connection relations are deleted with the connections.
+      if(relation.relation != Core::Connection::CONNECTS)
+      {
+        m_relations << relation;
+      }
+    }
 
     m_connections << m_model->connections(m_model->smartPointer(segmentation));
 
@@ -99,8 +108,7 @@ void RemoveSegmentations::redo()
     m_model->deleteRelation(relation);
   }
 
-  m_model->deleteConnections(m_connections);
-  m_model->remove(m_segmentations);
+  m_model->remove(m_segmentations); // deletes segmentation connections also.
   m_model->endBatchMode();
 }
 

@@ -30,7 +30,7 @@ using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
 InformationColorEngine::InformationColorEngine()
-: ColorEngine("PropertyColorEngine", tr("Property"))
+: ColorEngine("PropertyColorEngine", tr("Color by a property value."))
 , m_key("MorphologicalInformation", "Size")
 , m_colorRange(new RangeHSV(0, 10000))
 {

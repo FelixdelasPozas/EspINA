@@ -25,14 +25,15 @@
 
 // ESPINA
 #include <GUI/Types.h>
-#include <Support/Types.h>
-#include "Support/ROIAccumulator.h"
 #include <GUI/View/ViewState.h>
 #include <GUI/View/Selection.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Support/Types.h>
+#include <Support/ROIAccumulator.h>
 
 // Qt
 #include <QUndoStack>
+#include <QMap>
 
 class QMainWindow;
 class QUndoStack;
@@ -91,7 +92,24 @@ namespace ESPINA
         /** \brief Returns the list of available representations for the view items.
          *
          */
-        RepresentationFactorySList &availableRepresentations();
+        const RepresentationFactorySList availableRepresentations() const;
+
+        /** \brief Returns the list of current representations for the view items.
+         *
+         */
+        const RepresentationList representations() const;
+
+        /** \brief Adds the factory to the available representation factories and instanciates and returns a representation.
+         * \param[in] factory Representation factory.
+         *
+         */
+        const Representation &addRepresentation(const RepresentationFactorySPtr factory);
+
+        /** \brief Returns the instanciated representation for the given factory.
+         * \param[in] factory RepresentationFactory
+         *
+         */
+        const Representation representation(const RepresentationFactorySPtr factory) const;
 
         /** \brief Returns the current model's factory.
          *
@@ -119,17 +137,17 @@ namespace ESPINA
 
         using ViewState   = GUI::View::ViewState;
 
-        ViewState                               m_viewState;                /** application's view state.                      */
-        ModelAdapterSPtr                        m_model;                    /** application's model adapter.                   */
-        ROIAccumulatorSPtr                      m_activeROI;                /** application's ROI accumulator.                 */
-        SchedulerSPtr                           m_scheduler;                /** application's task scheduler.                  */
-        QUndoStack                              m_undoStack;                /** application's undo/redo stack.                 */
-        RepresentationFactorySList              m_availableRepresentations; /** list of view item's representations factories. */
-        ModelFactorySPtr                        m_factory;                  /** application's model adapter factory.           */
-        GUI::ColorEngines::MultiColorEngineSPtr m_colorEngine;              /** application's multi color engine.              */
+        ViewState                                       m_viewState;       /** application's view state.                          */
+        ModelAdapterSPtr                                m_model;           /** application's model adapter.                       */
+        ROIAccumulatorSPtr                              m_activeROI;       /** application's ROI accumulator.                     */
+        SchedulerSPtr                                   m_scheduler;       /** application's task scheduler.                      */
+        QUndoStack                                      m_undoStack;       /** application's undo/redo stack.                     */
+        ModelFactorySPtr                                m_factory;         /** application's model adapter factory.               */
+        GUI::ColorEngines::MultiColorEngineSPtr         m_colorEngine;     /** application's multi color engine.                  */
+        QMap<RepresentationFactorySPtr, Representation> m_representations; /** available representations <-> representations map. */
 
-        bool                                   *m_minimizedStatus;          /** pointer to minimize status boolean value.      */
-        QMainWindow                            *m_mainWindow;               /** pointer to application's main window.          */
+        bool                                           *m_minimizedStatus; /** pointer to minimize status boolean value.          */
+        QMainWindow                                    *m_mainWindow;      /** pointer to application's main window.              */
     };
 
     /** \brief Returns the current selection of the application for the given context.

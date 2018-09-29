@@ -123,7 +123,7 @@ void FreehandROITool::updateReferenceItem(ChannelAdapterPtr channel)
   Q_ASSERT(channel);
 
   auto output  = channel->output();
-  auto origin  = readLockVolume(output)->bounds().origin();
+  auto origin  = readLockVolume(output, DataUpdatePolicy::Ignore)->bounds().origin();
   auto spacing = output->spacing();
 
   m_drawingWidget.setMaskProperties(spacing, origin);

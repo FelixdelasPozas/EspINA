@@ -23,6 +23,8 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
   Dialogs/ConnectionCount/ConnectionCountDialog.h
+  Dialogs/ColorEngineSelector/ColorEngineSelector.h
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.h
   Dialogs/CustomFileOpenDialog/CustomFileDialog.h
   Dialogs/CustomFileOpenDialog/OptionsPanel.h
   Dialogs/StackInspector/StackInspector.h
@@ -31,13 +33,16 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/DistanceInformation/DistanceInformationTabularReport.h
   Dialogs/HueSelector/HueSelector.h
   Dialogs/IssueList/CheckAnalysis.h
+  Dialogs/LogDialog/LogDialog.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h
   Dialogs/SkeletonInspector/SkeletonInspector.h
   Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h
+  Dialogs/SpinesInformation/SpinesInformationDialog.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
+  Panels/SegmentationExplorer/Layouts/LocationLayout.h
   Panels/SegmentationExplorer/SegmentationExplorer.h
   Panels/SegmentationExplorer/SegmentationExplorerLayout.h
   Panels/SegmentationProperties/NoFilterRefiner.h
@@ -70,6 +75,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/SliceInterpolationTool.h
   ToolGroups/Session/FileOpenTool.h
   ToolGroups/Session/FileSaveTool.h
+  ToolGroups/Session/LogTool.h
   ToolGroups/Session/UndoRedoTools.h
   ToolGroups/Restrict/DeleteROITool.h
   ToolGroups/Restrict/FreehandROITool.h
@@ -82,7 +88,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.h
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
-  ToolGroups/Segment/Skeleton/SkeletonTool.h
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.h
   ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h
   ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h
   ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h
@@ -106,13 +112,16 @@ qt4_wrap_cpp (ESPINA_MOC
 qt4_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
+  Dialogs/ColorEngineSelector/ColorEngineSelector.ui
   Dialogs/ConnectionCount/ConnectionCountDialog.ui
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.ui
   Dialogs/CustomFileOpenDialog/OptionsPanel.ui
   Dialogs/StackInspector/StackInspector.ui
   Dialogs/Dialog3D/Dialog3D.ui
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
   Dialogs/HueSelector/HueSelectorDialog.ui
   Dialogs/IssueList/IssueListDialog.ui
+  Dialogs/LogDialog/LogDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.ui
@@ -147,13 +156,16 @@ set (ESPINA_SOURCES
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
   Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.cpp
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.cpp
+  Dialogs/ColorEngineSelector/ColorEngineSelector.cpp
   Dialogs/ConnectionCount/ConnectionCountDialog.cpp
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.cpp
   Dialogs/CustomFileOpenDialog/CustomFileDialog.cpp
   Dialogs/CustomFileOpenDialog/OptionsPanel.cpp
   Dialogs/StackInspector/StackInspector.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
+  Dialogs/LogDialog/LogDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.cpp
   Dialogs/DistanceInformation/DistanceInformationTabularReport.cpp
@@ -164,12 +176,14 @@ set (ESPINA_SOURCES
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.cpp
   Dialogs/SkeletonInspector/SkeletonInspector.cpp
   Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.cpp
+  Dialogs/SpinesInformation/SpinesInformationDialog.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.cpp
+  Panels/SegmentationExplorer/Layouts/LocationLayout.cpp
   Panels/SegmentationExplorer/SegmentationExplorer.cpp
   Panels/SegmentationExplorer/SegmentationExplorerLayout.cpp
   Panels/SegmentationProperties/IssueProperty.cpp
@@ -189,6 +203,7 @@ set (ESPINA_SOURCES
   ToolGroups/Analyze/Reports/RawInformationReport.cpp
   ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
   ToolGroups/Analyze/Reports/ReportsTool.cpp
+  ToolGroups/Analyze/Reports/SpineInformationReport.cpp
   ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
   ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.cpp
@@ -218,7 +233,7 @@ set (ESPINA_SOURCES
   ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.cpp
   ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
-  ToolGroups/Segment/Skeleton/SkeletonTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolsUtils.cpp
   ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.cpp
   ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.cpp
@@ -226,6 +241,7 @@ set (ESPINA_SOURCES
   ToolGroups/Session/ChunkReporter.cpp
   ToolGroups/Session/FileOpenTool.cpp
   ToolGroups/Session/FileSaveTool.cpp
+  ToolGroups/Session/LogTool.cpp
   ToolGroups/Session/UndoRedoTools.cpp
   ToolGroups/ToolGroup.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp

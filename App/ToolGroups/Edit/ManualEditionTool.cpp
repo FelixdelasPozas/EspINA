@@ -35,6 +35,7 @@
 #include <GUI/View/RenderView.h>
 #include <GUI/Widgets/DrawingWidget.h>
 #include <GUI/Widgets/ProgressAction.h>
+#include <GUI/Widgets/Styles.h>
 #include <Support/Settings/Settings.h>
 #include <Undo/DrawUndoCommand.h>
 #include <Undo/RemoveSegmentations.h>
@@ -46,6 +47,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
@@ -164,11 +166,18 @@ void ManualEditionTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
   clearTemporalPipeline();
 
-  auto undoStack = getUndoStack();
+  auto undoStack    = getUndoStack();
+  auto segmentation = referenceSegmentation();
+  auto bounds       = mask->bounds().bounds().toString();
+  auto mode         = mask->foregroundValue() == SEG_VOXEL_VALUE ? "Paint":"Erase";
 
-  undoStack->beginMacro(tr("Modify Segmentation"));
-  undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
-  undoStack->endMacro();
+  {
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("%1 segmentation '%2' in bounds %3.").arg(mode).arg(segmentation->data().toString()).arg(bounds));
+    undoStack->push(new DrawUndoCommand(segmentation, mask));
+    undoStack->endMacro();
+  }
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
   {
@@ -323,11 +332,13 @@ void ManualEditionTool::onVoxelDeletion(ViewItemAdapterPtr item)
 
     auto undoStack = getUndoStack();
 
+    WaitingCursor cursor;
+
     undoStack->blockSignals(true);
     undoStack->undo();
     undoStack->blockSignals(false);
 
-    undoStack->beginMacro(tr("Remove Segmentation"));
+    undoStack->beginMacro(tr("Remove segmentation '%1' by manual erase.").arg(segmentation->data().toString()));
     undoStack->push(new RemoveSegmentations(segmentation, getModel()));
     undoStack->endMacro();
   }

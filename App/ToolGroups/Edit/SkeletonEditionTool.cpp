@@ -23,6 +23,8 @@
 #include <App/ToolGroups/Edit/SkeletonEditionTool.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonToolsUtils.h>
 #include <App/Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h>
+#include <App/ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h>
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/View/Widgets/Skeleton/SkeletonWidget2D.h>
@@ -32,8 +34,7 @@
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
-#include <ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
-#include <ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h>
+#include <Support/Representations/RepresentationUtils.h>
 #include <Undo/ModifySkeletonCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
@@ -52,8 +53,12 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
+using namespace ESPINA::Support::Representations::Utils;
 using namespace ESPINA::SkeletonToolsUtils;
+
+const QString MODIFY_HUE_SETTINGS_KEY = QString{"Modify same-hue strokes to avoid coincidences"};
 
 //--------------------------------------------------------------------
 SkeletonEditionTool::SkeletonEditionTool(Support::Context& context)
@@ -90,6 +95,9 @@ void SkeletonEditionTool::initTool(bool value)
 {
   if(value)
   {
+    connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+            this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
+
     if(!m_init)
     {
       onResolutionChanged();
@@ -104,7 +112,7 @@ void SkeletonEditionTool::initTool(bool value)
 
     if(m_item->isBeingModified())
     {
-      auto message = tr("The segmentation %1 can't be edited right now because it's currently being modified by another operation.").arg(m_item->data().toString());
+      auto message = tr("The segmentation %1 can't be edited right now because it's currently being modified by another tool.").arg(m_item->data().toString());
       auto title   = tr("Edit skeleton");
       DefaultDialogs::ErrorMessage(message, title);
 
@@ -124,18 +132,24 @@ void SkeletonEditionTool::initTool(bool value)
     connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
             this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
 
-    for(auto widget: m_widgets)
-    {
-      widget->initialize(readLockSkeleton(m_item->output())->skeleton());
-    }
+
+    SkeletonWidget2D::initializeData(readLockSkeleton(m_item->output())->skeleton());
 
     onStrokeTypeChanged(m_strokeCombo->currentIndex());
+
+    for(auto widget: m_widgets)
+    {
+      widget->updateRepresentation();
+    }
 
     updateWidgetsMode();
     m_item->invalidateRepresentations();
   }
   else
   {
+    disconnect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
+               this,                 SLOT(onSelectionChanged(SegmentationAdapterList)));
+
     if(m_init)
     {
       for(auto widget: m_widgets)
@@ -160,7 +174,7 @@ void SkeletonEditionTool::initTool(bool value)
       disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
                  this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
 
-      vtkSkeletonWidgetRepresentation::cleanup();
+      vtkSkeletonWidgetRepresentation::ClearRepresentation();
     }
   }
 
@@ -263,12 +277,20 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
     auto segmentation = dynamic_cast<SegmentationAdapterPtr>(m_item);
     if(segmentation)
     {
-      auto stroke = STROKES[segmentation->category()->classificationName()].at(m_strokeCombo->currentIndex());
+      auto &strokes = STROKES[segmentation->category()->classificationName()];
+      auto index    = std::min(std::max(0, m_strokeCombo->currentIndex()), strokes.size()-1);
+      auto stroke   = strokes.at(index);
       skeletonWidget->setStroke(stroke);
       skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
+      skeletonWidget->setRepresentationTextColor(segmentation->category()->color());
+      skeletonWidget->setStrokeHueModification(m_changeHueButton->isChecked());
+      skeletonWidget->updateRepresentation();
 
       connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
               this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
+
+      connect(skeletonWidget.get(), SIGNAL(strokeChanged(const Core::SkeletonStroke)),
+              this,                 SLOT(onStrokeChanged(const Core::SkeletonStroke)), Qt::DirectConnection);
 
       m_widgets << skeletonWidget;
     }
@@ -325,16 +347,27 @@ void SkeletonEditionTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyda
       }
 
       // modification
-      undoStack->beginMacro(tr("Modify skeleton"));
+      QString mode{"adding"};
+      if(m_eraseButton->isChecked())         mode = "erasing";
+      else if(m_moveButton->isChecked())     mode = "moving";
+      else if(m_truncateButton->isChecked()) mode = "marking";
+
+      WaitingCursor cursor;
+
+      undoStack->beginMacro(tr("Modify skeleton of '%1' by %2 points.").arg(segmentationSPtr->data().toString()).arg(mode));
       undoStack->push(new ModifySkeletonCommand(segmentationSPtr, widget->getSkeleton(), connections));
       undoStack->endMacro();
     }
     else
     {
       // removal
-      undoStack->beginMacro(tr("Remove Segmentation"));
-      undoStack->push(new RemoveSegmentations(segmentation, getModel()));
-      undoStack->endMacro();
+      {
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Remove segmentation '%1'.").arg(segmentation->data().toString()));
+        undoStack->push(new RemoveSegmentations(segmentation, getModel()));
+        undoStack->endMacro();
+      }
 
       deactivateEventHandler();
     }
@@ -369,14 +402,18 @@ bool SkeletonEditionTool::acceptsSelection(SegmentationAdapterList segmentations
 //--------------------------------------------------------------------
 void SkeletonEditionTool::initRepresentationFactories()
 {
-  auto representation2D = std::make_shared<SkeletonToolWidget2D>(m_eventHandler);
+  auto settingsList     = getPoolSettings<SegmentationSkeletonPoolSettings>(getContext());
+  auto skeletonSettings = std::dynamic_pointer_cast<SegmentationSkeletonPoolSettings>(settingsList.first());
+  auto representation2D = std::make_shared<SkeletonToolWidget2D>(m_eventHandler, skeletonSettings);
 
   connect(representation2D.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
           this,                   SLOT(onSkeletonWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
 
   m_factory = std::make_shared<TemporalPrototypes>(representation2D, TemporalRepresentation3DSPtr(), tr("%1 - Skeleton Widget 2D").arg(id()));
 
-  auto pointsRepresentation = std::make_shared<ConnectionPointsTemporalRepresentation2D>();
+  settingsList              = getPoolSettings<ConnectionPoolSettings>(getContext());
+  auto connectionSettings   = std::dynamic_pointer_cast<ConnectionPoolSettings>(settingsList.first());
+  auto pointsRepresentation = std::make_shared<ConnectionPointsTemporalRepresentation2D>(connectionSettings);
 
   connect(pointsRepresentation.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)),
           this,                       SLOT(onPointWidgetCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
@@ -458,36 +495,46 @@ void SkeletonEditionTool::initParametersWidgets()
   connect(this, SIGNAL(toggled(bool)), m_moveButton, SLOT(setVisible(bool)));
 
   addSettingsWidget(m_moveButton);
+
+  m_truncateButton = createToolButton(":/espina/truncate.svg", tr("Mark branches as truncated."));
+  m_truncateButton->setCheckable(true);
+  m_truncateButton->setChecked(false);
+
+  connect(m_truncateButton, SIGNAL(clicked(bool)), this, SLOT(onModeChanged(bool)));
+  connect(this, SIGNAL(toggled(bool)), m_truncateButton, SLOT(setVisible(bool)));
+
+  addSettingsWidget(m_truncateButton);
+
+  m_changeHueButton = createToolButton(":/espina/skeletonColors.svg", tr("Modify coincident color strokes to facilitate visualization during edition."));
+  m_changeHueButton->setCheckable(true);
+  m_changeHueButton->setChecked(false);
+  connect(m_changeHueButton, SIGNAL(clicked(bool)), this, SLOT(onHueModificationsButtonClicked(bool)));
+
+  addSettingsWidget(m_changeHueButton);
 }
 
 //--------------------------------------------------------------------
 void SkeletonEditionTool::onModeChanged(bool value)
 {
   auto button = dynamic_cast<GUI::Widgets::ToolButton *>(sender());
+  auto tools  = QList<GUI::Widgets::ToolButton *>{ m_moveButton, m_eraseButton, m_truncateButton };
 
-  if(button == m_eraseButton)
+  if(value)
   {
-    if(value)
+    for(auto otherButton: tools)
     {
-      m_moveButton->blockSignals(true);
-      m_moveButton->setChecked(false);
-      m_moveButton->blockSignals(false);
-    }
-  }
-  else
-  {
-    if(button == m_moveButton)
-    {
-      if(value)
+      if(otherButton == button) continue;
+
+      if(otherButton->isChecked())
       {
-        m_eraseButton->blockSignals(true);
-        m_eraseButton->setChecked(false);
-        m_eraseButton->blockSignals(false);
+        otherButton->blockSignals(true);
+        otherButton->setChecked(false);
+        otherButton->blockSignals(false);
       }
     }
   }
 
-  auto enableOtherWidgets = !m_eraseButton->isChecked() && !m_moveButton->isChecked();
+  auto enableOtherWidgets = !m_eraseButton->isChecked() && !m_moveButton->isChecked() && !m_truncateButton->isChecked();
   m_minWidget->setEnabled(enableOtherWidgets);
   m_maxWidget->setEnabled(enableOtherWidgets);
   m_strokeButton->setEnabled(enableOtherWidgets);
@@ -536,15 +583,35 @@ void SkeletonEditionTool::onModifierPressed(bool value)
 //--------------------------------------------------------------------
 void SkeletonEditionTool::updateWidgetsMode()
 {
-  SkeletonWidget2D::Mode mode = SkeletonWidget2D::Mode::CREATE;
+  QList<NmVector3> points;
+  auto mode = SkeletonWidget2D::Mode::CREATE;
 
-  if(m_eraseButton->isChecked()) mode = SkeletonWidget2D::Mode::ERASE;
-  if(m_moveButton->isChecked()) mode = SkeletonWidget2D::Mode::MODIFY;
+  if(m_eraseButton->isChecked())         mode = SkeletonWidget2D::Mode::ERASE;
+  else if(m_moveButton->isChecked())     mode = SkeletonWidget2D::Mode::MODIFY;
+  else if(m_truncateButton->isChecked()) mode = SkeletonWidget2D::Mode::MARK;
 
   switch(mode)
   {
     case SkeletonWidget2D::Mode::CREATE:
       m_eventHandler->setMode(SkeletonEventHandler::Mode::CREATE);
+      break;
+    case SkeletonWidget2D::Mode::MARK:
+      {
+        auto model   = getModel();
+        auto segPtr  = segmentationPtr(m_item);
+        Q_ASSERT(segPtr);
+        auto segSPtr = model->smartPointer(segPtr);
+        Q_ASSERT(segSPtr);
+
+        for (auto connection : model->connections(segSPtr))
+        {
+          if (!points.contains(connection.point))
+          {
+            points << connection.point;
+          }
+        }
+      }
+      m_eventHandler->setMode(SkeletonEventHandler::Mode::OTHER);
       break;
     default:
       m_eventHandler->setMode(SkeletonEventHandler::Mode::OTHER);
@@ -554,6 +621,7 @@ void SkeletonEditionTool::updateWidgetsMode()
   for(auto widget: m_widgets)
   {
     widget->setMode(mode);
+    widget->setConnectionPoints(points);
   }
 }
 
@@ -563,16 +631,15 @@ void SkeletonEditionTool::onStrokeTypeChanged(int index)
   if(m_item)
   {
     auto segmentation = segmentationPtr(m_item);
-    auto name = segmentation->category()->classificationName();
+    auto name         = segmentation->category()->classificationName();
+    auto &strokes     = STROKES[name];
 
-    index = std::min(std::max(0,index), STROKES[name].size() - 1);
+    index = std::min(std::max(0,index), strokes.size() - 1);
     Q_ASSERT(index >= 0);
-
-    auto stroke = STROKES[name].at(index);
 
     for(auto widget: m_widgets)
     {
-      widget->setStroke(stroke);
+      widget->setStroke(strokes.at(index));
     }
   }
 }
@@ -583,15 +650,17 @@ void SkeletonEditionTool::onStrokeConfigurationPressed()
   if(m_item)
   {
     auto segmentation = segmentationPtr(m_item);
-    auto name = segmentation->category()->classificationName();
-    auto index = m_strokeCombo->currentIndex();
+    auto name         = segmentation->category()->classificationName();
+    auto index        = m_strokeCombo->currentIndex();
 
     StrokeDefinitionDialog dialog(STROKES[name], segmentation->category());
     dialog.exec();
 
     updateStrokes();
 
-    onStrokeTypeChanged(std::min(index, STROKES[name].size() - 1));
+    index = std::min(std::max(0, index), STROKES[name].size() -1);
+
+    onStrokeTypeChanged(index);
   }
 }
 
@@ -606,6 +675,71 @@ bool SkeletonEditionTool::selectionIsNotBeingModified(SegmentationAdapterList se
   }
 
   return true;
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onStrokeChanged(const Core::SkeletonStroke stroke)
+{
+  if(m_item)
+  {
+    auto segmentation = segmentationPtr(m_item);
+    auto name         = segmentation->category()->classificationName();
+
+    m_strokeCombo->blockSignals(true);
+    m_strokeCombo->setCurrentIndex(STROKES[name].indexOf(stroke));
+    m_strokeCombo->blockSignals(false);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentations)
+{
+  if(!isChecked()) return;
+
+  if(segmentations.size() != 1)
+  {
+    abortOperation();
+  }
+  else
+  {
+    auto seg = segmentationPtr(m_item);
+    auto selectedSeg = segmentations.first();
+
+    if(selectedSeg == seg) return;
+
+    if(selectedSeg->isBeingModified() || !hasSkeletonData(selectedSeg->output()))
+    {
+      abortOperation();
+    }
+    else
+    {
+      m_item->clearTemporalRepresentation();
+      m_item->invalidateRepresentations();
+      m_item->setBeingModified(false);
+
+      m_item = selectedSeg;
+
+      m_item->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
+      m_item->setBeingModified(true);
+
+      updateStrokes();
+
+      SkeletonWidget2D::ClearRepresentation();
+      SkeletonWidget2D::initializeData(readLockSkeleton(m_item->output())->skeleton());
+
+      for(auto widget: m_widgets)
+      {
+        widget->updateRepresentation();
+      }
+
+      onStrokeTypeChanged(m_strokeCombo->currentIndex());
+
+      updateWidgetsMode();
+      m_item->invalidateRepresentations();
+
+      getViewState().refresh();
+    }
+  }
 }
 
 //--------------------------------------------------------------------
@@ -635,6 +769,11 @@ void SkeletonEditionTool::updateStrokes()
     m_strokeCombo->blockSignals(false);
 
     m_eventHandler->setStrokesCategory(category->classificationName());
+
+    if(m_strokeCombo->currentIndex() < 0 || m_strokeCombo->currentIndex() >= strokes.size())
+    {
+      m_strokeCombo->setCurrentIndex(0);
+    }
   }
 }
 
@@ -650,4 +789,27 @@ void SkeletonEditionTool::onPointCheckRequested(const NmVector3 &point)
       m_eventHandler->setIsStartNode(skeletonWidget->isStartNode(point));
     }
   }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onHueModificationsButtonClicked(bool value)
+{
+  for(auto widget: m_widgets)
+  {
+    widget->setStrokeHueModification(value);
+  }
+
+  if(m_item) m_item->invalidateRepresentations();
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::saveSettings(std::shared_ptr<QSettings> settings)
+{
+  settings->setValue(MODIFY_HUE_SETTINGS_KEY, m_changeHueButton->isChecked());
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::restoreSettings(std::shared_ptr<QSettings> settings)
+{
+  m_changeHueButton->setChecked(settings->value(MODIFY_HUE_SETTINGS_KEY, false).toBool());
 }

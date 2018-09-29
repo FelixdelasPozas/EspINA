@@ -130,7 +130,7 @@ namespace ESPINA
     /** \brief Returns true if the task is running.
      *
      */
-    bool isRunning() const;
+    virtual bool isRunning() const;
 
     /** \brief Returns true if the task has been aborted.
      *
@@ -217,6 +217,9 @@ namespace ESPINA
      */
     bool canExecute();
 
+    /** \brief Returns true if the task is sheduled to start from the beginning aborting the current execution.
+     *
+     */
     bool needsRestart() const;
 
     /** \brief Sets the task as finished.
@@ -268,11 +271,21 @@ namespace ESPINA
      */
     void startThreadExecution();
 
+    /** \brief Helper method to do actions once the run() execution of the thread has finished.
+     *
+     *
+     */
     void onTaskFinished();
 
   private:
+    /** \brief Returns the the execution to the originating thread and destroys the thread.
+     *
+     */
     void finishThreadExecution();
 
+    /** \brief Returns true if the run() method is running on an independent (separated) thread.
+     *
+     */
     bool isExecutingOnThread() const;
 
   signals:
@@ -280,36 +293,36 @@ namespace ESPINA
     void resumed();
     void paused();
     void finished();
+    void aborted();
 
   protected:
-    SchedulerSPtr m_scheduler;
+    SchedulerSPtr m_scheduler; /** application task scheduler. */
 
   private:
-    QThread *m_thread;
-    QThread *m_executingThread;
-    bool     m_submitted;
-    QMutex   m_submissionMutex;
+    QThread *m_thread;          /** thread that launches the task.                                  */
+    QThread *m_executingThread; /** thread where the task is executed.                              */
+    bool     m_submitted;       /** true if task has been submitted to the scheduler for execution. */
+    QMutex   m_submissionMutex; /** submission data protection mutex.                               */
 
     Priority m_priority;
 
-    std::atomic<bool> m_isRunning;
-    std::atomic<bool> m_pendingPause;
-    std::atomic<bool> m_pendingUserPause;
-    std::atomic<bool> m_isAborted;
-    std::atomic<bool> m_hasFinished;
-    std::atomic<bool> m_isPaused;
-    std::atomic<bool> m_needsRestart;
+    std::atomic<bool> m_isRunning;        /** true if the task is on the 'running' state, false otherwise.                        */
+    std::atomic<bool> m_pendingPause;     /** true if the task is going to be paused by the scheduler, false otherwise.           */
+    std::atomic<bool> m_pendingUserPause; /** true if the task is going to be paused because the user paused it, false otherwise. */
+    std::atomic<bool> m_isAborted;        /** true if the task has been aborted, false otherwise.                                 */
+    std::atomic<bool> m_hasFinished;      /** true if the method run() has finished its execution, false otherwise.               */
+    std::atomic<bool> m_isPaused;         /** true if the task is paused (by scheduler or by user), false otherwise.              */
+    std::atomic<bool> m_needsRestart;     /** true if the task needs to be restarted, false otherwise.                            */
 
-    Id   m_id;
-    bool m_hidden;
+    Id                m_id;               /** task identifier.                                                                    */
+    bool              m_hidden;           /** true to hide the task to the user interface, false to make it public.               */
+    QMutex            m_mutex;            /** data protection mutex.                                                              */
+    QWaitCondition    m_pauseCondition;   /** wait condition for the paused state.                                                */
 
-    QMutex         m_mutex;
-    QMutex         m_restartMutex;
-    mutable QReadWriteLock m_descriptionLock;
-    QWaitCondition m_pauseCondition;
+    QString           m_description;      /** task description text.                                                              */
+    std::atomic<int>  m_progress;         /** task current progress value in [0-100]                                              */
 
-    QString  m_description;
-    int      m_progress;
+    mutable QReadWriteLock m_descriptionLock; /** lock for accessing the description data. */
 
     friend class Scheduler;
   };

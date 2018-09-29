@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2017 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2018 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -22,8 +22,10 @@
 // Project
 #include <Core/Analysis/Extensions.h>
 #include <Core/Utils/EspinaException.h>
-#include <Extensions/SkeletonInformation/SkeletonInformation.h>
+#include <Extensions/SkeletonInformation/AxonInformation.h>
+#include <Extensions/SkeletonInformation/DendriteInformation.h>
 #include <Extensions/SkeletonInformation/SkeletonInformationFactory.h>
+#include <Extensions/SkeletonInformation/SynapseInformation.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -47,15 +49,25 @@ Core::SegmentationExtensionSPtr SkeletonInformationFactory::createExtension(cons
 {
   SegmentationExtensionSPtr extension = nullptr;
 
-  if(type == SkeletonInformation::TYPE)
+  if(type == DendriteSkeletonInformation::TYPE)
   {
-    extension = SegmentationExtensionSPtr{new SkeletonInformation(cache)};
+    extension = SegmentationExtensionSPtr{new DendriteSkeletonInformation(cache)};
+  }
+
+  if(type == AxonSkeletonInformation::TYPE)
+  {
+    extension = SegmentationExtensionSPtr{new AxonSkeletonInformation(cache)};
+  }
+
+  if(type == SynapseConnectionInformation::TYPE)
+  {
+    extension = SegmentationExtensionSPtr{new SynapseConnectionInformation(cache)};
   }
 
   if(!extension || !extension.get())
   {
     auto message = QObject::tr("Unknown extension type: %1").arg(type);
-    auto details = QObject::tr("MorphologicalInformationFactory::createExtension() -> ") + message;
+    auto details = QObject::tr("SkeletonInformationFactory::createExtension() -> ") + message;
 
     throw EspinaException(message, details);
   }
@@ -67,7 +79,9 @@ Core::SegmentationExtensionSPtr SkeletonInformationFactory::createExtension(cons
 Core::SegmentationExtension::TypeList SkeletonInformationFactory::providedExtensions() const
 {
   SegmentationExtension::TypeList list;
-  list << SkeletonInformation::TYPE;
+  list << DendriteSkeletonInformation::TYPE;
+  list << AxonSkeletonInformation::TYPE;
+  list << SynapseConnectionInformation::TYPE;
 
   return list;
 }

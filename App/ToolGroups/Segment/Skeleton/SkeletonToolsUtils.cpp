@@ -95,18 +95,37 @@ void ESPINA::SkeletonToolsUtils::loadStrokes(std::shared_ptr<QSettings> settings
 {
   STROKES.clear();
 
-  settings->beginGroup("SkeletonStrokes");
+  const QString toolKey{"SkeletonStrokes/"};
 
-  for(auto group: settings->childGroups())
+  std::function<void(void)> loadGroupStrokes = [settings, toolKey, &loadGroupStrokes]()
   {
-    settings->beginGroup(group);
+    // NOTE: doing it this way we need to remove the tool settings group before adding the strokes to STROKES.
+    auto groupKey = settings->group().remove(0, toolKey.length());
+
+    for(auto subGroup: settings->childGroups())
+    {
+      settings->beginGroup(subGroup);
+
+      loadGroupStrokes();
+
+      settings->endGroup();
+    }
 
     for(auto key: settings->childKeys())
     {
       QVariant value = settings->value(key);
 
-      STROKES[group] << value.value<ESPINA::Core::SkeletonStroke>();
+      STROKES[groupKey] << value.value<ESPINA::Core::SkeletonStroke>();
     }
+  };
+
+  settings->beginGroup("SkeletonStrokes");
+
+  for(auto subGroup: settings->childGroups())
+  {
+    settings->beginGroup(subGroup);
+
+    loadGroupStrokes();
 
     settings->endGroup();
   }

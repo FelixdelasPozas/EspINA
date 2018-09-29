@@ -48,6 +48,7 @@
 using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::RepresentationUtils;
@@ -67,70 +68,78 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
                                                     const RepresentationState&         state)
 {
   auto segmentation = segmentationPtr(item);
-  if(!segmentation) return;
+  if(!segmentation || !m_colorEngine) return;
+
+  QColor color;
+  if(segmentation->colorEngine() != nullptr)
+  {
+    color = segmentation->colorEngine()->color(segmentation);
+  }
+  else
+  {
+    color = m_colorEngine->color(segmentation);
+  }
 
   for(auto actor: actors)
   {
-    auto color   = m_colorEngine->color(segmentation);
     auto actor2D = vtkActor2D::SafeDownCast(actor.Get());
 
     if(actor2D)
     {
       actor2D->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
-
-      // 3D representation has 3 actors.
-      if(actors.size() == 3)
+      auto mapper = vtkLabelPlacementMapper::SafeDownCast(actor2D->GetMapper());
+      if(mapper)
       {
-        auto mapper = vtkLabelPlacementMapper::SafeDownCast(actor2D->GetMapper());
-
-        if(mapper)
-        {
-          mapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
-        }
+        mapper->SetBackgroundColor(color.redF(), color.greenF(), color.blueF());
+        mapper->Update();
       }
+
+      actor2D->Modified();
     }
 
     auto actorVTK = vtkActor::SafeDownCast(actor.Get());
 
     if(actorVTK)
     {
-      auto data        = vtkPolyData::SafeDownCast(actorVTK->GetMapper()->GetInput());
+      auto data = vtkPolyData::SafeDownCast(actorVTK->GetMapper()->GetInput());
+      if(!data) return;
+
       auto colors      = vtkUnsignedCharArray::SafeDownCast(data->GetCellData()->GetScalars());
       auto cellChanges = vtkIntArray::SafeDownCast(data->GetCellData()->GetAbstractArray("ChangeColor"));
 
-      if(!colors || !cellChanges)
+      if (colors)
       {
-        qWarning() << "Bad polydata for" << segmentation->data().toString();
-        qWarning() << "Could extract array for cellChanges: " << (cellChanges == nullptr ? "false" : "true");
-        qWarning() << "Could extract array for colors: " << (colors == nullptr ? "false" : "true");
-        return;
+        data->GetLines()->InitTraversal();
+        for (int i = 0; i < data->GetNumberOfLines(); ++i)
+        {
+          double rgba[4];
+
+          if (!cellChanges || cellChanges->GetValue(i) == 0)
+          {
+            s_highlighter.lut(color, item->isSelected())->GetTableValue(1, rgba);
+          }
+          else
+          {
+            unsigned char values[3];
+            colors->GetTupleValue(i, values);
+
+            auto custom = QColor::fromRgb(values[0], values[1], values[2]);
+            s_highlighter.lut(custom, item->isSelected())->GetTableValue(1, rgba);
+          }
+
+          colors->SetTuple3(i, rgba[0] * 255, rgba[1] * 255, rgba[2] * 255);
+        }
+
+        colors->Modified();
       }
-
-      data->GetLines()->InitTraversal();
-      for(int i = 0; i < data->GetNumberOfLines(); ++i)
+      else
       {
-        double rgba[4];
-
-        if(cellChanges->GetValue(i) == 0)
-        {
-          s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
-        }
-        else
-        {
-          unsigned char values[3];
-          colors->GetTupleValue(i, values);
-
-          auto custom = QColor::fromRgb(values[0], values[1], values[2]);
-          s_highlighter.lut(custom, item->isSelected())->GetTableValue(1,rgba);
-        }
-
-        colors->SetTuple3(i, rgba[0]*255, rgba[1]*255, rgba[2]*255);
+        actorVTK->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
       }
 
       auto width = item->isSelected() ? 2 : 0;
       width += SegmentationSkeletonPoolSettings::getWidth(state);
 
-      colors->Modified();
       actorVTK->GetMapper()->Update();
       actorVTK->GetProperty()->SetLineWidth(width);
       actorVTK->Modified();
@@ -143,7 +152,7 @@ bool SegmentationSkeletonPipelineBase::pick(ConstViewItemAdapterPtr item, const 
 {
   if(hasSkeletonData(item->output()))
   {
-    auto skeleton = readLockSkeleton(item->output())->skeleton();
+    auto skeleton = readLockSkeleton(item->output(), DataUpdatePolicy::Ignore)->skeleton();
     auto lines = skeleton->GetLines();
     auto spacing = item->output()->spacing();
     double projection[3];

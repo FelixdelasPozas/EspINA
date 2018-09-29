@@ -25,9 +25,8 @@ using namespace ESPINA::Support;
 
 //-----------------------------------------------------------------------------
 ROIAccumulator::ROIAccumulator()
-: m_provider(nullptr)
+: m_provider{nullptr}
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -39,7 +38,7 @@ void ROIAccumulator::setProvider(ROIProviderPtr provider)
 //-----------------------------------------------------------------------------
 ROISPtr ROIAccumulator::currentROI()
 {
-  return m_provider?m_provider->currentROI():ROISPtr();
+  return m_provider ? m_provider->currentROI() : ROISPtr();
 }
 
 //-----------------------------------------------------------------------------

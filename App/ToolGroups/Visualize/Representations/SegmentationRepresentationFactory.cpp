@@ -43,6 +43,7 @@
 #include <GUI/Representations/Pools/BasicRepresentationPool.hxx>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Representations/Settings/SegmentationMeshPoolSettings.h>
+#include <GUI/Representations/Settings/ConnectionPoolSettings.h>
 #include <Support/Representations/SliceManager.h>
 #include <Support/Representations/Slice3DManager.h>
 #include <Support/Representations/BasicRepresentationSwitch.h>
@@ -52,6 +53,7 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::Support::Widgets;
 using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::Support::Representations::Utils;
 
 const unsigned SegmentationRepresentationFactory::WINDOW_SIZE = 5;
@@ -106,6 +108,7 @@ void SegmentationRepresentationFactory::createSliceRepresentation(Representation
   poolSliceYZ->setSettings(sliceSettings);
 
   representation.Pools << poolSliceXY << poolSliceXZ << poolSliceYZ;
+  representation.Settings << sliceSettings;
 
   if (supportedViews.testFlag(ESPINA::VIEW_2D))
   {
@@ -172,6 +175,7 @@ void SegmentationRepresentationFactory::createContourRepresentation(Representati
   representation.Pools    << poolContourXY << poolContourXZ << poolContourYZ;
   representation.Managers << contourManager;
   representation.Switches << contourSwitch;
+  representation.Settings << contourSettings;
 }
 
 //----------------------------------------------------------------------------
@@ -202,11 +206,13 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
 
      auto skeletonSwitch2D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton2DSwitch", skeletonManager2D, skeletonSettings2D, ViewType::VIEW_2D, context);
      skeletonSwitch2D->setChecked(true);
+     skeletonSwitch2D->setShortcut(Qt::Key_Space);
      groupSwitch("1-2", skeletonSwitch2D);
 
      representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ;
      representation.Managers << skeletonManager2D;
      representation.Switches << skeletonSwitch2D;
+     representation.Settings << skeletonSettings2D;
    }
 
    if (supportedViews.testFlag(ESPINA::VIEW_3D))
@@ -228,6 +234,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
      representation.Pools    << poolSkeleton3D;
      representation.Managers << skeletonManager3D;
      representation.Switches << skeletonSwitch3D;
+     representation.Settings << skeletonSettings3D;
    }
 }
 
@@ -263,6 +270,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
   representation.Pools    << poolMesh << poolSmoothedMesh;
   representation.Managers << meshManager << smoothedMeshManager;
   representation.Switches << meshSwitch;
+  representation.Settings << meshesSettings;
 }
 
 //----------------------------------------------------------------------------
@@ -293,6 +301,7 @@ void SegmentationRepresentationFactory::createVolumetricRepresentation(Represent
   representation.Pools    << gpuPool << cpuPool;
   representation.Managers << gpuManager << cpuManager;
   representation.Switches << volumetricSwitch;
+  representation.Settings << settings;
 }
 
 //----------------------------------------------------------------------------
@@ -308,18 +317,24 @@ void SegmentationRepresentationFactory::createMiscellaneousManagers(Representati
   if(supportedViews.testFlag(ESPINA::VIEW_2D)) flags << ESPINA::VIEW_2D;
   if(supportedViews.testFlag(ESPINA::VIEW_3D)) flags << ESPINA::VIEW_3D;
 
-  for(auto flag: flags)
+  if(!flags.isEmpty())
   {
-    auto connectionsManager = std::make_shared<ConnectionsManager>(flag, context.model());
-    connectionsManager->setName(QObject::tr("DisplayConnections"));
-    connectionsManager->setIcon(QIcon(":/espina/connection.svg"));
-    connectionsManager->setDescription(QObject::tr("Display segmentation's connections"));
+    auto connectionSettings = std::make_shared<ConnectionPoolSettings>();
+    representation.Settings << connectionSettings;
 
-    auto connectionsSwitch = std::make_shared<SegmentationConnectionsSwitch>(connectionsManager, context);
-    connectionsSwitch->setOrder("2", "2-Display");
-    if(flag == ESPINA::VIEW_2D) connectionsSwitch->setChecked(true);
+    for(auto flag: flags)
+    {
+      auto connectionsManager = std::make_shared<ConnectionsManager>(flag, context.model());
+      connectionsManager->setName(QObject::tr("DisplayConnections"));
+      connectionsManager->setIcon(QIcon(":/espina/connection.svg"));
+      connectionsManager->setDescription(QObject::tr("Display segmentation's connections"));
 
-    representation.Managers << connectionsManager;
-    representation.Switches << connectionsSwitch;
+      auto connectionsSwitch = std::make_shared<SegmentationConnectionsSwitch>(connectionsManager, connectionSettings, context);
+      connectionsSwitch->setOrder("2", "2-Display");
+      if(flag == ESPINA::VIEW_2D) connectionsSwitch->setChecked(true);
+
+      representation.Managers << connectionsManager;
+      representation.Switches << connectionsSwitch;
+    }
   }
 }

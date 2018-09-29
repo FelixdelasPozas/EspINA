@@ -34,6 +34,7 @@
 #include <QPixmap>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
 
 vtkStandardNewMacro(vtkSkeletonWidget);
@@ -68,7 +69,7 @@ vtkSkeletonWidget::~vtkSkeletonWidget()
 
   if(WidgetRep && CurrentRenderer)
   {
-    reinterpret_cast<vtkSkeletonWidgetRepresentation*>(WidgetRep)->ClearAllNodes();
+    reinterpret_cast<vtkSkeletonWidgetRepresentation*>(WidgetRep)->ClearRepresentation();
   }
 }
 
@@ -114,53 +115,6 @@ void vtkSkeletonWidget::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "WidgetState: " << m_widgetState << endl;
   os << indent << "Orientation: " << (int) m_orientation << endl;
   os << indent << "Shift in Z: " << m_shift << endl;
-}
-
-//-----------------------------------------------------------------------------
-void vtkSkeletonWidget::Initialize(vtkSmartPointer<vtkPolyData> pd)
-{
-  if (!WidgetRep)
-  {
-    CreateDefaultRepresentation();
-    WidgetRep->SetRenderer(GetCurrentRenderer());
-  }
-
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-
-  if (pd == nullptr)
-  {
-    rep->ClearAllNodes();
-    rep->VisibilityOff();
-  }
-  else
-  {
-    rep->Initialize(pd);
-  }
-
-  m_widgetState = vtkSkeletonWidget::Define;
-
-  if (GetCurrentRenderer() != nullptr)
-  {
-    if (pd == nullptr)
-    {
-      SetCursor(vtkSkeletonWidgetRepresentation::Outside);
-    }
-    else
-    {
-      int X, Y;
-      Interactor->GetEventPosition(X,Y);
-      rep->ComputeInteractionState(X, Y);
-      int wState = WidgetRep->GetInteractionState();
-
-      SetCursor(wState);
-    }
-  }
-
-  if(rep->GetNeedToRender())
-  {
-    Render();
-    rep->NeedToRenderOff();
-  }
 }
 
 //-----------------------------------------------------------------------------
@@ -287,8 +241,6 @@ void vtkSkeletonWidget::stop()
     case vtkSkeletonWidget::Define:
       rep->DeleteCurrentNode();
       break;
-    case vtkSkeletonWidget::Manipulate:
-    case vtkSkeletonWidget::Delete:
     default:
       break;
   }
@@ -382,6 +334,31 @@ void vtkSkeletonWidget::SetCursor(int State)
           break;
       }
       break;
+      case vtkSkeletonWidget::Mark:
+        switch (State)
+        {
+          case vtkSkeletonWidgetRepresentation::NearPoint:
+          case vtkSkeletonWidgetRepresentation::NearContour:
+            if (!ManagesCursor)
+            {
+              QApplication::setOverrideCursor(m_truncateCursor);
+              ManagesCursorOn();
+            }
+            else
+            {
+              QApplication::changeOverrideCursor(m_truncateCursor);
+            }
+            break;
+          case vtkSkeletonWidgetRepresentation::Outside:
+          default:
+            if (ManagesCursor)
+            {
+              ManagesCursor = false;
+              QApplication::restoreOverrideCursor();
+            }
+            break;
+        }
+        break;
     default:
       break;
   }
@@ -466,10 +443,27 @@ void vtkSkeletonWidget::SetShift(const Nm shift)
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::UpdateRepresentation()
 {
-  if (!WidgetRep) return;
+  if (!WidgetRep)
+  {
+    CreateDefaultRepresentation();
+    WidgetRep->SetRenderer(GetCurrentRenderer());
+  }
 
   auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
   rep->BuildRepresentation();
+
+  m_widgetState = vtkSkeletonWidget::Define;
+
+  if (GetCurrentRenderer() != nullptr)
+  {
+    int X, Y;
+    Interactor->GetEventPosition(X,Y);
+    rep->ComputeInteractionState(X, Y);
+    int wState = WidgetRep->GetInteractionState();
+
+    SetCursor(wState);
+  }
+
   rep->NeedToRenderOff();
   Render();
 }
@@ -502,6 +496,8 @@ void vtkSkeletonWidget::setCurrentOperationMode(const int mode)
       auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
       rep->DeactivateNode();
     }
+
+    updateCursor();
   }
 }
 
@@ -532,10 +528,11 @@ bool vtkSkeletonWidget::selectNode()
 
     auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
 
-    auto nodeSelected = rep->ActivateNode(X, Y);
-    rep->UpdatePointer();
-
-    return nodeSelected;
+    if(rep->ActivateNode(X, Y))
+    {
+      rep->UpdatePointer();
+      return true;
+    }
   }
 
   return false;
@@ -562,30 +559,45 @@ void vtkSkeletonWidget::BuildRepresentation()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setStroke(const Core::SkeletonStroke& stroke)
 {
-  if(WidgetRep)
+  CreateDefaultRepresentation();
+
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  rep->setStroke(stroke);
+}
+
+//-----------------------------------------------------------------------------
+const Core::SkeletonStroke vtkSkeletonWidget::stroke() const
+{
+  auto stroke = Core::SkeletonStroke();
+
+  if(WidgetRep && numberOfPoints() != 0)
   {
     auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-    rep->setStroke(stroke);
+    stroke = rep->currentStroke();
   }
+
+  return stroke;
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::createCursors()
 {
-  QPixmap crossMinusPixmap, crossPlusPixmap, crossCheckPixmap;
+  QPixmap crossMinusPixmap, crossPlusPixmap, crossCheckPixmap, crossScissorsPixmap;
   crossMinusPixmap.load(":espina/cross-minus.png", "PNG", Qt::ColorOnly);
   crossPlusPixmap.load(":espina/cross-plus.png", "PNG", Qt::ColorOnly);
   crossCheckPixmap.load(":espina/cross-check.png", "PNG", Qt::ColorOnly);
+  crossScissorsPixmap.load(":espina/cross-scissors.png", "PNG", Qt::ColorOnly);
 
   m_crossMinusCursor = QCursor(crossMinusPixmap, -1, -1);
   m_crossPlusCursor  = QCursor(crossPlusPixmap, -1, -1);
   m_crossCheckCursor = QCursor(crossCheckPixmap, -1, -1);
+  m_truncateCursor   = QCursor(crossScissorsPixmap, -1, -1);
 }
 
 //-----------------------------------------------------------------------------
-void vtkSkeletonWidget::cleanup()
+void vtkSkeletonWidget::ClearRepresentation()
 {
-  vtkSkeletonWidgetRepresentation::cleanup();
+  vtkSkeletonWidgetRepresentation::ClearRepresentation();
 }
 
 //-----------------------------------------------------------------------------
@@ -599,7 +611,10 @@ void vtkSkeletonWidget::createConnection(const Core::SkeletonStroke& stroke)
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidget::isStartNode(const NmVector3 &point) const
 {
-  if(WidgetRep) return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->isStartNode(point);
+  if(WidgetRep)
+  {
+    return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->isStartNode(point);
+  }
 
   return false;
 }
@@ -607,7 +622,118 @@ bool vtkSkeletonWidget::isStartNode(const NmVector3 &point) const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::changeStroke(const Core::SkeletonStroke& stroke)
 {
-  if(!WidgetRep) return;
+  if(!WidgetRep) CreateDefaultRepresentation();
 
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->switchToStroke(stroke);
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+
+  int X,Y;
+  Interactor->GetEventPosition(X,Y);
+  rep->setIgnoreCursorNode(true);
+  rep->ComputeInteractionState(X,Y);
+  auto State = rep->GetInteractionState();
+  rep->setIgnoreCursorNode(false);
+
+  bool result = false;
+  switch(State)
+  {
+    case vtkSkeletonWidgetRepresentation::NearContour:
+      result = rep->AddNodeOnContour(X, Y);
+      break;
+    case vtkSkeletonWidgetRepresentation::NearPoint:
+      result = rep->TryToJoin(X, Y);
+      break;
+    default:
+      break;
+  }
+
+  if(!result)
+  {
+    rep->switchToStroke(stroke);
+  }
+
+  if (WidgetRep->GetNeedToRender())
+  {
+    Render();
+    WidgetRep->NeedToRenderOff();
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSkeletonWidget::markAsTruncated()
+{
+  if(!WidgetRep) return false;
+
+  int X,Y;
+  Interactor->GetEventPosition(X,Y);
+
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+
+  return rep->ToggleStrokeProperty(Core::SkeletonNodeProperty::TRUNCATED, X,Y);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setRepresentationWidth(const int width)
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setWidth(width);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setRepresentationShowText(bool value)
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setShowLabels(value);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setRepresentationTextSize(int size)
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setLabelsSize(size);
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setRepresentationTextColor(const QColor &color)
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setLabelsColor(color);
+}
+
+//-----------------------------------------------------------------------------
+const Core::PathList vtkSkeletonWidget::selectedPaths() const
+{
+  PathList result;
+
+  if(WidgetRep)
+  {
+    int X,Y;
+    Interactor->GetEventPosition(X,Y);
+
+    result = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->currentSelectedPaths(X,Y);
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setStrokeHueModification(const bool value)
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setChangeCoincidetHue(value);
+}
+
+//-----------------------------------------------------------------------------
+const bool vtkSkeletonWidget::strokeHueModification() const
+{
+  if(WidgetRep)
+  {
+    return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->changeCoincidentHue();
+  }
+
+  return false;
 }

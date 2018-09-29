@@ -34,120 +34,123 @@ namespace ESPINA
   class SeedGrowSegmentationSettings
   : public QObject
   {
-    Q_OBJECT
-  public:
-    /** \brief SeedGrowSegmentationSettins class constructor.
-     *
-     */
-    explicit SeedGrowSegmentationSettings();
+      Q_OBJECT
+    public:
+      /** \brief SeedGrowSegmentationSettins class constructor.
+       *
+       */
+      explicit SeedGrowSegmentationSettings();
 
-    /** \brief SeedGrowSegmentationSettins class destructor.
-     *
-     */
-    ~SeedGrowSegmentationSettings(){}
+      /** \brief SeedGrowSegmentationSettins class destructor.
+       *
+       */
+      virtual ~SeedGrowSegmentationSettings()
+      {};
 
-    /** \brief Sets X size.
-     * \param[in] value size value.
-     */
-    void setXSize(long long value);
+      /** \brief Sets X size.
+       * \param[in] value size value.
+       */
+      void setXSize(long long value);
 
-    /** \brief Returns X size value.
-     *
-     */
-    long long xSize() const
-    {return m_xSize;}
+      /** \brief Returns X size value.
+       *
+       */
+      inline long long xSize() const
+      { return m_xSize; }
 
-    /** \brief Sets Y size.
-     * \param[in] value size value.
-     *
-     */
-    void setYSize(long long value);
+      /** \brief Sets Y size.
+       * \param[in] value size value.
+       *
+       */
+      void setYSize(long long value);
 
-    /** \brief Returns Y size value.
-     *
-     */
-    long long ySize() const
-    {return m_ySize;}
+      /** \brief Returns Y size value.
+       *
+       */
+      inline long long ySize() const
+      { return m_ySize; }
 
-    /** \brief Sets Z size.
-     * \param[in] value size value.
-     *
-     */
-    void setZSize(long long value);
+      /** \brief Sets Z size.
+       * \param[in] value size value.
+       *
+       */
+      void setZSize(long long value);
 
-    /** \brief Returns Z size value.
-     *
-     */
-    long long zSize() const
-    {return m_zSize;}
+      /** \brief Returns Z size value.
+       *
+       */
+      inline long long zSize() const
+      { return m_zSize; }
 
-    /** \brief Sets apply category flag.
-     * \param[in] value true to use category ROI size values.
-     *
-     */
-    void setApplyCategoryROI(bool value);
+      /** \brief Sets apply category flag.
+       * \param[in] value true to use category ROI size values.
+       *
+       */
+      void setApplyCategoryROI(bool value);
 
-    /** \brief Returns true if the tool will use the category size values for the ROI.
-     *
-     */
-    bool applyCategoryROI() const
-    { return m_applyCategoryROI; }
+      /** \brief Returns true if the tool will use the category size values for the ROI.
+       *
+       */
+      inline bool applyCategoryROI() const
+      { return m_applyCategoryROI; }
 
-    /** \brief Sets the best pixel value for the selector.
-     * \param[in] value (0-255) value.
-     */
-    void setBestPixelValue(int value);
+      /** \brief Sets the best pixel value for the selector.
+       * \param[in] value (0-255) value.
+       */
+      void setBestPixelValue(int value);
 
-    /** \brief Returns the value of the best pixel.
-     *
-     */
-    int bestPixelValue() const
-    { return m_bestValue; }
+      /** \brief Returns the value of the best pixel.
+       *
+       */
+      inline int bestPixelValue() const
+      { return m_bestValue; }
 
-    /** \brief Sets the closing flag value.
-     * \param[in] value true to apply a morphological close operation after a seedgrow segmentation operation.
-     */
-    void setCloseRadius(int value);
+      /** \brief Sets the closing flag value.
+       * \param[in] value true to apply a morphological close operation after a seedgrow segmentation operation.
+       */
+      void setCloseRadius(int value);
 
-    /** \brief Returns true if a closing operation is applied after a seedgrow segmentation operation.
-     *
-     */
-    int closeRadius() const
-    {return m_radius;}
+      /** \brief Returns true if a closing operation is applied after a seedgrow segmentation operation.
+       *
+       */
+      inline int closeRadius() const
+      { return m_radius; }
 
-    /** \brief Enables/disables the close morphological operation after a successful seedgrow operation.
-     * \param[in] enable true to enable and false otherwise.
-     *
-     */
-    void setApplyClose(bool enable);
+      /** \brief Enables/disables the close morphological operation after a successful seedgrow operation.
+       * \param[in] enable true to enable and false otherwise.
+       *
+       */
+      void setApplyClose(bool enable);
 
-    /** \brief Returns true if after a seedgrow operation a morphological close will be applied to the result.
-     *
-     */
-    bool applyClose() const
-    { return m_applyClose; }
+      /** \brief Returns true if after a seedgrow operation a morphological close will be applied to the result.
+       *
+       */
+      inline bool applyClose() const
+      { return m_applyClose; }
 
-  signals:
-    void applyCategoryROIChanged(bool value);
-    void bestValueChanged(int value);
+    signals:
+      void applyCategoryROIChanged(bool value);
+      void bestValueChanged(int value);
+      void closeRadiusChanged(int value);
+      void applyCloseChanged(bool value);
 
-  private:
-    static const QString SGS_GROUP;                             /** SeedGrowSegmentation group id. */
+    private:
+      static const QString SGS_GROUP;                             /** SeedGrowSegmentation group id. */
 
-    /** \brief Helper method to modify the settings.
-     * \param[in] key key id.
-     * \param[in] value key value.
-     *
-     */
-    template<typename T> void set(const QString &key, T value);
+      /** \brief Helper method to modify the settings.
+       * \param[in] key key id.
+       * \param[in] value key value.
+       *
+       */
+      template<typename T> void set(const QString &key, T value);
 
-    long long m_xSize;            /** size of ROI in the X axis.                                              */
-    long long m_ySize;            /** size of ROI in the Y axis.                                              */
-    long long m_zSize;            /** size of ROI in the Z axis.                                              */
-    int       m_radius;           /** close radius value.                                                     */
-    int       m_bestValue;        /** best pixel value.                                                       */
-    bool      m_applyCategoryROI; /** true to apply ROI values and false otherwise.                           */
-    bool      m_applyClose;       /** true to apply a morphological close after seedgrow and false otherwise. */
+      long long m_xSize;            /** size of ROI in the X axis.                                              */
+      long long m_ySize;            /** size of ROI in the Y axis.                                              */
+      long long m_zSize;            /** size of ROI in the Z axis.                                              */
+      int       m_radius;           /** close radius value.                                                     */
+      int       m_bestValue;        /** best pixel value.                                                       */
+      bool      m_applyCategoryROI; /** true to apply ROI values and false otherwise.                           */
+      bool      m_applyClose;       /** true to apply a morphological close after seedgrow and false otherwise. */
   };
 
 } // namespace ESPINA
@@ -156,8 +159,6 @@ template<typename T>
 inline void ESPINA::SeedGrowSegmentationSettings::set(const QString& key, T value)
 {
   ESPINA_SETTINGS(settings);
-
-
 
   settings.beginGroup(SGS_GROUP);
   settings.setValue(key, value);

@@ -37,11 +37,6 @@ CountingFrameCreator::CountingFrameCreator(Data data, SchedulerSPtr scheduler, C
 }
 
 //------------------------------------------------------------------------
-CountingFrameCreator::~CountingFrameCreator()
-{
-}
-
-//------------------------------------------------------------------------
 void CountingFrameCreator::run()
 {
   reportProgress(25);
@@ -66,6 +61,9 @@ void CountingFrameCreator::run()
       Q_ASSERT(false);
       break;
   }
+
+  // NOTE: while tempting to add this variable to the New() methods it's better to left it here.
+  m_cf->setEditable(m_data.editable);
 
   reportProgress(100);
 }

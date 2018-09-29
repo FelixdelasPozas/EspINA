@@ -66,7 +66,7 @@ FilterSPtr SegmhaFilterFactory::createFilter(InputSList          inputs,
 }
 
 //-----------------------------------------------------------------------------
-FilterTypeList SegmhaFilterFactory::providedFilters() const
+const FilterTypeList SegmhaFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -80,7 +80,6 @@ FilterTypeList SegmhaFilterFactory::providedFilters() const
 SegmhaImporterPlugin::SegmhaImporterPlugin()
 {
 }
-
 
 //-----------------------------------------------------------------------------
 SegmhaImporterPlugin::~SegmhaImporterPlugin()

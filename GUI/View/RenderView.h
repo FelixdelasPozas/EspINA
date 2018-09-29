@@ -175,7 +175,7 @@ namespace ESPINA
      */
     virtual void addActor(vtkProp *actor) = 0;
 
-    /** \brief Removes an actor to the vtkRenderer.
+    /** \brief Removes an actor from the vtkRenderer.
      * \param[in] actor vtkProp raw pointer.
      *
      */
@@ -292,6 +292,8 @@ namespace ESPINA
 
     bool eventHandlerFilterEvent(QEvent *event);
 
+    virtual void shutdownAndRemoveManagers();
+
   private:
     /** \brief Renders the last frame in all the managers.
      * \param[in] frame frame to render
@@ -339,9 +341,9 @@ namespace ESPINA
 
     virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
 
-    virtual void addSliceSelectors(SliceSelectorSPtr  widget, SliceSelectionType selector) {};
+    virtual void addSliceSelectors(GUI::Widgets::SliceSelectorSPtr widget, GUI::Widgets::SliceSelectionType selector) {};
 
-    virtual void removeSliceSelectors(SliceSelectorSPtr widget) {};
+    virtual void removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr widget) {};
 
     void onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
 
@@ -350,26 +352,27 @@ namespace ESPINA
     void delayedWidgetsShow();
 
   protected:
-    ContextualMenuSPtr                               m_contextMenu;
-    QVTKWidget                                      *m_view;
-    GUI::Representations::RepresentationManagerSList m_managers;
-    unsigned int                                     m_lastFrameActiveManagers;
-
-  private:
     using TempPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
     using ReprManagerSPtr    = GUI::Representations::RepresentationManagerSPtr;
 
+    ContextualMenuSPtr                               m_contextMenu;             /** context menu or nullptr if none.                 */
+    QVTKWidget                                      *m_view;                    /** VTK view.                                        */
+    GUI::Representations::RepresentationManagerSList m_managers;                /** factory<->managers for representations.          */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr>        m_temporalManagers;        /** factory<->managers for temporal representations. */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr>        m_inactiveManagers;        /** factory<->managers to be removed on next frame.  */
+    unsigned int                                     m_lastFrameActiveManagers; /** number of active managers last frame.            */
+
+  private:
     /** \brief vtkImageData to QImage conversion.
      * \param[in] image vtkImageData object pointer.
      *
      */
     QImage vtkImageDataToQImage(vtkImageData* image) const;
 
-    GUI::View::ViewState                     &m_state;            /** current state of the views.             */
-    GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                 */
-    ViewType                                  m_type;             /** type of view: 2D/3D.                    */
-    GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                  */
-    QMap<TempPrototypesSPtr, ReprManagerSPtr> m_temporalManagers; /** factory<->managers for representations. */
+    GUI::View::ViewState                     &m_state;            /** current state of the views.                     */
+    GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                         */
+    ViewType                                  m_type;             /** type of view: 2D/3D.                            */
+    GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                          */
   };
 
 } // namespace ESPINA

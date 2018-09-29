@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -152,7 +152,7 @@ NmVector3 ChannelAdapter::position() const
 //------------------------------------------------------------------------
 void ChannelAdapter::setHue(double hue)
 {
-  return m_channel->setHue(hue);
+  m_channel->setHue(hue);
 }
 
 //------------------------------------------------------------------------
@@ -266,13 +266,13 @@ bool ESPINA::operator!=(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
 //------------------------------------------------------------------------
 ChannelAdapterPtr ESPINA::channelPtr(ItemAdapterPtr item)
 {
-  return static_cast<ChannelAdapterPtr>(item);
+  return dynamic_cast<ChannelAdapterPtr>(item);
 }
 
 //------------------------------------------------------------------------
 ConstChannelAdapterPtr ESPINA::channelPtr(ConstItemAdapterPtr item)
 {
-  return static_cast<ConstChannelAdapterPtr>(item);
+  return dynamic_cast<ConstChannelAdapterPtr>(item);
 }
 
 

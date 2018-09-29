@@ -66,7 +66,7 @@ namespace ESPINA
       static const Filter::Type SGS_FILTER;    /** seed grow filter signature. */
       static const Filter::Type SGS_FILTER_V4; /** seed grow filter old signature. */
 
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
 
@@ -202,12 +202,15 @@ namespace ESPINA
        */
       void onCloseStateChanged(bool value);
 
+      /** \brief Updates the settings when the user changes the close radius value.
+       * \param[in] value New radius value.
+       */
+      void onRadiusValueChanged(int value);
+
     private:
       using CategorySelector   = GUI::Widgets::CategorySelector;
       using PixelValueSelector = GUI::Widgets::PixelValueSelector;
       using NumericalInput     = GUI::Widgets::NumericalInput;
-
-      Support::Context &m_context;
 
       CategorySelector   *m_categorySelector; /** category selector widget.     */
       SeedThreshold      *m_seedThreshold;    /** seed threshold input widget.  */

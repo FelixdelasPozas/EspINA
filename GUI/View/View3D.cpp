@@ -56,6 +56,7 @@
 #include <vtkMath.h>
 #include <vtkCubeAxesActor2D.h>
 #include <vtkAxisActor2D.h>
+#include <vtkFollower.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkTextProperty.h>
 #include <vtkPropPicker.h>
@@ -89,6 +90,8 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors, QW
 //-----------------------------------------------------------------------------
 View3D::~View3D()
 {
+  shutdownAndRemoveManagers();
+
   mainRenderer()->RemoveAllViewProps();
 }
 
@@ -383,7 +386,16 @@ bool View3D::isCrosshairPointVisible() const
 //-----------------------------------------------------------------------------
 void View3D::addActor(vtkProp *actor)
 {
-  m_renderer->AddActor(actor);
+  if(actor)
+  {
+    auto follower = dynamic_cast<vtkFollower *>(actor);
+    if(follower)
+    {
+      follower->SetCamera(mainRenderer()->GetActiveCamera());
+    }
+
+    m_renderer->AddActor(actor);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -513,6 +525,8 @@ void View3D::exportScene()
                           .addFormat(tr("Geomview format"),         "oogl");
 
   auto fileName = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".wrl", suggestion, this);
+  const QString utfFilename = fileName.toUtf8();
+  const QString asciiFilename = utfFilename.toAscii();
 
   if (!fileName.isEmpty())
   {
@@ -538,7 +552,7 @@ void View3D::exportScene()
       if (QString("POV") == extension)
       {
         auto exporter = vtkSmartPointer<vtkPOVExporter>::New();
-        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetFileName(asciiFilename.toStdString().c_str());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         {
           WaitingCursor cursor;
@@ -549,7 +563,7 @@ void View3D::exportScene()
       if (QString("WRL") == extension)
       {
         auto exporter = vtkSmartPointer<vtkVRMLExporter>::New();
-        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetFileName(asciiFilename.toStdString().c_str());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         {
           WaitingCursor cursor;
@@ -560,7 +574,7 @@ void View3D::exportScene()
       if (QString("X3D") == extension)
       {
         auto exporter = vtkSmartPointer<vtkX3DExporter>::New();
-        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetFileName(asciiFilename.toStdString().c_str());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         exporter->SetBinary(false);
         {
@@ -572,7 +586,7 @@ void View3D::exportScene()
       if (QString("IV") == extension)
       {
         auto exporter = vtkSmartPointer<vtkIVExporter>::New();
-        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetFileName(asciiFilename.toStdString().c_str());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         {
           WaitingCursor cursor;
@@ -589,8 +603,11 @@ void View3D::exportScene()
 
         prefix += file.baseName();
 
+        const QString utfPrefix = prefix.toUtf8();
+        const QString asciiPrefix = utfPrefix.toAscii();
+
         auto exporter = vtkSmartPointer<vtkOBJExporter>::New();
-        exporter->SetFilePrefix(prefix.toUtf8());
+        exporter->SetFilePrefix(asciiPrefix.toStdString().c_str());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         {
           WaitingCursor cursor;
@@ -601,7 +618,7 @@ void View3D::exportScene()
       if (QString("OOGL") == extension)
       {
         auto exporter = vtkSmartPointer<vtkOOGLExporter>::New();
-        exporter->SetFileName(fileName.toUtf8());
+        exporter->SetFileName(asciiFilename.toStdString().c_str());
         exporter->SetRenderWindow(m_renderer->GetRenderWindow());
         {
           WaitingCursor cursor;

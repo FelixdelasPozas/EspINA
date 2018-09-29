@@ -20,74 +20,93 @@
 
 // ESPINA
 #include <Dialogs/HueSelector/HueSelector.h>
+#include <Dialogs/CreateCategoryDialog/CreateCategoryDialog.h>
 #include "ClassificationLayout.h"
+#include <Core/Utils/Vector3.hxx>
+#include <Core/Analysis/Category.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Widgets/Styles.h>
 #include <Menus/DefaultContextualMenu.h>
 #include <Undo/ChangeCategoryCommand.h>
 #include <Undo/ReparentCategoryCommand.h>
 #include <Undo/AddCategoryCommand.h>
 #include <Undo/RemoveCategoryCommand.h>
 #include <Undo/ChangeCategoryColorCommand.h>
-#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <Undo/RemoveSegmentations.h>
 
 // Qt
 #include <QMessageBox>
 #include <QUndoStack>
 #include <QColorDialog>
 #include <QItemDelegate>
+#include <QTreeView>
+#include <QWidgetAction>
+
+// C++
+#include <random>
+#include <chrono>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
+using namespace ESPINA::GUI::Widgets::Styles;
 
-//------------------------------------------------------------------------
-class RenameCategoryCommand
-: public QUndoCommand
+namespace ESPINA
 {
-  public:
-    /** \brief RenameCategoryCommand class constructor.
-     * \param[in] categoryItem category adapter raw pointer of the element to rename.
-     * \param[in] name string reference to the new name.
-     * \param[in] model model adapter smart pointer of the model containing the category.
-     * \param[in] parent parent QUndoCommand raw pointer.
-     *
-     */
-    explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
-                                   const QString      &name,
-                                   ModelAdapterSPtr   model,
-                                   QUndoCommand      *parent = 0)
-    : QUndoCommand  {parent}
-    , m_model       {model}
-    , m_categoryItem{categoryItem}
-    , m_name        {name}
-    {}
+  //------------------------------------------------------------------------
+  class RenameCategoryCommand
+  : public QUndoCommand
+  {
+    public:
+      /** \brief RenameCategoryCommand class constructor.
+       * \param[in] categoryItem category adapter raw pointer of the element to rename.
+       * \param[in] name string reference to the new name.
+       * \param[in] model model adapter smart pointer of the model containing the category.
+       * \param[in] parent parent QUndoCommand raw pointer.
+       *
+       */
+      explicit RenameCategoryCommand(CategoryAdapterPtr categoryItem,
+                                     const QString      &name,
+                                     ModelAdapterSPtr   model,
+                                     QUndoCommand      *parent = 0)
+      : QUndoCommand  {parent}
+      , m_model       {model}
+      , m_categoryItem{categoryItem}
+      , m_name        {name}
+      {}
 
-    virtual void redo() override
-    { swapName(); }
+      virtual void redo() override
+      { swapName(); }
 
-    virtual void undo() override
-    { swapName(); }
+      virtual void undo() override
+      { swapName(); }
 
-  private:
-    void swapName()
-    {
-      QString     tmp   = m_categoryItem->name();
-      QModelIndex index = m_model->categoryIndex(m_categoryItem);
+    private:
+      /** \brief Helper method to swap the old and new name.
+       *
+       */
+      void swapName()
+      {
+        QString     tmp   = m_categoryItem->name();
+        QModelIndex index = m_model->categoryIndex(m_categoryItem);
 
-      m_model->setData(index, m_name, Qt::EditRole);
+        m_model->setData(index, m_name, Qt::EditRole);
 
-      m_name = tmp;
-    }
+        m_name = tmp;
+      }
 
-  private:
-    ModelAdapterSPtr   m_model;
-    CategoryAdapterPtr m_categoryItem;
-    QString            m_name;
-};
-
+    private:
+      ModelAdapterSPtr   m_model;        /** model containing the classification.        */
+      CategoryAdapterPtr m_categoryItem; /** category to modify.                         */
+      QString            m_name;         /** buffer that contains the new and old names. */
+  };
+}
 
 //------------------------------------------------------------------------
 void CategoryItemDelegate::setModelData(QWidget            *editor,
@@ -105,15 +124,23 @@ void CategoryItemDelegate::setModelData(QWidget            *editor,
 
     if (!category->parent()->subCategory(name))
     {
-      m_undoStack->beginMacro(tr("Rename Category"));
+      WaitingCursor cursor;
+
+      m_undoStack->beginMacro(tr("Rename category '%1' to '%2'.").arg(category->name()).arg(name));
       m_undoStack->push(new RenameCategoryCommand(category, name, m_model));
       m_undoStack->endMacro();
+    }
+    else
+    {
+      auto message = tr("There is already a category at the same level with the name '%1'").arg(name);
+      auto title   = tr("Rename Category");
+      GUI::DefaultDialogs::ErrorMessage(message, title);
     }
   }
 }
 
 //------------------------------------------------------------------------
-bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
+bool ClassificationLayout::ClassificationSortFilter::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
   auto leftItem  = itemAdapter(left);
   auto rightItem = itemAdapter(right);
@@ -133,10 +160,10 @@ bool ClassificationLayout::SortFilter::lessThan(const QModelIndex& left, const Q
 //------------------------------------------------------------------------
 ClassificationLayout::ClassificationLayout(CheckableTreeView              *view,
                                            Support::Context               &context)
-: Layout               {view, context}
-, m_proxy              {new ClassificationProxy(context.model(), context.viewState())}
-, m_sort               {new SortFilter()}
-, m_delegate           {new CategoryItemDelegate(context.model(), context.undoStack(), this)}
+: Layout    {view, context}
+, m_proxy   {new ClassificationProxy(context.model(), context.viewState())}
+, m_sort    {new ClassificationSortFilter()}
+, m_delegate{new CategoryItemDelegate(context.model(), context.undoStack(), this)}
 {
   auto model = context.model();
 
@@ -162,6 +189,7 @@ ClassificationLayout::ClassificationLayout(CheckableTreeView              *view,
 //------------------------------------------------------------------------
 ClassificationLayout::~ClassificationLayout()
 {
+  delete m_delegate;
 }
 
 //------------------------------------------------------------------------
@@ -184,10 +212,6 @@ void ClassificationLayout::createSpecificControls(QHBoxLayout *specificControlLa
   addCategoryDependentButton(changeCategoryColor, specificControlLayout);
   connect(changeCategoryColor, SIGNAL(clicked(bool)),
           this,                SLOT(changeCategoryColor()));
-
-  // the model of CheckableTreeView has been set by now (wasn't in constructor): connect signals
-  connect(m_view->selectionModel(), SIGNAL(selectionChanged(QItemSelection, QItemSelection)),
-          this,                     SLOT(updateSelection()));
 }
 
 //------------------------------------------------------------------------
@@ -203,6 +227,8 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
   if (segmentationsSelected)
   {
     contextMenu = new DefaultContextualMenu(m_selectedSegmentations, getContext());
+
+    createChangeCategoryMenu(contextMenu);
 
     contextMenu->addSeparator();
 
@@ -293,21 +319,24 @@ void ClassificationLayout::deleteSelectedItems()
       if (!index.isValid()) continue;
 
       auto item = ClassificationLayout::item(index);
-      if (isCategory(item))
+      if (item && isCategory(item))
       {
         for(auto additionalIndex : indices(index, true))
         {
           auto additionalItem = ClassificationLayout::item(additionalIndex);
-          if (isSegmentation(additionalItem))
+          if(additionalItem)
           {
-            segmentations << segmentationPtr(additionalItem);
-          }
-          else
-          {
-            auto category = toCategoryAdapterPtr(additionalItem);
-            if (!additionalCategories.contains(category))
+            if (isSegmentation(additionalItem))
             {
-              additionalCategories << category;
+              segmentations << segmentationPtr(additionalItem);
+            }
+            else
+            {
+              auto category = toCategoryAdapterPtr(additionalItem);
+              if (!additionalCategories.contains(category))
+              {
+                additionalCategories << category;
+              }
             }
           }
         }
@@ -316,6 +345,17 @@ void ClassificationLayout::deleteSelectedItems()
 
     categories << additionalCategories;
 
+    QString categoriesNameListText;
+    for(int i = 0; i < categories.size(); ++i)
+    {
+      if(i != 0)
+      {
+        categoriesNameListText += (i != categories.size() -1 ? ", ": " and ");
+      }
+      categoriesNameListText += "'" + categories.at(i)->name() + "'";
+    }
+
+    auto model = getModel();
     if (!segmentations.isEmpty())
     {
       QMessageBox msg;
@@ -350,11 +390,12 @@ void ClassificationLayout::deleteSelectedItems()
 
       if(QMessageBox::Ok == GUI::DefaultDialogs::UserQuestion(message, QMessageBox::Cancel|QMessageBox::Ok, title, details))
       {
+        WaitingCursor cursor;
+
         auto undoStack = getUndoStack();
-        undoStack->beginMacro(tr("Remove Categories"));
+        undoStack->beginMacro(tr("Remove categor%1 %2.").arg(categories.size() > 1 ? "ies":"y").arg(categoriesNameListText));
         for(auto category : categories)
         {
-          auto model = getModel();
           if (model->classification()->category(category->classificationName()))
           {
             undoStack->push(new RemoveCategoryCommand(category, model));
@@ -365,18 +406,20 @@ void ClassificationLayout::deleteSelectedItems()
       return;
     }
 
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
 
     // assuming categories are empty, because if they weren't then !segmentations.empty()
-    undoStack->beginMacro(tr("Remove Categories and Segmentations"));
+    auto macroText = tr("Remove categor%1 %2 and its segmentations.").arg(categories.size() > 1 ? "ies":"y").arg(categoriesNameListText);
+    undoStack->beginMacro(macroText);
     if(!segmentations.empty())
     {
-      deleteSegmentations(segmentations.toList());
+      undoStack->push(new RemoveSegmentations(segmentations.toList(), model));
     }
 
     for(auto category : categories)
     {
-      auto model = getModel();
       if (model->classification()->category(category->classificationName()))
       {
         undoStack->push(new RemoveCategoryCommand(category, model));
@@ -421,13 +464,13 @@ void ClassificationLayout::showSelectedItemsInformation()
     for(QModelIndex index : selectedIndexes)
     {
       auto item = ClassificationLayout::item(index);
-      if (isCategory(item))
+      if (item && isCategory(item))
       {
         subIndexes << indices(index, true);
         for(QModelIndex subIndex : subIndexes)
         {
           auto subItem = ClassificationLayout::item(subIndex);
-          if (isSegmentation(subItem))
+          if (subItem && isSegmentation(subItem))
           {
             segmentations << segmentationPtr(subItem);
           }
@@ -451,46 +494,31 @@ QItemDelegate *ClassificationLayout::itemDelegate() const
 //------------------------------------------------------------------------
 void ClassificationLayout::createCategory()
 {
-  ItemAdapterPtr categoryItem = nullptr;
+  auto model          = getModel();
+  auto parentCategory = toCategoryAdapterPtr(model->classification()->root().get());
 
-  auto model        = getModel();
-  auto currentIndex = m_view->currentIndex();
+  auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::minstd_rand0 rngenerator(seed);
+  auto color = QColor::fromHsv(rngenerator() % 360, 255,255);
 
-  if (currentIndex.isValid())
+  auto name = uniqueCategoryName(parentCategory, "New Category");
+
+  CreateCategoryDialog dialog;
+  dialog.setWindowTitle(tr("Create New Category"));
+  dialog.setOperationText(tr("Create a new root category:"));
+  dialog.setCategoryName(name);
+  dialog.setColor(color);
+  dialog.setROI(Vector3<long long>{500,500,500});
+
+  if(QDialog::Accepted == dialog.exec())
   {
-    categoryItem = item(currentIndex);
-  }
-  else
-  {
-    Q_ASSERT(model->classification());
-    Q_ASSERT(model->classification()->root());
-    categoryItem = model->classification()->root().get();
-  }
+    name = uniqueCategoryName(parentCategory, dialog.categoryName());
 
-  Q_ASSERT(categoryItem);
-
-  if (isCategory(categoryItem))
-  {
-    auto selectedCategory = toCategoryAdapterPtr(categoryItem);
-    auto parentCategory   = selectedCategory->parent();
-
-    // Check if we are adding a first level category
-    if (!parentCategory)
-    {
-      parentCategory = selectedCategory;
-    }
-
-    QString name = tr("New Category");
-    int i = 1;
-
-    while(parentCategory->subCategory(name))
-    {
-      name = tr("New Category-%1").arg(++i);
-    }
+    WaitingCursor cursor;
 
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Create Category"));
-    undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, parentCategory->color()));
+    undoStack->beginMacro(tr("Create category '%1'.").arg(name));
+    undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, dialog.categoryColor(), dialog.ROI()));
     undoStack->endMacro();
   }
 }
@@ -502,25 +530,45 @@ void ClassificationLayout::createSubCategory()
 
   if (!currentIndex.isValid()) return;
 
-  auto categorytItem = item(currentIndex);
+  auto categoryItem = item(currentIndex);
 
-  if (isCategory(categorytItem))
+  if (categoryItem && isCategory(categoryItem))
   {
-    QString name = tr("New Category");
-    int i = 1;
+    auto category = toCategoryAdapterPtr(categoryItem);
+    auto name     = uniqueCategoryName(category, tr("New Category"));
+    auto model    = getModel();
 
-    auto category = toCategoryAdapterPtr(categorytItem);
+    CreateCategoryDialog dialog;
+    dialog.setWindowTitle(tr("Create New Sub-category"));
+    dialog.setOperationText(tr("Create a new sub-category of '%1':").arg(category->name()));
+    dialog.setCategoryName(name);
+    dialog.setColor(category->color());
 
-    while(category->subCategory(name) != nullptr)
+    bool ok1, ok2, ok3;
+    long long xSize = category->property(Category::DIM_X()).toLongLong(&ok1);
+    long long ySize = category->property(Category::DIM_Y()).toLongLong(&ok2);
+    long long zSize = category->property(Category::DIM_Z()).toLongLong(&ok3);
+
+    if (ok1 && ok2 && ok3 && (xSize > 0) && (ySize > 0) && (zSize > 0))
     {
-      name = tr("New Category-%1").arg(++i);
+      dialog.setROI(Vector3<long long>{xSize,ySize,zSize});
+    }
+    else
+    {
+      dialog.setROI(Vector3<long long>{500,500,500});
     }
 
-    auto undoStack = getUndoStack();
+    if(QDialog::Accepted == dialog.exec())
+    {
+      name = uniqueCategoryName(category, dialog.categoryName());
 
-    undoStack->beginMacro(tr("Create Category"));
-    undoStack->push(new AddCategoryCommand(getModel()->smartPointer(category), name, getModel(), category->color()));
-    undoStack->endMacro();
+      WaitingCursor cursor;
+
+      auto undoStack = getUndoStack();
+      undoStack->beginMacro(tr("Create sub-category '%1' of category '%2'.").arg(name).arg(category->name()));
+      undoStack->push(new AddCategoryCommand(model->smartPointer(category), name, model, dialog.categoryColor(), dialog.ROI()));
+      undoStack->endMacro();
+    }
   }
 }
 
@@ -531,8 +579,11 @@ void ClassificationLayout::segmentationsDropped(SegmentationAdapterList   segmen
   if(!segmentations.empty() && category != nullptr)
   {
     auto undoStack = getUndoStack();
+    auto names     = segmentationListNames(segmentations);
 
-    undoStack->beginMacro(tr("Change Segmentation's Category"));
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("Change segmentation%1 category to '%2': %3.").arg(segmentations.size() > 1 ? "s":"").arg(category->name()).arg(names));
     undoStack->push(new ChangeCategoryCommand(segmentations, category, getContext()));
     undoStack->endMacro();
   }
@@ -565,8 +616,20 @@ void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
 
   if (!validSubCategories.isEmpty())
   {
+    QString categoryNames;
+    for(auto cat: validSubCategories)
+    {
+      if(cat != validSubCategories.first())
+      {
+        categoryNames += (cat != validSubCategories.last() ? ", ":" and ");
+      }
+      categoryNames += "'" + cat->name() + "'";
+    }
+
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Modify Classification"));
+    undoStack->beginMacro(tr("Re-parent categor%1 to category '%2': %3.").arg(validSubCategories.size() > 1 ? "ies":"y").arg(category->name()).arg(categoryNames));
     undoStack->push(new ReparentCategoryCommand(validSubCategories, category, getModel()));
     undoStack->endMacro();
   }
@@ -575,22 +638,25 @@ void ClassificationLayout::categoriesDropped(CategoryAdapterList subCategories,
 //------------------------------------------------------------------------
 void ClassificationLayout::updateSelection()
 {
-  int numCategories = 0;
-
-  auto selectedIndexes = m_view->selectionModel()->selectedIndexes();
-
-  for(auto index : selectedIndexes)
+  if(isActive())
   {
-    if (isCategory(item(index)))
+    int numCategories = 0;
+
+    QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
+    for(auto index : indexList)
     {
-      numCategories++;
+      auto adapter = item(index);
+      if (adapter && isCategory(adapter))
+      {
+        numCategories++;
+      }
     }
+
+    emit canCreateCategory(hasClassification());
+    emit categorySelected(numCategories == 1);
+
+    m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
   }
-
-  emit canCreateCategory(hasClassification());
-  emit categorySelected(numCategories == 1);
-
-  m_sort->sort(m_sort->sortColumn(), m_sort->sortOrder());
 }
 
 //------------------------------------------------------------------------
@@ -600,7 +666,7 @@ void ClassificationLayout::changeCategoryColor()
   QModelIndexList indexList = m_view->selectionModel()->selection().indexes();
   auto item = ClassificationLayout::item(indexList.first());
 
-  if (indexList.size() == 1 && isCategory(item))
+  if (indexList.size() == 1 && item && isCategory(item))
   {
     auto category = toCategoryAdapterPtr(item);
 
@@ -610,7 +676,11 @@ void ClassificationLayout::changeCategoryColor()
     if(hueSelector.exec() == QDialog::Accepted)
     {
       auto undoStack = getUndoStack();
-      undoStack->beginMacro(tr("Change category color"));
+      auto hueValue  = hueSelector.hueValue();
+
+      WaitingCursor cursor;
+
+      undoStack->beginMacro(tr("Change category '%1' color to RGB %2.").arg(category->name()).arg(QColor::fromHsv(hueValue,255,255).name()));
       undoStack->push(new ChangeCategoryColorCommand(getModel(),
                                                      getViewState(),
                                                      category,
@@ -655,7 +725,6 @@ void ClassificationLayout::selectCategorySegmentations()
   {
     m_view->selectionModel()->clearSelection();
     m_view->selectionModel()->select(selection, QItemSelectionModel::Select);
-    m_view->selectionModel()->setCurrentIndex(selection.first().topLeft(), QItemSelectionModel::Select);
 
     displayCurrentIndex();
   }
@@ -699,17 +768,21 @@ bool ClassificationLayout::hasInformationToShow()
   for(auto index : selectedIndexes)
   {
     auto item = ClassificationLayout::item(index);
-    if (item && isSegmentation(item))
+    if(item)
     {
-      return true;
-    }
-    else if (item && isCategory(item))
-    {
-      for(auto subIndex : indices(index, true))
+      if (isSegmentation(item))
       {
-        if (isSegmentation(ClassificationLayout::item(subIndex)))
+        return true;
+      }
+      else if (isCategory(item))
+      {
+        for(auto subIndex : indices(index, true))
         {
-          return true;
+          auto subItem = ClassificationLayout::item(subIndex);
+          if (subItem && isSegmentation(subItem))
+          {
+            return true;
+          }
         }
       }
     }
@@ -721,21 +794,26 @@ bool ClassificationLayout::hasInformationToShow()
 //------------------------------------------------------------------------
 bool ClassificationLayout::selectedItems(CategoryAdapterList &categories, SegmentationAdapterSet &segmentations)
 {
-  for(auto index : m_view->selectionModel()->selectedIndexes())
+  if(m_view->selectionModel()->hasSelection())
   {
-    auto item = ClassificationLayout::item(index);
-
-    if (item && isSegmentation(item))
+    for(auto index : m_view->selectionModel()->selectedIndexes())
     {
-      segmentations << segmentationPtr(item);
-    }
-    else if (item && isCategory(item))
-    {
-      categories << toCategoryAdapterPtr(item);
-    }
-    else
-    {
-      Q_ASSERT(false);
+      auto item = ClassificationLayout::item(index);
+      if(item)
+      {
+        if (isSegmentation(item))
+        {
+          segmentations << segmentationPtr(item);
+        }
+        else if (isCategory(item))
+        {
+          categories << toCategoryAdapterPtr(item);
+        }
+        else
+        {
+          Q_ASSERT(false);
+        }
+      }
     }
   }
 
@@ -751,14 +829,16 @@ void ClassificationLayout::updateSelectedItems()
   for(auto index : m_view->selectionModel()->selectedIndexes())
   {
     auto selectedItem = item(index);
-
-    if (selectedItem && isSegmentation(selectedItem))
+    if(selectedItem)
     {
-      m_selectedSegmentations << segmentationPtr(selectedItem);
-    }
-    else if (selectedItem && isCategory(selectedItem))
-    {
-      m_selectedCategories << toCategoryAdapterPtr(selectedItem);
+      if (isSegmentation(selectedItem))
+      {
+        m_selectedSegmentations << segmentationPtr(selectedItem);
+      }
+      else if (isCategory(selectedItem))
+      {
+        m_selectedCategories << toCategoryAdapterPtr(selectedItem);
+      }
     }
   }
 }
@@ -846,4 +926,89 @@ void ClassificationLayout::displayCurrentIndex()
   {
     selectionModel->setCurrentIndex(selection.first(), QItemSelectionModel::Select);
   }
+}
+
+//------------------------------------------------------------------------
+const QString ClassificationLayout::uniqueCategoryName(const CategoryAdapterPtr category, const QString& suggested)
+{
+  Q_ASSERT(category);
+
+  int i = 1;
+  auto unique = suggested;
+  while (category->subCategory(unique))
+  {
+    unique = suggested + tr("-%1").arg(++i);
+  }
+
+  return unique;
+}
+
+//------------------------------------------------------------------------
+void ClassificationLayout::createChangeCategoryMenu(QMenu *menu)
+{
+   auto changeCategoryMenu = new QMenu(tr("C&hange Category"));
+   auto categoryListAction = new QWidgetAction(changeCategoryMenu);
+
+   auto model = getModel();
+
+   auto classification = new QTreeView();
+   classification->header()->setVisible(false);
+   classification->setModel(model.get());
+   classification->setRootIndex(model->classificationRoot());
+   classification->expandAll();
+   classification->resize(classification->sizeHint());
+
+   connect(classification, SIGNAL(clicked(QModelIndex)),
+           this,           SLOT(changeSegmentationsCategory(QModelIndex)));
+
+   connect(classification, SIGNAL(clicked(QModelIndex)),
+           menu,           SLOT(close()));
+
+   categoryListAction->setDefaultWidget(classification);
+   changeCategoryMenu->addAction(categoryListAction);
+   menu->insertMenu(menu->actions().first(), changeCategoryMenu);
+}
+
+//------------------------------------------------------------------------
+void ClassificationLayout::changeSegmentationsCategory(const QModelIndex& index)
+{
+   ItemAdapterPtr categoryItem = itemAdapter(index);
+   Q_ASSERT(isCategory(categoryItem));
+   CategoryAdapterPtr categoryAdapter = toCategoryAdapterPtr(categoryItem);
+
+   auto undoStack = getUndoStack();
+   auto names     = segmentationListNames(m_selectedSegmentations);
+
+   WaitingCursor cursor;
+
+   undoStack->beginMacro(tr("Change segmentations to category '%1': %2.").arg(categoryAdapter->name()).arg(names));
+   undoStack->push(new ChangeCategoryCommand(m_selectedSegmentations, categoryAdapter, getContext()));
+   undoStack->endMacro();
+}
+
+//------------------------------------------------------------------------
+ItemAdapterPtr ClassificationLayout::item(const QModelIndex& index) const
+{
+  if(!index.isValid() || !isActive()) return nullptr;
+
+  return itemAdapter(m_sort->mapToSource(index));
+}
+
+//------------------------------------------------------------------------
+QModelIndex ClassificationLayout::index(ItemAdapterPtr item) const
+{
+  if(item->type() == ItemAdapter::Type::CATEGORY || item->type() == ItemAdapter::Type::SEGMENTATION)
+  {
+    auto sourceIndex = Layout::index(item);
+    if(sourceIndex.isValid())
+    {
+      auto proxyIndex = m_proxy->mapFromSource(sourceIndex);
+      if(proxyIndex.isValid())
+      {
+        return m_sort->mapFromSource(proxyIndex);
+      }
+    }
+  }
+
+  return QModelIndex();
 }

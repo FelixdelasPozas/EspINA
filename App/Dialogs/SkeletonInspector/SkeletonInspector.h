@@ -25,9 +25,12 @@
 // ESPINA
 #include "ui_SkeletonInspector.h"
 #include "SkeletonInspectorTreeModel.h"
+#include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/View/View3D.h>
+#include <GUI/Representations/RepresentationManager.h>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
 #include <Support/Context.h>
 #include <Support/Representations/RepresentationFactory.h>
 #include <Support/Types.h>
@@ -61,6 +64,11 @@ namespace ESPINA
       virtual ~SkeletonInspector()
       {};
 
+    signals:
+      void connectionAdded(Connection connection);
+      void connectionRemoved(Connection connection);
+      void aboutToBeReset();
+
     protected:
       void showEvent(QShowEvent *event) override;
       void closeEvent(QCloseEvent *event) override;
@@ -72,6 +80,12 @@ namespace ESPINA
        */
       void focusOnActor(QModelIndex index);
 
+      /** \brief Focus the view on the actor belonging to the given table index.
+       * \param[in] row Table row position.
+       *
+       */
+      void focusOnActor(int row);
+
       /** \brief Updates the actor selection on the view depeding on the currently selected item.
        * \param[in] current index of the currently selected item.
        * \param[in] previous index of the previously selected item.
@@ -79,23 +93,44 @@ namespace ESPINA
        */
       void onCurrentChanged(const QModelIndex &current, const QModelIndex &previous);
 
-      /** \brief Centers the view when the user clicks on a connection label link.
-       *  \param[in] link Text of the link that contains the connection point.
-       *
-       */
-      void onLinkActivated(const QString &link);
-
       /** \brief Invalidates the representations of the given segmentations.
        * \param[in] segmentations list of segmentation adapter pointers.
        *
        */
       void onRepresentationsInvalidated(ViewItemAdapterList segmentations);
 
-      /** \brief Updates the selected items in the tree depending on the current selection.
-       * \param[in] segmentations Currently selected segmentations.
+      /** \brief Changes the coloring of strokes from stroke color to random.
+       * \param[in] value True to display the strokes in random colors and false to use stroke color.
        *
        */
-      void onSelectionChanged(SegmentationAdapterList segmentations);
+      void onColoringEnabled(bool value);
+
+      /** \brief Updates the model and expands the connections subtree.
+       * \param[in] distance Connections distance new value.
+       */
+      void onDistanceChanged(int distance);
+
+      /** \brief Updates the view sources and connections when the segmentations distance changes in the model.
+       * \param[in] segmentations List of segmentations in the distance minus the source one.
+       *
+       */
+      void onSegmentationsShown(const SegmentationAdapterList segmentations);
+
+      /** \brief Shows/hides the spine table when the button is clicked.
+       * \param[in] checked true if checked and false otherwise.
+       */
+      void onSpinesButtonClicked(bool checked);
+
+      /** \brief Selects the selected spine on the view.
+       * \param[in] index Modelindex of the table.
+       *
+       */
+      void onSpineSelected(const QModelIndex &index);
+
+      /** \brief Shows the save data dialog and saves the table data to disk in the choosed format.
+       *
+       */
+      void onSaveButtonPressed();
 
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
@@ -126,28 +161,42 @@ namespace ESPINA
        */
       void initTreeView();
 
-      /** \brief Adds the currently selected segmentations and it's connected ones to the view and the sources.
+      /** \brief Initializes the spines table.
        *
        */
-      void addSegmentations();
+      void initSpinesTable();
 
-      /** \brief Helper method to connect signals to its respective slots.
+      /** \brief Adds the currently selected segmentation and it's connected ones at a distance 1 to the view and the sources.
        *
        */
-      void connectSignals();
+      void addInitialSegmentations();
 
-      /** \brief Sets the default values for the stroke information fields.
+      /** \brief Adds the given segmentations to the view's sources.
+       * \param[in] segmentations Segmentations list.
        *
        */
-      void clearInformationLabels();
+      void addSegmentations(const SegmentationAdapterList &segmentations);
 
-      /** \brief Fills the values of the information labels with the information of the given stroke.
-       * \param[in] stroke Stroke information struct.
+      /** \brief Helper method that emits all the connections for the ConnectionManager.
        *
        */
-      void setStrokeInformation(const struct StrokeInfo &stroke);
+      void emitSegmentationConnectionSignals();
+
+      /** \brief Saves the spine table contents to the given file on disk in CSV format.
+       * \param[in] filename Name of the file on disk.
+       *
+       */
+      void saveToCSV(const QString &filename) const;
+
+      /** \brief Saves the spine table contents to the given file on disk in Excel format.
+       * \param[in] filename Name of the file on disk.
+       *
+       */
+      void saveToXLS(const QString &filename) const;
 
     private:
+      class SkeletonInspectorRepresentationSwitch;
+
       /** \class SkeletonInspectorPipeline
        * \brief Custom skeleton 3D representation pipeline for the skeleton inspector.
        *
@@ -178,18 +227,66 @@ namespace ESPINA
           virtual RepresentationPipeline::ActorList createActors(ConstViewItemAdapterPtr    item,
                                                                  const RepresentationState &state) override final;
 
+          /** \brief Enables/Disables random coloring.
+           * \param[in] value True to enable random coloring and false to use stroke colors.
+           *
+           */
+          void setRandomColors(const bool value)
+          { m_randomColoring = value; }
+
+          /** \brief Returns true if random coloring is enabled and false if the stroke colors are being used.
+           *
+           */
+          const bool randomColors() const
+          { return m_randomColoring; }
+
         private:
-          QList<struct StrokeInfo> &m_strokes; /** stroke information structs list. */
+          QList<struct StrokeInfo> &m_strokes;        /** stroke information structs list.                          */
+          bool                      m_randomColoring; /** true to use random colors and false to use stroke colors. */
       };
 
+      using TemporalPipelineSPtr = std::shared_ptr<SkeletonInspectorPipeline>;
 
-      SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                             */
-      SegmentationAdapterList  m_segmentations;       /** list of segmentations in the view.                                 */
-      View3D                   m_view;                /** 3D view.                                                           */
-      ManualPipelineSources    m_segmentationSources; /** list of channels as sources for pipelines.                         */
-      RepresentationList       m_representations;     /** list of view's representations factories and switches.             */
-      QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                                        */
+      SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                 */
+      View3D                   m_view;                /** 3D view.                                               */
+      ManualPipelineSources    m_segmentationSources; /** list of channels as sources for pipelines.             */
+      RepresentationList       m_representations;     /** list of view's representations factories and switches. */
+      QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                            */
+      TemporalPipelineSPtr     m_temporalPipeline;    /** segmentation temporal representation.                  */
   };
+
+  /** \class SkeletonInspectorRepresentationSwitch
+   * \brief Switch that inherits from the skeleton switch just to add a new coloring switch that is exclusive to the inspector.
+   *
+   */
+  class SkeletonInspector::SkeletonInspectorRepresentationSwitch
+  : public SegmentationSkeletonSwitch
+  {
+      Q_OBJECT
+    public:
+      /** \brief SkeletonInspectorRepresentationSwitch class constructor.
+       * \param[in] manager Manager associated with this switch.
+       * \param[in] settings Skeleton representation settings.
+       * \param[in] context Application context.
+       *
+       */
+      explicit SkeletonInspectorRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
+                                                     GUI::Representations::Settings::SkeletonPoolSettingsSPtr settings,
+                                                     Support::Context& context);
+
+      /** \brief SkeletonInspectorRepresentationSwitch class virtual destructor.
+       *
+       */
+      virtual ~SkeletonInspectorRepresentationSwitch()
+      {}
+
+    signals:
+      void coloringEnabled(bool value);
+
+    private:
+      GUI::Widgets::ToolButton *m_coloring; /** random coloring enable/disable button. */
+  };
+
 
 } // namespace ESPINA
 

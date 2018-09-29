@@ -21,6 +21,14 @@
 // ESPINA
 #include "QtModelUtils.h"
 
+// Qt
+#include <QMetaObject>
+#include <QMetaProperty>
+#include <QString>
+#include <QVariant>
+#include <QMap>
+#include <QDebug>
+
 //------------------------------------------------------------------------
 QModelIndex QtModelUtils::findChildIndex(QModelIndex parent, QVariant value, int role)
 {
@@ -85,4 +93,28 @@ bool QtModelUtils::isInnerNode(const QModelIndex &index)
 bool QtModelUtils::isLeafNode(const QModelIndex &index)
 {
   return index.isValid() && (index.model()->rowCount(index) == 0);
+}
+
+//------------------------------------------------------------------------
+void QtModelUtils::dumpQObjectProperties(QObject* obj)
+{
+  auto mo = obj->metaObject();
+  qDebug() << "## Properties of" << obj << "######";
+  do
+  {
+    qDebug() << "--- Class" << mo->className() << "---";
+    QMap<QString, QVariant> v;
+    for (int i = mo->propertyOffset(); i < mo->propertyCount(); ++i)
+    {
+      v.insert(mo->property(i).name(), mo->property(i).read(obj));
+    }
+    auto keys = v.keys();
+    qSort(keys);
+    for (auto &key : keys)
+    {
+      qDebug() << key << "=>" << v[key];
+    }
+  }
+  while ((mo = mo->superClass()));
+  qDebug() << "###############################################";
 }

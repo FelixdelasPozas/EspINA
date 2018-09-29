@@ -27,6 +27,7 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/RemoveChannel.h>
 #include <Undo/DragChannelsCommand.h>
 
@@ -39,6 +40,7 @@
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 class StackExplorer::CentralWidget
@@ -384,7 +386,9 @@ void StackExplorer::unloadStack()
     auto smartChannel = model->smartPointer(channel);
     auto undoStack    = getUndoStack();
 
-    undoStack->beginMacro("Unload Channel");
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("Unload channel '%1'").arg(smartChannel->data().toString()));
     undoStack->push(new RemoveChannel(smartChannel, getContext()));
     undoStack->endMacro();
   }
@@ -451,8 +455,20 @@ void StackExplorer::stacksDragged(ChannelAdapterList channels, SampleAdapterPtr 
 
   if(!filteredChannels.empty())
   {
+    QString channelNames;
+    for(auto channel: filteredChannels)
+    {
+      if(channel != filteredChannels.first())
+      {
+        channelNames += (channel != filteredChannels.last() ? ", ":" and ");
+      }
+      channelNames += "'" + channel->data().toString() + "'";
+    }
+
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
-    undoStack->beginMacro("Move Channels to Sample");
+    undoStack->beginMacro(tr("Move channel%1 to sample '%2': %3.").arg(filteredChannels.size() > 1 ? "s":"").arg(newSample->data().toString()).arg(channelNames));
     undoStack->push(new DragChannelsCommand(getModel(), filteredChannels, newSample, m_stackProxy.get()));
     undoStack->endMacro();
   }

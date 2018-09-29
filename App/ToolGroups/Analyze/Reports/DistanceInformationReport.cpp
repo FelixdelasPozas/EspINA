@@ -79,7 +79,7 @@ SegmentationAdapterList DistanceInformationReport::acceptedInput(SegmentationAda
 //----------------------------------------------------------------------------
 QString DistanceInformationReport::requiredInputDescription() const
 {
-  return QString();
+  return tr("Current report input does not contain any segmentations.");
 }
 
 //----------------------------------------------------------------------------

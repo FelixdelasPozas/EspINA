@@ -19,18 +19,21 @@
  */
 
 #include "Context.h"
-#include "Utils/FactoryUtils.h"
-#include "Widgets/Panel.h"
 #include <Core/MultiTasking/Scheduler.h>
+#include <Core/Utils/EspinaException.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
+#include <Support/Utils/FactoryUtils.h>
+#include <Support/Widgets/Panel.h>
 #include <Support/Settings/Settings.h>
-#include <QUndoStack>
-#include <QMainWindow>
+#include <Support/Representations/RepresentationFactory.h>
 
+// Qt
+#include <QMainWindow>
 
 const int PERIOD_uSEC = 16000; // 16ms
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::View;
 using namespace ESPINA::Support;
@@ -87,9 +90,42 @@ ROIAccumulatorSPtr Context::roiProvider() const
 }
 
 //------------------------------------------------------------------------
-RepresentationFactorySList &Context::availableRepresentations()
+const RepresentationFactorySList Context::availableRepresentations() const
 {
-  return m_availableRepresentations;
+  return m_representations.keys();
+}
+
+//------------------------------------------------------------------------
+const RepresentationList Context::representations() const
+{
+  return m_representations.values();
+}
+
+//------------------------------------------------------------------------
+const Representation Context::representation(const RepresentationFactorySPtr factory) const
+{
+  if(!m_representations.contains(factory))
+  {
+    auto message = QObject::tr("Asked for an unknown representation.");
+    auto details = QObject::tr("Context::representation(factory) -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
+  return m_representations[factory];
+}
+
+//------------------------------------------------------------------------
+const Representation &Context::addRepresentation(const RepresentationFactorySPtr factory)
+{
+  if(!m_representations.keys().contains(factory))
+  {
+    auto representation = factory->createRepresentation(*this, ViewType::VIEW_2D|ViewType::VIEW_3D);
+
+    m_representations.insert(factory, representation);
+  }
+
+  return m_representations[factory];
 }
 
 //------------------------------------------------------------------------

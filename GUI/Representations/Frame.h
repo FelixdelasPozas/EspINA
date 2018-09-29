@@ -54,7 +54,11 @@ namespace ESPINA
 
           enum Option
           {
-            None = 0x0, Focus = 0x1, Reset = 0x2, InvalidateSegmentation = 0x4, InvalidateChannel = 0x8
+            None                   = 0,
+            Focus                  = 1 << 0,
+            Reset                  = 1 << 1,
+            InvalidateSegmentation = 1 << 2,
+            InvalidateChannel      = 1 << 3
           };
 
           Q_DECLARE_FLAGS(Options, Option)

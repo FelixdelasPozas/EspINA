@@ -88,10 +88,10 @@ class ChannelReader
   static const Filter::Type VOLUMETRIC_STREAM_READER; /** channel reader signature. */
   static const Filter::Type ESPINA_1_3_2_CHANNEL_READER; /** channel reader old signature. */
 
-  virtual QString type() const
+  virtual const QString type() const
   { return "ChannelReader";}
 
-  virtual FilterTypeList providedFilters() const
+  virtual const FilterTypeList providedFilters() const
   {
     FilterTypeList filters;
 

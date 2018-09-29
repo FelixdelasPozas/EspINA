@@ -35,10 +35,10 @@ namespace ESPINA
   : public IO::AnalysisReader
   {
     public:
-      virtual QString type() const
+      virtual const QString type() const
       { return "SegmhaReader"; }
 
-      virtual ExtensionList supportedFileExtensions() const;
+      virtual const ExtensionList supportedFileExtensions() const;
 
       virtual AnalysisSPtr read(const QFileInfo& file,
                                 CoreFactorySPtr  factory,

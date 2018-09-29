@@ -27,6 +27,7 @@
 #include <QPushButton>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------

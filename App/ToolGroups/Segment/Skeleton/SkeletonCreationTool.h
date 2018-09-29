@@ -18,8 +18,8 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_SKELETON_TOOL_H_
-#define ESPINA_SKELETON_TOOL_H_
+#ifndef ESPINA_SKELETON_CREATION_TOOL_H_
+#define ESPINA_SKELETON_CREATION_TOOL_H_
 
 // ESPINA
 #include <App/ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
@@ -61,7 +61,7 @@ namespace ESPINA
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type &filter, SchedulerSPtr scheduler) const override;
 
-      virtual FilterTypeList providedFilters() const override;
+      virtual const FilterTypeList providedFilters() const override;
 
     private:
       mutable DataFactorySPtr m_dataFactory; /** data factory for this factory. */
@@ -71,21 +71,21 @@ namespace ESPINA
    * \brief Tool for skeleton segmentation creation
    *
    */
-  class SkeletonTool
+  class SkeletonCreationTool
   : public Support::Widgets::ProgressTool
   {
       Q_OBJECT
     public:
-      /** \brief SkeletonTool class constructor.
+      /** \brief SkeletonCreationTool class constructor.
        * \param[in] context application context
        *
        */
-      SkeletonTool(Support::Context &context);
+      SkeletonCreationTool(Support::Context &context);
 
-      /** \brief SkeletonTool class virtual destructor.
+      /** \brief SkeletonCreationTool class virtual destructor.
        *
        */
-      virtual ~SkeletonTool();
+      virtual ~SkeletonCreationTool();
 
       virtual void abortOperation() override
       { deactivateEventHandler(); };
@@ -154,12 +154,6 @@ namespace ESPINA
        */
       void onNextButtonPressed();
 
-      /** \brief Updates the stroke type of the widget when the stroke type changes.
-       * \param[in] index current type combo box index.
-       *
-       */
-      void onStrokeTypeChanged(int index);
-
       /** \brief Shows the stroke type definition dialog.
        *
        */
@@ -170,6 +164,30 @@ namespace ESPINA
        *
        */
       void onPointCheckRequested(const NmVector3 &point);
+
+      /** \brief Updates the UI when the widget changes the stroke.
+       * \param[in] stroke Current stroke definition.
+       *
+       */
+      void onStrokeChangedByWidget(const Core::SkeletonStroke stroke);
+
+      /** \brief Updates the UI when the user selects an stroke using the menu from the handler or the combobox.
+       * \param[in] index Index of the selected stroke in the STROKES variable.
+       *
+       */
+      void onStrokeChanged(int index);
+
+      /** \brief Deactivates the tool if another segmentation is selected.
+       * \param[in] segmentations Currently selected segmentations list.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
+
+      /** \brief Enables/disables the modification of hue value for strokes of same color to facilitate visualization while segmenting.
+       * \param[in] value True to enable hue modifications and false to draw the strokes with its defined hue value.
+       *
+       */
+      void onHueModificationsButtonClicked(bool value);
 
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
@@ -248,6 +266,7 @@ namespace ESPINA
       GUI::Widgets::ToolButton                                 *m_nextButton;       /** next segmentation button.                         */
       QComboBox                                                *m_strokeCombo;      /** stroke type combo box.                            */
       GUI::Widgets::ToolButton                                 *m_strokeButton;     /** stroke configuration dialog.                      */
+      GUI::Widgets::ToolButton                                 *m_changeHueButton;  /** hue value modification for strokes with same hue. */
       SkeletonToolsEventHandlerSPtr                             m_eventHandler;     /** tool's event handler.                             */
       ViewItemAdapterPtr                                        m_item;             /** current element being created or channel in init. */
       GUI::Representations::Managers::TemporalPrototypesSPtr    m_factory;          /** skeleton representation prototypes.               */
@@ -256,9 +275,9 @@ namespace ESPINA
       QList<ConnectionPointsTemporalRepresentation2DSPtr>       m_pointWidgets;     /** list of point representations currently on views. */
   };
 
-  using SkeletonToolPtr  = SkeletonTool *;
-  using SkeletonToolSPtr = std::shared_ptr<SkeletonTool>;
+  using SkeletonToolPtr  = SkeletonCreationTool *;
+  using SkeletonToolSPtr = std::shared_ptr<SkeletonCreationTool>;
 
 } // namespace EspINA
 
-#endif // ESPINA_SKELETON_TOOL_H_
+#endif // ESPINA_SKELETON_CREATION_TOOL_H_

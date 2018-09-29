@@ -48,7 +48,7 @@ namespace ESPINA
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const override;
 
-      virtual FilterTypeList providedFilters() const override;
+      virtual const FilterTypeList providedFilters() const override;
 
     private:
       mutable DataFactorySPtr m_dataFactory; /** data factory for this provider. */

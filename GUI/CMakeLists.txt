@@ -19,6 +19,7 @@ qt4_wrap_cpp(GUI_MOC
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
+  Model/Proxies/LocationProxy.h
   Model/ViewItemAdapter.h
   Model/Utils/DBVH.h
   Representations/ModelSources.h
@@ -118,6 +119,7 @@ set (GUI_SOURCES
   Model/Proxies/ChannelProxy.cpp
   Model/Proxies/ClassificationProxy.cpp
   Model/Proxies/InformationProxy.cpp
+  Model/Proxies/LocationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   Model/Utils/DBVH.cpp
@@ -143,6 +145,7 @@ set (GUI_SOURCES
   Representations/Settings/SegmentationContourPoolSettings.cpp
   Representations/Settings/SegmentationMeshPoolSettings.cpp
   Representations/Settings/SegmentationSkeletonPoolSettings.cpp
+  Representations/Settings/ConnectionPoolSettings.cpp
   Representations/Pools/BufferedRepresentationPool.cpp
   Representations/Managers/ConnectionsManager.cpp
   Representations/Managers/CrosshairManager.cpp 

@@ -20,6 +20,7 @@
  */
 
 // ESPINA
+#include <Core/Utils/EspinaException.h>
 #include "LibraryExtensionFactory.h"
 #include "EdgeDistances/ChannelEdges.h"
 #include "EdgeDistances/ChannelEdgesFactory.h"
@@ -33,8 +34,9 @@
 #include "Notes/SegmentationNotesFactory.h"
 #include "Tags/SegmentationTags.h"
 #include "Tags/SegmentationTagsFactory.h"
-#include <Core/Utils/EspinaException.h>
-#include "SkeletonInformation/SkeletonInformation.h"
+#include "Extensions/SkeletonInformation/DendriteInformation.h"
+#include "Extensions/SkeletonInformation/AxonInformation.h"
+#include "Extensions/SkeletonInformation/SynapseInformation.h"
 #include "SkeletonInformation/SkeletonInformationFactory.h"
 
 // C++
@@ -101,7 +103,11 @@ LibrarySegmentationExtensionFactory::LibrarySegmentationExtensionFactory(CoreFac
   m_factories.insert(MorphologicalInformation::TYPE, std::make_shared<MorphologicalInformationFactory>(factory));
   m_factories.insert(SegmentationNotes::TYPE,        std::make_shared<SegmentationNotesFactory>(factory));
   m_factories.insert(SegmentationTags::TYPE,         std::make_shared<SegmentationTagsFactory>(factory));
-  m_factories.insert(SkeletonInformation::TYPE,      std::make_shared<SkeletonInformationFactory>(factory));
+
+  auto skeletonExtensionsFactory = std::make_shared<SkeletonInformationFactory>(factory);
+  m_factories.insert(DendriteSkeletonInformation::TYPE, skeletonExtensionsFactory);
+  m_factories.insert(AxonSkeletonInformation::TYPE, skeletonExtensionsFactory);
+  m_factories.insert(SynapseConnectionInformation::TYPE, skeletonExtensionsFactory);
 }
 
 //-----------------------------------------------------------------------

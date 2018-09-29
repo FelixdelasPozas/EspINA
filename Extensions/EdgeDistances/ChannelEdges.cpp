@@ -90,13 +90,13 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                    scheduler,
   {
     //State: UseDistanceToBounds,BackgroundColor,Threshold
     auto values = state.split(",");
-    bool ok{false}, result;
+    bool ok{false};
     m_useDistanceToBounds = values[0].toInt(&ok);
-    result = ok;
+    bool result = ok;
     m_backgroundColor     = values[1].toInt(&ok);
-    result |= ok;
+    result &= ok;
     m_threshold           = values[2].toInt(&ok);
-    result |= ok;
+    result &= ok;
 
     if(result)
     {
@@ -115,12 +115,6 @@ ChannelEdges::ChannelEdges(SchedulerSPtr                    scheduler,
 ChannelEdges::~ChannelEdges()
 {
   invalidateResults();
-
-  m_analisysWait.wakeAll();
-  m_edgesTask.wakeAll();
-
-  if(m_edgesAnalyzer->isRunning()) m_edgesAnalyzer->abort();
-  if(m_edgesCreator->isRunning()) m_edgesCreator->abort();
 }
 
 //-----------------------------------------------------------------------------
@@ -406,7 +400,7 @@ void ChannelEdges::invalidate()
 void ChannelEdges::invalidateResults()
 {
   QWriteLocker lock(&m_dataMutex);
-  if(!m_edgesAnalyzer->hasFinished())
+  if(m_edgesAnalyzer->isRunning() && !m_edgesAnalyzer->hasFinished())
   {
     m_edgesAnalyzer->abort();
 
@@ -414,9 +408,11 @@ void ChannelEdges::invalidateResults()
     {
       m_edgesAnalyzer->thread()->terminate();
     }
+
+    m_analisysWait.wakeAll();
   }
 
-  if(!m_edgesCreator->hasFinished())
+  if(m_edgesCreator->isRunning() && !m_edgesCreator->hasFinished())
   {
     m_edgesCreator->abort();
 
@@ -424,6 +420,8 @@ void ChannelEdges::invalidateResults()
     {
       m_edgesCreator->thread()->terminate();
     }
+
+    m_edgesTask.wakeAll();
   }
 
   m_edges = nullptr;

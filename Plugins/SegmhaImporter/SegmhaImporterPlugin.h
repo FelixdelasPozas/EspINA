@@ -42,7 +42,7 @@ namespace ESPINA
       static const Filter::Type SEGMHA_FILTER;    /** segmha filter signature. */
       static const Filter::Type SEGMHA_FILTER_V4; /** segmha filter old signature. */
 
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
     private:

@@ -33,9 +33,11 @@
 #include <GUI/Analysis/SASReportDialog.h>
 #include <GUI/AppositionSurfaceTool.h>
 #include <GUI/Settings/AppositionSurfaceSettings.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Widgets/Styles.h>
 #include <Support/Settings/Settings.h>
 #include <Undo/AddSegmentations.h>
 #include <Undo/AddRelationCommand.h>
@@ -61,13 +63,14 @@ using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Settings;
 
 const Filter::Type ASFilterFactory::AS_FILTER = "AppositionSurface::AppositionSurfaceFilter";
 
 //-----------------------------------------------------------------------------
-FilterTypeList ASFilterFactory::providedFilters() const
+const FilterTypeList ASFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -231,8 +234,17 @@ SettingsPanelSList AppositionSurfacePlugin::settingsPanels() const
 //-----------------------------------------------------------------------------
 bool AppositionSurfacePlugin::isValidSynapse(SegmentationAdapterPtr segmentation)
 {
-  bool isValidCategory = segmentation->category()->classificationName().contains(tr("Synapse"));
+  bool isValidCategory = segmentation->category()->classificationName().startsWith(tr("Synapse"));
   bool hasRequiredData = hasVolumetricData(segmentation->output());
+
+  return (isValidCategory && hasRequiredData);
+}
+
+//-----------------------------------------------------------------------------
+bool AppositionSurfacePlugin::isValidSAS(SegmentationAdapterPtr segmentation)
+{
+  bool isValidCategory = segmentation->category()->classificationName().startsWith(tr("SAS"));
+  bool hasRequiredData = hasMeshData(segmentation->output());
 
   return (isValidCategory && hasRequiredData);
 }
@@ -314,7 +326,21 @@ void AppositionSurfacePlugin::finishedTask()
   auto factory   = m_context->factory();
   auto undoStack = m_context->undoStack();
 
-  undoStack->beginMacro("Create Synaptic Apposition Surfaces");
+  QString names;
+  auto filterDataList = m_finishedTasks.values();
+  for(int i = 0; i < filterDataList.size(); ++i)
+  {
+    auto data = filterDataList.at(i);
+    if(i != 0)
+    {
+      names += (i == filterDataList.size() -1  ? " and ":", ");
+    }
+    names += data.segmentation->data().toString();
+  }
+
+  WaitingCursor cursor;
+
+  undoStack->beginMacro(tr("Create Synaptic Apposition Surface%1 for %2.").arg(m_finishedTasks.size() > 1 ? "s":"").arg(names));
 
   auto classification = model->classification();
   if (classification->category(SAS) == nullptr)
@@ -338,6 +364,7 @@ void AppositionSurfacePlugin::finishedTask()
   ViewItemAdapterList segmentationsToUpdate;
   QString errorMessage;
 
+  auto number = firstUnusedSegmentationNumber(m_context->model());
   for(auto filter: m_finishedTasks.keys())
   {
     if(filter->hasErrors())
@@ -348,13 +375,13 @@ void AppositionSurfacePlugin::finishedTask()
 
     auto segmentation = factory->createSegmentation(m_finishedTasks.value(filter).adapter, 0);
     segmentation->setCategory(category);
+    segmentation->setNumber(number++);
     segmentation->setData(SAS_PREFIX + QString::number(m_finishedTasks[filter].segmentation->number()), Qt::EditRole);
 
     auto extensions   = segmentation->extensions();
     auto extension    = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
     auto sasExtension = std::dynamic_pointer_cast<AppositionSurfaceExtension>(extension);
 
-    sasExtension->setOriginSegmentation(m_finishedTasks[filter].segmentation);
     extensions->add(sasExtension);
 
     auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);

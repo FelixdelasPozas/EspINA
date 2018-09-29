@@ -18,6 +18,7 @@
  */
 
 // ESPINA
+#include <Core/Utils/BlockTimer.hxx>
 #include <GUI/Representations/Pipelines/SegmentationSlicePipeline.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/View/Utils.h>
@@ -34,6 +35,7 @@
 #include <vtkAlgorithmOutput.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::RepresentationUtils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Model::Utils;
@@ -75,11 +77,11 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
   auto planeIndex   = normalCoordinateIndex(m_plane);
 
   ActorList actors;
-//   std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+  // BlockTimer<> timer("Segmentation slice representation pipeline");
 
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
-    Bounds sliceBounds = readLockVolume(segmentation->output())->bounds();
+    Bounds sliceBounds = readLockVolume(segmentation->output(), DataUpdatePolicy::Ignore)->bounds();
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
 
@@ -88,14 +90,23 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
-      auto slice = vtkImage(readLockVolume(segmentation->output()), sliceBounds);
+      auto slice = vtkImage(readLockVolume(segmentation->output(), DataUpdatePolicy::Ignore), sliceBounds);
 
       addPadding(slice, planeIndex);
 
       int extent[6];
       slice->GetExtent(extent);
 
-      auto color       = m_colorEngine->color(segmentation);
+      QColor color;
+      if(segmentation->colorEngine())
+      {
+        color = segmentation->colorEngine()->color(segmentation);
+      }
+      else
+      {
+        color = m_colorEngine->color(segmentation);
+      }
+
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputData(slice);
       mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
@@ -137,7 +148,16 @@ void SegmentationSlicePipeline::updateColors(ActorList                 &actors,
     auto segmentation = segmentationPtr(item);
 
     auto actor = vtkImageActor::SafeDownCast(actors.first().Get());
-    auto color = m_colorEngine->color(segmentation);
+
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
 
     actor->SetOpacity(opacity(state) * color.alphaF());
 

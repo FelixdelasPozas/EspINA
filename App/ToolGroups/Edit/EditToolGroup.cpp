@@ -161,7 +161,7 @@ FilterTypeList EditionFilterFactory::InterpolationFilters()
 }
 
 //------------------------------------------------------------------------
-FilterTypeList EditionFilterFactory::providedFilters() const
+const FilterTypeList EditionFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 

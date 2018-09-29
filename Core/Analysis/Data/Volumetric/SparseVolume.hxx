@@ -309,13 +309,21 @@ namespace ESPINA
 
     VolumeBounds expectedBounds(bounds, spacing, origin);
 
-    if (!contains(this->m_bounds, expectedBounds))
+    if(!intersect(this->m_bounds, expectedBounds))
     {
-      auto what = QObject::tr("Invalid input bounds");
+      auto what = QObject::tr("Invalid input bounds, no intersection");
       auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds, input: %1, volume bounds: %2").arg(expectedBounds.toString()).arg(this->m_bounds.toString());
 
       throw Core::Utils::EspinaException(what, details);
     }
+
+//    if (!contains(this->m_bounds, expectedBounds))
+//    {
+//      auto what = QObject::tr("Invalid input bounds");
+//      auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds, input: %1, volume bounds: %2").arg(expectedBounds.toString()).arg(this->m_bounds.toString());
+//
+//      throw Core::Utils::EspinaException(what, details);
+//    }
 
     m_blockMutex.lockForRead();
 
@@ -585,8 +593,10 @@ namespace ESPINA
     this->m_bounds = VolumeBounds(bounds, spacing, origin);
 
     auto affectedIndexes = toBlockIndexes(bounds);
+    auto indexes = m_blocks.keys(); // to avoid deleting keys while iterating m_blocks.
+    indexes.detach();
 
-    for(auto index: m_blocks.keys())
+    for(auto index: indexes)
     {
       if(!affectedIndexes.contains(index))
       {
@@ -761,7 +771,7 @@ namespace ESPINA
 
       auto filename = multiBlockPath(id, i++);
 
-      snapshot << createSnapshot<T>(it.value(), storage, path, filename);
+      snapshot << createVolumeSnapshot<T>(it.value(), storage, path, filename);
     }
 
     return snapshot;
@@ -783,7 +793,7 @@ namespace ESPINA
       if (editedBounds.areValid())
       {
         auto snapshotId    = editedRegionSnapshotId(id, regionId);
-        regionsSnapshot << createSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
+        regionsSnapshot << createVolumeSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
         ++regionId;
       }
     }

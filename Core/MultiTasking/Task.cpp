@@ -86,9 +86,10 @@ Task::~Task()
 //-----------------------------------------------------------------------------
 void Task::reportProgress(int value)
 {
-  m_progress = value;
+  auto adjusted = std::min(100, std::max(0, value));
+  m_progress = adjusted;
 
-  emit progress(value);
+  emit progress(adjusted);
 }
 
 //-----------------------------------------------------------------------------
@@ -180,9 +181,14 @@ void Task::submit(TaskSPtr task)
 //-----------------------------------------------------------------------------
 void Task::abort()
 {
-  m_isAborted = true;
+  if(!m_isAborted)
+  {
+    m_isAborted = true;
 
-  onAbort();
+    onAbort();
+
+    emit aborted();
+  }
 }
 
 //-----------------------------------------------------------------------------

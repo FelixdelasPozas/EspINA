@@ -61,6 +61,7 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Dialogs;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
@@ -90,8 +91,19 @@ RenderView::~RenderView()
 {
   disconnect();
 
+  for(auto manager: m_managers)
+  {
+    manager->shutdown();
+  }
   m_managers.clear();
+
+  for(auto manager: m_temporalManagers)
+  {
+    manager->shutdown();
+  }
   m_temporalManagers.clear();
+
+  m_inactiveManagers.clear();
 
   delete m_view;
 }
@@ -459,14 +471,14 @@ void RenderView::connectSignals()
   connect(&m_state, SIGNAL(widgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)),
           this,     SLOT(onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr,GUI::Representations::FrameCSPtr)));
 
-  connect(&m_state, SIGNAL(sliceSelectorAdded(SliceSelectorSPtr,SliceSelectionType)),
-          this,     SLOT(addSliceSelectors(SliceSelectorSPtr,SliceSelectionType)));
+  connect(&m_state, SIGNAL(sliceSelectorAdded(GUI::Widgets::SliceSelectorSPtr,GUI::Widgets::SliceSelectionType)),
+          this,     SLOT(addSliceSelectors(GUI::Widgets::SliceSelectorSPtr,GUI::Widgets::SliceSelectionType)));
 
   connect(&m_state, SIGNAL(resetViewCamera()),
           this,     SLOT(resetCamera()));
 
-  connect(&m_state, SIGNAL(sliceSelectorRemoved(SliceSelectorSPtr)),
-          this,     SLOT(removeSliceSelectors(SliceSelectorSPtr)));
+  connect(&m_state, SIGNAL(sliceSelectorRemoved(GUI::Widgets::SliceSelectorSPtr)),
+          this,     SLOT(removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr)));
 
   connect(m_state.coordinateSystem().get(), SIGNAL(resolutionChanged(NmVector3)),
           this,                             SLOT(onSceneResolutionChanged(NmVector3)));
@@ -513,6 +525,9 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototy
 
       manager->hide(frame);
 
+      m_inactiveManagers.insert(prototypes, manager);
+      m_temporalManagers.remove(prototypes);
+
       //NOTE: managers should be removed from m_temporalManagers after processing render
       //      request of so they can hide its representations
     }
@@ -526,11 +541,11 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototy
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-//  auto senderObj = dynamic_cast<RepresentationManager *>(sender());
+  // auto senderObj = dynamic_cast<RepresentationManager *>(sender());
   auto managers = pendingManagers();
   auto frame = latestReadyFrame(managers);
 
-//   qDebug() << viewName() << "onRenderRequest---------------------------" << (senderObj ? senderObj->name() : "none") << "frame" << frame->time << "last frame" << m_latestFrame->time;
+  // qDebug() << viewName() << "onRenderRequest---------------------------" << (senderObj ? senderObj->name() : "none") << "frame" << frame->time << "last frame" << m_latestFrame->time;
   if (isValid(frame) && m_latestFrame->time < frame->time)
   {
     renderFrame(frame, managers);
@@ -547,13 +562,13 @@ void RenderView::onRenderRequest()
   }
 
   m_view->update();
-//   qDebug() << "------------------------------------------";
+  // qDebug() << "------------------------------------------";
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers)
 {
-//   qDebug() << "display" << frame->time;
+  // qDebug() << "display" << frame->time;
   display(managers, frame->time);
 
   deleteInactiveWidgetManagers();
@@ -720,19 +735,14 @@ RepresentationManager::ManagerFlags RenderView::managerFlags() const
 //-----------------------------------------------------------------------------
 void RenderView::deleteInactiveWidgetManagers()
 {
-  auto factories = m_temporalManagers.keys();
-
-  for (auto factory : factories)
+  for (auto factory : m_inactiveManagers.keys())
   {
-    if (!m_temporalManagers[factory]->isActive())
-    {
-      auto manager = m_temporalManagers[factory];
+    auto manager = m_inactiveManagers[factory];
 
-      removeRepresentationManager(manager);
-
-      m_temporalManagers.remove(factory);
-    }
+    removeRepresentationManager(manager);
   }
+
+  m_inactiveManagers.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -797,4 +807,26 @@ void RenderView::keyPressEvent(QKeyEvent* event)
 void RenderView::keyReleaseEvent(QKeyEvent* event)
 {
   if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::shutdownAndRemoveManagers()
+{
+  for(auto manager: m_managers)
+  {
+    manager->shutdown();
+  }
+  m_managers.clear();
+
+  for(auto manager: m_temporalManagers)
+  {
+    manager->shutdown();
+  }
+  m_temporalManagers.clear();
+
+  for(auto manager: m_inactiveManagers)
+  {
+    manager->shutdown();
+  }
+  m_inactiveManagers.clear();
 }

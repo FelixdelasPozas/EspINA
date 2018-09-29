@@ -47,7 +47,7 @@ SegmentationIssues::SegmentationIssues(const InfoCache& infoCache)
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList SegmentationIssues::availableInformation() const
+const SegmentationExtension::InformationKeyList SegmentationIssues::availableInformation() const
 {
   InformationKeyList keys;
 
@@ -57,7 +57,7 @@ SegmentationExtension::InformationKeyList SegmentationIssues::availableInformati
 }
 
 //------------------------------------------------------------------------
-QString SegmentationIssues::toolTipText() const
+const QString SegmentationIssues::toolTipText() const
 {
   const QString WS  = "&nbsp;"; // White space
   const QString TAB = WS+WS+WS;

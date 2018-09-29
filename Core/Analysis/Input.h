@@ -27,45 +27,44 @@
 // ESPINA
 #include "Output.h"
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   /** \class Input
-   *
    *  \brief Allows filter outputs to be used as inputs for other filters
    *
    *  Keep valid output pointers even when filter outputs are replaced
    */
   class EspinaCore_EXPORT Input
   {
-  public:
-    /** \brief Input class constructor.
-     * \param[in] filter filter object smart pointer.
-     * \param[in] output output obejct smart pointer.
-     *
-     */
-    explicit Input(FilterSPtr filter, OutputSPtr output);
+    public:
+      /** \brief Input class constructor.
+       * \param[in] filter filter object smart pointer.
+       * \param[in] output output object smart pointer.
+       *
+       */
+      explicit Input(FilterSPtr filter, OutputSPtr output);
 
-    /** \brief Returns the filter associated to this object.
-     *
-     */
-    FilterSPtr filter() const
-    { return m_filter; }
+      /** \brief Returns the filter associated to this object.
+       *
+       */
+      FilterSPtr filter() const
+      { return m_filter; }
 
-    /** \brief Returns the filter associated to this object.
-     *
-     */
-    OutputSPtr output() const
-    { return m_output; }
+      /** \brief Returns the filter associated to this object.
+       *
+       */
+      OutputSPtr output() const
+      { return m_output; }
 
-    /** \brief Updates output data used as input
-     *
-     */
-    void update()
-    { m_output->update();}
+      /** \brief Updates output data used as input
+       *
+       */
+      void update()
+      { m_output->update();}
 
-  private:
-    FilterSPtr m_filter;
-    OutputSPtr m_output;
+    private:
+      FilterSPtr m_filter; /** input filter.         */
+      OutputSPtr m_output; /** output of the filter. */
   };
 
   using InputSPtr  = std::shared_ptr<Input>;

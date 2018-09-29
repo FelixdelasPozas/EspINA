@@ -112,7 +112,7 @@ void RepresentationManager::setView(RenderView *view, const FrameCSPtr frame)
 {
   m_view = view;
 
-  if (isActive())
+  if (m_view && isActive())
   {
     onShow(frame);
 
@@ -463,7 +463,7 @@ void RepresentationManager::reuseTimeValue(TimeStamp t)
 //-----------------------------------------------------------------------------
 void RepresentationManager::invalidateFrames(const FrameCSPtr frame)
 {
-//  qDebug() << debugName() << "invalidates frames on" << frame->time;
+  // qDebug() << debugName() << "invalidates frames on" << frame->time;
   m_lastInvalidationFrame = frame->time;
   m_frames.invalidate();
 }
@@ -473,7 +473,11 @@ void RepresentationManager::shutdown()
 {
   setView(nullptr, Frame::InvalidFrame());
 
-  disconnect();
+  for(auto child: m_childs)
+  {
+    disconnect(child, SIGNAL(terminated(RepresentationManager *)),
+               this,  SLOT(onChildTerminated(RepresentationManager *)));
+  }
 }
 
 //-----------------------------------------------------------------------------

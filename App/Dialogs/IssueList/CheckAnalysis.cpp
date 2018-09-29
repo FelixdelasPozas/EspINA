@@ -172,6 +172,7 @@ QString CheckTask::editOrDeleteHint(NeuroItemAdapterSPtr item) const
 //------------------------------------------------------------------------
 CheckAnalysis::CheckAnalysis(Support::Context &context)
 : Task{context.scheduler()}
+, m_tasksNum     {0}
 , m_finishedTasks{0}
 {
   auto model = context.model();
@@ -205,7 +206,11 @@ CheckAnalysis::CheckAnalysis(Support::Context &context)
 //------------------------------------------------------------------------
 void CheckAnalysis::run()
 {
-  for(auto task: m_checkList)
+  m_tasksNum = m_checkList.size();
+
+  auto taskList = m_checkList;
+  taskList.detach();
+  for(auto task: taskList)
   {
     // needs to be direct connection because the mutexes.
     connect(task.get(), SIGNAL(finished()),
@@ -224,26 +229,48 @@ void CheckAnalysis::run()
 //------------------------------------------------------------------------
 void CheckAnalysis::finishedTask()
 {
+  auto task = qobject_cast<CheckTask *>(sender());
+
+  if(task && !task->isAborted())
+  {
+    // needs to be direct connection because the mutexes.
+    disconnect(task, SIGNAL(finished()),
+               this, SLOT(finishedTask()));
+
+    disconnect(task, SIGNAL(issueFound(Extensions::IssueSPtr)),
+               this, SLOT(addIssue(Extensions::IssueSPtr)));
+
+    QMutexLocker lock(&m_progressMutex);
+
+    for(auto taskSPtr: m_checkList)
+    {
+      if(task == taskSPtr.get())
+      {
+        m_checkList.removeOne(taskSPtr);
+        break;
+      }
+    }
+  }
+
   QMutexLocker lock(&m_progressMutex);
 
   ++m_finishedTasks;
 
-  auto tasksNum = m_checkList.size();
-  auto progressValue = m_finishedTasks * 100 / tasksNum;
+  auto progressValue = m_finishedTasks * 100 / m_tasksNum;
   reportProgress(progressValue);
 
   if(isAborted())
   {
     for(auto task: m_checkList)
     {
-      task->abort();
+      if(!task->hasFinished()) task->abort();
     }
 
     resume();
     return;
   }
 
-  if(tasksNum - m_finishedTasks == 0)
+  if(m_tasksNum - m_finishedTasks == 0 || m_checkList.isEmpty())
   {
     if(!m_issues.empty())
     {
@@ -407,6 +434,8 @@ void CheckSegmentationTask::run()
     checkExtensionsValidity();
     if(!canExecute()) return;
     checkSkeletonProblems();
+    if(!canExecute()) return;
+    checkConnections();
   }
   catch(const EspinaException &e)
   {
@@ -467,26 +496,17 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkExtensionsValidity() const
 {
-  auto availableExtensions = m_context.factory()->availableSegmentationExtensions();
-  QStringList unavailableExtensions;
+  const auto availableExtensions = m_context.factory()->availableSegmentationExtensions().toSet();
+  auto extensionTypes            = m_segmentation->readOnlyExtensions()->available().toSet();
+  extensionTypes.subtract(availableExtensions);
 
-  for(auto extension: m_segmentation->readOnlyExtensions())
+  if(!extensionTypes.isEmpty())
   {
-    if(!availableExtensions.contains(extension->type()))
-    {
-      unavailableExtensions << extension->type();
-    }
-  }
-
-  if(!unavailableExtensions.isEmpty())
-  {
-    QString types;
-    for(auto type: unavailableExtensions)
-    {
-      types += type + (type == unavailableExtensions.last() ? "" : ", ");
-    }
-    auto description = tr("Segmentation has read-only extensions: %1").arg(types);
-    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+    const QStringList extensionsList{extensionTypes.toList()};
+    const auto types = extensionsList.join(", ");
+    const auto plural = extensionTypes.size() > 1 ? "s":"";
+    const auto description = tr("Segmentation has read-only extension%1: %2").arg(plural).arg(types);
+    const auto hint = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
   }
@@ -588,6 +608,25 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 }
 
 //------------------------------------------------------------------------
+void CheckSegmentationTask::checkConnections()
+{
+  auto category = m_segmentation->category();
+  if(category && category->classificationName().startsWith("Synapse", Qt::CaseInsensitive))
+  {
+    auto connectionsNumber = m_segmentation->model()->connections(m_segmentation).size();
+
+    if(connectionsNumber > 2)
+    {
+      auto plural      = connectionsNumber > 3 ? "s":"";
+      auto description = tr("Segmentation is erroneously connected, it has %1 connections.").arg(connectionsNumber);
+      auto hint        = tr("Modify the involved axons/dendrites to remove the invalid synaptic connection%1.").arg(plural);
+
+      reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 CheckStackTask::CheckStackTask(Support::Context &context, NeuroItemAdapterSPtr item)
 : CheckDataTask{context, item}
 , m_stack      {std::dynamic_pointer_cast<ChannelAdapter>(item)}
@@ -612,26 +651,17 @@ void CheckStackTask::checkVolumeIsEmpty() const
 //------------------------------------------------------------------------
 void CheckStackTask::checkExtensionsValidity() const
 {
-  auto availableExtensions = m_context.factory()->availableStackExtensions();
-  QStringList unavailableExtensions;
+  const auto availableExtensions = m_context.factory()->availableStackExtensions().toSet();
+  auto extensionTypes            = m_stack->readOnlyExtensions()->available().toSet();
+  extensionTypes.subtract(availableExtensions);
 
-  for(auto extension: m_stack->readOnlyExtensions())
+  if(!extensionTypes.isEmpty())
   {
-    if(!availableExtensions.contains(extension->type()))
-    {
-      unavailableExtensions << extension->type();
-    }
-  }
-
-  if(!unavailableExtensions.isEmpty())
-  {
-    QString types;
-    for(auto type: unavailableExtensions)
-    {
-      types += type + (type == unavailableExtensions.last() ? "" : ", ");
-    }
-    auto description = tr("Stack has read-only extensions: %1").arg(types);
-    auto hint        = tr("Start EspINA with the plugin(s) that provide those extensions.");
+    const QStringList extensionList{extensionTypes.toList()};
+    const auto types = extensionList.join(", ");
+    const auto plural = extensionTypes.size() > 1 ? "s":"";
+    const auto description = tr("Stack has read-only extension%1: %2").arg(plural).arg(types);
+    const auto hint = tr("Start EspINA with the plugin(s) that provide the extension%1.").arg(plural);
 
     reportIssue(m_stack, Issue::Severity::WARNING, description, hint);
   }
