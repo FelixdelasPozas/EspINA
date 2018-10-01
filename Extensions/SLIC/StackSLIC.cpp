@@ -259,6 +259,7 @@ StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr sche
 , max_iterations(max_iterations)
 , tolerance(tolerance)
 , voxels(nullptr)
+, label_list(nullptr)
 , bounds(stack->bounds())
 , scan_size(0)
 {
@@ -344,6 +345,7 @@ void StackSLIC::SLICComputeTask::run()
 
   //Find centers for the supervoxels
   QList<Label> labels;
+  label_list = &labels;
   if(!initSupervoxels(image.GetPointer(), labels, edgesExtension.get()))
     return;
   qDebug() << QString("Created %1 labels").arg(labels.size());
@@ -375,7 +377,7 @@ void StackSLIC::SLICComputeTask::run()
         emit progress(progressValue);
       }
 
-      QtConcurrent::blockingMap(labels, std::bind(&SLICComputeTask::computeLabel, this, _1, edgesExtension, image, &labels));
+      QtConcurrent::blockingMap(labels, std::bind(&SLICComputeTask::computeLabel, this, std::placeholders::_1, edgesExtension, image, &labels));
 
       if(!canExecute())
       {
@@ -551,6 +553,22 @@ itkVolumeType::IndexType StackSLIC::getSupervoxelCenter(unsigned int supervoxel)
 //-----------------------------------------------------------------------------
 bool StackSLIC::drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data)
 {
+  if(isRunning() && task->voxels != nullptr) {
+    auto spacing = m_extendedItem->output()->spacing();
+    data->Reset();
+    for(auto superVoxel: (*task->label_list))
+    {
+      if(superVoxel.center.GetElement(2) == slice)
+      {
+        data->InsertNextPoint(superVoxel.center.GetElement(0) * spacing[0],
+                              superVoxel.center.GetElement(1) * spacing[1],
+                              superVoxel.center.GetElement(2) * spacing[2]);
+      }
+    }
+    data->Modified();
+    return true;
+  }
+
   loadFromSnapshot();
 
   QReadLocker lock(&result.m_dataMutex);
@@ -577,6 +595,39 @@ bool StackSLIC::drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> 
 //-----------------------------------------------------------------------------
 bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data)
 {
+  if(isRunning() && task->voxels != nullptr) {
+    Bounds bounds = m_extendedItem->bounds();
+    OutputSPtr output = m_extendedItem->output();
+    NmVector3 spacing = output->spacing();
+    unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
+    unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
+    unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
+    if(slice < 0 || slice >= max_z) return false;
+
+    unsigned long long int pixel_count = max_x*max_y;
+    unsigned long long int pixel = 0;
+
+    data->SetExtent(0, max_x-1, 0, max_y-1, slice, slice);
+    data->SetSpacing(spacing[0], spacing[1], spacing[2]);
+    data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
+    auto buffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
+
+    unsigned int label;
+    unsigned char color;
+
+    for(unsigned int i = pixel_count * slice; i < pixel_count * (slice+1); i++) {
+      label = task->voxels[i];
+      if(label == std::numeric_limits<unsigned int>::max())
+        color = 0;
+      else
+        color = task->label_list->at(label).color;
+      *buffer = color;
+      ++buffer;
+    }
+
+    return true;
+  }
+
   loadFromSnapshot();
 
   QReadLocker lock(&result.m_dataMutex);
@@ -932,7 +983,7 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
           ++it;
         }
 
-        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, labels.size(), cur_index, image->GetPixel(cur_index), 1 });
+        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, (unsigned int) labels.size(), cur_index, image->GetPixel(cur_index), 1 });
       }
     }
   }

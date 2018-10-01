@@ -199,6 +199,7 @@ namespace ESPINA
 
         SLICResult* result;
         unsigned int *voxels;
+        QList<Label> *label_list;
         NmVector3 spacing;
         const Bounds bounds;
 
@@ -216,6 +217,8 @@ namespace ESPINA
         double scan_size;
 
         mutable QMutex labelListMutex;
+
+        friend StackSLIC;
 
     };
 

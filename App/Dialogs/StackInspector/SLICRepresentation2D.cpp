@@ -241,7 +241,7 @@ void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr fr
   m_pointsActor->SetVisibility(true);
   m_pointsActor->Modified();
 
-  m_textActor->SetVisibility(false);
+  m_textActor->SetVisibility(m_extension->isRunning());
   m_textActor->Modified();
 
   m_actor->SetVisibility(true);
