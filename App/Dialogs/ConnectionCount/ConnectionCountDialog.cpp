@@ -21,6 +21,7 @@
 
 // ESPINA
 #include <Core/Utils/Bounds.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <Dialogs/ConnectionCount/ConnectionCountDialog.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/View/ViewState.h>
@@ -86,11 +87,12 @@ void ConnectionCountDialog::connectSignals()
   connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)), this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
   connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)), this, SLOT(updateList()));
 
-  for(auto seg: getModel()->segmentations())
+  for(auto segmentation: getModel()->segmentations())
   {
-    if(seg->category()->classificationName().startsWith("Dendrite") || seg->category()->classificationName().startsWith("Axon"))
+    if(segmentation->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive) ||
+       segmentation->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))
     {
-      connect(seg.get(), SIGNAL(outputModified()), this, SLOT(updateList()));
+      connect(segmentation.get(), SIGNAL(outputModified()), this, SLOT(updateList()));
     }
   }
 }
@@ -102,58 +104,74 @@ void ConnectionCountDialog::onSegmentationsAdded(ViewItemAdapterSList segmentati
   {
     auto segmentation = std::dynamic_pointer_cast<SegmentationAdapter>(seg);
 
-    if(segmentation &&
-       (segmentation->category()->classificationName().startsWith("Dendrite") ||
-        segmentation->category()->classificationName().startsWith("Axon")))
+    if(segmentation && (segmentation->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive) ||
+       segmentation->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive)))
     {
-      connect(seg.get(), SIGNAL(outputModified()), this, SLOT(updateList()));
+      connect(segmentation.get(), SIGNAL(outputModified()), this, SLOT(updateList()));
     }
   }
 
   updateList();
 }
 
-
 //--------------------------------------------------------------------
-void ConnectionCountDialog::addSegmentationToLists(const SegmentationAdapterSPtr segmentation)
+void ConnectionCountDialog::addSegmentationsToLists()
 {
-  auto name = segmentation->data().toString();
-  QPixmap pixmap(32,32);
-  pixmap.fill(segmentation->category()->color());
-  auto item = new QListWidgetItem(QIcon(pixmap), name);
-  item->setData(Qt::UserRole, reinterpret_cast<unsigned long long>(segmentation.get()));
+  QList<QListWidgetItem *> noneList, halfList, fullList, invalidList;
 
-  auto connections = getModel()->connections(segmentation);
-  switch(connections.count())
+  for(auto segmentation: getModel()->segmentations())
   {
-    case 0:
-      item->setToolTip(tr("%1 is unconnected").arg(name));
-      m_noneList->addItem(item);
-      break;
-    case 1:
-      item->setToolTip(tr("%1 is half connected.\nConnected to: %2").arg(name).arg(connections.first().item2->data().toString()));
-      m_halfList->addItem(item);
-      break;
-    case 2:
-      item->setToolTip(tr("%1 is fully connected.\nConnected to: %2\nConnected to: %3").arg(name).arg(connections.at(0).item2->data().toString()).arg(connections.at(1).item2->data().toString()));
-      m_fullList->addItem(item);
-      break;
-    default:
-      // more than 2 connections? show the error.
+    if(segmentation->category()->classificationName().startsWith("Synapse", Qt::CaseInsensitive))
+    {
+      auto name = segmentation->data().toString();
+      QPixmap pixmap(32,32);
+      pixmap.fill(segmentation->category()->color());
+      auto item = new QListWidgetItem(QIcon(pixmap), name);
+      item->setData(Qt::UserRole, reinterpret_cast<unsigned long long>(segmentation.get()));
+
+      auto connections = getModel()->connections(segmentation);
+      switch(connections.count())
       {
-        item->setIcon(QIcon(":/espina/warning.svg"));
-        item->setBackgroundColor(Qt::red);
-        item->setTextColor(Qt::white);
-        auto text = tr("%1 has more than two connections!").arg(name);
-        for(auto connection: connections)
-        {
-          text += tr("\nConnected to: %1").arg(connection.item2->data().toString());
-        }
-        item->setToolTip(text);
-        m_invalidList->addItem(item);
+        case 0:
+          item->setToolTip(tr("%1 is unconnected").arg(name));
+          noneList << item;
+          break;
+        case 1:
+          item->setToolTip(tr("%1 is half connected.\nConnected to: %2").arg(name).arg(connections.first().item2->data().toString()));
+          halfList << item;
+          break;
+        case 2:
+          item->setToolTip(tr("%1 is fully connected.\nConnected to: %2\nConnected to: %3").arg(name).arg(connections.at(0).item2->data().toString()).arg(connections.at(1).item2->data().toString()));
+          fullList << item;
+          break;
+        default:
+          // more than 2 connections? show the error.
+          {
+            item->setIcon(QIcon(":/espina/warning.svg"));
+            item->setBackgroundColor(Qt::red);
+            item->setTextColor(Qt::white);
+            auto text = tr("%1 has more than two connections!").arg(name);
+            for(auto connection: connections)
+            {
+              text += tr("\nConnected to: %1").arg(connection.item2->data().toString());
+            }
+            item->setToolTip(text);
+            invalidList << item;
+          }
+          break;
       }
-      break;
+    }
   }
+
+  qSort(noneList.begin(), noneList.end(), Core::Utils::lessThan<QListWidgetItem *>);
+  qSort(halfList.begin(), halfList.end(), Core::Utils::lessThan<QListWidgetItem *>);
+  qSort(fullList.begin(), fullList.end(), Core::Utils::lessThan<QListWidgetItem *>);
+  qSort(invalidList.begin(), invalidList.end(), Core::Utils::lessThan<QListWidgetItem *>);
+
+  for(int i = 0; i < noneList.size(); ++i) m_noneList->addItem(noneList.at(i));
+  for(int i = 0; i < halfList.size(); ++i) m_halfList->addItem(halfList.at(i));
+  for(int i = 0; i < fullList.size(); ++i) m_fullList->addItem(fullList.at(i));
+  for(int i = 0; i < invalidList.size(); ++i) m_invalidList->addItem(invalidList.at(i));
 }
 
 //--------------------------------------------------------------------
@@ -179,13 +197,7 @@ void ConnectionCountDialog::updateList()
   m_fullList->clear();
   m_invalidList->clear();
 
-  for(auto seg: getModel()->segmentations())
-  {
-    if(seg->category()->classificationName().startsWith("Synapse"))
-    {
-      addSegmentationToLists(seg);
-    }
-  }
+  addSegmentationsToLists();
 
   updateLabels();
 
