@@ -93,7 +93,7 @@ namespace ESPINA
 
         unsigned long int getSupervoxel(unsigned int x, unsigned int y, unsigned int z);
         unsigned char getSupervoxelColor(unsigned int supervoxel);
-        itk::Image<unsigned char, 3>::IndexType getSupervoxelCenter(unsigned int supervoxel);
+        itkVolumeType::IndexType getSupervoxelCenter(unsigned int supervoxel);
         bool drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data);
         bool drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data);
         bool isComputed();
@@ -111,7 +111,7 @@ namespace ESPINA
           double norm_quotient;
           float m_s;
           unsigned int index;
-          itk::Image<unsigned char, 3>::IndexType center;
+          itkVolumeType::IndexType center;
           unsigned char color;
           unsigned char m_c;
         } Label;
@@ -125,7 +125,7 @@ namespace ESPINA
       public:
         typedef struct SuperVoxel
         {
-          itk::Image<unsigned char, 3>::IndexType center;
+          itkVolumeType::IndexType center;
           unsigned char color;
         } SuperVoxel;
 
@@ -177,23 +177,21 @@ namespace ESPINA
         virtual ~SLICComputeTask() {};
 
       private:
-        //Typedefs for clearer syntax
-        using ImageType = itk::Image<unsigned char, 3>;
-        using IndexType = ImageType::IndexType;
-        typedef StackSLIC::Label Label;
-        typedef itk::ImageRegionConstIteratorWithIndex<ImageType> RegionIterator;
-        typedef itk::ImageRegion<3> ImageRegion;
+        using IndexType = itkVolumeType::IndexType;
+        //using Label = StackSLIC::Label;
+        using RegionIterator = itk::ImageRegionConstIteratorWithIndex<itkVolumeType>;
+        using ImageRegion = itk::ImageRegion<3>;
 
         virtual void run();
         virtual void onAbort();
         void fitRegionToBounds(int region_position[], int region_size[]);
         void saveResults(QList<Label> labels, unsigned int *voxels);
-        void findCandidateRegion(itk::Image<unsigned char, 3>::IndexType &center, double scan_size, int region_position[], int region_size[]);
-        bool initSupervoxels(itk::Image<unsigned char, 3> *image, QList<Label> &labels, ChannelEdges *edgesExtension);
+        void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, int region_position[], int region_size[]);
+        bool initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension);
         bool isInBounds(int x, int y, int z);
         float calculateDistance(IndexType &voxel_index, IndexType &center_index,
                                 unsigned char voxel_color, unsigned char center_color, float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial = false);
-        void computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, ImageType::Pointer image, QList<Label> *labels);
+        void computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels);
         void calculateCenter(Label &label);
 
         ChannelPtr m_stack;
@@ -216,7 +214,6 @@ namespace ESPINA
         //to CIELab intensity (0-100)
         const double color_normalization_constant = 100.0/255.0;
         double scan_size;
-        bool use_sse = false;
 
         mutable QMutex labelListMutex;
 

@@ -26,6 +26,7 @@
 #include <Core/Utils/BlockTimer.hxx>
 #include <Core/Utils/EspinaException.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Core/Types.h>
 
 //ITK
 #include <itkImage.hxx>
@@ -41,20 +42,14 @@
 #include <limits>
 #include <math.h>
 #include <memory>
+#include <functional>
 
 // Qt
 #include <QDataStream>
 #include <QtCore>
 
-#include <boost/bind.hpp>
-
 //Intrinsics
-#ifdef __SSE__
 #include <xmmintrin.h>
-#endif
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -362,12 +357,6 @@ void StackSLIC::SLICComputeTask::run()
 
   const double iterationPercentage = 100.0 / max_iterations;
 
-  //Do CPU instruction set checking
-  __builtin_cpu_init();
-  use_sse = __builtin_cpu_supports("sse");
-  if(use_sse)
-    qDebug() << QString("Using SSE instructions");
-
   try
   {
     for(unsigned int iteration = 0; iteration<max_iterations && !converged; iteration++)
@@ -386,7 +375,7 @@ void StackSLIC::SLICComputeTask::run()
         emit progress(progressValue);
       }
 
-      QtConcurrent::blockingMap(labels, boost::bind(&SLICComputeTask::computeLabel, this, _1, edgesExtension, image, &labels));
+      QtConcurrent::blockingMap(labels, std::bind(&SLICComputeTask::computeLabel, this, _1, edgesExtension, image, &labels));
 
       if(!canExecute())
       {
@@ -454,7 +443,7 @@ void StackSLIC::SLICComputeTask::run()
           if(tolerance > 0 && converged)
           {
             cur_index = {sum_x, sum_y, sum_z};
-            spatial_distance = calculateDistance(label->center, cur_index, 0, 0, 0, NULL, NULL, true);
+            spatial_distance = calculateDistance(label->center, cur_index, 0, 0, 0, nullptr, nullptr, true);
             if(spatial_distance > tolerance)
               converged = false;
           }
@@ -551,7 +540,7 @@ unsigned char StackSLIC::getSupervoxelColor(unsigned int supervoxel)
 }
 
 //-----------------------------------------------------------------------------
-itk::Image<unsigned char, 3>::IndexType StackSLIC::getSupervoxelCenter(unsigned int supervoxel)
+itkVolumeType::IndexType StackSLIC::getSupervoxelCenter(unsigned int supervoxel)
 {
   if(!result.computed)
       return {0,0,0};
@@ -820,68 +809,57 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::findCandidateRegion(itk::Image<unsigned char, 3>::IndexType &center, double scan_size,  int region_position[], int region_size[])
+void StackSLIC::SLICComputeTask::findCandidateRegion(itkVolumeType::IndexType &center, double scan_size,  int region_position[], int region_size[])
 {
-  if(use_sse) {
-    union vec4f {
-      __m128 vec;
-      float f[4];
-    };
+  union vec4f {
+    __m128 vec;
+    float f[4];
+  };
 
-    //Vector division: scan_size / spacing
-    vec4f srca, srcb;
-    //srca.f[0] = scan_size;
-    //srca.f[1] = scan_size;
-    //srca.f[2] = scan_size;
-    //srca.vec = _mm_load_ps(srca.f);
-    srca.vec = _mm_set_ps1(scan_size);
-    srcb.f[0] = spacing[0];
-    srcb.f[1] = spacing[1];
-    srcb.f[2] = spacing[2];
-    srcb.vec = _mm_load_ps(srcb.f);
-    srca.vec = _mm_div_ps(srca.vec, srcb.vec);
-    _mm_store_ps(srcb.f, srca.vec);
+  //Vector division: scan_size / spacing
+  vec4f srca, srcb;
+  //srca.f[0] = scan_size;
+  //srca.f[1] = scan_size;
+  //srca.f[2] = scan_size;
+  //srca.vec = _mm_load_ps(srca.f);
+  srca.vec = _mm_set_ps1(scan_size);
+  srcb.f[0] = spacing[0];
+  srcb.f[1] = spacing[1];
+  srcb.f[2] = spacing[2];
+  srcb.vec = _mm_load_ps(srcb.f);
+  srca.vec = _mm_div_ps(srca.vec, srcb.vec);
+  _mm_store_ps(srcb.f, srca.vec);
 
-    region_size[0] = srcb.f[0];
-    region_size[1] = srcb.f[1];
-    region_size[2] = srcb.f[2];
+  region_size[0] = srcb.f[0];
+  region_size[1] = srcb.f[1];
+  region_size[2] = srcb.f[2];
 
-    //Vector divide by 2
-    //srcb.f[0] = 2;
-    //srcb.vec = _mm_load1_ps(&srcb.f[0]);
-    srcb.vec = _mm_set_ps1(2);
-    srcb.vec = _mm_div_ps(srca.vec, srcb.vec);
+  //Vector divide by 2
+  //srcb.f[0] = 2;
+  //srcb.vec = _mm_load1_ps(&srcb.f[0]);
+  srcb.vec = _mm_set_ps1(2);
+  srcb.vec = _mm_div_ps(srca.vec, srcb.vec);
 
-    //Substract center - previous result
-    srca.f[0] = center[0];
-    srca.f[1] = center[1];
-    srca.f[2] = center[2];
-    srcb.vec = _mm_sub_ps(srca.vec, srcb.vec);
-    _mm_store_ps(srcb.f, srcb.vec);
+  //Substract center - previous result
+  srca.f[0] = center[0];
+  srca.f[1] = center[1];
+  srca.f[2] = center[2];
+  srcb.vec = _mm_sub_ps(srca.vec, srcb.vec);
+  _mm_store_ps(srcb.f, srcb.vec);
 
-    region_position[0] = srcb.f[0];
-    region_position[1] = srcb.f[1];
-    region_position[2] = srcb.f[2];
-
-  } else {
-    region_size[0] = scan_size / spacing[0];
-    region_size[1] = scan_size / spacing[1];
-    region_size[2] = scan_size / spacing[2];
-    region_position[0] = center[0] - region_size[0]/2;
-    region_position[1] = center[1] - region_size[1]/2;
-    region_position[2] = center[2] - region_size[2]/2;
-  }
+  region_position[0] = srcb.f[0];
+  region_position[1] = srcb.f[1];
+  region_position[2] = srcb.f[2];
 }
 
 //-----------------------------------------------------------------------------
-bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *image, QList<Label> &labels, ChannelEdges *edgesExtension)
+bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension)
 {
-  using ImageType = itk::Image<unsigned char, 3>;
-  using IndexType = ImageType::IndexType;
+  using IndexType = itkVolumeType::IndexType;
   using GradientType = itk::Image<float,3>;
-  typedef itk::ImageRegion<3> ImageRegion;
-  typedef itk::GradientMagnitudeImageFilter<ImageType, GradientType>  GradientFilterType;
-  typedef itk::ImageRegionConstIteratorWithIndex<GradientType> GradientRegionIterator;
+  using ImageRegion = itk::ImageRegion<3>;
+  using GradientFilterType = itk::GradientMagnitudeImageFilter<itkVolumeType, GradientType>;
+  using GradientRegionIterator = itk::ImageRegionConstIteratorWithIndex<GradientType>;
 
   ImageRegion region;
   IndexType cur_index;
@@ -965,64 +943,51 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itk::Image<unsigned char, 3> *i
 float StackSLIC::SLICComputeTask::calculateDistance(IndexType &voxel_index, IndexType &center_index,
                                                    unsigned char voxel_color, unsigned char center_color, float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial)
 {
-  if(use_sse) {
-    union vec4f {
-      __m128 vec;
-      float f[4];
-    };
+  union vec4f {
+    __m128 vec;
+    float f[4];
+  };
 
-    //Vector substraction of cur_index - label->center
-    vec4f srca, srcb;
-    srca.f[1] = voxel_index[0];
-    srca.f[2] = voxel_index[1];
-    srca.f[3] = voxel_index[2];
-    srca.f[0] = voxel_color;
-    srcb.f[1] = center_index[0];
-    srcb.f[2] = center_index[1];
-    srcb.f[3] = center_index[2];
-    srcb.f[0] = center_color;
-    srca.vec = _mm_load_ps(srca.f);
-    srcb.vec = _mm_load_ps(srcb.f);
-    srca.vec = _mm_sub_ps(srca.vec, srcb.vec);
+  //Vector substraction of cur_index - label->center
+  vec4f srca, srcb;
+  srca.f[1] = voxel_index[0];
+  srca.f[2] = voxel_index[1];
+  srca.f[3] = voxel_index[2];
+  srca.f[0] = voxel_color;
+  srcb.f[1] = center_index[0];
+  srcb.f[2] = center_index[1];
+  srcb.f[3] = center_index[2];
+  srcb.f[0] = center_color;
+  srca.vec = _mm_load_ps(srca.f);
+  srcb.vec = _mm_load_ps(srcb.f);
+  srca.vec = _mm_sub_ps(srca.vec, srcb.vec);
 
-    //Vector multiply of previous result * axis spacing
-    srcb.f[1] = spacing[0];
-    srcb.f[2] = spacing[1];
-    srcb.f[3] = spacing[2];
-    srcb.f[0] = color_normalization_constant;
-    srcb.vec = _mm_load_ps(srcb.f);
-    srca.vec = _mm_mul_ps(srca.vec, srcb.vec);
+  //Vector multiply of previous result * axis spacing
+  srcb.f[1] = spacing[0];
+  srcb.f[2] = spacing[1];
+  srcb.f[3] = spacing[2];
+  srcb.f[0] = color_normalization_constant;
+  srcb.vec = _mm_load_ps(srcb.f);
+  srca.vec = _mm_mul_ps(srca.vec, srcb.vec);
 
-    //Calculate powers of 2 of results
-    srcb.vec = _mm_mul_ps(srca.vec, srca.vec);
-    _mm_store_ps(srcb.f, srcb.vec);
+  //Calculate powers of 2 of results
+  srcb.vec = _mm_mul_ps(srca.vec, srca.vec);
+  _mm_store_ps(srcb.f, srcb.vec);
 
-    double spatial = srcb.f[1] + srcb.f[2] + srcb.f[3];
-    if(only_spatial)
-      //Return spatial distance squared
-      return spatial;
-    //Return normalized distance squared
-    if(color_distance != NULL)
-      *color_distance = srcb.f[0];
-    if(spatial_distance != NULL)
-      *spatial_distance = spatial;
-    return srcb.f[0] + norm_quotient * spatial;
-  } else {
-    double spatial = (pow((voxel_index[0]-center_index[0])*spacing[0],2) +
-        pow((voxel_index[1]-center_index[1])*spacing[1],2) + pow((voxel_index[2]-center_index[2])*spacing[2],2));
-    if(only_spatial)
-      return spatial;
-    double color = pow((voxel_color - center_color)*color_normalization_constant,2);
-    if(color_distance != NULL)
-      *color_distance = color;
-    if(spatial_distance != NULL)
-      *spatial_distance = spatial;
-    return color + norm_quotient * spatial;
-  }
+  double spatial = srcb.f[1] + srcb.f[2] + srcb.f[3];
+  if(only_spatial)
+    //Return spatial distance squared
+    return spatial;
+  //Return normalized distance squared
+  if(color_distance != nullptr)
+    *color_distance = srcb.f[0];
+  if(spatial_distance != nullptr)
+    *spatial_distance = spatial;
+  return srcb.f[0] + norm_quotient * spatial;
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, ImageType::Pointer image, QList<Label> *labels)
+void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels)
 {
   //TODO: Add progress tracking through signals
   //TODO: Add checks to stop executing
@@ -1083,19 +1048,19 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
         distance_old = std::numeric_limits<double>::max();
       } else {
         label_old = &(*labels)[label_old_index];
-        if(label_old == NULL) {
+        if(label_old == nullptr) {
           qDebug() << QString("Null label_old: %1/%2 labels %3").arg(label_old_index).arg((*labels).size());
           label_old = &(*labels)[label_old_index];
           qDebug() << QString("Label: %1").arg((*labels)[label_old_index].index);
         }
-        distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, NULL, NULL);
+        distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, nullptr, nullptr);
       }
 
       if(distance < distance_old) {
         QMutexLocker locker(&labelListMutex);
         if(label_old_index != voxels[voxel_index]) {
           label_old = &(*labels)[voxels[voxel_index]];
-          distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, NULL, NULL);
+          distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, nullptr, nullptr);
         }
         if(distance < distance_old) {
           voxels[voxel_index] = label.index;
