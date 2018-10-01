@@ -75,6 +75,7 @@ const SegmentationExtension::Key AREA                   = "Area";
 const SegmentationExtension::Key PERIMETER              = "Perimeter";
 const SegmentationExtension::Key TORTUOSITY             = "Area Ratio";
 const SegmentationExtension::Key SYNAPSE                = "Synapse";
+const SegmentationExtension::Key SHAPE                  = "Shape";
 const SegmentationExtension::Key MEAN_GAUSS_CURVATURE   = "Mean Gauss Curvature";
 const SegmentationExtension::Key STD_DEV_GAUS_CURVATURE = "Std Deviation Gauss Curvature";
 const SegmentationExtension::Key MEAN_MEAN_CURVATURE    = "Mean Mean Curvature";
@@ -103,6 +104,7 @@ const SegmentationExtension::InformationKeyList AppositionSurfaceExtension::avai
        << createKey(PERIMETER)
        << createKey(TORTUOSITY)
        << createKey(SYNAPSE)
+       << createKey(SHAPE)
        << createKey(MEAN_GAUSS_CURVATURE)
        << createKey(STD_DEV_GAUS_CURVATURE)
        << createKey(MEAN_MEAN_CURVATURE)
@@ -244,14 +246,15 @@ bool AppositionSurfaceExtension::isPerimeter(const vtkSmartPointer<vtkPolyData> 
 }
 
 //------------------------------------------------------------------------
-Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyData> asMesh) const
+std::pair<Nm, AppositionSurfaceExtension::Shape> AppositionSurfaceExtension::computePerimeterAndShape(const vtkSmartPointer<vtkPolyData> asMesh) const
 {
   Nm totalPerimeter = 0.0;
+  Shape shape = Shape::UNKNOWN;
 
   if(!asMesh)
   {
     m_hasErrors = true;
-    return -1;
+    return std::make_pair(-1, Shape::UNKNOWN);
   }
 
   try
@@ -317,14 +320,15 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
      */
     struct PerimeterData
     {
-        Bounds              bounds;  /** bounds of the perimeter in the projected plane. */
-        std::vector<double> points;  /** projected points on the plane.                  */
-        double              length;  /** length of the non-projeted perimeter.           */
+        Bounds              bounds;  /** bounds of the perimeter in the projected plane.       */
+        std::vector<double> points;  /** projected points on the plane.                        */
+        double              length;  /** length of the non-projeted perimeter.                 */
+        bool                added;   /** true if added to final perimeter and false otherwise. */
 
         /** \brief PerimeterData struct constructor.
          *
          */
-        PerimeterData(): bounds{Bounds()}, points{std::vector<double>()}, length{0.} {};
+        PerimeterData(): bounds{Bounds()}, points{std::vector<double>()}, length{0.}, added{false} {};
     };
 
     std::vector<PerimeterData> perimeters;
@@ -366,7 +370,7 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     if (!originArray || !normalArray)
     {
       m_hasErrors = true;
-      return UNDEFINED;
+      return std::make_pair(UNDEFINED, Shape::UNKNOWN);
     }
 
     double origin[3], normal[3];
@@ -468,8 +472,54 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
 
       if(!isInside)
       {
+        perimeters[i].added = true;
         totalPerimeter += perimeters[i].length;
       }
+    }
+
+    unsigned int added = 0;
+    unsigned int discarded = 0;
+    for(unsigned int i = 0; i < perimeters.size(); ++i)
+    {
+      auto perimeter = perimeters.at(i);
+      if(perimeter.added) ++added;
+
+      // discard very small ones to simplify classification
+      if(perimeter.length < totalPerimeter*0.1 && perimeter.points.size()/2 < 50)
+      {
+        ++discarded;
+
+        if(perimeter.added) --added;
+
+      }
+    }
+
+    auto validPerimeters = perimeters.size() - discarded;
+    switch(added)
+    {
+      case 0:
+        shape = Shape::UNKNOWN;
+        break;
+      case 1:
+        if(validPerimeters == 1)
+        {
+          shape = Shape::MACULAR;
+        }
+        else
+        {
+          shape = Shape::PERFORATED;
+        }
+        break;
+      default:
+        if(added == validPerimeters)
+        {
+          shape = Shape::FRAGMENTED;
+        }
+        else
+        {
+          shape = Shape::FRAGMENTEDANDPERFORATED;
+        }
+        break;
     }
   }
   catch (...)
@@ -478,7 +528,7 @@ Nm AppositionSurfaceExtension::computePerimeter(const vtkSmartPointer<vtkPolyDat
     totalPerimeter = UNDEFINED;
   }
 
-  return totalPerimeter;
+  return std::make_pair(totalPerimeter, shape);
 }
 
 //------------------------------------------------------------------------
@@ -672,7 +722,28 @@ bool AppositionSurfaceExtension::computeInformation() const
 
     auto area = computeArea(mesh);
     updateInfoCache(AREA, area);
-    updateInfoCache(PERIMETER, computePerimeter(mesh));
+    auto value = computePerimeterAndShape(mesh);
+    updateInfoCache(PERIMETER, value.first);
+
+    switch(value.second)
+    {
+      case Shape::MACULAR:
+        updateInfoCache(SHAPE, "Macular");
+        break;
+      case Shape::FRAGMENTED:
+        updateInfoCache(SHAPE, "Fragmented");
+        break;
+      case Shape::FRAGMENTEDANDPERFORATED:
+        updateInfoCache(SHAPE, "Fragmented and perforated");
+        break;
+      case Shape::PERFORATED:
+        updateInfoCache(SHAPE, "Perforated");
+        break;
+      default:
+        updateInfoCache(SHAPE, "Unknown");
+        break;
+    }
+
     updateInfoCache(TORTUOSITY, computeTortuosity(mesh, area));
 
     auto meanGaussCurvature = mean(gaussCurvature);
