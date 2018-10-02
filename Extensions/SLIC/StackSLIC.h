@@ -193,6 +193,7 @@ namespace ESPINA
                                 unsigned char voxel_color, unsigned char center_color, float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial = false);
         void computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels);
         void calculateCenter(Label &label);
+        void createSupervoxel(IndexType cur_index, itkVolumeType::RegionType *sliceRegion, itkVolumeType *image, QList<Label> *labels);
 
         ChannelPtr m_stack;
         CoreFactory *m_factory;

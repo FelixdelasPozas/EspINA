@@ -906,18 +906,7 @@ void StackSLIC::SLICComputeTask::findCandidateRegion(itkVolumeType::IndexType &c
 //-----------------------------------------------------------------------------
 bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension)
 {
-  using IndexType = itkVolumeType::IndexType;
-  using GradientType = itk::Image<float,3>;
-  using ImageRegion = itk::ImageRegion<3>;
-  using GradientFilterType = itk::GradientMagnitudeImageFilter<itkVolumeType, GradientType>;
-  using GradientRegionIterator = itk::ImageRegionConstIteratorWithIndex<GradientType>;
-
-  ImageRegion region;
-  IndexType cur_index;
-  int region_position[3];
-  int region_size[3];
-
-  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  QFutureSynchronizer<void> synchronizer;
 
   for(unsigned int z=parameter_m_s/2+min_z;z<max_z;z+=parameter_m_s/spacing[2])
   {
@@ -934,59 +923,16 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
         //Skip if out of the region of interest or image bounds
         if(!isInBounds(x, y, z)) continue;
 
-        //Check if inside bounds using ChannelEdges, else skip this label
-        cur_index[0] = x;
-        cur_index[1] = y;
-        cur_index[2] = z;
-
-        //Don't create supervoxel centers outside of the calculated edges
-        if(!sliceRegion.IsInside(cur_index)) continue;
-
-        //Check lowest gradient voxel in a 3x3x3 area around voxel
-        region_position[0] = x-2; region_position[1] = y-2; region_position[2] = z-2;
-        region_size[0] = 5; region_size[1] = 5; region_size[2] = 5;
-        fitRegionToBounds(region_position, region_size);
-        //qDebug() << QString("Region: %1 %2 %3 / %4 %5 %6").arg(region_position[0]).arg(region_position[1])
-        //                    .arg(region_position[2]).arg(region_size[0]).arg(region_size[1]).arg(region_size[2]);
-        region.SetIndex((IndexType) {region_position[0], region_position[1], region_position[2]});
-        region.SetSize(0, region_size[0]);
-        region.SetSize(1, region_size[1]);
-        region.SetSize(2, region_size[2]);
-
-        //Calculate gradient in area
-        image->SetRequestedRegion(region);
-        gradientFilter->SetInput(image);
-        gradientFilter->GetOutput()->SetRequestedRegion(region);
-        gradientFilter->Update();
-
-        //Loop gradient image and find lowest gradient
-        region_position[0] = x-1; region_position[1] = y-1; region_position[2] = z-1;
-        region_size[0] = 3; region_size[1] = 3; region_size[2] = 3;
-        fitRegionToBounds(region_position, region_size);
-        region.SetIndex((IndexType) {region_position[0], region_position[1], region_position[2]});
-        region.SetSize(0, region_size[0]);
-        region.SetSize(1, region_size[1]);
-        region.SetSize(2, region_size[2]);
-        GradientRegionIterator it(gradientFilter->GetOutput(), region);
-        it.GoToBegin();
-        float lowestGradient = std::numeric_limits<float>::max();
-        while(!it.IsAtEnd())
-        {
-          //qDebug() << QString("Center/Checking: %2 %3 %4 -> %5 %6 %7").arg(x).arg(y).arg(z).arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]);
-          auto value = it.Get();
-          if(value < lowestGradient) {
-            cur_index = it.GetIndex();
-            lowestGradient = value;
-            //qDebug() << QString("New value: %1 | Center/New: %2 %3 %4 -> %5 %6 %7")
-            //                   .arg(value).arg(x).arg(y).arg(z).arg(cur_index[0]).arg(cur_index[1]).arg(cur_index[2]);
-          }
-          ++it;
-        }
-
-        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, (unsigned int) labels.size(), cur_index, image->GetPixel(cur_index), 1 });
+        /*if(synchronizer.futures().size() > 10) {
+          synchronizer.waitForFinished();
+          synchronizer.clearFutures();
+        }*/
+        synchronizer.addFuture(QtConcurrent::run(this, &StackSLIC::SLICComputeTask::createSupervoxel, (IndexType) {x,y,z}, &sliceRegion, image, &labels));
       }
     }
   }
+  synchronizer.waitForFinished();
+  synchronizer.clearFutures();
   return true;
 }
 
@@ -1150,4 +1096,65 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
       break;
   }
 
+}
+
+//-----------------------------------------------------------------------------
+void StackSLIC::SLICComputeTask::createSupervoxel(IndexType cur_index, itkVolumeType::RegionType *sliceRegion, itkVolumeType *image, QList<Label> *labels) {
+  using GradientType = itk::Image<float,3>;
+  using GradientFilterType = itk::GradientMagnitudeImageFilter<itkVolumeType, GradientType>;
+  using GradientRegionIterator = itk::ImageRegionConstIteratorWithIndex<GradientType>;
+
+
+  ImageRegion region;
+  int region_position[3];
+  int region_size[3];
+
+  //Don't create supervoxel centers outside of the calculated edges
+  if(!sliceRegion->IsInside(cur_index)) return;
+
+  //Check lowest gradient voxel in a 3x3x3 area around voxel
+  region_position[0] = cur_index[0]-2; region_position[1] = cur_index[1]-2; region_position[2] = cur_index[2]-2;
+  region_size[0] = 5; region_size[1] = 5; region_size[2] = 5;
+  fitRegionToBounds(region_position, region_size);
+  //qDebug() << QString("Region: %1 %2 %3 / %4 %5 %6").arg(region_position[0]).arg(region_position[1])
+  //                    .arg(region_position[2]).arg(region_size[0]).arg(region_size[1]).arg(region_size[2]);
+  region.SetIndex((IndexType) {region_position[0], region_position[1], region_position[2]});
+  region.SetSize(0, region_size[0]);
+  region.SetSize(1, region_size[1]);
+  region.SetSize(2, region_size[2]);
+
+  //Calculate gradient in area
+  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+  image->SetRequestedRegion(region);
+  gradientFilter->SetInput(image);
+  gradientFilter->GetOutput()->SetRequestedRegion(region);
+  gradientFilter->Update();
+
+  //Loop gradient image and find lowest gradient
+  region_position[0] = cur_index[0]-1; region_position[1] = cur_index[1]-1; region_position[2] = cur_index[2]-1;
+  region_size[0] = 3; region_size[1] = 3; region_size[2] = 3;
+  fitRegionToBounds(region_position, region_size);
+  region.SetIndex((IndexType) {region_position[0], region_position[1], region_position[2]});
+  region.SetSize(0, region_size[0]);
+  region.SetSize(1, region_size[1]);
+  region.SetSize(2, region_size[2]);
+  GradientRegionIterator it(gradientFilter->GetOutput(), region);
+  it.GoToBegin();
+  float lowestGradient = std::numeric_limits<float>::max();
+  while(!it.IsAtEnd())
+  {
+    //qDebug() << QString("Center/Checking: %2 %3 %4 -> %5 %6 %7").arg(x).arg(y).arg(z).arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]);
+    auto value = it.Get();
+    if(value < lowestGradient) {
+      cur_index = it.GetIndex();
+      lowestGradient = value;
+      //qDebug() << QString("New value: %1 | Center/New: %2 %3 %4 -> %5 %6 %7")
+      //                   .arg(value).arg(x).arg(y).arg(z).arg(cur_index[0]).arg(cur_index[1]).arg(cur_index[2]);
+    }
+    ++it;
+  }
+  {
+    QMutexLocker locker(&labelListMutex);
+    labels->append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, (unsigned int) labels->size(), cur_index, image->GetPixel(cur_index), 1 });
+  }
 }
