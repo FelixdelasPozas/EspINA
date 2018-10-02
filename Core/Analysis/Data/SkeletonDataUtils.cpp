@@ -1085,7 +1085,19 @@ void ESPINA::Core::cleanSkeletonStrokes(SkeletonDefinition& skeleton)
     }
   }
 
+  for(int i = 0; i < skeleton.edges.size(); ++i)
+  {
+    auto &edge = skeleton.edges[i];
+    if(edge.parentEdge == i)
+    {
+      edge.parentEdge = -1;
+    }
+
+    cleanSkeleton.edges << edge;
+  }
+
   skeleton.strokes = cleanSkeleton.strokes;
+  skeleton.edges   = cleanSkeleton.edges;
 }
 
 //--------------------------------------------------------------------
