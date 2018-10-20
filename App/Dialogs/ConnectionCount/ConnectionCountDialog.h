@@ -66,8 +66,8 @@ namespace ESPINA
        */
       void onItemDoubleClicked(QListWidgetItem *item);
 
-      /** \brief Modifies the lists with the insertion of the newly added segmentations.
-       * \param[in] segmentations added segmentations list.
+      /** \brief Connects to the newly added segmentation if its a dendrite or axon and updates the list.
+       * \param[in] segmentations Segmentations added to the model.
        *
        */
       void onSegmentationsAdded(ViewItemAdapterSList segmentations);
@@ -83,11 +83,10 @@ namespace ESPINA
        */
       void connectSignals();
 
-      /** \brief Helper method to add a segmentation to the lists.
-       * \param[in] segmentation SegmentationAdapter raw pointer.
+      /** \brief Helper method to add synapse segmentations to the lists.
        *
        */
-      void addSegmentationToLists(const SegmentationAdapterSPtr segmentation);
+      void addSegmentationsToLists();
 
       /** \brief Helper method to update the label widgets with the segmentations count.
        *

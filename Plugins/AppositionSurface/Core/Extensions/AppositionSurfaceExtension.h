@@ -94,6 +94,14 @@ namespace ESPINA
       virtual void onExtendedItemSet(Segmentation* item);
 
   private:
+      /** \class Shape
+       *  \brief Enumerates the types of SAS according to their shape.
+       */
+      enum class Shape
+      {
+        MACULAR = 0, FRAGMENTED = 1, PERFORATED = 2, FRAGMENTEDANDPERFORATED = 3, HORSESHOE = 4, UNKNOWN = 5
+      };
+
       /** \brief AppositionSurfaceExtension class constructor.
        * \param[in] infocache InfoCache object reference.
        */
@@ -112,11 +120,11 @@ namespace ESPINA
        */
       bool isPerimeter(const vtkSmartPointer<vtkPolyData> asMesh, const vtkIdType cellId, const vtkIdType p1, const vtkIdType p2) const;
 
-      /** \brief Returns the perimeter of the SAS.
+      /** \brief Returns the perimeter of the SAS and the type of SAS according to its shape.
        * \param[in] asMesh SAS polydata smart pointer.
        *
        */
-      Nm computePerimeter(const vtkSmartPointer<vtkPolyData> asMesh) const;
+      std::pair<Nm, Shape> computePerimeterAndShape(const vtkSmartPointer<vtkPolyData> asMesh) const;
 
       /** \brief Returns the projection of the SAS polydata to a plane.
        * \param[in] asMesh SAS polydata smart pointer.

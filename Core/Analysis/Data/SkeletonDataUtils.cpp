@@ -1085,7 +1085,19 @@ void ESPINA::Core::cleanSkeletonStrokes(SkeletonDefinition& skeleton)
     }
   }
 
+  for(int i = 0; i < skeleton.edges.size(); ++i)
+  {
+    auto &edge = skeleton.edges[i];
+    if(edge.parentEdge == i)
+    {
+      edge.parentEdge = -1;
+    }
+
+    cleanSkeleton.edges << edge;
+  }
+
   skeleton.strokes = cleanSkeleton.strokes;
+  skeleton.edges   = cleanSkeleton.edges;
 }
 
 //--------------------------------------------------------------------
@@ -1121,14 +1133,18 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
 
       if(std::memcmp(node->position, otherNode->position, 3*sizeof(double)) == 0)
       {
-        toRemove << otherNode;
+        if(!toRemove.contains(otherNode)) toRemove << otherNode;
 
         for(auto key: otherNode->connections.keys())
         {
+          if(key == otherNode) continue;
+
           if(key == node)
           {
-            Q_ASSERT(node->connections.keys().contains(otherNode));
-            node->connections.remove(otherNode);
+            if(node->connections.keys().contains(otherNode))
+            {
+              node->connections.remove(otherNode);
+            }
           }
           else
           {
@@ -1139,7 +1155,7 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
         }
 
         otherNode->connections.clear();
-        if(node->connections.isEmpty()) toRemove << node;
+        if(node->connections.isEmpty() && !toRemove.contains(node)) toRemove << node;
       }
     }
   }
