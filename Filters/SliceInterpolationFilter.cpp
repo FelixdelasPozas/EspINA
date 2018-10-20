@@ -37,6 +37,11 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
+const unsigned int SliceInterpolationFilter::INLAND_VOXEL_VALUE = SEG_VOXEL_VALUE;
+const unsigned int SliceInterpolationFilter::BEACH_VOXEL_VALUE = 2;
+const unsigned int SliceInterpolationFilter::COAST_VOXEL_VALUE = 1;
+const unsigned int SliceInterpolationFilter::SEA_VOXEL_VALUE = SEG_BG_VALUE;
+
 //------------------------------------------------------------------------
 SliceInterpolationFilter::SliceInterpolationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
     : Filter(inputs, type, scheduler), m_errorMessage("")
@@ -64,10 +69,10 @@ void SliceInterpolationFilter::execute()
   }
 
   auto input = m_inputs[0];
-  auto inputVolume = readLockVolume(input->output());
 
-  qDebug() << "Valid readLockVolume: " << inputVolume->isValid();
-  if (!inputVolume->isValid())
+  bool validVolume = input->output()->isValid();
+  qDebug() << "Valid readLockVolume: " << validVolume;
+  if (!validVolume)
   {
     auto what = QObject::tr("Invalid input volume");
     auto details = QObject::tr("SliceInterpolationFilter::execute(id) -> Invalid input volume");
@@ -76,8 +81,9 @@ void SliceInterpolationFilter::execute()
   }
 
   // Checking user correct input
-  auto spacing = inputVolume->bounds().spacing();
-  auto volume = sparseCopy<itkVolumeType>(inputVolume->itkImage());
+  // XXX input->output()->spacing();
+  auto spacing = input->output()->spacing();
+  auto volume = sparseCopy<itkVolumeType>(readLockVolume(input->output())->itkImage());
 
   auto image = volume->itkImage();
 
@@ -94,8 +100,8 @@ void SliceInterpolationFilter::execute()
   const auto slmOutputSize = slmOutput->GetNumberOfLabelObjects();
   if (slmOutputSize < 2)
   {
-    qDebug() << "Wrong number of pieces: must be 2 or more";
-    m_errorMessage = "Wrong number of pieces: must be 2 or more";
+    m_errorMessage = tr("Wrong number of pieces (%1 found): must be 2 or more").arg(QString::number(slmOutputSize));
+    qDebug() << m_errorMessage;
     return;
   }
 
@@ -110,8 +116,8 @@ void SliceInterpolationFilter::execute()
       dir = i;
   if (dir == -1)
   {
-    qDebug() << "Direction error: you should have all the pieces in the same coordinate (with a size of 1)";
     m_errorMessage = tr("Direction error: you should have all the pieces in the same coordinate (with a size of 1)");
+    qDebug() << m_errorMessage;
     return;
   }
   auto direction = toAxis(dir);
@@ -120,7 +126,7 @@ void SliceInterpolationFilter::execute()
   if (!canExecute())
     return;
 
-  //Sorting labels by in ascendent order
+  //Sorting labels by in ascendant order
   QList<SLOSptr> sloList;
   for (auto slmObj : slmOutput->GetLabelObjects())
   {
@@ -142,6 +148,7 @@ void SliceInterpolationFilter::execute()
   itkVolumeType::Pointer stackImg, auxImg, prevMask;
   SizeValueType bufferSize;
   unsigned char* auxImgBuf, *prevMaskBuf, *stackImgBuf;
+
   ContourInfo cInfo;
   {
     BlockTimer<> timer1("Processing time");
@@ -155,7 +162,7 @@ void SliceInterpolationFilter::execute()
 
       currentSizeOffset = 2 * (targetRegion.GetIndex(dir) - sourceRegion.GetIndex(dir) + 1);
       currentRegion = calculateRoi(maxRegion, sourceRegion, targetRegion, direction, currentSizeOffset);
-      currentRegion.SetIndex(dir, sourceRegion.GetIndex(dir));
+      currentRegion.SetIndex(dir, sourceRegion.GetIndex(dir));// XXX Check if it's necessary
       currentRegion.SetSize(dir, 1);
 
       stackImg = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
@@ -165,7 +172,8 @@ void SliceInterpolationFilter::execute()
 
       cInfo = getContourInfo(stackImg, sloImg, direction, bufferSize);
 
-      while (currentRegion.GetIndex(dir) < targetRegion.GetIndex(dir))
+      auto endIndex = targetRegion.GetIndex(dir) - 1;
+      while (currentRegion.GetIndex(dir) < endIndex)
       { //TODO change algorithm
         prevMask = cInfo.getContourMask();
         prevMaskBuf = prevMask->GetBufferPointer();
@@ -173,31 +181,36 @@ void SliceInterpolationFilter::execute()
         currentRegion.SetIndex(dir, currentRegion.GetIndex(dir) + 1);
         stackImg = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
         stackImgBuf = stackImg->GetBufferPointer();
+
+        double doubleSpacing[3]{spacing[0], spacing[1], spacing[2]};
+
         auxImg = itkVolumeType::New();
         auxImg->SetRegions(currentRegion);
+        auxImg->SetSpacing(doubleSpacing);
         auxImg->Allocate();
+        auxImg->FillBuffer(SEG_BG_VALUE);
         auxImgBuf = auxImg->GetBufferPointer();
 
         for (SizeValueType i = 0; i < bufferSize; ++i)
         {
           switch (prevMaskBuf[i])
           {
-            case 255:
+            case INLAND_VOXEL_VALUE:
               auxImgBuf[i] = SEG_VOXEL_VALUE;
               break;
-            case 2:
+            case BEACH_VOXEL_VALUE:
               auxImgBuf[i] = (cInfo.getInlandMode() - cInfo.getBeachMode() > cInfo.getInlandMode() - stackImgBuf[i]) ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
               break;
-            case 3:
+            case COAST_VOXEL_VALUE:
               auxImgBuf[i] = (cInfo.getInlandMode() - cInfo.getCoastMode() > cInfo.getInlandMode() - stackImgBuf[i]) ? SEG_VOXEL_VALUE : SEG_BG_VALUE;
               break;
-            default:
-              auxImgBuf[i] = SEG_BG_VALUE;
-              break;
+//            default:
+//              auxImgBuf[i] = SEA_VOXEL_VALUE;
+//              break;
           }
         }
 
-        expandAndDraw<itkVolumeType>(volume, auxImg, equivalentBounds<itkVolumeType>(auxImg));
+        expandAndDraw<itkVolumeType>(volume, auxImg);
       }
 
     }
@@ -207,11 +220,7 @@ void SliceInterpolationFilter::execute()
     return;
   reportProgress(100);
 
-  if (!m_outputs.contains(0))
-  {
-    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
-  }
-
+  if (!m_outputs.contains(0)) m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   m_outputs[0]->setData(volume);
   m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
@@ -274,22 +283,22 @@ SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(c
   {
     if (inlandImgBuf[i])
     {
-      maskBuf[i] = 255;
+      maskBuf[i] = INLAND_VOXEL_VALUE;
       ++inlandHist[stackImgBuf[i]];
     }
     else if (continentImgBuf[i] - inlandImgBuf[i])
     {
-      maskBuf[i] = 2;
+      maskBuf[i] = BEACH_VOXEL_VALUE;
       ++beachHist[stackImgBuf[i]];
     }
     else if (dilateImgBuf[i])
     {
-      maskBuf[i] = 1;
+      maskBuf[i] = COAST_VOXEL_VALUE;
       ++coastHist[stackImgBuf[i]];
     }
     else
     {
-      maskBuf[i] = 0;
+      maskBuf[i] = SEA_VOXEL_VALUE;
       ++seaHist[stackImgBuf[i]];
     }
   }
@@ -306,6 +315,8 @@ SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(c
     if (seaHist[i] > seaHist[seaMode])
       seaMode = i;
   }
+
+  printImageInZ(mask, 0);
 
   return ContourInfo(inlandMode, beachMode, coastMode, seaMode, mask);
 }
@@ -449,7 +460,7 @@ void SliceInterpolationFilter::printImageInZ(const itkVolumeType::Pointer image,
           std::cout << "I";
           break;
         case 2:
-          std::cout << "P";
+          std::cout << "B";
           break;
         case 1:
           std::cout << "C";

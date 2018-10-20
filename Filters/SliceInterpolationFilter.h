@@ -56,6 +56,11 @@ namespace ESPINA
       using BinaryErodeFilter = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
       using BinaryDilateFilter = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
+      static const unsigned int INLAND_VOXEL_VALUE;
+      static const unsigned int BEACH_VOXEL_VALUE;
+      static const unsigned int COAST_VOXEL_VALUE;
+      static const unsigned int SEA_VOXEL_VALUE;
+
       class ContourInfo
       {
         public:
