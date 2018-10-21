@@ -30,12 +30,6 @@
 #include <itkLabelMap.h>
 #include <itkShapeLabelObject.h>
 #include <itkSmartPointer.h>
-// ITK
-#include <itkBinaryBallStructuringElement.h>
-#include <itkBinaryDilateImageFilter.h>
-#include <itkBinaryErodeImageFilter.h>
-#include <itkBinaryImageToShapeLabelMapFilter.h>
-#include <itkLabelMapToBinaryImageFilter.h>
 
 namespace ESPINA
 {
@@ -50,11 +44,6 @@ namespace ESPINA
       using SLO = itk::ShapeLabelObject<SizeValueType,itkVolumeType::ImageDimension>;
       using SLOSptr = itk::SmartPointer<SLO>;
       using ShapeLabelMap = itk::LabelMap<SLO>;
-      using ShapeLabelMapToBinaryImageFilter = itk::LabelMapToBinaryImageFilter<ShapeLabelMap, itkVolumeType>;
-      using BinaryImageToShapeLabelMapFilter = itk::BinaryImageToShapeLabelMapFilter<itkVolumeType>;
-      using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
-      using BinaryErodeFilter = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
-      using BinaryDilateFilter = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
       static const unsigned int INLAND_VOXEL_VALUE;
       static const unsigned int BEACH_VOXEL_VALUE;
@@ -134,6 +123,7 @@ namespace ESPINA
 
       void printRegion(const RegionType region) const;
       void printImageInZ(const itkVolumeType::Pointer image, const itkVolumeType::OffsetValueType offsetInZ = 0) const;
+      void printHistogram(const char tag, const Histogram& histo) const;
 
     private:
       QString m_errorMessage;
