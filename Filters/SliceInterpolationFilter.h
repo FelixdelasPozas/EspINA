@@ -27,6 +27,7 @@
 #include <Core/Analysis/Filter.h>
 
 // ITK
+#include <itkBinaryBallStructuringElement.h>
 #include <itkLabelMap.h>
 #include <itkShapeLabelObject.h>
 #include <itkSmartPointer.h>
@@ -37,13 +38,15 @@ namespace ESPINA
   {
     private:
       using RegionType = itkVolumeType::RegionType;
+      using SpacingType = itkVolumeType::SpacingType;
       using SizeValueType = itkVolumeType::SizeValueType;
       using PixelCounterType = unsigned long;
       using Histogram = std::vector<PixelCounterType>;
       //using HistogramSptr = std::shared_ptr<Histogram>;
       using SLO = itk::ShapeLabelObject<SizeValueType,itkVolumeType::ImageDimension>;
-      using SLOSptr = itk::SmartPointer<SLO>;
       using ShapeLabelMap = itk::LabelMap<SLO>;
+      using FloatImageType = itk::Image<float, 3>;
+      using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 
       static const unsigned int INLAND_VOXEL_VALUE;
       static const unsigned int BEACH_VOXEL_VALUE;
@@ -117,13 +120,16 @@ namespace ESPINA
     private:
       ContourInfo getContourInfo(const itkVolumeType::Pointer stackImage, const itkVolumeType::Pointer sloImage, const Axis direction,
                                  const SizeValueType bufferSize) const;
-      itkVolumeType::Pointer sloToImage(const SLOSptr slObject, RegionType region);
+      itkVolumeType::Pointer sloToImage(const SLO::Pointer slObject, RegionType region, SpacingType spacing);
       RegionType calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion, const RegionType& tarRegion, const Axis direction,
                               const int extraOffset = 0);
 
       void printRegion(const RegionType region) const;
       void printImageInZ(const itkVolumeType::Pointer image, const itkVolumeType::OffsetValueType offsetInZ = 0) const;
       void printHistogram(const char tag, const Histogram& histo) const;
+
+      void writeImage(int id , const itkVolumeType::Pointer image) const;
+      void writeImageF(int id , const FloatImageType::Pointer image) const;
 
     private:
       QString m_errorMessage;
