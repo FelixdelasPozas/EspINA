@@ -28,6 +28,9 @@
 #include <Core/MultiTasking/Task.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
+//Qt
+#include <QFutureWatcher>
+
 class vtkUnsignedCharArray;
 class vtkPoints;
 
@@ -185,6 +188,7 @@ namespace ESPINA
         virtual void run();
         virtual void onAbort();
         void fitRegionToBounds(int region_position[], int region_size[]);
+        void fitRegionToBounds(long long int region_position[], long long int region_size[]);
         void saveResults(QList<Label> labels, unsigned int *voxels);
         void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, int region_position[], int region_size[]);
         bool initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension);
@@ -193,7 +197,9 @@ namespace ESPINA
                                 unsigned char voxel_color, unsigned char center_color, float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial = false);
         void computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels);
         void calculateCenter(Label &label);
-        void createSupervoxel(IndexType cur_index, itkVolumeType::RegionType *sliceRegion, itkVolumeType *image, QList<Label> *labels);
+        void createSupervoxel(IndexType cur_index, ChannelEdges *edgesExtension, itkVolumeType *image, QList<Label> *labels);
+        void ensureConnectivity();
+        void labelConnectivity(Label &label);
 
         ChannelPtr m_stack;
         CoreFactory *m_factory;
@@ -218,6 +224,7 @@ namespace ESPINA
         double scan_size;
 
         mutable QMutex labelListMutex;
+        QFutureWatcher<void> watcher;
 
         friend StackSLIC;
 
