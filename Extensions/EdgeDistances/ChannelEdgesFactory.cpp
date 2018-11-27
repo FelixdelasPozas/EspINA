@@ -33,7 +33,9 @@ using namespace ESPINA::Extensions;
 //-----------------------------------------------------------------------
 ChannelEdgesFactory::ChannelEdgesFactory(CoreFactory *factory)
 : StackExtensionFactory{factory}
+, m_scheduler{nullptr}
 {
+  if(factory) m_scheduler = factory->scheduler();
 }
 
 //-----------------------------------------------------------------------
@@ -50,7 +52,7 @@ StackExtensionSPtr ChannelEdgesFactory::createExtension(const Core::StackExtensi
 
   if(type == ChannelEdges::TYPE)
   {
-    extension = StackExtensionSPtr{new ChannelEdges(m_factory->scheduler(), cache, state)};
+    extension = StackExtensionSPtr{new ChannelEdges(m_scheduler, cache, state)};
   }
 
   if(!extension || !extension.get())

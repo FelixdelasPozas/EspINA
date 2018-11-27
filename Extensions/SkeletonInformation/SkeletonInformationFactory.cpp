@@ -33,8 +33,8 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 
 //--------------------------------------------------------------------
-SkeletonInformationFactory::SkeletonInformationFactory(CoreFactory* factory)
-: SegmentationExtensionFactory{factory}
+SkeletonInformationFactory::SkeletonInformationFactory()
+: SegmentationExtensionFactory{nullptr}
 {
 }
 

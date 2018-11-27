@@ -50,10 +50,9 @@ namespace ESPINA
 
     public:
       /** \brief CountingFrame class constructor.
-       * \param[in] context application context reference.
        *
        */
-      CountingFrameManager(Support::Context &context);
+      CountingFrameManager();
 
       /** \brief Returns the list of created counting frames.
        *
@@ -82,6 +81,13 @@ namespace ESPINA
        */
       CountingFrame::Id suggestedId(const CountingFrame::Id &id) const;
 
+      /** \brief Sets the context of the application. Only needed if executed in a graphical environment.
+       * \param[in] context Application context reference.
+       *
+       */
+      void setContext(Support::Context &context)
+      { m_context = &context; }
+
     signals:
       void countingFrameCreated(CountingFrame *cf);
       void countingFrameDeleted(CountingFrame *cf);
@@ -94,7 +100,7 @@ namespace ESPINA
       void onCountingFrameApplied(CountingFrame *cf);
 
     private:
-      Support::Context                 &m_context;        /** application context.                  */
+      Support::Context                 *m_context;        /** application context.                  */
       QMap<CountingFrame *, ChannelPtr> m_countingFrames; /** maps counting frame with its channel. */
     };
   }

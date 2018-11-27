@@ -22,7 +22,7 @@
 #ifndef ESPINA_CHANNEL_READER_H
 #define ESPINA_CHANNEL_READER_H
 
-#include "Support/EspinaSupport_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 // ESPINA
 #include <Core/Factory/AnalysisReader.h>
@@ -31,15 +31,15 @@
 namespace ESPINA
 {
   /** \class ChannelReader
-   * \brief Implements a reader for stacks.
+   * \brief Implements a reader for stacks raw files.
    *
    */
-  class EspinaSupport_EXPORT ChannelReader
+  class EspinaCore_EXPORT ChannelReader
   : public FilterFactory
   , public IO::AnalysisReader
   {
     public:
-      static const Filter::Type VOLUMETRIC_STREAM_READER;    /** channel reader signature. */
+      static const Filter::Type VOLUMETRIC_STREAM_READER;    /** channel reader signature.     */
       static const Filter::Type ESPINA_1_3_2_CHANNEL_READER; /** channel reader old signature. */
 
       virtual const QString type() const

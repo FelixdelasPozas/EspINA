@@ -38,6 +38,10 @@ namespace ESPINA
     class EspinaCore_EXPORT StackExtensionFactory
     {
       public:
+        /** \brief StackExtensionFactory class constructor.
+         * \param[in] factory Object factory, can be null.
+         *
+         */
         StackExtensionFactory(CoreFactory *factory)
         : m_factory{factory}
         {};
@@ -64,7 +68,7 @@ namespace ESPINA
         virtual StackExtension::TypeList providedExtensions() const = 0;
 
       protected:
-        CoreFactory *m_factory;
+        CoreFactory *m_factory; /** object factory. */
     };
 
     using StackExtensionFactoryPtr   = StackExtensionFactory *;
@@ -79,6 +83,10 @@ namespace ESPINA
     class EspinaCore_EXPORT SegmentationExtensionFactory
     {
       public:
+        /** \brief SegmentationExtensionFactory class constructor.
+         * \param[in] factory Object factory, can be null.
+         *
+         */
         SegmentationExtensionFactory(CoreFactory *factory)
         : m_factory{factory}
         {};
@@ -105,7 +113,7 @@ namespace ESPINA
         virtual SegmentationExtension::TypeList providedExtensions() const = 0;
 
       protected:
-        CoreFactory *m_factory;
+        CoreFactory *m_factory; /** object factory. */
     };
 
     using SegmentationExtensionFactoryPtr   = SegmentationExtensionFactory *;

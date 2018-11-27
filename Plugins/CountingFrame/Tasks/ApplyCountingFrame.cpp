@@ -26,7 +26,6 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Factory/CoreFactory.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <CountingFrames/CountingFrame.h>
 #include <Extensions/ExtensionUtils.h>
@@ -42,9 +41,9 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-ApplyCountingFrame::ApplyCountingFrame(CountingFrame *countingFrame,
-                                       CoreFactory   *factory,
-                                       SchedulerSPtr  scheduler)
+ApplyCountingFrame::ApplyCountingFrame(CountingFrame                         *countingFrame,
+                                       Core::SegmentationExtensionFactorySPtr factory,
+                                       SchedulerSPtr                          scheduler)
 : Task           {scheduler}
 , m_countingFrame{countingFrame}
 , m_factory      {factory}
@@ -209,10 +208,10 @@ void ApplyCountingFrame::onTaskFinished()
 }
 
 //--------------------------------------------------------------------
-ApplySegmentationCountingFrame::ApplySegmentationCountingFrame(CountingFrame    *countingFrame,
-                                                               SegmentationSList segmentations,
-                                                               CoreFactory      *factory,
-                                                               SchedulerSPtr     scheduler)
+ApplySegmentationCountingFrame::ApplySegmentationCountingFrame(CountingFrame                         *countingFrame,
+                                                               SegmentationSList                      segmentations,
+                                                               Core::SegmentationExtensionFactorySPtr factory,
+                                                               SchedulerSPtr                          scheduler)
 : Task           {scheduler}
 , m_countingFrame{countingFrame}
 , m_segmentations{segmentations}
@@ -235,9 +234,20 @@ void ApplySegmentationCountingFrame::run()
 
       auto segmentation = m_segmentations.at(i);
 
-      auto inclusionExtension = retrieveOrCreateSegmentationExtension<StereologicalInclusion>(segmentation, m_factory);
-      inclusionExtension->addCountingFrame(m_countingFrame);
-      inclusionExtension->evaluateCountingFrame(m_countingFrame);
+      StereologicalInclusionSPtr extension = nullptr;
+      if(segmentation->readOnlyExtensions()->hasExtension(StereologicalInclusion::TYPE))
+      {
+        extension = segmentation->extensions()->get<StereologicalInclusion>();
+      }
+      else
+      {
+        auto segExtension = m_factory->createExtension(StereologicalInclusion::TYPE);
+        segmentation->extensions()->add(segExtension);
+        extension = std::dynamic_pointer_cast<StereologicalInclusion>(segExtension);
+      }
+
+      extension->addCountingFrame(m_countingFrame);
+      extension->evaluateCountingFrame(m_countingFrame);
 
       auto newProgress = (100 * i)/m_segmentations.size();
 

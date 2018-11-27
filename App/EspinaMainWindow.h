@@ -25,13 +25,13 @@
 #include "EspinaConfig.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
+#include <Core/Readers/ChannelReader.h>
 #include <Extensions/LibraryExtensionFactory.h>
 #include <Extensions/Issues/Issues.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
 #include <Support/Plugin.h>
-#include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Widgets/Panel.h>

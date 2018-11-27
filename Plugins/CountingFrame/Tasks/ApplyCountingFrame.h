@@ -28,6 +28,7 @@
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Factory/ExtensionFactory.h>
 #include <GUI/Model/ChannelAdapter.h>
 
 // Qt
@@ -36,8 +37,6 @@
 
 namespace ESPINA
 {
-  class CoreFactory;
-
   namespace CF
   {
     class CountingFrame;
@@ -54,14 +53,14 @@ namespace ESPINA
         /** \brief ApplySegmentationCountingFrame class constructor.
          * \param[in] countingFrame countingFrame of the segmentations.
          * \param[in] segmentations segmentations list to apply.
-         * \param[in] factory core factory for extension creation.
+         * \param[in] factory Inclusion extension factory.
          * \param[in] scheduler application task scheduler.
          *
          */
-        ApplySegmentationCountingFrame(CountingFrame    *countingFrame,
-                                       SegmentationSList segmentations,
-                                       CoreFactory      *factory,
-                                       SchedulerSPtr     scheduler);
+        ApplySegmentationCountingFrame(CountingFrame                         *countingFrame,
+                                       SegmentationSList                      segmentations,
+                                       Core::SegmentationExtensionFactorySPtr factory,
+                                       SchedulerSPtr                          scheduler);
 
         /** \brief ApplySegmentationCountingFrame class virtual destructor.
          *
@@ -76,9 +75,9 @@ namespace ESPINA
         virtual void run() override;
 
       private:
-        CountingFrame    *m_countingFrame; /** CountingFrame of the segmentations.  */
-        SegmentationSList m_segmentations; /** list of segmentations to apply.      */
-        CoreFactory      *m_factory;       /** core factory for extension creation. */
+        CountingFrame                         *m_countingFrame; /** CountingFrame of the segmentations.  */
+        SegmentationSList                      m_segmentations; /** list of segmentations to apply.      */
+        Core::SegmentationExtensionFactorySPtr m_factory;       /** core factory for extension creation. */
     };
 
     /** \class ApplyCountingFrame
@@ -96,9 +95,9 @@ namespace ESPINA
          * \param[in] sheduler application task scheduler.
          *
          */
-        explicit ApplyCountingFrame(CountingFrame   *countingFrame,
-                                    CoreFactory     *factory,
-                                    SchedulerSPtr    scheduler);
+        explicit ApplyCountingFrame(CountingFrame                         *countingFrame,
+                                    Core::SegmentationExtensionFactorySPtr factory,
+                                    SchedulerSPtr                          scheduler);
 
         /** \brief ApplyCountingFrame class virtual destructor.
          *
@@ -130,10 +129,10 @@ namespace ESPINA
          */
         void abortTasks();
 
-        CountingFrame *m_countingFrame; /** counting frame to apply              */
-        CoreFactory   *m_factory;       /** core factory for extension creation. */
-        QMutex         m_waitMutex;     /** wait condition mutex.                */
-        QWaitCondition m_condition;     /** wait condition to stop the thread.   */
+        CountingFrame                         *m_countingFrame; /** counting frame to apply            */
+        Core::SegmentationExtensionFactorySPtr m_factory;       /** stereological inclusion factory.   */
+        QMutex                                 m_waitMutex;     /** wait condition mutex.              */
+        QWaitCondition                         m_condition;     /** wait condition to stop the thread. */
 
         using TaskType = std::shared_ptr<ApplySegmentationCountingFrame>;
 

@@ -30,7 +30,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Support/Readers/ChannelReader.h>
+#include <Core/Readers/ChannelReader.h>
 
 // Qt
 #include <QApplication>

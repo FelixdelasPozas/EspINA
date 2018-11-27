@@ -53,10 +53,10 @@ namespace ESPINA
   };
 
   class AppositionSurfacePlugin_EXPORT AppositionSurfacePlugin
-  : public Support::Plugin
+  : public Support::AppPlugin
   {
     Q_OBJECT
-    Q_INTERFACES(ESPINA::Support::Plugin)
+    Q_INTERFACES(ESPINA::Core::CorePlugin ESPINA::Support::AppPlugin)
 
   public:
     /** \brief AppositionSurfacePlugin class constructor.
@@ -68,6 +68,18 @@ namespace ESPINA
      *
      */
     virtual ~AppositionSurfacePlugin();
+
+    virtual const QString name() const
+    { return tr("Apposition Surface Plugin"); }
+
+    virtual const QString description() const
+    { return tr("Computes apposition surface structures from synapses and its properties."); }
+
+    virtual const QString organization() const
+    { return tr("Universidad Politécnica de Madrid."); }
+
+    virtual const QString maintainer() const
+    { return tr("felix.delaspozas@ctb.upm.es"); }
 
     virtual void init(Support::Context &context);
 
@@ -92,7 +104,7 @@ namespace ESPINA
      */
     static bool isValidSAS(SegmentationAdapterPtr segmentation);
 
-    /** \brief Returs the apposition surface segmentation corresponding to the given segmentation.
+    /** \brief Returns the apposition surface segmentation corresponding to the given segmentation.
      * \param[in] segmentation to search for it's corresponding SAS.
      *
      */

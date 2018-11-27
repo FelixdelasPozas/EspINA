@@ -26,6 +26,7 @@
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <Core/Analysis/Channel.h>
+#include <Core/Plugin.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
@@ -35,7 +36,6 @@
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Widgets/Styles.h>
-#include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <Support/Widgets/PanelSwitch.h>
@@ -139,7 +139,16 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   initColorEngines();
 
-  loadPlugins(plugins);
+  try
+  {
+    loadPlugins(plugins);
+  }
+  catch(const EspinaException &e)
+  {
+    qWarning() << "Unable to load plugins: exception";
+    qWarning() << e.what();
+    qWarning() << e.details();
+  }
 
   createToolShortcuts();
 
@@ -180,33 +189,59 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 {
   auto factory = m_context.factory();
 
-  for(auto plugin : plugins)
+  for(auto plugin: plugins)
   {
-    auto validPlugin = qobject_cast<Plugin*>(plugin);
-    if (validPlugin)
+    auto validCorePlugin = qobject_cast<Core::CorePlugin *>(plugin);
+    if(validCorePlugin)
     {
-      validPlugin->init(m_context);
+      qDebug() << "LOADING CORE PLUGIN:" << validCorePlugin->name();
 
-      connect(this,        SIGNAL(analysisChanged()),
-              validPlugin, SLOT(onAnalysisChanged()));
-      connect(this,        SIGNAL(analysisAboutToBeClosed()),
-              validPlugin, SLOT(onAnalysisClosed()));
+      for (auto extensionFactory : validCorePlugin->channelExtensionFactories())
+      {
+        qDebug() << plugin << "- Channel Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
+        factory->registerExtensionFactory(extensionFactory);
+      }
 
-      for (auto colorEngine : validPlugin->colorEngines())
+      for(auto filterFactory: validCorePlugin->filterFactories())
+      {
+        qDebug() << plugin << "- Filter Factory  ...... OK (" << filterFactory->providedFilters() << ")";
+        factory->registerFilterFactory(filterFactory);
+      }
+
+      for(auto reader: validCorePlugin->analysisReaders())
+      {
+        qDebug() << plugin << "- Analysis Reader  ...... OK (" << reader->type() << ")";
+        factory->registerAnalysisReader(reader);
+      }
+
+      for (auto extensionFactory : validCorePlugin->segmentationExtensionFactories())
+      {
+        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
+        factory->registerExtensionFactory(extensionFactory);
+      }
+    }
+
+    auto validApplicationPlugin = qobject_cast<Support::AppPlugin *>(plugin);
+    if (validApplicationPlugin)
+    {
+      qDebug() << "LOADING ESPINA PLUGIN:" << validApplicationPlugin->name();
+
+      validApplicationPlugin->init(m_context);
+
+      connect(this,                   SIGNAL(analysisChanged()),
+              validApplicationPlugin, SLOT(onAnalysisChanged()));
+      connect(this,                   SIGNAL(analysisAboutToBeClosed()),
+              validApplicationPlugin, SLOT(onAnalysisClosed()));
+
+      for (auto colorEngine : validApplicationPlugin->colorEngines())
       {
         qDebug() << plugin << "- Color Engine " << colorEngine->colorEngine()->tooltip() << " ...... OK";
         registerColorEngine(colorEngine);
       }
 
-      for (auto extensionFactory : validPlugin->channelExtensionFactories())
+      for (auto tool : validApplicationPlugin->tools())
       {
-        qDebug() << plugin << "- Channel Extension Factory  ...... OK";
-        factory->registerExtensionFactory(extensionFactory);
-      }
-
-      for (auto tool : validPlugin->tools())
-      {
-        qDebug() << plugin << "- Tool " /*<< tool.second->toolTip()*/ << " ...... OK";
+        qDebug() << plugin << "- Tool " << tool.second->id() << " ...... OK";
         switch (tool.first)
         {
           case ToolCategory::SESSION:
@@ -233,37 +268,19 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         }
       }
 
-      for(auto filterFactory: validPlugin->filterFactories())
-      {
-        qDebug() << plugin << "- Filter Factory  ...... OK (" << filterFactory->providedFilters() << ")";
-        factory->registerFilterFactory(filterFactory);
-      }
-
-      for(auto reader: validPlugin->analysisReaders())
-      {
-        qDebug() << plugin << "- Analysis Reader  ...... OK (" << reader->type() << ")";
-        factory->registerAnalysisReader(reader);
-      }
-
-      for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
-      {
-        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
-        factory->registerExtensionFactory(extensionFactory);
-      }
-
-      for (auto report : validPlugin->reports())
+      for (auto report : validApplicationPlugin->reports())
       {
         qDebug() << plugin << "- Register Report" << report->name() << " ...... OK";
         m_analyzeToolGroup->registerReport(report);
       }
 
-      for (auto settings : validPlugin->settingsPanels())
+      for (auto settings : validApplicationPlugin->settingsPanels())
       {
         qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
         m_availableSettingsPanels << settings;
       }
 
-      for (auto factory : validPlugin->representationFactories())
+      for (auto factory : validApplicationPlugin->representationFactories())
       {
         qDebug() << plugin << "- Representation Factory  ...... OK";
         registerRepresentationFactory(factory);
@@ -1538,7 +1555,7 @@ void EspinaMainWindow::initializeCrosshair()
 }
 
 //------------------------------------------------------------------------
-void ESPINA::EspinaMainWindow::delayedInitActions()
+void EspinaMainWindow::delayedInitActions()
 {
   try
   {

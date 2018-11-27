@@ -109,8 +109,8 @@ FilterSPtr ASFilterFactory::createFilter(InputSList          inputs,
 AppositionSurfacePlugin::AppositionSurfacePlugin()
 : m_context         {nullptr}
 , m_settings        {nullptr}
-, m_extensionFactory{nullptr}
-, m_filterFactory   {nullptr}
+, m_extensionFactory{std::make_shared<ASExtensionFactory>()}
+, m_filterFactory   {std::make_shared<ASFilterFactory>()}
 {
 }
 
@@ -125,14 +125,14 @@ void AppositionSurfacePlugin::init(Context &context)
 {
   if (m_context)
   {
-    qWarning() << "Already Initialized AppositionSurfacePlugin";
-    Q_ASSERT(false);
+    auto message = tr("Already Initialized AppositionSurfacePlugin");
+    auto details = tr("AppositionSurfacePlugin::init(context) -> ") + message;
+
+    throw EspinaException(message, details);
   }
 
   m_context          = &context;
   m_settings         = std::make_shared<AppositionSurfaceSettings>();
-  m_extensionFactory = std::make_shared<ASExtensionFactory>();
-  m_filterFactory    = std::make_shared<ASFilterFactory>();
 
   // for automatic computation of SAS
   connect(m_context->model().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
@@ -142,14 +142,6 @@ void AppositionSurfacePlugin::init(Context &context)
 //-----------------------------------------------------------------------------
 SegmentationExtensionFactorySList AppositionSurfacePlugin::segmentationExtensionFactories() const
 {
-  if(!m_context)
-  {
-    auto message = QObject::tr("Apposition Surface Plugin hasn't been initialized!");
-    auto details = QObject::tr("AppositionSurfacePlugin::segmentationExtensionFactories() -> ") + message;
-
-    throw EspinaException(message, details);
-  }
-
   SegmentationExtensionFactorySList extensionFactories;
 
   extensionFactories << m_extensionFactory;
@@ -160,14 +152,6 @@ SegmentationExtensionFactorySList AppositionSurfacePlugin::segmentationExtension
 //-----------------------------------------------------------------------------
 FilterFactorySList AppositionSurfacePlugin::filterFactories() const
 {
-  if(!m_context)
-  {
-    auto message = QObject::tr("Apposition Surface Plugin hasn't been initialized!");
-    auto details = QObject::tr("AppositionSurfacePlugin::filterFactories() -> ") + message;
-
-    throw EspinaException(message, details);
-  }
-
   FilterFactorySList factories;
 
   factories << m_filterFactory;
@@ -498,4 +482,3 @@ void AppositionSurfacePlugin::abortTasks()
 }
 
 Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)
-

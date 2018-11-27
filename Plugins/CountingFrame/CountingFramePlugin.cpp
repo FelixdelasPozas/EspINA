@@ -18,33 +18,40 @@ using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
 CountingFramePlugin::CountingFramePlugin()
-: m_scheduler                   {nullptr}
+: m_context                     {nullptr}
+, m_scheduler                   {nullptr}
 , m_undoStack                   {nullptr}
-, m_context                     {nullptr}
-, m_manager                     {nullptr}
+, m_manager                     {std::make_shared<CountingFrameManager>()}
 , m_dockWidget                  {nullptr}
 , m_colorEngine                 {nullptr}
 , m_representationFactory       {nullptr}
-, m_channelExtensionFactory     {nullptr}
-, m_segmentationExtensionFactory{nullptr}
+, m_segmentationExtensionFactory{std::make_shared<CFSegmentationExtensionFactory>()}
+, m_channelExtensionFactory     {std::make_shared<CFStackExtensionFactory>(m_segmentationExtensionFactory, m_manager.get())}
 {
 }
 
 //------------------------------------------------------------------------
 void CountingFramePlugin::init(Support::Context &context)
 {
+  if(m_context)
+  {
+    auto message = tr("Already initialized Counting Frame plugin!");
+    auto details = tr("CountingFramePlugin::init(context) ->") + message;
+
+    throw EspinaException(message, details);
+  }
+
+  m_context     = &context;
   m_scheduler   = context.scheduler();
   m_undoStack   = context.undoStack();
-  m_context     = &context;
 
-  m_manager     = std::make_shared<CountingFrameManager>(context);
+  m_manager->setContext(context);
 
-  m_dockWidget  = new Panel(m_manager.get(), context, DefaultDialogs::defaultParentWidget());
-  m_colorEngine = std::make_shared<CF::ColorEngine>();
+  m_dockWidget            = new Panel(m_manager.get(), context, DefaultDialogs::defaultParentWidget());
+  m_colorEngine           = std::make_shared<CF::ColorEngine>();
+  m_representationFactory = std::make_shared<RepresentationFactory>(m_manager.get());
 
-  m_representationFactory        = std::make_shared<RepresentationFactory>(m_manager.get());
-  m_channelExtensionFactory      = createStackExtensionFactory<CFStackExtensionFactory>(context.factory(), m_manager.get(), m_scheduler);
-  m_segmentationExtensionFactory = createSegmentationExtensionFactory<CFSegmentationExtensionFactory>(context.factory());
+  std::dynamic_pointer_cast<CFStackExtensionFactory>(m_channelExtensionFactory)->setScheduler(m_scheduler);
 }
 
 //------------------------------------------------------------------------

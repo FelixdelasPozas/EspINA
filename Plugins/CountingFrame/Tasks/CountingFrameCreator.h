@@ -64,10 +64,10 @@ namespace ESPINA
         /** \brief CountingFrameCreator class constructor.
          * \param[in] data data of the counting frame to create.
          * \param[in] scheduler application task scheduler.
-         * \param[in] factory application object factory.
+         * \param[in] factory stereological inclusion factory.
          *
          */
-        explicit CountingFrameCreator(Data data, SchedulerSPtr scheduler, CoreFactory *factory);
+        explicit CountingFrameCreator(Data data, SchedulerSPtr scheduler, Core::SegmentationExtensionFactorySPtr factory);
 
         /** \brief CountingFrameCreate class virtual destructor.
          *
@@ -89,9 +89,9 @@ namespace ESPINA
         virtual void run();
 
       private:
-        Data           m_data;    /** Data of the counting frame to create. */
-        CountingFrame *m_cf;      /** created counting frame.               */
-        CoreFactory   *m_factory; /** application object factory.           */
+        Data                                   m_data;    /** Data of the counting frame to create. */
+        CountingFrame                         *m_cf;      /** created counting frame.               */
+        Core::SegmentationExtensionFactorySPtr m_factory; /** stereological inclusion factory.      */
     };
   
   } // namespace CF

@@ -33,6 +33,10 @@ namespace ESPINA
   {
     class ProgressReporter;
 
+    /** \class AnalysisReader
+     * \brief Interface for reading analysis files.
+     *
+     */
     class EspinaCore_EXPORT AnalysisReader
     {
     public:

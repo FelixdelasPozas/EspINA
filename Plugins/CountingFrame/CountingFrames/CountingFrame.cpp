@@ -40,11 +40,11 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrame::CountingFrame(CountingFrameExtension *extension,
-                             Nm                      inclusion[3],
-                             Nm                      exclusion[3],
-                             SchedulerSPtr           scheduler,
-                             CoreFactory            *factory)
+CountingFrame::CountingFrame(CountingFrameExtension                *extension,
+                             Nm                                     inclusion[3],
+                             Nm                                     exclusion[3],
+                             SchedulerSPtr                          scheduler,
+                             Core::SegmentationExtensionFactorySPtr factory)
 : INCLUSION_FACE   {255}
 , EXCLUSION_FACE   {0}
 , m_scheduler      {scheduler}

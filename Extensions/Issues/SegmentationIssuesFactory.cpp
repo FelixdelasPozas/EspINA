@@ -29,8 +29,8 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 
 //--------------------------------------------------------------------
-SegmentationIssuesFactory::SegmentationIssuesFactory(CoreFactory* factory)
-: SegmentationExtensionFactory{factory}
+SegmentationIssuesFactory::SegmentationIssuesFactory()
+: SegmentationExtensionFactory{nullptr}
 {
 }
 

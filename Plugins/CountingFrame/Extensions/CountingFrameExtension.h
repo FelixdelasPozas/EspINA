@@ -125,19 +125,19 @@ namespace ESPINA
          * \param[in] state extension initial state.
          *
          */
-        explicit CountingFrameExtension(CountingFrameManager *manager,
-                                        SchedulerSPtr         scheduler,
-                                        CoreFactory          *factory,
-                                        const State          &state = State());
+        explicit CountingFrameExtension(CountingFrameManager                  *manager,
+                                        SchedulerSPtr                          scheduler,
+                                        Core::SegmentationExtensionFactorySPtr factory,
+                                        const State                           &state = State());
 
-        CountingFrameManager  *m_manager;        /** counting frame manager.             */
-        SchedulerSPtr          m_scheduler;      /** task scheduler.                     */
-        CoreFactory           *m_factory;        /** model factory.                      */
+        CountingFrameManager                  *m_manager;        /** counting frame manager.             */
+        SchedulerSPtr                          m_scheduler;      /** task scheduler.                     */
+        Core::SegmentationExtensionFactorySPtr m_factory;        /** stereological inclusion factory.    */
 
-        State                  m_prevState;      /** previous state of the extension.    */
+        State                                  m_prevState;      /** previous state of the extension.    */
 
-        CountingFrameList      m_countingFrames; /** list of created counting frames.    */
-        mutable QReadWriteLock m_CFmutex;        /** protects CF list.                   */
+        CountingFrameList                      m_countingFrames; /** list of created counting frames.    */
+        mutable QReadWriteLock                 m_CFmutex;        /** protects CF list.                   */
 
         friend class CFStackExtensionFactory;
     };

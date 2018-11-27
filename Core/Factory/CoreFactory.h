@@ -25,6 +25,7 @@
 
 // ESPINA
 #include <Core/Analysis/Extensible.hxx>
+#include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/ExtensionFactory.h>
 #include <Core/Analysis/Extensions.h>
@@ -43,162 +44,182 @@ namespace ESPINA
    */
   class EspinaCore_EXPORT CoreFactory
   {
-  public:
-    /** \brief CoreFactory class constructor.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit CoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
+    public:
+      /** \brief CoreFactory class constructor.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit CoreFactory(SchedulerSPtr scheduler = SchedulerSPtr());
 
-    /** \brief CoreFactory class destructor.
-     *
-     */
-    ~CoreFactory();
+      /** \brief CoreFactory class destructor.
+       *
+       */
+      ~CoreFactory();
 
-    /** \brief Registers a filter factory.
-     * \param[in] factory filter factory smart pointer.
-     *
-     */
-    void registerFilterFactory(FilterFactorySPtr factory);
+      /** \brief Registers a filter factory.
+       * \param[in] factory filter factory smart pointer.
+       *
+       */
+      void registerFilterFactory(FilterFactorySPtr factory);
 
-    /** \brief Creates a filter given the inputs and the type.
-     * \param[in] inputs list of input smart pointers.
-     * \param[in] type filter type.
-     *
-     */
-    FilterSPtr createFilter(InputSList inputs, const Filter::Type& type) const;
+      /** \brief Creates a filter given the inputs and the type.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type filter type.
+       *
+       */
+      FilterSPtr createFilter(InputSList inputs, const Filter::Type& type) const;
 
-    /** \brief Convenience method to create filters with a single view item input
-     * \param[in] input view item
-     * \param[in] type filter type.
-     *
-     * This is a convenience method to create input
-     */
-    template<typename T>
-    std::shared_ptr<T> createFilter(ViewItem *input, const Filter::Type &type) const
-    {
-      InputSList inputs;
-      inputs << input->asInput();
+      /** \brief Convenience method to create filters with a single view item input
+       * \param[in] input view item
+       * \param[in] type filter type.
+       *
+       * This is a convenience method to create input
+       */
+      template<typename T>
+      std::shared_ptr<T> createFilter(ViewItem *input, const Filter::Type &type) const
+      {
+        InputSList inputs;
+        inputs << input->asInput();
 
-      return createFilter<T>(inputs, type);
-    }
+        return createFilter<T>(inputs, type);
+      }
 
-    /** \brief Creates filter given the inputs and the type.
-     * \param[in] inputs list of input smart pointers.
-     * \param[in] type filter type.
-     *
-     */
-    template<typename T>
-    std::shared_ptr<T> createFilter(InputSList inputs, const Filter::Type &type) const
-    {
-      auto filter = std::make_shared<T>(inputs, type, m_scheduler);
-      filter->setStorage(m_defaultStorage);
-      return filter;
-    }
+      /** \brief Creates filter given the inputs and the type.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type filter type.
+       *
+       */
+      template<typename T>
+      std::shared_ptr<T> createFilter(InputSList inputs, const Filter::Type &type) const
+      {
+        auto filter = std::make_shared<T>(inputs, type, m_scheduler);
+        filter->setStorage(m_defaultStorage);
+        return filter;
+      }
 
-    /** \brief Creates a sample.
-     * \param[in] name sample name.
-     *
-     */
-    SampleSPtr createSample(const QString& name = QString()) const;
+      /** \brief Creates a sample.
+       * \param[in] name sample name.
+       *
+       */
+      SampleSPtr createSample(const QString& name = QString()) const;
 
-    /** \brief Creates a channel.
-     * \param[in] filter filter smart pointer.
-     * \param[in] id output id.
-     *
-     */
-    ChannelSPtr createChannel(FilterSPtr filter, Output::Id id) const;
+      /** \brief Creates a channel.
+       * \param[in] filter filter smart pointer.
+       * \param[in] id output id.
+       *
+       */
+      ChannelSPtr createChannel(FilterSPtr filter, Output::Id id) const;
 
-    /** \brief Registers channel extension factory
-     * \param[in] factory channel extension factory smart pointer.
-     *
-     *  From now on, CoreFactory can create all the channel extensions provided by
-     *  the registered factory
-     */
-    void registerExtensionFactory(Core::StackExtensionFactorySPtr factory);
+      /** \brief Registers channel extension factory
+       * \param[in] factory channel extension factory smart pointer.
+       *
+       *  From now on, CoreFactory can create all the channel extensions provided by
+       *  the registered factory
+       */
+      void registerExtensionFactory(Core::StackExtensionFactorySPtr factory);
 
-    /** \brief Returns the list of channel extensions types this factory can create.
-     *
-     *  Extension state is restored using cache and state data.
-     */
-    Core::StackExtension::TypeList availableStackExtensions() const;
+      /** \brief Returns the list of channel extensions types this factory can create.
+       *
+       *  Extension state is restored using cache and state data.
+       */
+      Core::StackExtension::TypeList availableStackExtensions() const;
 
-    /** \brief Create a channel extension.
-     * \param[in] type channel extension type.
-     * \param[in] cache cache object.
-     * \param[in] state state object.
-     *
-     *  Extension state is restored using cache and state data.
-     */
-    Core::StackExtensionSPtr createStackExtension(const Core::StackExtension::Type      &type,
-                                                  const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache(),
-                                                  const State &state = State());
+      /** \brief Create a channel extension.
+       * \param[in] type channel extension type.
+       * \param[in] cache cache object.
+       * \param[in] state state object.
+       *
+       *  Extension state is restored using cache and state data.
+       */
+      Core::StackExtensionSPtr createStackExtension(const Core::StackExtension::Type      &type,
+                                                    const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache(),
+                                                    const State &state = State());
 
-    /** \brief Creates a segmentation.
-     * \param[in] filte, filter smart pointer.
-     * \param[in] id output id.
-     *
-     */
-    SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id id) const;
+      /** \brief Creates a segmentation.
+       * \param[in] filte, filter smart pointer.
+       * \param[in] id output id.
+       *
+       */
+      SegmentationSPtr createSegmentation(FilterSPtr filter, Output::Id id) const;
 
-    /** \brief Registers segmentation extension factory.
-     * \param[in] factor segmentation extension factory smart pointer.
-     *
-     *  From now on, CoreFactory can create all the segmentation extensions provided by
-     *  the registered factory.
-     */
-    void registerExtensionFactory(Core::SegmentationExtensionFactorySPtr factory);
+      /** \brief Registers segmentation extension factory.
+       * \param[in] factor segmentation extension factory smart pointer.
+       *
+       *  From now on, CoreFactory can create all the segmentation extensions provided by
+       *  the registered factory.
+       */
+      void registerExtensionFactory(Core::SegmentationExtensionFactorySPtr factory);
 
-    /** \brief Returns a list of segmentation extension types that this factory can create.
-     *
-     */
-    Core::SegmentationExtension::TypeList availableSegmentationExtensions() const;
+      /** \brief Returns a list of segmentation extension types that this factory can create.
+       *
+       */
+      Core::SegmentationExtension::TypeList availableSegmentationExtensions() const;
 
-    /** \brief Create an extension instance of the given type.
-     *
-     *  Extension state is restored using cache and state data.
-     */
-    Core::SegmentationExtensionSPtr createSegmentationExtension(const Core::SegmentationExtension::Type      &type,
-                                                                const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache(),
-                                                                const State &state = State());
+      /** \brief Create an extension instance of the given type.
+       *
+       *  Extension state is restored using cache and state data.
+       */
+      Core::SegmentationExtensionSPtr createSegmentationExtension(const Core::SegmentationExtension::Type      &type,
+                                                                  const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache(),
+                                                                  const State &state = State());
 
-    /** \brief Sets temporal storage for the factory.
-     * \param[in] storage temporal storage smart pointer.
-     *
-     */
-    void setPersistentStorage(TemporalStorageSPtr storage)
-    { m_defaultStorage = storage; }
+      /** \brief Sets temporal storage for the factory.
+       * \param[in] storage temporal storage smart pointer.
+       *
+       */
+      void setPersistentStorage(TemporalStorageSPtr storage)
+      { m_defaultStorage = storage; }
 
-    /** \brief Returns a temporal storage object.
-     *
-     */
-    TemporalStorageSPtr createTemporalStorage() const;
+      /** \brief Returns a temporal storage object.
+       *
+       */
+      TemporalStorageSPtr createTemporalStorage() const;
 
-    /** \brief Sets the directory for the created TemporalStorage objects.
-     * \param[in] directory temporal directory.
-     *
-     */
-    void setTemporalDirectory(const QDir &directory);
+      /** \brief Sets the directory for the created TemporalStorage objects.
+       * \param[in] directory temporal directory.
+       *
+       */
+      void setTemporalDirectory(const QDir &directory);
 
-    /** \brief Returns the factory thread scheduler.
-     *
-     */
-    SchedulerSPtr scheduler() const
-    { return m_scheduler; }
+      /** \brief Returns the factory thread scheduler.
+       *
+       */
+      SchedulerSPtr scheduler() const
+      { return m_scheduler; }
 
-    /** \brief Returns the default temporal storage for the factory.
-     *
-     */
-    TemporalStorageSPtr defaultStorage() const;
-  private:
+      /** \brief Returns the default temporal storage for the factory.
+       *
+       */
+      TemporalStorageSPtr defaultStorage() const;
 
-    SchedulerSPtr               m_scheduler;           /** task scheduler.                   */
-    mutable TemporalStorageSPtr m_defaultStorage;      /** factory default temporal storage. */
-    QDir                       *m_temporalStorageDir;  /** directory for temporal storage.   */
+      /** \brief Registers an analysis reader in the factory.
+       * \param[in] reader to be registered
+       *
+       */
+      void registerAnalysisReader(AnalysisReaderSPtr reader);
 
-    QMap<Filter::Type, FilterFactorySPtr>                                           m_filterFactories;
-    QMap<Core::StackExtension::Type, Core::StackExtensionFactorySPtr>               m_stackExtensionFactories;
-    QMap<Core::SegmentationExtension::Type, Core::SegmentationExtensionFactorySPtr> m_segmentationExtensionFactories;
+      /** \brief Returns the list of raw pointers of the readers registered in the factory for a given file.
+       * \param[in] file QFileInfo object.
+       *
+       */
+      const AnalysisReaderSList readers(const QFileInfo &file) const;
+
+      /** \brief Returns the list of file extensions the factory can read.
+       *
+       */
+      Core::Utils::SupportedFormats supportedFileExtensions();
+
+    private:
+
+      SchedulerSPtr               m_scheduler;           /** task scheduler.                   */
+      mutable TemporalStorageSPtr m_defaultStorage;      /** factory default temporal storage. */
+      QDir                       *m_temporalStorageDir;  /** directory for temporal storage.   */
+
+      QMap<Filter::Type, FilterFactorySPtr>                                           m_filterFactories;
+      QMap<Core::StackExtension::Type, Core::StackExtensionFactorySPtr>               m_stackExtensionFactories;
+      QMap<Core::SegmentationExtension::Type, Core::SegmentationExtensionFactorySPtr> m_segmentationExtensionFactories;
+      AnalysisReaderSList                                                             m_readers;
+      QMap<QString, AnalysisReaderSList>                                              m_readerExtensions;
   };
 
   //--------------------------------------------------------------------

@@ -27,6 +27,9 @@
 #include <Core/Utils/EspinaException.h>
 #include <Core/Analysis/Filters/SourceFilter.h>
 
+// Qt
+#include <QtGui>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
@@ -77,20 +80,9 @@ const FilterTypeList SegmhaFilterFactory::providedFilters() const
 }
 
 //-----------------------------------------------------------------------------
-SegmhaImporterPlugin::SegmhaImporterPlugin()
-{
-}
-
-//-----------------------------------------------------------------------------
-SegmhaImporterPlugin::~SegmhaImporterPlugin()
-{
-//   qDebug() << "********************************************************";
-//   qDebug() << "              Destroying SegmhaImporter Plugin";
-//   qDebug() << "********************************************************";
-}
-
-//-----------------------------------------------------------------------------
-void SegmhaImporterPlugin::init(Support::Context &context)
+ESPINA::SegmhaImporterPlugin::SegmhaImporterPlugin()
+: m_factory{std::make_shared<SegmhaFilterFactory>()}
+, m_reader {std::make_shared<SegmhaReader>()}
 {
 }
 
@@ -99,7 +91,7 @@ AnalysisReaderSList SegmhaImporterPlugin::analysisReaders() const
 {
   AnalysisReaderSList readers;
 
-  readers << std::make_shared<SegmhaReader>();
+  readers << m_reader;
 
   return readers;
 }
@@ -109,7 +101,7 @@ FilterFactorySList SegmhaImporterPlugin::filterFactories() const
 {
   FilterFactorySList factories;
 
-  factories << std::make_shared<SegmhaFilterFactory>();
+  factories << m_factory;
 
   return factories;
 }

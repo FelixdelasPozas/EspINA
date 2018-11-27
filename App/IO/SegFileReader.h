@@ -25,8 +25,12 @@
 // ESPINA
 #include <Core/Factory/AnalysisReader.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class SegFileReader
+   * \brief Reader for Espina SEG files.
+   *
+   */
   class SegFileReader
   : public IO::AnalysisReader
   {

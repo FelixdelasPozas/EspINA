@@ -25,6 +25,7 @@
 #include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/SupportedFormats.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -244,4 +245,52 @@ TemporalStorageSPtr CoreFactory::defaultStorage() const
   }
 
   return m_defaultStorage;
+}
+
+//-----------------------------------------------------------------------------
+void CoreFactory::registerAnalysisReader(AnalysisReaderSPtr reader)
+{
+  auto extensions = reader->supportedFileExtensions();
+
+  for(auto description : extensions.keys())
+  {
+    for(auto fileExtension : extensions[description])
+    {
+      m_readerExtensions[fileExtension] << reader;
+    }
+  }
+
+  m_readers << reader;
+}
+
+//-----------------------------------------------------------------------------
+const AnalysisReaderSList CoreFactory::readers(const QFileInfo& file) const
+{
+  return m_readerExtensions[file.suffix()];
+}
+
+//-----------------------------------------------------------------------------
+Core::Utils::SupportedFormats CoreFactory::supportedFileExtensions()
+{
+  SupportedFormats extensions;
+
+  QStringList supportedExtensions;
+
+  for(auto extension : m_readerExtensions.keys())
+  {
+    supportedExtensions << extension;
+  }
+
+  extensions.addFormat(QObject::tr("All Supported Files"), supportedExtensions);
+
+  for(auto loader : m_readers)
+  {
+    auto loaderExtensions = loader->supportedFileExtensions();
+    for (auto it = loaderExtensions.begin(); it != loaderExtensions.end(); ++it)
+    {
+      extensions.addFormat(it.key(), it.value());
+    }
+  }
+
+  return extensions;
 }

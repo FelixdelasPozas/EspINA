@@ -28,7 +28,7 @@
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-CountingFrameCreator::CountingFrameCreator(Data data, SchedulerSPtr scheduler, CoreFactory *factory)
+CountingFrameCreator::CountingFrameCreator(Data data, SchedulerSPtr scheduler, Core::SegmentationExtensionFactorySPtr factory)
 : Task     {scheduler}
 , m_cf     {nullptr}
 , m_factory{factory}

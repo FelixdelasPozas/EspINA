@@ -26,7 +26,6 @@
 // ESPINA
 #include "Model/SegmentationAdapter.h"
 
-#include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
 
@@ -50,6 +49,10 @@ namespace ESPINA
   class ModelFactory;
   using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
 
+  /** \class ModelFactory
+   * \brief Factory for objects in the model adapter.
+   *
+   */
   class EspinaGUI_EXPORT ModelFactory
   {
   public:
@@ -232,11 +235,8 @@ namespace ESPINA
     template<typename Factory, typename ... Args>
     friend Core::SegmentationExtensionFactorySPtr createSegmentationExtensionFactory(ModelFactorySPtr factory, Args ... args);
 
-    CoreFactorySPtr m_factory;
-    SchedulerSPtr   m_scheduler;
-
-    AnalysisReaderSList                m_readers;
-    QMap<QString, AnalysisReaderSList> m_readerExtensions;
+    CoreFactorySPtr m_factory;   /** core factory.   */
+    SchedulerSPtr   m_scheduler; /** task scheduler. */
   };
 
   /** \brief Creation of StackExtensionFactory objects.

@@ -28,8 +28,8 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 
 //--------------------------------------------------------------------
-MorphologicalInformationFactory::MorphologicalInformationFactory(CoreFactory* factory)
-: SegmentationExtensionFactory{factory}
+MorphologicalInformationFactory::MorphologicalInformationFactory()
+: SegmentationExtensionFactory{nullptr}
 {
 }
 
