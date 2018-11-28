@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  */
 
 //ESPINA
@@ -217,7 +217,7 @@ void StackSLIC::onComputeSLIC(unsigned char parameter_m_s, unsigned char paramet
 
   connect(task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
   connect(task.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
-  connect(this, SIGNAL(onAbortSLIC()), &task->watcher, SLOT(cancel()));
+  connect(this, SLOT(onAbortSLIC()), &task->watcher, SLOT(cancel()));
 
   Task::submit(task);
 }
@@ -956,7 +956,7 @@ void StackSLIC::SLICComputeTask::findCandidateRegion(itkVolumeType::IndexType &c
 bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension)
 {
   //QFutureSynchronizer<void> synchronizer;
-  QList<IndexType> centers;
+  /*QList<IndexType> centers;
 
   for(unsigned int z=parameter_m_s/2+min_z;z<max_z;z+=parameter_m_s/spacing[2])
   {
@@ -969,13 +969,7 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
 
         //Skip if out of the region of interest or image bounds
         if(!isInBounds(x, y, z)) continue;
-
-        /*if(synchronizer.futures().size() > 10) {
-          synchronizer.waitForFinished();
-          synchronizer.clearFutures();
-        }*/
         centers.append((IndexType) {x,y,z});
-        //synchronizer.addFuture(QtConcurrent::run(this, &StackSLIC::SLICComputeTask::createSupervoxel, (IndexType) {x,y,z}, &sliceRegion, image, &labels));
       }
     }
   }
@@ -983,10 +977,94 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
   if(!canExecute()) return false;
   auto func = std::bind(&StackSLIC::SLICComputeTask::createSupervoxel, this, std::placeholders::_1, edgesExtension, image, &labels);
   watcher.setFuture(QtConcurrent::map(centers, func));
-  watcher.waitForFinished();
+  watcher.waitForFinished();*/
 
   //synchronizer.waitForFinished();
   //synchronizer.clearFutures();
+
+
+  using IndexType = itkVolumeType::IndexType;
+  using GradientType = itk::Image<float,3>;
+  using ImageRegion = itk::ImageRegion<3>;
+  using GradientFilterType = itk::GradientMagnitudeImageFilter<itkVolumeType, GradientType>;
+  using GradientRegionIterator = itk::ImageRegionConstIteratorWithIndex<GradientType>;
+
+  ImageRegion region;
+  IndexType cur_index;
+  int region_position[3];
+  int region_size[3];
+
+  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
+
+  for(unsigned int z=parameter_m_s/2+min_z;z<max_z;z+=parameter_m_s/spacing[2])
+  {
+    if(!canExecute()) return false;
+
+    auto sliceRegion = edgesExtension->sliceRegion(z);
+
+    for(unsigned int y=parameter_m_s/2+min_y;y<max_y;y+=parameter_m_s/spacing[1])
+    {
+      for(unsigned int x=parameter_m_s/2+min_x;x<max_x;x+=parameter_m_s/spacing[0])
+      {
+        if(!canExecute()) return false;
+
+        //Skip if out of the region of interest or image bounds
+        if(!isInBounds(x, y, z)) continue;
+
+        //Check if inside bounds using ChannelEdges, else skip this label
+        cur_index[0] = x;
+        cur_index[1] = y;
+        cur_index[2] = z;
+
+        //Don't create supervoxel centers outside of the calculated edges
+        if(!sliceRegion.IsInside(cur_index)) continue;
+
+        //Check lowest gradient voxel in a 3x3x3 area around voxel
+        region_position[0] = x-2; region_position[1] = y-2; region_position[2] = z-2;
+        region_size[0] = 5; region_size[1] = 5; region_size[2] = 5;
+        fitRegionToBounds(region_position, region_size);
+        //qDebug() << QString("Region: %1 %2 %3 / %4 %5 %6").arg(region_position[0]).arg(region_position[1])
+        //                    .arg(region_position[2]).arg(region_size[0]).arg(region_size[1]).arg(region_size[2]);
+        region.SetIndex((IndexType) {region_position[0], region_position[1], region_position[2]});
+        region.SetSize(0, region_size[0]);
+        region.SetSize(1, region_size[1]);
+        region.SetSize(2, region_size[2]);
+
+        //Calculate gradient in area
+        image->SetRequestedRegion(region);
+        gradientFilter->SetNumberOfThreads(1);
+        gradientFilter->SetInput(image);
+        gradientFilter->GetOutput()->SetRequestedRegion(region);
+        gradientFilter->Update();
+
+        //Loop gradient image and find lowest gradient
+        region_position[0] = x-1; region_position[1] = y-1; region_position[2] = z-1;
+        region_size[0] = 3; region_size[1] = 3; region_size[2] = 3;
+        fitRegionToBounds(region_position, region_size);
+        region.SetIndex((IndexType) {region_position[0], region_position[1], region_position[2]});
+        region.SetSize(0, region_size[0]);
+        region.SetSize(1, region_size[1]);
+        region.SetSize(2, region_size[2]);
+        GradientRegionIterator it(gradientFilter->GetOutput(), region);
+        it.GoToBegin();
+        float lowestGradient = std::numeric_limits<float>::max();
+        while(!it.IsAtEnd())
+        {
+          //qDebug() << QString("Center/Checking: %2 %3 %4 -> %5 %6 %7").arg(x).arg(y).arg(z).arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]);
+          auto value = it.Get();
+          if(value < lowestGradient) {
+            cur_index = it.GetIndex();
+            lowestGradient = value;
+            //qDebug() << QString("New value: %1 | Center/New: %2 %3 %4 -> %5 %6 %7")
+            //                   .arg(value).arg(x).arg(y).arg(z).arg(cur_index[0]).arg(cur_index[1]).arg(cur_index[2]);
+          }
+          ++it;
+        }
+
+        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, (unsigned int) labels.size(), cur_index, image->GetPixel(cur_index), 1 });
+      }
+    }
+  }
   return true;
 }
 
@@ -1128,10 +1206,9 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
                 label.m_c = color_distance;
             //no break
             case SLICO:
+            case SLIC:
               if(label.m_s < spatial_distance)
                 label.m_s = spatial_distance;
-            //no break
-            case SLIC:
               break;
           }
         }
@@ -1151,9 +1228,8 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
       label.m_c = std::sqrt(label.m_c);
     //no break
     case SLICO:
-      label.m_s = std::sqrt(label.m_s);
-    //no break
     case SLIC:
+      label.m_s = std::sqrt(label.m_s);
       break;
   }
 
@@ -1226,29 +1302,40 @@ void StackSLIC::SLICComputeTask::createSupervoxel(IndexType cur_index, ChannelEd
 
 //-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::ensureConnectivity() {
-  watcher.setFuture(QtConcurrent::map(*label_list, std::bind(&SLICComputeTask::labelConnectivity, this, std::placeholders::_1)));
-  watcher.waitForFinished();
+  //watcher.setFuture(QtConcurrent::map(*label_list, std::bind(&SLICComputeTask::labelConnectivity, this, std::placeholders::_1)));
+  //watcher.waitForFinished();
+  int size = (*label_list).size();
+  for(int label_index=0;label_index<size;label_index++){
+    labelConnectivity((*label_list)[label_index]);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
 
   const int slice_area = max_x * max_y;
-  int range_half = label.m_s;
-  int range = range_half*2;
-  int rangeTimesTwo = range*range;
-  int size = rangeTimesTwo*range;
+  int distance = label.m_s;
+  int range = distance*2+1;
   IndexType center = label.center;
   IndexType current = center;
   IndexType contiguous[6];
-  long long int offsets[3] = {center[0] - range, center[1] - range, center[2] - range};
+  long long int region[3] = {center[0] - distance, center[1] - distance, center[2] - distance};
+  long long int length[3] = {range, range, range};
+  fitRegionToBounds(region, length);
   long long int offsetImage, offsetRegion;
+  const int size = length[0] * length[1] * length[2];
   bool visited[size] = { false };
   std::queue<IndexType> search_queue;
 
   search_queue.push(current);
-  offsetRegion = (current[0]-offsets[0]) + (current[1]-offsets[1])*range + (current[2]-offsets[2])*rangeTimesTwo;
+  offsetRegion = current[0] - region[0] + (current[1]-region[1]) * length[0] + (current[2] - region[2])*length[0]*length[1];
   offsetImage = current[0] + current[1]*max_x + current[2]*slice_area;
+  if(voxels[offsetImage] != label.index) {
+    //qDebug() << QString("Label %1 - Center not inside supervoxel!").arg(label.index);
+    return;
+  }
+  if(offsetRegion > size)
+    qDebug() << QString("Error calculating offset!\n");
   visited[offsetRegion] = true;
 
   while(!search_queue.empty()) {
@@ -1265,57 +1352,76 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
     contiguous[5] = {current[0], current[1], current[2]-1};
     for(IndexType next : contiguous) {
       if(isInBounds(next[0], next[1], next[2])) {
-        offsetRegion = (next[0]-offsets[0]) + (next[1]-offsets[1])*range + (next[2]-offsets[2])*rangeTimesTwo;
+        //Skip voxels outside the valid subregion
+        if(next[0] < region[0] || next[0] > region[0] + length[0] ||
+            next[1] < region[1] || next[1] > region[1] + length[1] ||
+            next[2] < region[2] || next[2] > region[2] + length[2])
+          continue;
+        offsetRegion = current[0] - region[0] + (current[1]-region[1]) * length[0] + (current[2] - region[2])*length[0]*length[1];
+        if(offsetRegion > size)
+            qDebug() << QString("Error calculating offset!\n");
         if(!visited[offsetRegion]) {
           offsetImage = next[0] + next[1]*max_x + next[2]*slice_area;
           if(voxels[offsetImage] == label.index) {
-            visited[offsetRegion] = true;
             search_queue.push(next);
           }
+          visited[offsetRegion] = true;
         }
       }
     }
 
   }
 
-  //Find unconnected voxels in results
-  /*offsetImage = offsets[0] + offsets[1]*max_x + offsets[2]*max_y*max_x;
-  if(voxels[offsetImage] == label.index && !visited[0])
-    qDebug() << QString("Unconnected voxel: %1 !!").arg(0);
-  offsetImage++;*/
-  /*for(int i = 0, mod = 0; i < size; i++) {
+  std::vector<unsigned int> adjacent_labels;
+  int unconnected_count = 0;
+  for(int i = 0, mod = 0; i < size; i++) {
+    if(visited[i])
+      continue;
+    int z = i / (length[0] * length[1]);
+    int r = i - z*length[0]*length[1];
+    int y = r / length[0];
+    int x = r - y * length[0];
+    offsetImage = x + y*max_x + z*slice_area;
+    if(voxels[offsetImage] == label.index) {
+      int adjacentOffset = offsetImage+1;
+      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+        adjacent_labels.push_back(voxels[adjacentOffset]);
+      adjacentOffset = offsetImage-1;
+      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+        adjacent_labels.push_back(voxels[adjacentOffset]);
+      adjacentOffset = offsetImage+max_x;
+      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+        adjacent_labels.push_back(voxels[adjacentOffset]);
+      adjacentOffset = offsetImage-max_x;
+      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+        adjacent_labels.push_back(voxels[adjacentOffset]);
+      adjacentOffset = offsetImage+max_y;
+      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+        adjacent_labels.push_back(voxels[adjacentOffset]);
+      adjacentOffset = offsetImage-max_y;
+      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+        adjacent_labels.push_back(voxels[adjacentOffset]);
 
-    if(voxels[offsetImage] == label.index && !visited[i])
-      qDebug() << QString("Unconnected voxel: %1 !!").arg(i);*/
-
-    /*if(i%rangeTimesTwo == 0)
-      offsetImage += max_x*max_y-(range-1)*max_y-range;
-    else if(i%range == 0)
-      offsetImage += max_x-range;
-    else
-      offsetImage++;*/
-    /*if((mod = i%range) == 0)
-      offsetImage = offsets[0] + offsets[1]*max_x + offsets[2]*max_y*max_x;
-    else
-      offsetImage++;
-  }*/
-
-
-  /*int region_position[3] = {offsets[0], offsets[1], offsets[2]}, region_size[3] = {range, range, range};
-  fitRegionToBounds(region_position, region_size);
-  int x,y,z;
-  for (z = region_position[2]; z < region_size[2]; z++)
-  {
-    for (y = region_position[1]; y < region_size[1]; y++)
-    {
-      offsetImage = region_position[0] + (y * max_x) + (z * slice_area);
-      offsetRegion = (x-offsets[0]) + (y-offsets[2])*range + (z-offsets[2])*rangeTimesTwo;
-      for (x = region_position[0]; x < region_size[0]; x++, offsetImage++, offsetRegion++)
-      {
-        if(voxels[offsetImage] == label.index && !visited[offsetRegion])
-              qDebug() << QString("Unconnected voxel: %1 !!").arg(offsetRegion);
+      std::sort(adjacent_labels.begin(), adjacent_labels.end());
+      int max_occurrences = 0;
+      int occurrences = 1;
+      unsigned int l = label.index;
+      for(int j = 0; j < adjacent_labels.size()-1; j++) {
+        if(adjacent_labels[j] == adjacent_labels[j+1]) {
+          occurrences ++;
+          if(occurrences > max_occurrences) {
+            max_occurrences = occurrences;
+            l = adjacent_labels[j];
+          }
+        } else
+          occurrences = 1;
       }
+      //TODO: Add critical section for multithreaded writes to voxels[]
+      voxels[offsetImage] = l;
+      unconnected_count++;
     }
-  }*/
-  //TODO: Assign voxels to nearest connected center
+  }
+
+  if(unconnected_count>0)
+    qDebug() << QString("Label %1 - %2 unconnected voxels").arg(label.index).arg(unconnected_count);
 }
