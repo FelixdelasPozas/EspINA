@@ -217,6 +217,7 @@ namespace ESPINA
         double tolerance;
 
         int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
+        unsigned long int n_voxels;
 
         //Used to avoid dividing when switching from grayscale space (0-255)
         //to CIELab intensity (0-100)

@@ -315,7 +315,7 @@ void StackSLIC::SLICComputeTask::run()
   //min_x/y/z = min(ROI_min_x/y/z, min_x/y/z)
 
   //Calculate total number of voxels
-  const unsigned long int n_voxels = max_x*max_y*max_z;
+  n_voxels = max_x*max_y*max_z;
 
   qDebug() << QString("Size: %1 %2 %3").arg(max_x).arg(max_y).arg(max_z);
   qDebug() << QString("Spatial: %1 - Color: %2 - Iterations: %3 - Tolerance: %4").arg(parameter_m_s).arg(parameter_m_c).arg(max_iterations).arg(tolerance);
@@ -1384,22 +1384,22 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
     offsetImage = x + y*max_x + z*slice_area;
     if(voxels[offsetImage] == label.index) {
       int adjacentOffset = offsetImage+1;
-      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
         adjacent_labels.push_back(voxels[adjacentOffset]);
       adjacentOffset = offsetImage-1;
-      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
         adjacent_labels.push_back(voxels[adjacentOffset]);
       adjacentOffset = offsetImage+max_x;
-      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
         adjacent_labels.push_back(voxels[adjacentOffset]);
       adjacentOffset = offsetImage-max_x;
-      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
         adjacent_labels.push_back(voxels[adjacentOffset]);
       adjacentOffset = offsetImage+max_y;
-      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
         adjacent_labels.push_back(voxels[adjacentOffset]);
       adjacentOffset = offsetImage-max_y;
-      if(adjacentOffset >= 0 && adjacentOffset < (*label_list).size() && voxels[adjacentOffset] != label.index)
+      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
         adjacent_labels.push_back(voxels[adjacentOffset]);
 
       std::sort(adjacent_labels.begin(), adjacent_labels.end());
