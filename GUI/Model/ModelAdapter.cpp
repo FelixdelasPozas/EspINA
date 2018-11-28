@@ -2084,7 +2084,7 @@ void ModelAdapter::rebuildLocator()
 bool ModelAdapter::changeSegmentationStack(SegmentationAdapterPtr segmentation, ChannelAdapterPtr stack)
 {
   QList<PersistentSPtr> stacks;
-  QList<const DirectedGraph::Edge> toChange;
+  DirectedGraph::Edges toChange;
 
   auto adaptedStacks = channels();
   if(adaptedStacks.isEmpty() || adaptedStacks.size() == 1) return false;

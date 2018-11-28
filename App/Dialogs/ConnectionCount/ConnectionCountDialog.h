@@ -66,6 +66,17 @@ namespace ESPINA
        */
       void onItemDoubleClicked(QListWidgetItem *item);
 
+      /** \brief Selects the clicked segmentation on the application when the user clicks on an item.
+       * \param[in] item activated item.
+       *
+       */
+      void onItemClicked(QListWidgetItem *item);
+
+      /** \brief Opens the 'change connection criteria' dialog and processes the result.
+       *
+       */
+      void onChangeButtonPressed();
+
       /** \brief Connects to the newly added segmentation if its a dendrite or axon and updates the list.
        * \param[in] segmentations Segmentations added to the model.
        *
@@ -98,6 +109,25 @@ namespace ESPINA
        *
        */
       void updateInvalidVisibility();
+
+      /** \brief Loads the dialog configuration.
+       *
+       */
+      void restoreSettings();
+
+      /** \brief Saves the dialog configuration.
+       *
+       */
+      void saveSettings();
+
+      /** \brief Helper method to update the criteria label.
+       *
+       */
+      void updateCriteriaLabel();
+
+    private:
+      QStringList m_criteria; /** connection criteria is the list of categories it connects. */
+
   };
 
 } // namespace ESPINA

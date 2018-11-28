@@ -26,6 +26,7 @@
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/View/ViewState.h>
 #include <Support/Settings/Settings.h>
+#include "ConnectionCriteriaDialog.h"
 
 // Qt
 #include <QListWidgetItem>
@@ -35,6 +36,7 @@ using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
 
 const QString SETTINGS_GROUP = "Synapse Connection Count Dialog";
+const QString CRITERIA_KEY   = "Connection Criteria";
 
 //--------------------------------------------------------------------
 ConnectionCountDialog::ConnectionCountDialog(Support::Context& context, QWidget* parent, Qt::WindowFlags flags)
@@ -43,27 +45,19 @@ ConnectionCountDialog::ConnectionCountDialog(Support::Context& context, QWidget*
 {
   setupUi(this);
 
+  restoreSettings();
+
+  updateCriteriaLabel();
+
   updateList();
 
   connectSignals();
-
-  ESPINA_SETTINGS(settings);
-
-  settings.beginGroup(SETTINGS_GROUP);
-  resize(settings.value("size", QSize (800, 800)).toSize());
-  move  (settings.value("pos",  QPoint(200, 200)).toPoint());
-  settings.endGroup();
 }
 
 //--------------------------------------------------------------------
 void ConnectionCountDialog::closeEvent(QCloseEvent *event)
 {
-  ESPINA_SETTINGS(settings);
-
-  settings.beginGroup(SETTINGS_GROUP);
-  settings.setValue("size", size());
-  settings.setValue("pos", pos());
-  settings.endGroup();
+  saveSettings();
 
   QDialog::closeEvent(event);
 }
@@ -77,11 +71,27 @@ void ConnectionCountDialog::onItemDoubleClicked(QListWidgetItem *item)
 }
 
 //--------------------------------------------------------------------
+void ConnectionCountDialog::onItemClicked(QListWidgetItem *item)
+{
+  auto segmentation = reinterpret_cast<SegmentationAdapter *>(item->data(Qt::UserRole).toULongLong());
+
+  if(segmentation)
+  {
+    SegmentationAdapterList list;
+    list << segmentation;
+
+    getSelection()->set(list);
+    getViewState().refresh();
+  }
+}
+
+//--------------------------------------------------------------------
 void ConnectionCountDialog::connectSignals()
 {
   for(auto list: {m_fullList, m_halfList, m_noneList, m_invalidList})
   {
     connect(list, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(onItemDoubleClicked(QListWidgetItem *)));
+    connect(list, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(onItemClicked(QListWidgetItem *)));
   }
 
   connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)), this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
@@ -95,6 +105,8 @@ void ConnectionCountDialog::connectSignals()
       connect(segmentation.get(), SIGNAL(outputModified()), this, SLOT(updateList()));
     }
   }
+
+  connect(m_changeButton, SIGNAL(pressed()), this, SLOT(onChangeButtonPressed()));
 }
 
 //--------------------------------------------------------------------
@@ -119,10 +131,55 @@ void ConnectionCountDialog::addSegmentationsToLists()
 {
   QList<QListWidgetItem *> noneList, halfList, fullList, invalidList;
 
+  /** helper method to create a text string from the connections. */
+  auto connectionsToText = [](const ConnectionList &connections)
+  {
+    QString result;
+
+    for(auto connection: connections)
+    {
+      result += tr("\nConnected to: %1").arg(connection.item2->data().toString());
+    }
+
+    return result;
+  };
+
+  /** helper method that returns true if the given connections matches the criteria. */
+  auto isValid = [](const ConnectionList &connections, const QStringList &criteria)
+  {
+    auto current = criteria;
+    for(auto connection: connections)
+    {
+      if(current.isEmpty()) return false;
+
+      auto category = connection.item2->category()->classificationName();
+      if(current.contains(category))
+      {
+        current.removeOne(category);
+      }
+      else
+      {
+        for(auto criteriaCategory: current)
+        {
+          if(category.startsWith(criteriaCategory, Qt::CaseInsensitive))
+          {
+            current.removeOne(criteriaCategory);
+            break;
+          }
+        }
+      }
+    }
+
+    if(current.isEmpty()) return true;
+    return false;
+  };
+
   for(auto segmentation: getModel()->segmentations())
   {
     if(segmentation->category()->classificationName().startsWith("Synapse", Qt::CaseInsensitive))
     {
+      auto criteria = m_criteria;
+
       auto name = segmentation->data().toString();
       QPixmap pixmap(32,32);
       pixmap.fill(segmentation->category()->color());
@@ -130,35 +187,41 @@ void ConnectionCountDialog::addSegmentationsToLists()
       item->setData(Qt::UserRole, reinterpret_cast<unsigned long long>(segmentation.get()));
 
       auto connections = getModel()->connections(segmentation);
-      switch(connections.count())
+
+      if(connections.size() == 0 || m_criteria.isEmpty())
       {
-        case 0:
-          item->setToolTip(tr("%1 is unconnected").arg(name));
-          noneList << item;
-          break;
-        case 1:
-          item->setToolTip(tr("%1 is half connected.\nConnected to: %2").arg(name).arg(connections.first().item2->data().toString()));
+        item->setToolTip(tr("%1 is unconnected.").arg(name));
+        noneList << item;
+      }
+      else
+      {
+        if(connections.size() < m_criteria.size())
+        {
+          auto text = tr("%1 is incomplete.").arg(name);
+          text += connectionsToText(connections);
+          item->setToolTip(text);
           halfList << item;
-          break;
-        case 2:
-          item->setToolTip(tr("%1 is fully connected.\nConnected to: %2\nConnected to: %3").arg(name).arg(connections.at(0).item2->data().toString()).arg(connections.at(1).item2->data().toString()));
-          fullList << item;
-          break;
-        default:
-          // more than 2 connections? show the error.
+        }
+        else
+        {
+          if(connections.size() == m_criteria.size() && isValid(connections, m_criteria))
           {
+            auto text = tr("%1 is valid.").arg(name);
+            text += connectionsToText(connections);
+            item->setToolTip(text);
+            fullList << item;
+          }
+          else
+          {
+            auto text = tr("%1 is invalid.").arg(name);
+            text += connectionsToText(connections);
             item->setIcon(QIcon(":/espina/warning.svg"));
             item->setBackgroundColor(Qt::red);
             item->setTextColor(Qt::white);
-            auto text = tr("%1 has more than two connections!").arg(name);
-            for(auto connection: connections)
-            {
-              text += tr("\nConnected to: %1").arg(connection.item2->data().toString());
-            }
             item->setToolTip(text);
             invalidList << item;
           }
-          break;
+        }
       }
     }
   }
@@ -168,10 +231,21 @@ void ConnectionCountDialog::addSegmentationsToLists()
   qSort(fullList.begin(), fullList.end(), Core::Utils::lessThan<QListWidgetItem *>);
   qSort(invalidList.begin(), invalidList.end(), Core::Utils::lessThan<QListWidgetItem *>);
 
+  for(auto list: {m_noneList, m_halfList, m_fullList, m_invalidList})
+  {
+    list->blockSignals(true);
+  }
+
   for(int i = 0; i < noneList.size(); ++i) m_noneList->addItem(noneList.at(i));
   for(int i = 0; i < halfList.size(); ++i) m_halfList->addItem(halfList.at(i));
   for(int i = 0; i < fullList.size(); ++i) m_fullList->addItem(fullList.at(i));
   for(int i = 0; i < invalidList.size(); ++i) m_invalidList->addItem(invalidList.at(i));
+
+  for(auto list: {m_noneList, m_halfList, m_fullList, m_invalidList})
+  {
+    list->blockSignals(false);
+    list->repaint();
+  }
 }
 
 //--------------------------------------------------------------------
@@ -212,4 +286,53 @@ void ConnectionCountDialog::updateInvalidVisibility()
   m_invalidList->setVisible(isVisible);
   m_invalidLabel->setVisible(isVisible);
   m_invalidTextLabel->setVisible(isVisible);
+}
+
+//--------------------------------------------------------------------
+void ConnectionCountDialog::onChangeButtonPressed()
+{
+  ConnectionCriteriaDialog dialog{getModel(), m_criteria, this};
+
+  if((dialog.exec() == QDialog::Accepted) && (m_criteria != dialog.criteria()))
+  {
+    m_criteria = dialog.criteria();
+
+    updateCriteriaLabel();
+
+    updateList();
+  }
+}
+
+//--------------------------------------------------------------------
+void ConnectionCountDialog::restoreSettings()
+{
+  ESPINA_SETTINGS(settings);
+
+  settings.beginGroup(SETTINGS_GROUP);
+  m_criteria = settings.value(CRITERIA_KEY, QStringList()).toStringList();
+  resize(settings.value("size", QSize (800, 800)).toSize());
+  move  (settings.value("pos",  QPoint(200, 200)).toPoint());
+  settings.endGroup();
+}
+
+//--------------------------------------------------------------------
+void ConnectionCountDialog::saveSettings()
+{
+  ESPINA_SETTINGS(settings);
+
+  settings.beginGroup(SETTINGS_GROUP);
+  settings.setValue("size", size());
+  settings.setValue("pos", pos());
+  settings.setValue(CRITERIA_KEY, m_criteria);
+  settings.endGroup();
+  settings.sync();
+}
+
+//--------------------------------------------------------------------
+void ConnectionCountDialog::updateCriteriaLabel()
+{
+  auto text = ConnectionCriteriaDialog::criteriaToText(m_criteria, getModel()->classification());
+  text.replace("<br>", ", ");
+
+  m_criteriaLabel->setText(text);
 }
