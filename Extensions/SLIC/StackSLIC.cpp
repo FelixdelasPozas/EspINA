@@ -1376,6 +1376,7 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
               std::swap(search_queue, empty);
               centerFound = true;
               visited[offsetRegion] = true;
+              search_queue.push(next);
               break;
             }
             search_queue.push(next);
