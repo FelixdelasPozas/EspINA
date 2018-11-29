@@ -45,6 +45,7 @@
 #include <memory>
 #include <functional>
 #include <queue>
+#include <utility>
 
 // Qt
 #include <QDataStream>
@@ -266,6 +267,7 @@ StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr sche
 , label_list(nullptr)
 , bounds(stack->bounds())
 , scan_size(0)
+, n_voxels(0)
 {
 
   QString description = "Computing ";
@@ -1330,10 +1332,12 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
   search_queue.push(current);
   offsetRegion = current[0] - region[0] + (current[1]-region[1]) * length[0] + (current[2] - region[2])*length[0]*length[1];
   offsetImage = current[0] + current[1]*max_x + current[2]*slice_area;
-  if(voxels[offsetImage] != label.index) {
+  //Edge case where a supervoxel is too irregular and the center doesn't land inside its volume
+  bool centerFound = voxels[offsetImage] == label.index;
+  //if(!centerFound) {
     //qDebug() << QString("Label %1 - Center not inside supervoxel!").arg(label.index);
-    return;
-  }
+  //}
+
   if(offsetRegion > size)
     qDebug() << QString("Error calculating offset!\n");
   visited[offsetRegion] = true;
@@ -1362,15 +1366,30 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
             qDebug() << QString("Error calculating offset!\n");
         if(!visited[offsetRegion]) {
           offsetImage = next[0] + next[1]*max_x + next[2]*slice_area;
-          if(voxels[offsetImage] == label.index) {
+          //If this is an irregular supervoxel (center isn't inside) do a breadth first
+          //search for the closest voxel belonging to the supervoxel
+          if(!centerFound) {
+            //If a voxel with this label is found, restart the search from that voxel
+            //keeping the visited list to avoid double-checking previous voxels
+            if(voxels[offsetImage] == label.index) {
+              std::queue<IndexType> empty;
+              std::swap(search_queue, empty);
+              centerFound = true;
+              visited[offsetRegion] = true;
+              break;
+            }
+            search_queue.push(next);
+          } else if(voxels[offsetImage] == label.index) {
             search_queue.push(next);
           }
           visited[offsetRegion] = true;
         }
       }
     }
-
   }
+
+  //TODO: If centerFound is false at this point the supervoxel has no voxels,
+  //decide what to do. Possibly remove the label entirely.
 
   std::vector<unsigned int> adjacent_labels;
   int unconnected_count = 0;
