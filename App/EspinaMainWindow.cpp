@@ -30,8 +30,6 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
-#include <GUI/ColorEngines/UserColorEngine.h>
-#include <GUI/ColorEngines/InformationColorEngine.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
@@ -57,6 +55,7 @@
 #include <App/ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/StackRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h>
 #include <App/ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h>
 #include <App/ToolGroups/Visualize/GenericTogglableTool.h>
 #include <App/ToolGroups/Visualize/FullscreenTool.h>
@@ -785,6 +784,7 @@ void EspinaMainWindow::initColorEngines()
   createColorEngine(categoryColorEngine, "category");
 
   registerColorEngine(std::make_shared<InformationColorEngineSwitch>(m_context));
+  registerColorEngine(std::make_shared<ConnectionsColorEngineSwitch>(m_context));
 }
 
 

@@ -34,7 +34,7 @@ ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QString &icon
 
 //------------------------------------------------------------------------
 ColorEngineSwitch::ColorEngineSwitch(ColorEngineSPtr engine, const QIcon &icon, Context &context)
-: ProgressTool(engine->id(), icon, tr("Color by %1").arg(engine->tooltip()), context)
+: ProgressTool(engine->id(), icon, engine->tooltip(), context)
 , m_engine(engine)
 {
   setOrder("0", "1-ColorBy");

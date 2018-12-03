@@ -101,6 +101,7 @@ set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
   ColorEngines/CategoryColorEngine.cpp
+  ColorEngines/ConnectionsColorEngine.cpp
   ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp

@@ -93,6 +93,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h
   ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h
   ToolGroups/ToolGroup.h
+  ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/FullscreenTool.h
   ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.h
@@ -245,6 +246,7 @@ set (ESPINA_SOURCES
   ToolGroups/Session/LogTool.cpp
   ToolGroups/Session/UndoRedoTools.cpp
   ToolGroups/ToolGroup.cpp
+  ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
   ToolGroups/Visualize/FullscreenTool.cpp
   ToolGroups/Visualize/GenericTogglableTool.cpp

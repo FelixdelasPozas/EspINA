@@ -150,5 +150,6 @@
     <file>skeletonColors.svg</file>
     <file>log.svg</file>
     <file>clipboard_copy.svg</file>
+    <file>connectionGradient.svg</file>
   </qresource>
 </RCC>
