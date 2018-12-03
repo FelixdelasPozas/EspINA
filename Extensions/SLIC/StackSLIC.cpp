@@ -1357,13 +1357,13 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
     for(IndexType next : contiguous) {
       if(isInBounds(next[0], next[1], next[2])) {
         //Skip voxels outside the valid subregion
-        if(next[0] < region[0] || next[0] > region[0] + length[0] ||
-            next[1] < region[1] || next[1] > region[1] + length[1] ||
-            next[2] < region[2] || next[2] > region[2] + length[2])
+        if(next[0] < region[0] || next[0] >= region[0] + length[0] ||
+            next[1] < region[1] || next[1] >= region[1] + length[1] ||
+            next[2] < region[2] || next[2] >= region[2] + length[2])
           continue;
-        offsetRegion = current[0] - region[0] + (current[1]-region[1]) * length[0] + (current[2] - region[2])*length[0]*length[1];
+        offsetRegion = next[0] - region[0] + (next[1]-region[1]) * length[0] + (next[2] - region[2])*length[0]*length[1];
         if(offsetRegion > size)
-            qDebug() << QString("Error calculating offset!\n");
+            qDebug() << QString("Error calculating offset!");
         if(!visited[offsetRegion]) {
           offsetImage = next[0] + next[1]*max_x + next[2]*slice_area;
           //If this is an irregular supervoxel (center isn't inside) do a breadth first
@@ -1391,41 +1391,59 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
 
   //TODO: If centerFound is false at this point the supervoxel has no voxels,
   //decide what to do. Possibly remove the label entirely.
+  if(!centerFound) {
+    qDebug() << QString("Label %1 - Center not found!").arg(label.index);
+    return;
+  }
 
+  int region_xy_len = length[0] * length[1];
   std::vector<unsigned int> adjacent_labels;
   int unconnected_count = 0;
-  for(int i = 0, mod = 0; i < size; i++) {
+  for(int i = 0; i < size; i++) {
     if(visited[i])
       continue;
-    int z = i / (length[0] * length[1]);
-    int r = i - z*length[0]*length[1];
+    int z = i / (region_xy_len);
+    int r = i - z*region_xy_len;
     int y = r / length[0];
     int x = r - y * length[0];
-    offsetImage = x + y*max_x + z*slice_area;
+    offsetImage = (x+region[0]) + (y+region[1])*max_x + (z+region[2])*slice_area;
     if(voxels[offsetImage] == label.index) {
-      int adjacentOffset = offsetImage+1;
-      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
-        adjacent_labels.push_back(voxels[adjacentOffset]);
-      adjacentOffset = offsetImage-1;
-      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
-        adjacent_labels.push_back(voxels[adjacentOffset]);
-      adjacentOffset = offsetImage+max_x;
-      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
-        adjacent_labels.push_back(voxels[adjacentOffset]);
-      adjacentOffset = offsetImage-max_x;
-      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
-        adjacent_labels.push_back(voxels[adjacentOffset]);
-      adjacentOffset = offsetImage+max_y;
-      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
-        adjacent_labels.push_back(voxels[adjacentOffset]);
-      adjacentOffset = offsetImage-max_y;
-      if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
-        adjacent_labels.push_back(voxels[adjacentOffset]);
+      int adjacentOffset;
+      if (x < max_x-1) {
+        adjacentOffset = offsetImage + 1;
+        if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
+          adjacent_labels.push_back(voxels[adjacentOffset]);
+      }
+      if (x > 0) {
+        adjacentOffset = offsetImage - 1;
+        if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
+          adjacent_labels.push_back(voxels[adjacentOffset]);
+      }
+      if (y < max_y-1) {
+        adjacentOffset = offsetImage + max_x;
+        if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
+          adjacent_labels.push_back(voxels[adjacentOffset]);
+      }
+      if (y > 0) {
+        adjacentOffset = offsetImage - max_x;
+        if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
+          adjacent_labels.push_back(voxels[adjacentOffset]);
+      }
+      if (z < max_z-1) {
+        adjacentOffset = offsetImage + max_y;
+        if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
+          adjacent_labels.push_back(voxels[adjacentOffset]);
+      }
+      if (z > 0) {
+        adjacentOffset = offsetImage - max_y;
+        if(adjacentOffset >= 0 && adjacentOffset < n_voxels && voxels[adjacentOffset] != label.index)
+          adjacent_labels.push_back(voxels[adjacentOffset]);
+      }
 
       std::sort(adjacent_labels.begin(), adjacent_labels.end());
       int max_occurrences = 0;
       int occurrences = 1;
-      unsigned int l = label.index;
+      unsigned int l = adjacent_labels.size() == 1?adjacent_labels[0]:label.index;
       for(int j = 0; j < adjacent_labels.size()-1; j++) {
         if(adjacent_labels[j] == adjacent_labels[j+1]) {
           occurrences ++;
@@ -1437,6 +1455,8 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
           occurrences = 1;
       }
       //TODO: Add critical section for multithreaded writes to voxels[]
+      if(l==label.index)
+        qDebug() << QString("Label %1 - Can't find new supervoxel for: %2 %3 %4\n").arg(label.index).arg(x).arg(y).arg(z);
       voxels[offsetImage] = l;
       unconnected_count++;
     }
