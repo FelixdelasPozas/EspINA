@@ -153,8 +153,20 @@ namespace ESPINA
         /** \brief Returns the information key used for coloring.
          *
          */
-        const QString key()
+        const QString property() const
         { return m_key.value(); }
+
+        /** \brief Returns the extension of the key used for coloring.
+         *
+         */
+        const QString extension() const
+        { return m_key.extension(); }
+
+        /** \brief Returns the number of segmentations that do not have the selected property.
+         *
+         */
+        const unsigned long invalid() const
+        { return m_invalid; }
 
     private:
       virtual void run() override final;
@@ -166,6 +178,7 @@ namespace ESPINA
       ModelFactorySPtr                                   m_factory;       /** factory to create segmentation extensions.                  */
       QString                                            m_error;         /** empty if the task doesn't fail and error message otherwise. */
       bool                                               m_failed;        /** true if the coloring fails, false otherwise.                */
+      unsigned long                                      m_invalid;       /** number of segmentations that do not have the property.      */
   };
 }
 

@@ -61,6 +61,7 @@ UpdateColorEngineTask::UpdateColorEngineTask(const SegmentationExtension::Inform
 , m_factory      {factory}
 , m_error        {"No error"}
 , m_failed       {false}
+, m_invalid      {0}
 {
   setDescription(tr("Coloring by %1").arg(m_key.value()));
 }
@@ -73,45 +74,58 @@ void UpdateColorEngineTask::run()
 
   double i     = 0;
   double total = m_segmentations.size();
+  m_invalid = 0;
+
+  auto extensionType = m_factory->createSegmentationExtension(m_key.extension());
 
   for(auto segmentation : m_segmentations)
   {
     if (!canExecute() || m_failed) return;
 
-    try
+    auto category = segmentation->category()->classificationName();
+
+    if(extensionType->validCategory(category) && extensionType->validData(segmentation->output()))
     {
-      auto extension = retrieveOrCreateSegmentationExtension(segmentation, m_key.extension(), m_factory);
-
-      auto info = extension->information(m_key);
-
-      if (info.isValid() && info.canConvert<double>())
+      try
       {
-        auto value = info.toDouble();
-        if (i > 0)
+        auto extension = retrieveOrCreateSegmentationExtension(segmentation, m_key.extension(), m_factory);
+
+        auto info = extension->information(m_key);
+
+        if (info.isValid() && info.canConvert<double>())
         {
-          min = qMin(min, value);
-          max = qMax(max, value);
-        }
-        else
-        {
-          min = max = value;
+          auto value = info.toDouble();
+          if (i > 0)
+          {
+            min = qMin(min, value);
+            max = qMax(max, value);
+          }
+          else
+          {
+            min = max = value;
+          }
         }
       }
+      catch(const EspinaException &e)
+      {
+        m_failed = true;
+        m_error = e.details();
 
-      reportProgress(i++/total*100);
+        reportProgress(100);
+      }
     }
-    catch(const EspinaException &e)
+    else
     {
-      m_failed = true;
-      m_error = e.details();
-
-      reportProgress(100);
+      ++m_invalid;
     }
+
+    reportProgress(i++/total*100);
   }
 
   if(!m_failed)
   {
     m_colorEngine->setInformation(m_key, min, max);
+    m_colorEngine->setExtension(extensionType);
   }
 }
 
@@ -270,11 +284,21 @@ void InformationColorEngineSwitch::onTaskFinished()
 {
   auto task = qobject_cast<UpdateColorEngineTask *>(sender());
 
-  if(task && (task == m_task.get()) && task->hasFailed() && !task->isAborted())
+  if(task && (task == m_task.get()) && !task->isAborted())
   {
-    auto message = tr("Couldn't color segmentations by %1").arg(task->key());
-    auto details = task->error();
-    DefaultDialogs::ErrorMessage(message, tr("Coloring by %1").arg(task->key()), details);
+    if(task->hasFailed())
+    {
+      auto message = tr("Couldn't color segmentations by %1").arg(task->property());
+      auto details = task->error();
+      DefaultDialogs::ErrorMessage(message, tr("Coloring by %1").arg(task->property()), details);
+    }
+
+    if(!task->hasFailed() && (task->invalid() != 0))
+    {
+      auto message = tr("Some segmentations don't have the selected property and will be colored gray.");
+      auto details = tr("A total of %1 segmentations don't have the property '%2' (can't provide information of type '%3').").arg(task->invalid()).arg(task->property()).arg(task->extension());
+      DefaultDialogs::InformationMessage(message, tr("Coloring by %1").arg(task->property()), details);
+    }
   }
 
   if(m_task.get() == task)

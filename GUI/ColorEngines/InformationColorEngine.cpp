@@ -21,6 +21,7 @@
 #include "InformationColorEngine.h"
 #include <GUI/Utils/ColorRange.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/CategoryAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -33,6 +34,7 @@ InformationColorEngine::InformationColorEngine()
 : ColorEngine("PropertyColorEngine", tr("Color by a property value."))
 , m_key("MorphologicalInformation", "Size")
 , m_colorRange(new RangeHSV(0, 10000))
+, m_extension{nullptr}
 {
 }
 
@@ -58,17 +60,20 @@ QColor InformationColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
   Q_ASSERT(segmentation);
 
-  QColor color(Qt::gray);
+  QColor color(40,40,40); // very dark gray
 
-  auto extensions = segmentation->readOnlyExtensions();
-
-  if (extensions->isReady(m_key))
+  if(m_extension && m_extension->validCategory(segmentation->category()->classificationName()) && m_extension->validData(segmentation->output()))
   {
-    auto info = extensions->information(m_key);
+    auto extensions = segmentation->readOnlyExtensions();
 
-    if (info.isValid() && info.canConvert<double>())
+    if (extensions->isReady(m_key))
     {
-      color = m_colorRange->color(info.toDouble());
+      auto info = extensions->information(m_key);
+
+      if (info.isValid() && info.canConvert<double>())
+      {
+        color = m_colorRange->color(info.toDouble());
+      }
     }
   }
 

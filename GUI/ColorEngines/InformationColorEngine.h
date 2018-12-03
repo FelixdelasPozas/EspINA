@@ -59,6 +59,13 @@ namespace ESPINA
            */
           void setInformation(const Core::SegmentationExtension::InformationKey &key, double min, double max);
 
+          /** \brief Sets the extension using to color the segmentations, optional.
+           * \param[in] extension Segmentation extension object.
+           *
+           */
+          void setExtension(const Core::SegmentationExtensionSPtr extension)
+          { m_extension = extension; }
+
           /** \brief Returns the used information key,.
            *
            */
@@ -85,6 +92,7 @@ namespace ESPINA
           Core::SegmentationExtension::InformationKey m_key;        /** used key to get segmentation information. */
           Utils::RangeHSV                            *m_colorRange; /** used color range.                         */
           QMap<QColor, LUTSPtr>                       m_luts;       /** color-lookuptable map.                    */
+          Core::SegmentationExtensionSPtr             m_extension;  /** segmentation extension.                   */
       };
     }
   }
