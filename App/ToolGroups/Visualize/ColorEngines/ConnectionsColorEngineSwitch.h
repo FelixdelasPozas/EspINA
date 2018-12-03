@@ -25,6 +25,8 @@
 // ESPINA
 #include <Support/Widgets/ColorEngineSwitch.h>
 
+class QLabel;
+
 namespace ESPINA
 {
   namespace GUI
@@ -82,6 +84,11 @@ namespace ESPINA
       void onRangeModified();
 
     private:
+      /** \brief Helper method to create the information widgets of the switch.
+       *
+       */
+      void createWidgets();
+
       /** \brief Aborts the currently running task.
        *
        */
@@ -89,6 +96,8 @@ namespace ESPINA
 
       bool     m_needUpdate; /** true if the coloring maximum and minimum values needs to be updated.                 */
       TaskSPtr m_task;       /** task to compute the maximum and minimum number of connections for all segmentations. */
+      QLabel  *m_minLabel;   /** label for minimum value.                                                             */
+      QLabel  *m_maxLabel;   /** label for minimum value.                                                             */
   };
 
   /** \class UpdateConnectionsRangeTask
@@ -120,8 +129,8 @@ namespace ESPINA
         virtual void run() override final;
 
     private:
-        SegmentationAdapterSList                   m_segmentations; /** segmentations to color.                                     */
-        GUI::ColorEngines::ConnectionsColorEngine *m_engine;        /** connections color engine.                                   */
+        SegmentationAdapterSList                   m_segmentations; /** segmentations to color.   */
+        GUI::ColorEngines::ConnectionsColorEngine *m_engine;        /** connections color engine. */
   };
 }
 

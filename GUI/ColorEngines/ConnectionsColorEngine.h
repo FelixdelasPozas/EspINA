@@ -69,8 +69,14 @@ namespace ESPINA
            */
           void setRange(const unsigned int minimum, const unsigned int maximum);
 
+          /** \brief Returns the color range object.
+           *
+           */
+          Utils::RangeHSV *colorRange() const
+          { return m_HUERange; }
+
         private:
-          Utils::ColorRange *m_HUERange; /** hue range object. */
+          Utils::RangeHSV *m_HUERange; /** hue range object. */
       };
     }
   }

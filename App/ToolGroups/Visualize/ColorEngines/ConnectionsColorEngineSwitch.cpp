@@ -23,14 +23,17 @@
 #include <App/ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <GUI/ColorEngines/ConnectionsColorEngine.h>
+#include <GUI/Widgets/ColorBar.h>
+#include <GUI/Widgets/Styles.h>
 
 // Qt
 #include <QIcon>
+#include <QLabel>
 #include <QThread>
-#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::ColorEngines;
 
 //--------------------------------------------------------------------
@@ -38,6 +41,8 @@ ConnectionsColorEngineSwitch::ConnectionsColorEngineSwitch(Support::Context& con
 : ColorEngineSwitch{std::make_shared<ConnectionsColorEngine>(), QIcon{":/espina/connectionGradient.svg"}, context}
 , m_needUpdate{true}
 {
+  createWidgets();
+
   connect(this, SIGNAL(toggled(bool)),
           this, SLOT(onToolToggled(bool)));
 }
@@ -90,6 +95,15 @@ void ConnectionsColorEngineSwitch::onTaskFinished()
 {
   auto task = qobject_cast<UpdateConnectionsRangeTask *>(sender());
 
+  auto engine = std::dynamic_pointer_cast<ConnectionsColorEngine>(colorEngine());
+  if(engine && engine->colorRange())
+  {
+    auto min = QString::number(static_cast<int>(engine->colorRange()->minimumValue()));
+    auto max = QString::number(static_cast<int>(engine->colorRange()->maximumValue()));
+    m_minLabel->setText(min);
+    m_maxLabel->setText(max);
+  }
+
   if(m_task.get() == task)
   {
     m_task = nullptr;
@@ -102,6 +116,24 @@ void ConnectionsColorEngineSwitch::onRangeModified()
   m_needUpdate = true;
 
   if(isChecked()) updateRange();
+}
+
+//--------------------------------------------------------------------
+void ConnectionsColorEngineSwitch::createWidgets()
+{
+  auto engine = std::dynamic_pointer_cast<ConnectionsColorEngine>(colorEngine());
+  if(engine)
+  {
+    m_minLabel = new QLabel{"?"};
+    addSettingsWidget(m_minLabel);
+
+    auto colorBar = new ColorBar(engine->colorRange());
+    Styles::setBarStyle(colorBar);
+    addSettingsWidget(colorBar);
+
+    m_maxLabel = new QLabel{"?"};
+    addSettingsWidget(m_maxLabel);
+  }
 }
 
 //--------------------------------------------------------------------
