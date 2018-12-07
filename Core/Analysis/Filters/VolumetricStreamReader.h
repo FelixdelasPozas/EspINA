@@ -40,6 +40,8 @@ namespace ESPINA
     : public Filter
     {
       public:
+        static const QString STREAMING_OPTION; /** load options key. */
+
         /** \brief VolumetricStreamReader class constructor.
          * \param[in] inputs list of input smart pointers.
          * \param[in] type VolumetricStreamReader type.

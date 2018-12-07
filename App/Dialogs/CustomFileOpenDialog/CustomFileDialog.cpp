@@ -22,6 +22,7 @@
 // ESPINA
 #include <Dialogs/CustomFileOpenDialog/CustomFileDialog.h>
 #include <Dialogs/CustomFileOpenDialog/OptionsPanel.h>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 
 // Qt
 #include <QGridLayout>
@@ -31,6 +32,8 @@
 #include <QPushButton>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::IO;
 
 //--------------------------------------------------------------------
 CustomFileDialog::CustomFileDialog(QWidget* parent, Qt::WindowFlags flags)
@@ -90,11 +93,11 @@ void CustomFileDialog::showEvent(QShowEvent* event)
 }
 
 //--------------------------------------------------------------------
-QMap<QString, QVariant> CustomFileDialog::options() const
+const IO::LoadOptions CustomFileDialog::options() const
 {
-  QMap<QString, QVariant> options;
+  LoadOptions options;
 
-  options.insert(tr("Streaming"), QVariant::fromValue(m_options->streamingValue()));
+  options.insert(VolumetricStreamReader::STREAMING_OPTION, QVariant::fromValue(m_options->streamingValue()));
   options.insert(tr("Load Tool Settings"), QVariant::fromValue(m_options->toolSettingsValue()));
   options.insert(tr("Check analysis"), QVariant::fromValue(m_options->checkAnalysisValue()));
 

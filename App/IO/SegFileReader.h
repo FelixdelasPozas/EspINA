@@ -43,7 +43,8 @@ namespace ESPINA
     virtual AnalysisSPtr read(const QFileInfo&      file,
                               CoreFactorySPtr       factory,
                               IO::ProgressReporter *reporter = nullptr,
-                              ErrorHandlerSPtr      handler = ErrorHandlerSPtr()) override;
+                              ErrorHandlerSPtr      handler  = ErrorHandlerSPtr(),
+                              IO::LoadOptions       options  = IO::LoadOptions()) override;
   };
 
 }

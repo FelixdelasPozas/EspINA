@@ -77,10 +77,11 @@ const IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() 
 }
 
 //---------------------------------------------------------------------------
-AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
-                                CoreFactorySPtr factory,
-                                ProgressReporter *reporter,
-                                ErrorHandlerSPtr handler)
+AnalysisSPtr SegmhaReader::read(const QFileInfo&      file,
+                                CoreFactorySPtr       factory,
+                                ProgressReporter     *reporter,
+                                ErrorHandlerSPtr      handler,
+                                const IO::LoadOptions options)
 {
   auto classification = std::make_shared<Classification>();
 
@@ -99,7 +100,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
   QFileInfo channelFile = localFile.absoluteFilePath().replace(".segmha", ".mhd");
   ChannelReader channelReader;
 
-  auto analysis = channelReader.read(channelFile, factory, nullptr, handler);
+  auto analysis = channelReader.read(channelFile, factory, nullptr, handler, options);
 
   LabelMapReader::Pointer labelMapReader = LabelMapReader::New();
 

@@ -27,6 +27,7 @@
 // ESPINA
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
+#include <Core/IO/SegFile.h>
 
 namespace ESPINA
 {
@@ -51,10 +52,11 @@ namespace ESPINA
 
       virtual const ExtensionList supportedFileExtensions() const;
 
-      virtual AnalysisSPtr read(const QFileInfo& file,
-                                CoreFactorySPtr  factory,
+      virtual AnalysisSPtr read(const QFileInfo&      file,
+                                CoreFactorySPtr       factory,
                                 IO::ProgressReporter *reporter = nullptr,
-                                ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+                                ErrorHandlerSPtr      handler  = ErrorHandlerSPtr(),
+                                const IO::LoadOptions options  = IO::LoadOptions());
   };
 
   using ChannelReaderSPtr = std::shared_ptr<ChannelReader>;

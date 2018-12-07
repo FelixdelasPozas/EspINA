@@ -34,6 +34,8 @@ using namespace ESPINA::Core::Utils;
 
 const QString STREAM_FILENAME = "streamingData.mhd";
 
+const QString VolumetricStreamReader::STREAMING_OPTION = QObject::tr("Streaming");
+
 //----------------------------------------------------------------------------
 VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)
 : Filter            {inputs, type, scheduler}
@@ -154,7 +156,7 @@ void VolumetricStreamReader::execute()
 
         bool needRead = false;
 
-        if(m_outputs[0]->hasData(VolumetricData<itkVolumeType>::TYPE))
+        if(m_outputs.contains(0) && m_outputs[0]->hasData(VolumetricData<itkVolumeType>::TYPE))
         {
           // take advantage of whats in memory before deleting it.
           image = readLockVolume(m_outputs[0])->itkImage();

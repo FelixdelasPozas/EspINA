@@ -517,7 +517,7 @@ void EspinaMainWindow::openAnalysis(QStringList filenames)
   {
     if(!successFiles.isEmpty())
     {
-      m_openFileTool->load(successFiles);
+      m_openFileTool->load(successFiles, IO::LoadOptions());
     }
 
     if(!failedFiles.isEmpty())
@@ -534,7 +534,7 @@ void EspinaMainWindow::openAnalysis(QStringList filenames)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
+void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options)
 {
   Q_ASSERT(analysis);
 
@@ -560,7 +560,10 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   initializeCrosshair();
 
-  updateToolsSettings();
+  if(options.contains(tr("Load Tool Settings")) && (options.value(tr("Load Tool Settings")).toBool() == true))
+  {
+    updateToolsSettings();
+  }
 
   enableWidgets(true);
 
@@ -598,9 +601,18 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   m_autoSave.resetCountDown();
 
-  if(!m_context.model()->isEmpty() && m_settings->performAnalysisCheckOnLoad())
+  if(!m_context.model()->isEmpty())
   {
-    checkAnalysisConsistency();
+    if(options.contains(tr("Check analysis")))
+    {
+      // if the options explicitly says something about check use this branch.
+      if(options.value(tr("Check analysis")) == true) checkAnalysisConsistency();
+    }
+    else
+    {
+      if(m_settings->performAnalysisCheckOnLoad()) checkAnalysisConsistency();
+    }
+
   }
 
   emit analysisChanged();
@@ -871,8 +883,8 @@ void EspinaMainWindow::createSessionToolGroup()
   m_openFileTool->setOrder("0-0", "1-Session");
   m_openFileTool->setCloseCallback(this);
 
-  connect(m_openFileTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
-          this,                 SLOT(onAnalysisLoaded(AnalysisSPtr)));
+  connect(m_openFileTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr, const IO::LoadOptions)),
+          this,                 SLOT(onAnalysisLoaded(AnalysisSPtr, const IO::LoadOptions)));
 
   connect(&m_autoSave,          SIGNAL(restoreFromFile(QString)),
           m_openFileTool.get(), SLOT(loadAnalysis(QString)));

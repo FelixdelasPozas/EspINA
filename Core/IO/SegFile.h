@@ -29,6 +29,11 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/AnalysisReader.h>
 
+// Qt
+#include <QMap>
+#include <QVariant>
+#include <QString>
+
 namespace ESPINA
 {
   namespace IO
@@ -47,7 +52,8 @@ namespace ESPINA
       AnalysisSPtr EspinaCore_EXPORT load(const QFileInfo  &file,
                                           CoreFactorySPtr   factory  = CoreFactorySPtr(),
                                           ProgressReporter *reporter = nullptr,
-                                          ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
+                                          ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                          LoadOptions       options  = LoadOptions());
 
       /** \brief Saves an analysis to a file in disk.
        * \param[in] analysis analysis to save.
@@ -59,7 +65,7 @@ namespace ESPINA
       void EspinaCore_EXPORT save(AnalysisPtr       analysis,
                                   const QFileInfo&  file,
                                   ProgressReporter *reporter = nullptr,
-                                  ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr());
     }
   }
 }

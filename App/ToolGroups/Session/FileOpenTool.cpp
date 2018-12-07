@@ -29,11 +29,13 @@
 #include <EspinaMainWindow.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
+#include <App/Dialogs/CustomFileOpenDialog/CustomFileDialog.h>
 
 // Qt
 #include <QElapsedTimer>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets::Styles;
@@ -71,24 +73,43 @@ void FileOpenTool::setCloseCallback(EspinaMainWindow *callback)
 //----------------------------------------------------------------------------
 void FileOpenTool::onTriggered()
 {
-  auto title  = tr("Open Analysis");
-  auto filter = getFactory()->supportedFileExtensions();
+  auto title   = tr("Open Analysis");
+  auto filters = getFactory()->supportedFileExtensions();
 
   RecentDocuments recent;
 
-  auto files = DefaultDialogs::OpenFiles(title, filter, DefaultDialogs::DefaultPath(), recent.recentDocumentUrls());
+  CustomFileDialog fileDialog{DefaultDialogs::defaultParentWidget(), title, DefaultDialogs::DefaultPath(), filters};
+  fileDialog.setFileMode(QFileDialog::ExistingFiles);
+  fileDialog.setViewMode(QFileDialog::Detail);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  fileDialog.resize(800, 480);
+  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+  fileDialog.setModal(true);
 
-  if (!files.isEmpty())
+  QList<QUrl> urls;
+
+  urls << recent.recentDocumentUrls() << fileDialog.sidebarUrls();
+
+  fileDialog.setSidebarUrls(urls);
+
+  DefaultCursor cursor;
+
+  if (fileDialog.exec() == QDialog::Accepted)
   {
-    if (m_closeCallback && !m_closeCallback->closeCurrentAnalysis())
+    auto fileNames = fileDialog.selectedFiles();
+
+    if (!fileNames.isEmpty())
     {
-      return;
+      if (m_closeCallback && !m_closeCallback->closeCurrentAnalysis())
+      {
+        return;
+      }
+
+      auto fileInfo = QFileInfo(fileNames.first());
+      m_errorHandler->setDefaultDir(fileInfo.absoluteDir());
+
+      load(fileNames, fileDialog.options());
     }
-
-    auto fileInfo = QFileInfo(files.first());
-    m_errorHandler->setDefaultDir(fileInfo.absoluteDir());
-
-    load(files);
   }
 }
 
@@ -99,7 +120,7 @@ void FileOpenTool::loadAnalysis(const QString& file)
 }
 
 //----------------------------------------------------------------------------
-void FileOpenTool::load(const QStringList &files)
+void FileOpenTool::load(const QStringList &files, const IO::LoadOptions options)
 {
   m_loadedFiles.clear();
 
@@ -146,7 +167,7 @@ void FileOpenTool::load(const QStringList &files)
 
     try
     {
-      analyses << factory->read(reader, fileInfo, &reporter, m_errorHandler);
+      analyses << factory->read(reader, fileInfo, &reporter, m_errorHandler, options);
 
       m_loadedFiles << file;
 
@@ -231,7 +252,7 @@ void FileOpenTool::load(const QStringList &files)
 
   if(analysis.get() != nullptr)
   {
-    emit analysisLoaded(analysis);
+    emit analysisLoaded(analysis, options);
   }
 }
 

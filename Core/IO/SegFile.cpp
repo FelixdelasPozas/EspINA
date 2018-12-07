@@ -46,7 +46,8 @@ using SegFileLoaderSPtr = std::shared_ptr<SegFileInterface>;
 AnalysisSPtr SegFile::load(const QFileInfo  &file,
                            CoreFactorySPtr   factory,
                            ProgressReporter *reporter,
-                           ErrorHandlerSPtr  handler)
+                           ErrorHandlerSPtr  handler,
+                           LoadOptions       options)
 {
   QuaZip zip(file.filePath());
   if (!zip.open(QuaZip::mdUnzip))
@@ -87,7 +88,7 @@ AnalysisSPtr SegFile::load(const QFileInfo  &file,
     coreFactory = std::make_shared<CoreFactory>();
   }
 
-  return loader->load(zip, coreFactory, reporter, handler);
+  return loader->load(zip, coreFactory, reporter, handler, options);
 }
 
 //-----------------------------------------------------------------------------

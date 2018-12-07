@@ -218,7 +218,7 @@ void Output::onDataChanged()
 //----------------------------------------------------------------------------
 void Output::setData(Output::DataSPtr data)
 {
-  Data::Type type = data->type();
+  const auto type = data->type();
 
   if (!m_data.contains(type))
   {

@@ -159,7 +159,7 @@ namespace ESPINA
     /** \brief Replace current session analysis with the loaded one
      *
      */
-    void onAnalysisLoaded(AnalysisSPtr analysis);
+    void onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options);
 
     /** \brief Merge loaded analysis to current session analysis
      *
