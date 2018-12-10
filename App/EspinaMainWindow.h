@@ -405,6 +405,11 @@ namespace ESPINA
      */
     void assignActiveStack();
 
+    /** \brief Saves misc session settings onto the settings file in the analysis.
+     *
+     */
+    void saveSessionSettings();
+
     /** \brief Launches the stack edges analyzer.
      *
      */

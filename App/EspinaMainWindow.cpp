@@ -93,6 +93,8 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
+const QString ACTIVE_STACK_SETTINGS_KEY = QObject::tr("Active Stack");
+
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 : QMainWindow        {nullptr, 0}
@@ -1427,9 +1429,32 @@ void EspinaMainWindow::assignActiveStack()
 
   if (!model->channels().isEmpty())
   {
-    auto channel = model->channels().first().get();
+    ChannelAdapterPtr activeStack{nullptr};
 
-    getSelection(m_context)->setActiveChannel(channel);
+    if(model->storage())
+    {
+      auto settings  = model->storage()->sessionSettings();
+      const auto stackName = settings->value(ACTIVE_STACK_SETTINGS_KEY, QString()).toString();
+
+      if(!stackName.isEmpty())
+      {
+        for(const auto stack: model->channels())
+        {
+          if(stack->data(Qt::DisplayRole).toString().compare(stackName) == 0)
+          {
+            activeStack = stack.get();
+            break;
+          }
+        }
+      }
+    }
+
+    if(!activeStack)
+    {
+      activeStack = model->channels().first().get();
+    }
+
+    getSelection(m_context)->setActiveChannel(activeStack);
   }
 }
 
@@ -1467,6 +1492,7 @@ void EspinaMainWindow::updateToolsSettings()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAboutToSaveSession()
 {
+  saveSessionSettings();
   saveToolsSettings();
   m_busy = true;
 }
@@ -1586,4 +1612,16 @@ void EspinaMainWindow::delayedInitActions()
   }
 
   // TODO: check espina version against a server and warn the user about a new version.
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::saveSessionSettings()
+{
+  auto activeStack = getSelection(m_context)->activeChannel();
+  if(m_context.model() && m_context.model()->storage() && activeStack)
+  {
+    auto settings = m_context.model()->storage()->sessionSettings();
+    settings->setValue(ACTIVE_STACK_SETTINGS_KEY, activeStack->data(Qt::DisplayRole).toString());
+    settings->sync();
+  }
 }
