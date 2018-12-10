@@ -127,6 +127,14 @@ namespace ESPINA
        */
       bool isCollision(const NmVector3 &point) const;
 
+      /** \brief Helper method that modifies the given position to execute the menu inside the given view.
+       * \param[in] menu QMenu pointer that is going to be exec.
+       * \param[in] view View where the menu will be shown.
+       * \param[inout] position QPoint where the menu will be exec.
+       *
+       */
+      void fixMenuPositionForView(const QMenu *menu, const RenderView *view, QPoint &position);
+
       using PointTemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
       enum class OperationMode: char { NORMAL = 0, COLLISION_START, COLLISION_MIDDLE };

@@ -108,6 +108,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
 
             if(!m_isStartPoint) break;
 
+            fixMenuPositionForView(m_strokeMenu, view, position);
             m_strokeMenu->setParent(view);
             m_strokeMenu->exec(position);
             usedMenu = true;
@@ -172,6 +173,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
               }
               else
               {
+                fixMenuPositionForView(m_connectionMenu, view, position);
                 m_connectionMenu->setParent(view);
                 m_connectionMenu->exec(position);
                 usedMenu = true;
@@ -358,4 +360,19 @@ bool SkeletonToolsEventHandler::isCollision(const NmVector3& point) const
   }
 
   return false;
+}
+
+//------------------------------------------------------------------------
+void SkeletonToolsEventHandler::fixMenuPositionForView(const QMenu *menu, const RenderView* view, QPoint& position)
+{
+  auto size = view->size();
+  if(size.height() - position.y() < menu->height())
+  {
+    position.setY(size.height() - menu->height() - 10);
+  }
+
+  if(size.width() - position.x() < menu->width())
+  {
+    position.setX(size.width() - menu->width() - 10);
+  }
 }
