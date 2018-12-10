@@ -208,7 +208,7 @@ namespace ESPINA
            * \param[in] tool tool being activated.
            *
            */
-          void onExclusiveToolInUse(ProgressTool *tool);
+          virtual void onExclusiveToolInUse(ProgressTool *tool);
 
           /** \brief Restores the settings of the tool from the given QSettings object.
            * \param[in] settings.

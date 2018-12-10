@@ -22,6 +22,7 @@
 // ESPINA
 #include <App/ToolGroups/Edit/SkeletonEditionTool.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonToolsUtils.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonCreationTool.h>
 #include <App/Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h>
 #include <App/ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h>
@@ -62,9 +63,10 @@ const QString MODIFY_HUE_SETTINGS_KEY = QString{"Modify same-hue strokes to avoi
 
 //--------------------------------------------------------------------
 SkeletonEditionTool::SkeletonEditionTool(Support::Context& context)
-: EditTool("SkeletonEditionTool", ":/espina/tubular.svg", tr("Manual modification of skeletons."), context)
-, m_init  {false}
-, m_item  {nullptr}
+: EditTool    {"SkeletonEditionTool", ":/espina/tubular.svg", tr("Manual modification of skeletons."), context}
+, m_init      {false}
+, m_item      {nullptr}
+, m_allowSwich{false}
 {
   initEventHandler();
   initRepresentationFactories();
@@ -743,6 +745,17 @@ void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentatio
 }
 
 //--------------------------------------------------------------------
+void SkeletonEditionTool::updateStatus()
+{
+  auto selection = getSelectedSegmentations();
+  auto enabled = acceptsNInputs(selection.size())
+              && (selectionIsNotBeingModified(selection) || m_allowSwich)
+              && acceptsSelection(selection);
+
+  setEnabled(enabled);
+}
+
+//--------------------------------------------------------------------
 void SkeletonEditionTool::updateStrokes()
 {
   if(m_item)
@@ -812,4 +825,14 @@ void SkeletonEditionTool::saveSettings(std::shared_ptr<QSettings> settings)
 void SkeletonEditionTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
   m_changeHueButton->setChecked(settings->value(MODIFY_HUE_SETTINGS_KEY, false).toBool());
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onExclusiveToolInUse(ProgressTool* tool)
+{
+  ProgressTool::onExclusiveToolInUse(tool);
+
+  // clients want to switch from "creation" tool to "edition" tool without having to
+  // deactivate the previous one. Sigh...
+  m_allowSwich = (dynamic_cast<SkeletonCreationTool *>(tool) != nullptr);
 }

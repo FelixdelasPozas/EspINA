@@ -73,6 +73,8 @@ namespace ESPINA
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
 
+      virtual void onExclusiveToolInUse(ProgressTool* tool) override;
+
     private slots:
       /** \brief Performs tool initialization/de-initialization.
        * \param[in] value true to initialize and false otherwise.
@@ -174,6 +176,12 @@ namespace ESPINA
        */
       void onHueModificationsButtonClicked(bool value);
 
+    protected slots:
+      /** \brief Enables/Disables the tool depending on the current segmentation selection.
+       *
+       */
+      virtual void updateStatus() override;
+
     private:
       virtual bool acceptsNInputs(int n) const;
 
@@ -264,6 +272,7 @@ namespace ESPINA
       TemporalRepresentationsSPtr                         m_pointsFactory;   /** representation prototypes.                        */
       QList<SkeletonWidgetSPtr>                           m_widgets;         /** list of widgets currently on views.               */
       QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;    /** list of point representations currently on views. */
+      bool                                                m_allowSwich;      /** true if the skeleton creation tool is enabled.    */
   };
 
 } // namespace ESPINA
