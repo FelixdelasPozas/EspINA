@@ -157,14 +157,18 @@ namespace ESPINA
 
   private slots:
     /** \brief Replace current session analysis with the loaded one
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
      *
      */
     void onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options);
 
     /** \brief Merge loaded analysis to current session analysis
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
      *
      */
-    void onAnalysisImported(AnalysisSPtr analysis);
+    void onAnalysisImported(AnalysisSPtr analysis, const IO::LoadOptions options);
 
     /** \brief Saves tools settings just before saving a session.
      *

@@ -612,7 +612,6 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOpt
     {
       if(m_settings->performAnalysisCheckOnLoad()) checkAnalysisConsistency();
     }
-
   }
 
   emit analysisChanged();
@@ -621,7 +620,7 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOpt
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
+void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis, const IO::LoadOptions options)
 {
   stopAnalysisConsistencyCheck();
 
@@ -639,9 +638,17 @@ void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
 
   updateSceneState(m_context.viewState().crosshair(), m_context.viewState(), toViewItemSList(model->channels()));
 
-  if(!m_context.model()->isEmpty() && m_settings->performAnalysisCheckOnLoad())
+  if(!m_context.model()->isEmpty())
   {
-    checkAnalysisConsistency();
+    if(options.contains(tr("Check analysis")))
+    {
+      // if the options explicitly says something about check use this branch.
+      if(options.value(tr("Check analysis")) == true) checkAnalysisConsistency();
+    }
+    else
+    {
+      if(m_settings->performAnalysisCheckOnLoad()) checkAnalysisConsistency();
+    }
   }
 }
 
@@ -893,8 +900,8 @@ void EspinaMainWindow::createSessionToolGroup()
   importTool->setShortcut(Qt::CTRL+Qt::Key_I);
   importTool->setOrder("0-1", "1-Session");
 
-  connect(importTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
-          this,             SLOT(onAnalysisImported(AnalysisSPtr)));
+  connect(importTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr, const IO::LoadOptions)),
+          this,             SLOT(onAnalysisImported(AnalysisSPtr, const IO::LoadOptions)));
 
   m_saveTool = std::make_shared<FileSaveTool>("FileSave", ":/espina/file_save.svg", tr("Save File"), m_context, m_analysis, m_errorHandler);
   m_saveTool->setOrder("1-0", "1_FileGroup");
