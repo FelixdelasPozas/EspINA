@@ -1401,15 +1401,27 @@ void vtkSkeletonWidgetRepresentation::FindClosestNode(const int X, const int Y, 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd)
 {
-  if(pd == nullptr || pd->GetNumberOfPoints() <= 0) return; // Yeah right.. build from nothing!
+  bool isEmpty = true;
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+    isEmpty = s_skeleton.nodes.isEmpty();
+  }
 
-  QMutexLocker lock(&s_skeletonMutex);
+  if(!isEmpty)
+  {
+    ClearRepresentation();
+  }
+
   Q_ASSERT(s_skeleton.nodes.isEmpty());
 
-  s_skeleton = Core::toSkeletonDefinition(pd);
-  Core::cleanSkeletonStrokes(s_skeleton);
-  Core::removeIsolatedNodes(s_skeleton.nodes);
-  Core::mergeSamePositionNodes(s_skeleton.nodes);
+  if(pd != nullptr && pd->GetNumberOfPoints() > 0)
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+    s_skeleton = Core::toSkeletonDefinition(pd);
+    Core::cleanSkeletonStrokes(s_skeleton);
+    Core::removeIsolatedNodes(s_skeleton.nodes);
+    Core::mergeSamePositionNodes(s_skeleton.nodes);
+  }
 }
 
 //-----------------------------------------------------------------------------

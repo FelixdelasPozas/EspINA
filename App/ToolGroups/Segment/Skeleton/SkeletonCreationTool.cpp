@@ -613,9 +613,12 @@ void SkeletonCreationTool::onNextButtonPressed()
   if(!m_skeletonWidgets.isEmpty())
   {
     m_skeletonWidgets.first()->stop();
+
+    // force the processing of the event from the widget that adds the skeleton to the model or updates the existing one.
+    QApplication::processEvents();
   }
 
-  SkeletonWidget2D::initializeData(nullptr);
+  SkeletonWidget2D::ClearRepresentation();
 
   for(auto widget: m_skeletonWidgets)
   {
