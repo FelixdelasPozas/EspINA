@@ -366,13 +366,15 @@ bool SkeletonToolsEventHandler::isCollision(const NmVector3& point) const
 void SkeletonToolsEventHandler::fixMenuPositionForView(const QMenu *menu, const RenderView* view, QPoint& position)
 {
   auto size = view->size();
-  if(size.height() - position.y() < menu->height())
+  auto hint = menu->sizeHint();
+
+  if(size.height() - position.y() < hint.height())
   {
-    position.setY(size.height() - menu->height() - 10);
+    position.setY(size.height() - hint.height() - 10);
   }
 
-  if(size.width() - position.x() < menu->width())
+  if(size.width() - position.x() < hint.width())
   {
-    position.setX(size.width() - menu->width() - 10);
+    position.setX(size.width() - hint.width() - 10);
   }
 }

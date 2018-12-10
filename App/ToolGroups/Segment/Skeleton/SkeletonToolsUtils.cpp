@@ -169,6 +169,7 @@ QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const 
 
     menu->addSeparator();
     menu->addAction(QObject::tr("Cancel"));
+    menu->updateGeometry();
   }
 
   return menu;
