@@ -75,6 +75,12 @@ namespace ESPINA
 
       virtual void onExclusiveToolInUse(ProgressTool* tool) override;
 
+    protected slots:
+      /** \brief Enables/Disables the tool depending on the current segmentation selection.
+       *
+       */
+      virtual void updateStatus() override;
+
     private slots:
       /** \brief Performs tool initialization/de-initialization.
        * \param[in] value true to initialize and false otherwise.
@@ -176,11 +182,10 @@ namespace ESPINA
        */
       void onHueModificationsButtonClicked(bool value);
 
-    protected slots:
-      /** \brief Enables/Disables the tool depending on the current segmentation selection.
+      /** \brief Deactivates the truncation button after a succesfull skeleton modification.
        *
        */
-      virtual void updateStatus() override;
+      void onTruncationSuccess();
 
     private:
       virtual bool acceptsNInputs(int n) const;

@@ -31,6 +31,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 
 // C++
 #include <limits>
@@ -41,6 +43,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QMouseEvent>
+#include <QTimer>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -51,13 +54,14 @@ using namespace ESPINA::GUI::View::Widgets::Skeleton;
 
 //-----------------------------------------------------------------------------
 SkeletonWidget2D::SkeletonWidget2D(SkeletonEventHandlerSPtr handler, SkeletonPoolSettingsSPtr settings)
-: m_widget    {vtkSmartPointer<vtkSkeletonWidget>::New()}
-, m_view      {nullptr}
-, m_position  {-std::numeric_limits<Nm>::max()}
-, m_handler   {handler}
-, m_mode      {Mode::CREATE}
-, m_moving    {false}
-, m_settings  {settings}
+: m_widget      {vtkSmartPointer<vtkSkeletonWidget>::New()}
+, m_view        {nullptr}
+, m_position    {-std::numeric_limits<Nm>::max()}
+, m_handler     {handler}
+, m_mode        {Mode::CREATE}
+, m_moving      {false}
+, m_settings    {settings}
+, m_hasTruncated{false}
 {
   connect(m_settings.get(), SIGNAL(modified()), this, SLOT(updateRepresentation()));
 }
@@ -187,6 +191,8 @@ void SkeletonWidget2D::initializeImplementation(RenderView* view)
     connect(this, SIGNAL(updateWidgets()), m_handler.get(), SLOT(updateRepresentations()));
 
     connectSignals();
+
+    initializeVisualCues();
   }
 }
 
@@ -379,6 +385,7 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
     case Mode::MARK:
       if (button == Qt::LeftButton)
       {
+        m_hasTruncated = false;
         m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), 0, 0);
         auto paths = m_widget->selectedPaths();
 
@@ -438,6 +445,8 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
               m_widget->markAsTruncated();
               emit modified(m_widget->getSkeleton());
               emit updateWidgets();
+              m_hasTruncated = true;
+              m_successActor->SetInput(tr("Successfully modified %1").arg(path.note).toStdString().c_str());
             }
             break;
           default:
@@ -482,9 +491,25 @@ void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, 
         m_moving = false;
       }
       break;
+    case Mode::MARK:
+    {
+      if(m_hasTruncated)
+      {
+        m_hasTruncated = false;
+        emit truncationSuccess();
+
+        const auto opacity = m_successActor->GetTextProperty()->GetOpacity();
+        m_successActor->GetTextProperty()->SetOpacity(1);
+        m_successActor->GetTextProperty()->SetBackgroundOpacity(0.5);
+        if(opacity == 0.)
+        {
+          QTimer::singleShot(100, this, SLOT(updateCues()));
+        }
+      }
+    }
+      break;
     case Mode::CREATE:
     case Mode::ERASE:
-    case Mode::MARK:
     default:
       break;
   }
@@ -527,6 +552,12 @@ void SkeletonWidget2D::uninitializeImplementation()
 {
   if(m_view)
   {
+    if(m_view)
+    {
+      m_view->removeActor(m_successActor);
+      m_successActor = nullptr;
+    }
+
     disconnectSignals();
 
     if(m_widget)
@@ -600,4 +631,49 @@ const bool SkeletonWidget2D::strokeHueModification() const
 void SkeletonWidget2D::ClearRepresentation()
 {
   vtkSkeletonWidgetRepresentation::ClearRepresentation();
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::initializeVisualCues()
+{
+  auto property = vtkSmartPointer<vtkTextProperty>::New();
+  property->SetFontFamilyToArial();
+  property->SetFontSize(7);
+  property->SetColor(0,1,0);
+  property->SetBold(true);
+  property->SetShadow(false);
+  property->SetBackgroundColor(0,0,0);
+  property->SetBackgroundOpacity(0.5);
+  property->SetOpacity(0);
+
+  m_successActor = vtkSmartPointer<vtkTextActor>::New();
+  m_successActor->SetTextScaleModeToViewport();
+  m_successActor->SetLayerNumber(0);
+  m_successActor->SetPickable(false);
+  m_successActor->SetDisplayPosition(10,10);
+  m_successActor->SetInput("");
+  m_successActor->SetTextProperty(property);
+
+  m_view->addActor(m_successActor);
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::updateCues()
+{
+  if(m_successActor)
+  {
+    auto opacity = m_successActor->GetTextProperty()->GetOpacity();
+
+    if(opacity > 0)
+    {
+      opacity = std::max(opacity - 0.05, 0.);
+      m_successActor->GetTextProperty()->SetOpacity(opacity);
+      m_successActor->GetTextProperty()->SetBackgroundOpacity(opacity/2.);
+      m_successActor->GetTextProperty()->Modified();
+      m_successActor->Modified();
+
+      QTimer::singleShot(100, this, SLOT(updateCues()));
+      m_view->refresh();
+    }
+  }
 }

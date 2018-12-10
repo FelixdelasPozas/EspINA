@@ -291,6 +291,9 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
       connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
               this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
 
+      connect(skeletonWidget.get(), SIGNAL(truncationSuccess()),
+              this,                 SLOT(onTruncationSuccess()), Qt::DirectConnection);
+
       connect(skeletonWidget.get(), SIGNAL(strokeChanged(const Core::SkeletonStroke)),
               this,                 SLOT(onStrokeChanged(const Core::SkeletonStroke)), Qt::DirectConnection);
 
@@ -835,4 +838,14 @@ void SkeletonEditionTool::onExclusiveToolInUse(ProgressTool* tool)
   // clients want to switch from "creation" tool to "edition" tool without having to
   // deactivate the previous one. Sigh...
   m_allowSwich = (dynamic_cast<SkeletonCreationTool *>(tool) != nullptr);
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onTruncationSuccess()
+{
+  if(m_truncateButton->isChecked())
+  {
+    m_truncateButton->setChecked(false);
+    onModeChanged(true);
+  }
 }
