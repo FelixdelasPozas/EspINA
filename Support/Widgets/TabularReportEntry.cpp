@@ -46,8 +46,6 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Model::Utils;
 using namespace xlslib_core;
 
-const QString SEGMENTATION_GROUP = "Segmentation";
-
 //------------------------------------------------------------------------
 class InformationDelegate
 : public QItemDelegate
@@ -282,11 +280,6 @@ void TabularReport::Entry::refreshAllInformation()
 {
   int c = m_proxy->columnCount() - 1;
 
-  if (m_proxy->availableInformation()[c].value() == tr("Category"))
-  {
-    --c; // Category tag doesn't spawn task
-  }
-
   for (int r = 1; r <= m_proxy->rowCount(); ++r)
   {
     auto data = value(r, c);
@@ -307,7 +300,7 @@ void TabularReport::Entry::refreshGUIImplementation()
   bool inProgress = (progress < 100);
 
   int informationSize = m_proxy->availableInformation().size();
-  if (informationSize == 1 || (informationSize == 2 && m_proxy->availableInformation()[1].value() == tr("Category")))
+  if (informationSize == 1)
   {
     inProgress = false;
   }
@@ -385,8 +378,6 @@ InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 {
   auto segmentations = toList<SegmentationAdapter>(m_proxy->displayedItems());
   auto availableInfo = GUI::availableInformation(segmentations, m_factory);
-
-  availableInfo[SEGMENTATION_GROUP] << tr("Category");
 
   return availableInfo;
 }
@@ -473,11 +464,6 @@ InformationSelector::GroupedInfo TabularReport::Entry::lastDisplayedInformation(
     }
   }
 
-  if (info.isEmpty())
-  {
-    info[SEGMENTATION_GROUP]  << tr("Category");
-  }
-
   return info;
 }
 
@@ -486,21 +472,18 @@ void TabularReport::Entry::setInformation(InformationSelector::GroupedInfo exten
 {
   for(auto extensionType : extensionInformations.keys())
   {
-    if (extensionType != SEGMENTATION_GROUP)
+    for (auto item : m_proxy->displayedItems())
     {
-      for (auto item : m_proxy->displayedItems())
+      auto segmentation = segmentationPtr(item);
+      if(segmentation != nullptr)
       {
-        auto segmentation = segmentationPtr(item);
-        if(segmentation != nullptr)
+        try
         {
-          try
-          {
-            retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
-          }
-          catch(...)
-          {
-            // nothing to do, either the extensions is read-only or doesn't exist and that information will be reported as unavailable later.
-          }
+          retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
+        }
+        catch(...)
+        {
+          // nothing to do, either the extensions is read-only or doesn't exist and that information will be reported as unavailable later.
         }
       }
     }

@@ -38,6 +38,8 @@ set (EXTENSIONS_SOURCES
   SkeletonInformation/DendriteInformation.cpp
   SkeletonInformation/SynapseInformation.cpp
   SkeletonInformation/SkeletonInformationFactory.cpp
+  BasicInformation/BasicSegmentationInformation.cpp
+  BasicInformation/BasicSegmentationInformationFactory.cpp
   LibraryExtensionFactory.cpp
   )
 
