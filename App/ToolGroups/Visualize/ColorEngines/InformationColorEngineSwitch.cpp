@@ -124,8 +124,8 @@ void UpdateColorEngineTask::run()
 
   if(!m_failed)
   {
-    m_colorEngine->setInformation(m_key, min, max);
     m_colorEngine->setExtension(extensionType);
+    m_colorEngine->setInformation(m_key, min, max);
   }
 }
 

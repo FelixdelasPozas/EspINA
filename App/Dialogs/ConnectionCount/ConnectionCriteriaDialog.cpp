@@ -22,10 +22,12 @@
 // ESPINA
 #include <Dialogs/ConnectionCount/ConnectionCriteriaDialog.h>
 #include <GUI/Widgets/CategorySelector.h>
+#include <GUI/Widgets/HueSelector.h>
 
 // Qt
 #include <QSet>
 #include <QMessageBox>
+#include <QtGui>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Widgets;
@@ -38,10 +40,7 @@ ConnectionCriteriaDialog::ConnectionCriteriaDialog(const ModelAdapterSPtr model,
 {
   setupUi(this);
 
-  if(model) m_classification = model->classification();
-
-  m_selector = new CategorySelector(model, this);
-  m_layout->insertWidget(0, m_selector, 1);
+  createWidgets(model);
 
   connectSignals();
 
@@ -169,6 +168,62 @@ const QString ESPINA::ConnectionCriteriaDialog::criteriaToText(const QStringList
 }
 
 //--------------------------------------------------------------------
+const short ConnectionCriteriaDialog::validColor() const
+{
+  auto selector = qobject_cast<HueSelector *>(m_validLayout->itemAt(2)->widget());
+  return selector->hueValue();
+}
+
+//--------------------------------------------------------------------
+const short ConnectionCriteriaDialog::invalidColor() const
+{
+  auto selector = qobject_cast<HueSelector *>(m_invalidLayout->itemAt(2)->widget());
+  return selector->hueValue();
+}
+
+//--------------------------------------------------------------------
+const short ConnectionCriteriaDialog::unconnectedColor() const
+{
+  auto selector = qobject_cast<HueSelector *>(m_unconnectedLayout->itemAt(2)->widget());
+  return selector->hueValue();
+}
+
+//--------------------------------------------------------------------
+const short ConnectionCriteriaDialog::incompleteColor() const
+{
+  auto selector = qobject_cast<HueSelector *>(m_incompleteLayout->itemAt(2)->widget());
+  return selector->hueValue();
+}
+
+//--------------------------------------------------------------------
+const void ConnectionCriteriaDialog::setValidColor(const short hue) const
+{
+  auto selector = qobject_cast<HueSelector *>(m_validLayout->itemAt(2)->widget());
+  selector->setHueValue(hue);
+}
+
+//--------------------------------------------------------------------
+const void ConnectionCriteriaDialog::setInvalidColor(const short hue) const
+{
+  auto selector = qobject_cast<HueSelector *>(m_invalidLayout->itemAt(2)->widget());
+  selector->setHueValue(hue);
+}
+
+//--------------------------------------------------------------------
+const void ConnectionCriteriaDialog::setUnconnectedColor(const short hue) const
+{
+  auto selector = qobject_cast<HueSelector *>(m_unconnectedLayout->itemAt(2)->widget());
+  selector->setHueValue(hue);
+}
+
+//--------------------------------------------------------------------
+const void ConnectionCriteriaDialog::setIncompleteColor(const short hue) const
+{
+  auto selector = qobject_cast<HueSelector *>(m_incompleteLayout->itemAt(2)->widget());
+  selector->setHueValue(hue);
+}
+
+//--------------------------------------------------------------------
 void ConnectionCriteriaDialog::updateCriteria()
 {
   updateGUI();
@@ -185,4 +240,63 @@ void ConnectionCriteriaDialog::updateCriteria()
   {
     m_ambiguous->setText(tr("Current criteria:"));
   }
+}
+
+//--------------------------------------------------------------------
+void ConnectionCriteriaDialog::createWidgets(const ModelAdapterSPtr model)
+{
+  if(model)
+  {
+    m_classification = model->classification();
+
+    m_selector = new CategorySelector(model, this);
+    m_layout->insertWidget(0, m_selector, 1);
+  }
+
+  for(auto layout: {m_validLayout, m_invalidLayout, m_unconnectedLayout, m_incompleteLayout})
+  {
+    auto hueSelector = new HueSelector(this);
+    hueSelector->reserveInitialValue(false);
+
+    connect(hueSelector, SIGNAL(newHsv(int, int, int)), this, SLOT(onHueMoved(int)));
+
+    layout->addWidget(hueSelector, 1);
+  }
+}
+
+//--------------------------------------------------------------------
+void ConnectionCriteriaDialog::onHueMoved(int value)
+{
+  auto object = qobject_cast<HueSelector *>(sender());
+  if(object)
+  {
+    QList<QHBoxLayout *> layouts{m_validLayout, m_invalidLayout, m_unconnectedLayout, m_incompleteLayout};
+    QList<QLabel *>      labels {m_validColor,  m_invalidColor,  m_unconnectedColor,  m_incompleteColor};
+
+    for(auto layout: layouts)
+    {
+      auto widget = qobject_cast<HueSelector *>(layout->itemAt(2)->widget());
+      if(object == widget)
+      {
+        auto label = labels.at(layouts.indexOf(layout));
+        label->setAutoFillBackground(true);
+        QPalette pal = label->palette();
+        pal.setColor(QPalette::Window, QColor::fromHsv(value, 255, 255));
+        label->setPalette(pal);
+        return;
+      }
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+void ConnectionCriteriaDialog::showColors(const bool enable)
+{
+  m_colorGroup->setVisible(enable);
+
+  auto size = sizeHint();
+  size.setWidth(size.width() + 30);
+  size.setHeight(size.height() + 50);
+  setMaximumSize(size);
+  setMinimumSize(size);
 }

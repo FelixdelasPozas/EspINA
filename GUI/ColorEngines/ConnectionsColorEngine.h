@@ -50,7 +50,8 @@ namespace ESPINA
           /** \brief ConnectionsColorEngine class virtual destructor.
            *
            */
-          ~ConnectionsColorEngine();
+          ~ConnectionsColorEngine()
+          {}
 
           virtual QColor color(ConstSegmentationAdapterPtr segmentation);
 
@@ -62,21 +63,33 @@ namespace ESPINA
           virtual ColorEngineSPtr clone()
           { return std::make_shared<ConnectionsColorEngine>(); }
 
-          /** \brief Sets the maximum and minimum values to use to apply to the HUE range.
-           * \param[in] minimum Minimum number of connections.
-           * \param[in] maximum Maximum number of connections.
+          /** \brief Sets the connection criteria for classifying segmentations.
+           * \param[in] criteria List of segmentations' categories that represents a valid connection.
+           * \param[in] valid Valid color hue value.
+           * \param[in] invalid Invalid color hue value.
+           * \param[in] incomplete Incomplete color hue value.
+           * \param[in] unconnected Unconnected color hue value.
            *
            */
-          void setRange(const unsigned int minimum, const unsigned int maximum);
-
-          /** \brief Returns the color range object.
-           *
-           */
-          Utils::RangeHSV *colorRange() const
-          { return m_HUERange; }
+          void setCriteriaInformation(const QStringList &criteria,
+                                      int valid       = QColor{Qt::green}.hue(),
+                                      int invalid     = QColor{Qt::red}.hue(),
+                                      int incomplete  = QColor{Qt::blue}.hue(),
+                                      int unconnected = QColor{Qt::yellow}.hue());
 
         private:
-          Utils::RangeHSV *m_HUERange; /** hue range object. */
+          /** \brief Helper method to evaluate if a list of connections is valid according to the current
+           * connection criteria.
+           * \param[in] connections List of segmentation connections.
+           *
+           */
+          const bool isValid(const ConnectionList &connections) const;
+
+          int         m_validHUE;       /** hue value for valid segmentations according to criteria.                */
+          int         m_invalidHUE;     /** hue value for invalid segmentations according to criteria.              */
+          int         m_incompleteHUE;  /** hue value for incomplete segmentations according to criteria.           */
+          int         m_unconnectedHUE; /** hue value for unconnected segmentations according to criteria.          */
+          QStringList m_criteria;       /** definition of valid connection using a list of segmentation categories. */
       };
     }
   }

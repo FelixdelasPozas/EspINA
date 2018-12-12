@@ -29,16 +29,12 @@ using namespace ESPINA::GUI::ColorEngines;
 
 //--------------------------------------------------------------------
 ConnectionsColorEngine::ConnectionsColorEngine()
-: ColorEngine{"ConnectionsColorEngine", tr("Colors segmentations according to its number of connections.")}
-, m_HUERange {new RangeHSV(0, 100)}
+: ColorEngine     {"ConnectionsColorEngine", tr("Colors segmentations according to a connection criteria.")}
+, m_validHUE      {QColor{Qt::green}.hue()}
+, m_invalidHUE    {QColor{Qt::red}.hue()}
+, m_incompleteHUE {QColor{Qt::blue}.hue()}
+, m_unconnectedHUE{QColor{Qt::yellow}.hue()}
 {
-  m_HUERange->setRangeToTruncatedHUERange(310);
-}
-
-//--------------------------------------------------------------------
-ConnectionsColorEngine::~ConnectionsColorEngine()
-{
-  delete m_HUERange;
 }
 
 //--------------------------------------------------------------------
@@ -47,7 +43,11 @@ QColor ConnectionsColorEngine::color(ConstSegmentationAdapterPtr segmentation)
   auto smartPtr    = segmentation->model()->smartPointer(const_cast<SegmentationAdapter *>(segmentation));
   auto connections = segmentation->model()->connections(smartPtr);
 
-  return m_HUERange->color(connections.size());
+  if(connections.isEmpty())                                           return QColor::fromHsv(m_unconnectedHUE, 255, 255);
+  if(connections.size() < m_criteria.size())                          return QColor::fromHsv(m_incompleteHUE, 255, 255);
+  if(connections.size() == m_criteria.size() && isValid(connections)) return QColor::fromHsv(m_validHUE, 255, 255);
+
+  return QColor::fromHsv(m_invalidHUE, 255, 255);
 }
 
 //--------------------------------------------------------------------
@@ -67,8 +67,48 @@ LUTSPtr ConnectionsColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
 }
 
 //--------------------------------------------------------------------
-void ConnectionsColorEngine::setRange(const unsigned int minimum, const unsigned int maximum)
+void ConnectionsColorEngine::setCriteriaInformation(const QStringList& criteria, int valid,
+                                                    int invalid, int incomplete, int unconnected)
 {
-  m_HUERange->setMinimumValue(minimum);
-  m_HUERange->setMaximumValue(maximum);
+  if(criteria != m_criteria || m_validHUE != valid || m_invalidHUE != invalid || m_incompleteHUE != incomplete || m_unconnectedHUE != unconnected)
+  {
+    m_criteria = criteria;
+    m_validHUE = valid;
+    m_invalidHUE = invalid;
+    m_incompleteHUE = incomplete;
+    m_unconnectedHUE = unconnected;
+
+    emit modified();
+  }
+}
+
+//--------------------------------------------------------------------
+const bool ConnectionsColorEngine::isValid(const ConnectionList &connections) const
+{
+  auto current = m_criteria;
+  for (auto connection : connections)
+  {
+    if (current.isEmpty()) return false;
+
+    auto category = connection.item2->category()->classificationName();
+    if (current.contains(category))
+    {
+      current.removeOne(category);
+    }
+    else
+    {
+      for (auto criteriaCategory : current)
+      {
+        if (category.startsWith(criteriaCategory, Qt::CaseInsensitive))
+        {
+          current.removeOne(criteriaCategory);
+          break;
+        }
+      }
+    }
+  }
+
+  if (current.isEmpty()) return true;
+
+  return false;
 }

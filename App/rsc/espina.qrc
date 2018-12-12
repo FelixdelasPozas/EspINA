@@ -151,5 +151,6 @@
     <file>log.svg</file>
     <file>clipboard_copy.svg</file>
     <file>connectionGradient.svg</file>
+    <file>weight-balance.svg</file>
   </qresource>
 </RCC>

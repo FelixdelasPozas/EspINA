@@ -24,6 +24,7 @@
 
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDialog>
@@ -51,7 +52,7 @@ namespace ESPINA
        * \param[in] parent Raw pointer of the widget parent of this one.
        *
        */
-      explicit ConnectionCriteriaDialog(const ModelAdapterSPtr model, const QStringList &criteria, QWidget *parent = nullptr);
+      explicit ConnectionCriteriaDialog(const ModelAdapterSPtr model, const QStringList &criteria, QWidget *parent = GUI::DefaultDialogs::defaultParentWidget());
 
       /** \brief ConnectionCriteriaDialog class virtual destructor.
        *
@@ -72,6 +73,56 @@ namespace ESPINA
        */
       static const QString criteriaToText(const QStringList &criteria, const ClassificationAdapterSPtr classification);
 
+      /** \brief Returns the hue value of the valid color.
+       *
+       */
+      const short validColor() const;
+
+      /** \brief Returns the hue value of the invalid color.
+       *
+       */
+      const short invalidColor() const;
+
+      /** \brief Returns the hue value of the unconnected color.
+       *
+       */
+      const short unconnectedColor() const;
+
+      /** \brief Returns the hue value of the incomplete color.
+       *
+       */
+      const short incompleteColor() const;
+
+      /** \brief Sets the valid color
+       * \param[in] hue Color hue value.
+       *
+       */
+      const void setValidColor(const short hue) const;
+
+      /** \brief Sets the invalid color
+       * \param[in] hue Color hue value.
+       *
+       */
+      const void setInvalidColor(const short hue) const;
+
+      /** \brief Sets the unconnected color
+       * \param[in] hue Color hue value.
+       *
+       */
+      const void setUnconnectedColor(const short hue) const;
+
+      /** \brief Sets the incomplete color
+       * \param[in] hue Color hue value.
+       *
+       */
+      const void setIncompleteColor(const short hue) const;
+
+      /** \brief Shows/hides the color group box.
+       * \param[in] enable True to show the group and false to hide it.
+       *
+       */
+      void showColors(const bool enable);
+
     protected:
       virtual void accept() override;
 
@@ -79,9 +130,16 @@ namespace ESPINA
       void onAddPressed();
       void onRemovePressed();
       void onClearPressed();
+      void onHueMoved(int);
       void updateGUI();
 
     private:
+      /** \brief Helper method to create additional dialog widgets.
+       * \param[in] model ModelAdapter object.
+       *
+       */
+      void createWidgets(const ModelAdapterSPtr model);
+
       /** \brief Returns true if the current criteria is ambiguous.
        *
        */

@@ -292,6 +292,7 @@ void ConnectionCountDialog::updateInvalidVisibility()
 void ConnectionCountDialog::onChangeButtonPressed()
 {
   ConnectionCriteriaDialog dialog{getModel(), m_criteria, this};
+  dialog.showColors(false);
 
   if((dialog.exec() == QDialog::Accepted) && (m_criteria != dialog.criteria()))
   {

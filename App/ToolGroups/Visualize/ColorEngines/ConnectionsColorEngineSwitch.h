@@ -23,6 +23,7 @@
 #define APP_TOOLGROUPS_VISUALIZE_COLORENGINES_CONNECTIONSCOLORENGINESWITCH_H_
 
 // ESPINA
+#include <GUI/Model/ModelAdapter.h>
 #include <Support/Widgets/ColorEngineSwitch.h>
 
 class QLabel;
@@ -34,6 +35,11 @@ namespace ESPINA
     namespace ColorEngines
     {
       class ConnectionsColorEngine;
+    }
+
+    namespace Widgets
+    {
+      class ToolButton;
     }
   }
 
@@ -56,32 +62,18 @@ namespace ESPINA
       /** \brief ConnectionsColorEngineSwitch class virtual destructor.
        *
        */
-      virtual ~ConnectionsColorEngineSwitch();
+      virtual ~ConnectionsColorEngineSwitch()
+      {}
 
       virtual void restoreSettings(std::shared_ptr<QSettings> settings);
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings);
 
     private slots:
-      /** \brief Helper method to enable/disable the tool.
+      /** \brief Shows the criteria dialog and changes the interface when the user modifies the criteria.
        *
        */
-      void onToolToggled(bool checked);
-
-      /** \brief Helper method to check for the returning value of the task and to inform the user of
-       * any failure.
-       */
-      void onTaskFinished();
-
-      /** \brief Helper method to update the maximum and minimum values of the coloring range.
-       *
-       */
-      void updateRange();
-
-      /** \brief Updates the range if checked, stores the need of updating otherwise.
-       *
-       */
-      void onRangeModified();
+      void onCriteriaButtonPressed(bool value);
 
     private:
       /** \brief Helper method to create the information widgets of the switch.
@@ -89,51 +81,14 @@ namespace ESPINA
        */
       void createWidgets();
 
-      /** \brief Aborts the currently running task.
-       *
-       */
-      void abortTask();
-
-      bool     m_needUpdate; /** true if the coloring maximum and minimum values needs to be updated.                 */
-      TaskSPtr m_task;       /** task to compute the maximum and minimum number of connections for all segmentations. */
-      QLabel  *m_minLabel;   /** label for minimum value.                                                             */
-      QLabel  *m_maxLabel;   /** label for minimum value.                                                             */
-  };
-
-  /** \class UpdateConnectionsRangeTask
-   * \brief Class for computing the minimum and maximum numerical value of the number of connections
-   *        in the current session.
-   */
-  class UpdateConnectionsRangeTask
-  : public Task
-  {
-      Q_OBJECT
-    public:
-      /** \brief UpdateConnectionsRangeTask class constructor.
-       * \param[in] segmentations group of segmentation for coloring.
-       * \param[in] engine Connections color engine pointer.
-       * \param[in] scheduler application task scheduler.
-       *
-       */
-       explicit UpdateConnectionsRangeTask(SegmentationAdapterSList                   segmentations,
-                                           GUI::ColorEngines::ConnectionsColorEngine *engine,
-                                           SchedulerSPtr                              scheduler);
-
-       /** \brief UpdateConnectionsRangeTask class virtual destructor.
-        *
-        */
-       ~UpdateConnectionsRangeTask()
-       {};
-
-    private:
-        virtual void run() override final;
-
-    private:
-        SegmentationAdapterSList                   m_segmentations; /** segmentations to color.   */
-        GUI::ColorEngines::ConnectionsColorEngine *m_engine;        /** connections color engine. */
+      GUI::Widgets::ToolButton *m_criteriaButton;  /** toolbutton for critera dialog.          */
+      QLabel                   *m_warning;         /** label to warn if the criteria is empty. */
+      QStringList               m_criteria;        /** connection criteria.                    */
+      int                       m_validHue;        /** valid color hue.                        */
+      int                       m_invalidHue;      /** invalid color hue.                      */
+      int                       m_incompleteHue;   /** incomplete color hue.                   */
+      int                       m_unconnectedHue;  /** unconnected color hue.                  */
   };
 }
-
-
 
 #endif // APP_TOOLGROUPS_VISUALIZE_COLORENGINES_CONNECTIONSCOLORENGINESWITCH_H_

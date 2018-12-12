@@ -47,6 +47,12 @@ namespace ESPINA
       void reserveInitialValue(bool value)
       { m_reserveInitialValue = value; }
 
+      /** \brief Returns the selected hue value.
+       *
+       */
+      const int hueValue() const
+      { return m_hue; }
+
     public slots:
       /** \brief Sets the hue to the given value and updates the UI.
        * \param[in] h, new hue value.

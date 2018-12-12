@@ -21,9 +21,12 @@
 
 // ESPINA
 #include <App/ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h>
+#include <App/Dialogs/ConnectionCount/ConnectionCriteriaDialog.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <GUI/View/ViewState.h>
 #include <GUI/ColorEngines/ConnectionsColorEngine.h>
 #include <GUI/Widgets/ColorBar.h>
+#include <GUI/Widgets/ToolButton.h>
 #include <GUI/Widgets/Styles.h>
 
 // Qt
@@ -36,182 +39,86 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::ColorEngines;
 
+const QString CRITERIA_SETTINGS_KEY          = QObject::tr("Connection criteria");
+const QString VALID_COLOR_SETTINGS_KEY       = QObject::tr("Valid color hue");
+const QString INVALID_COLOR_SETTINGS_KEY     = QObject::tr("Invalid color hue");
+const QString INCOMPLETE_COLOR_SETTINGS_KEY  = QObject::tr("Incomplete color hue");
+const QString UNCONNECTED_COLOR_SETTINGS_KEY = QObject::tr("Unconnected color hue");
+
+
 //--------------------------------------------------------------------
 ConnectionsColorEngineSwitch::ConnectionsColorEngineSwitch(Support::Context& context)
 : ColorEngineSwitch{std::make_shared<ConnectionsColorEngine>(), QIcon{":/espina/connectionGradient.svg"}, context}
-, m_needUpdate{true}
+, m_validHue       {QColor{Qt::green}.hue()}
+, m_invalidHue     {QColor{Qt::red}.hue()}
+, m_incompleteHue  {QColor{Qt::blue}.hue()}
+, m_unconnectedHue {QColor{Qt::yellow}.hue()}
 {
   createWidgets();
 
-  connect(this, SIGNAL(toggled(bool)),
-          this, SLOT(onToolToggled(bool)));
-}
-
-//--------------------------------------------------------------------
-ConnectionsColorEngineSwitch::~ConnectionsColorEngineSwitch()
-{
-  if(isChecked()) onToolToggled(false);
-
-  abortTask();
 }
 
 //--------------------------------------------------------------------
 void ConnectionsColorEngineSwitch::restoreSettings(std::shared_ptr<QSettings> settings)
 {
   restoreCheckedState(settings);
+
+  m_criteria       = settings->value(CRITERIA_SETTINGS_KEY, QStringList()).toStringList();
+  m_validHue       = settings->value(VALID_COLOR_SETTINGS_KEY,       QColor{Qt::green}.hue()).toInt();
+  m_invalidHue     = settings->value(INVALID_COLOR_SETTINGS_KEY,     QColor{Qt::red}.hue()).toInt();
+  m_incompleteHue  = settings->value(INCOMPLETE_COLOR_SETTINGS_KEY,  QColor{Qt::blue}.hue()).toInt();
+  m_unconnectedHue = settings->value(UNCONNECTED_COLOR_SETTINGS_KEY, QColor{Qt::yellow}.hue()).toInt();
+
+  m_warning->setVisible(m_criteria.isEmpty());
 }
 
 //--------------------------------------------------------------------
 void ConnectionsColorEngineSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
   saveCheckedState(settings);
-}
 
-//--------------------------------------------------------------------
-void ConnectionsColorEngineSwitch::onToolToggled(bool checked)
-{
-  if (checked)
-  {
-    updateRange();
-
-    connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
-            this,             SLOT(onRangeModified()));
-
-    connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
-            this,             SLOT(onRangeModified()));
-  }
-  else
-  {
-    disconnect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
-               this,             SLOT(onRangeModified()));
-
-    disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
-               this,             SLOT(onRangeModified()));
-  }
-}
-
-//--------------------------------------------------------------------
-void ConnectionsColorEngineSwitch::onTaskFinished()
-{
-  auto task = qobject_cast<UpdateConnectionsRangeTask *>(sender());
-
-  auto engine = std::dynamic_pointer_cast<ConnectionsColorEngine>(colorEngine());
-  if(engine && engine->colorRange())
-  {
-    auto min = QString::number(static_cast<int>(engine->colorRange()->minimumValue()));
-    auto max = QString::number(static_cast<int>(engine->colorRange()->maximumValue()));
-    m_minLabel->setText(min);
-    m_maxLabel->setText(max);
-  }
-
-  if(m_task.get() == task)
-  {
-    m_task = nullptr;
-  }
-}
-
-//--------------------------------------------------------------------
-void ConnectionsColorEngineSwitch::onRangeModified()
-{
-  m_needUpdate = true;
-
-  if(isChecked()) updateRange();
+  settings->setValue(CRITERIA_SETTINGS_KEY, m_criteria);
+  settings->setValue(VALID_COLOR_SETTINGS_KEY, m_validHue);
+  settings->setValue(INVALID_COLOR_SETTINGS_KEY, m_invalidHue);
+  settings->setValue(INCOMPLETE_COLOR_SETTINGS_KEY, m_incompleteHue);
+  settings->setValue(UNCONNECTED_COLOR_SETTINGS_KEY, m_unconnectedHue);
 }
 
 //--------------------------------------------------------------------
 void ConnectionsColorEngineSwitch::createWidgets()
 {
+  m_criteriaButton = Styles::createToolButton(QIcon(":/espina/weight-balance.svg"), tr("Connection criteria..."));
+  connect(m_criteriaButton, SIGNAL(clicked(bool)), this, SLOT(onCriteriaButtonPressed(bool)));
+  m_criteriaButton->setCheckable(false);
+
+  addSettingsWidget(m_criteriaButton);
+
+  m_warning = new QLabel{tr("<font color=\"Red\"><b>No criteria</b></font>")};
+
+  addSettingsWidget(m_warning);
+}
+
+//--------------------------------------------------------------------
+void ConnectionsColorEngineSwitch::onCriteriaButtonPressed(bool value)
+{
   auto engine = std::dynamic_pointer_cast<ConnectionsColorEngine>(colorEngine());
-  if(engine)
+
+  ConnectionCriteriaDialog dialog{getModel(), m_criteria};
+  dialog.setValidColor(m_validHue);
+  dialog.setInvalidColor(m_invalidHue);
+  dialog.setIncompleteColor(m_incompleteHue);
+  dialog.setUnconnectedColor(m_unconnectedHue);
+
+  if (dialog.exec() == QDialog::Accepted)
   {
-    m_minLabel = new QLabel{"?"};
-    addSettingsWidget(m_minLabel);
+    m_criteria = dialog.criteria();
+    m_validHue = dialog.validColor();
+    m_invalidHue = dialog.invalidColor();
+    m_incompleteHue = dialog.incompleteColor();
+    m_unconnectedHue = dialog.unconnectedColor();
 
-    auto colorBar = new ColorBar(engine->colorRange());
-    Styles::setBarStyle(colorBar);
-    addSettingsWidget(colorBar);
+    engine->setCriteriaInformation(m_criteria, m_validHue, m_invalidHue, m_incompleteHue, m_unconnectedHue);
 
-    m_maxLabel = new QLabel{"?"};
-    addSettingsWidget(m_maxLabel);
-  }
-}
-
-//--------------------------------------------------------------------
-void ConnectionsColorEngineSwitch::abortTask()
-{
-  if(m_task != nullptr)
-  {
-    disconnect(m_task.get(), SIGNAL(finished()), this, SLOT(onTaskFinished()));
-
-    m_task->abort();
-
-    if(!m_task->thread()->wait(100))
-    {
-      m_task->thread()->terminate();
-    }
-
-    m_task = nullptr;
-  }
-}
-
-//--------------------------------------------------------------------
-void ConnectionsColorEngineSwitch::updateRange()
-{
-  if(m_needUpdate)
-  {
-    m_needUpdate = false;
-
-    if (m_task && m_task->isRunning())
-    {
-      m_task->abort();
-    }
-
-    auto engine = std::dynamic_pointer_cast<ConnectionsColorEngine>(colorEngine());
-
-    m_task = std::make_shared<UpdateConnectionsRangeTask>(getModel()->segmentations(), engine.get(), getScheduler());
-    showTaskProgress(m_task);
-
-    connect(m_task.get(), SIGNAL(finished()), this, SLOT(onTaskFinished()));
-
-    Task::submit(m_task);
-  }
-}
-
-//--------------------------------------------------------------------
-UpdateConnectionsRangeTask::UpdateConnectionsRangeTask(SegmentationAdapterSList segmentations,
-                                                       GUI::ColorEngines::ConnectionsColorEngine *engine,
-                                                       SchedulerSPtr scheduler)
-: Task           {scheduler}
-, m_segmentations{segmentations}
-, m_engine       {engine}
-{
-}
-
-//--------------------------------------------------------------------
-void UpdateConnectionsRangeTask::run()
-{
-  unsigned int min   = std::numeric_limits<unsigned int>::max();
-  unsigned int max   = std::numeric_limits<unsigned int>::min();
-  unsigned int i     = 0;
-  unsigned int total = m_segmentations.size();
-
-  for(auto segmentation : m_segmentations)
-  {
-    if (!canExecute()) return;
-
-    auto model = segmentation->model();
-    auto connections = model->connections(segmentation);
-    unsigned int number = connections.size();
-
-    min = std::min(min, number);
-    max = std::max(max, number);
-
-    auto progress = static_cast<double>(i++)/total*100;
-    reportProgress(progress);
-  }
-
-  if(canExecute() && !isAborted())
-  {
-    m_engine->setRange(min, max);
+    m_warning->setVisible(m_criteria.isEmpty());
   }
 }
