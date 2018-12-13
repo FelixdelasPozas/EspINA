@@ -245,9 +245,9 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
   }
 
   {
-    QMutexLocker lock(&s_skeletonMutex);
-
     auto stroke = currentStroke();
+
+    QMutexLocker lock(&s_skeletonMutex);
 
     worldPos[normalCoordinateIndex(m_orientation)] = m_slice;
     auto node = new SkeletonNode{worldPos};
@@ -1073,6 +1073,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
 void vtkSkeletonWidgetRepresentation::UpdatePointer()
 {
   auto idx = normalCoordinateIndex(m_orientation);
+  auto stroke = currentStroke();
 
   QMutexLocker lock(&s_skeletonMutex);
 
@@ -1091,7 +1092,7 @@ void vtkSkeletonWidgetRepresentation::UpdatePointer()
     m_pointer->Update();
     m_pointerActor->GetMapper()->Update();
 
-    auto color = QColor::fromHsv(currentStroke().colorHue, 255,255);
+    auto color = QColor::fromHsv(stroke.colorHue, 255,255);
     m_pointerActor->GetProperty()->SetColor(1 - color.redF()/2., 1 - color.greenF()/2., 1 - color.blueF()/2.);
     m_pointerActor->VisibilityOn();
   }
@@ -1504,7 +1505,8 @@ double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(const int X, 
 
   auto result = Core::closestDistanceAndNode(point_pos, s_skeleton.nodes, node_i, node_j, worldPos);
 
-  // NOTE: the Core:: util method returns the sqrt, that is, the real distance, but we're using the square of that in all of our computations in the widget.
+  // NOTE: the Core:: util method returns the sqrt, that is, the real distance, but we're using the square of that in all of our
+  // computations in the widget to avoid the square root operation.
   return result * result;
 }
 
@@ -2028,9 +2030,15 @@ const Core::PathList vtkSkeletonWidgetRepresentation::currentSelectedPaths(const
 //--------------------------------------------------------------------
 Core::SkeletonStroke vtkSkeletonWidgetRepresentation::currentStroke() const
 {
-  Q_ASSERT(m_currentStrokeIndex >= 0 && !s_skeleton.strokes.isEmpty());
+  Core::SkeletonStroke result;
 
-  return s_skeleton.strokes.at(m_currentStrokeIndex);
+  QMutexLocker lock(&s_skeletonMutex);
+  if(m_currentStrokeIndex >= 0 && !s_skeleton.strokes.isEmpty() && m_currentStrokeIndex < s_skeleton.strokes.size())
+  {
+    result = s_skeleton.strokes.at(m_currentStrokeIndex);
+  }
+
+  return result;
 }
 
 //--------------------------------------------------------------------

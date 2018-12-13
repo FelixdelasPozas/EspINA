@@ -638,21 +638,23 @@ void SkeletonWidget2D::initializeVisualCues()
 {
   auto property = vtkSmartPointer<vtkTextProperty>::New();
   property->SetFontFamilyToArial();
-  property->SetFontSize(7);
-  property->SetColor(0,1,0);
+  property->SetFontSize(20);
+  property->SetColor(1,1,1);
   property->SetBold(true);
-  property->SetShadow(false);
+  property->SetShadow(true);
+  property->SetShadowOffset(3,-3);
   property->SetBackgroundColor(0,0,0);
   property->SetBackgroundOpacity(0.5);
   property->SetOpacity(0);
 
   m_successActor = vtkSmartPointer<vtkTextActor>::New();
-  m_successActor->SetTextScaleModeToViewport();
+  m_successActor->SetTextScaleModeToNone();
   m_successActor->SetLayerNumber(0);
   m_successActor->SetPickable(false);
   m_successActor->SetDisplayPosition(10,10);
-  m_successActor->SetInput("");
+  m_successActor->SetInput("Successfully modified");
   m_successActor->SetTextProperty(property);
+  m_successActor->SetVisibility(false);
 
   m_view->addActor(m_successActor);
 }
@@ -666,13 +668,15 @@ void SkeletonWidget2D::updateCues()
 
     if(opacity > 0)
     {
+      auto time = opacity == 1 ? 1000 : 100;
       opacity = std::max(opacity - 0.05, 0.);
       m_successActor->GetTextProperty()->SetOpacity(opacity);
       m_successActor->GetTextProperty()->SetBackgroundOpacity(opacity/2.);
       m_successActor->GetTextProperty()->Modified();
+      m_successActor->SetVisibility(true);
       m_successActor->Modified();
 
-      QTimer::singleShot(100, this, SLOT(updateCues()));
+      QTimer::singleShot(time, this, SLOT(updateCues()));
       m_view->refresh();
     }
   }
