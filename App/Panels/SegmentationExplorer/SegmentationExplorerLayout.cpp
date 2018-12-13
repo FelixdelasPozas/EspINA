@@ -111,12 +111,6 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
 }
 
 //------------------------------------------------------------------------
-SegmentationExplorer::Layout::~Layout()
-{
-  reset();
-}
-
-//------------------------------------------------------------------------
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
 {
   if(!segmentations.empty())
@@ -216,8 +210,8 @@ void SegmentationExplorer::Layout::reset()
 {
   for(auto key: m_inspectors.keys())
   {
-    m_inspectors[key]->close();
-    m_inspectors.remove(key);
+    auto dialog = m_inspectors[key];
+    if(dialog) dialog->close();
   }
 }
 

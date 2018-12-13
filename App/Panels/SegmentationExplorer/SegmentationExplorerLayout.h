@@ -79,7 +79,8 @@ namespace ESPINA
       /** \brief Layout class virtual destructor.
        *
        */
-      virtual ~Layout();
+      virtual ~Layout()
+      {};
 
       /** \brief Creates specific GUI controls for the layout.
        *
