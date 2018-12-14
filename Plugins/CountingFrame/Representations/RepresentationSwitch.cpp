@@ -56,7 +56,10 @@ void CF::CFRepresentationSwitch::saveSettings(std::shared_ptr<QSettings> setting
   saveCheckedState(settings);
 
   auto manager = std::dynamic_pointer_cast<RepresentationManager3D>(this->m_manager);
-  settings->setValue(OPACITY_KEY, manager->opacity());
+  if(manager)
+  {
+    settings->setValue(OPACITY_KEY, manager->opacity());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -73,8 +76,6 @@ void CF::CFRepresentationSwitch::onOpacityChanged(int value)
 //------------------------------------------------------------------------
 void CF::CFRepresentationSwitch::initWidget()
 {
-  auto manager = std::dynamic_pointer_cast<CF::RepresentationManager3D>(m_manager);
-
   m_opacityWidget = new GUI::Widgets::NumericalInput();
   m_opacityWidget->setLabelText(tr("Opacity"));
   m_opacityWidget->setMinimum(0);

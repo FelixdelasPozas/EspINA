@@ -1141,16 +1141,13 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
 
           if(key == node)
           {
-            if(node->connections.keys().contains(otherNode))
-            {
-              node->connections.remove(otherNode);
-            }
+            if(node->connections.keys().contains(otherNode)) node->connections.remove(otherNode);
           }
           else
           {
-            node->connections.insert(key, otherNode->connections[key]);
-            key->connections.insert(node, key->connections[otherNode]);
-            key->connections.remove(otherNode);
+            if(!node->connections.contains(key)) node->connections.insert(key, otherNode->connections[key]);
+            if(!key->connections.contains(node)) key->connections.insert(node, key->connections[otherNode]);
+            if(key->connections.contains(otherNode)) key->connections.remove(otherNode);
           }
         }
 

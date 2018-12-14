@@ -52,7 +52,7 @@ void ColorEngineSwitch::initWidgets()
   opacity->setMinimum(0);
   opacity->setMaximum(100);
   opacity->setSliderTracking(false);
-  opacity->setValue(m_engine->exlcusionOpacity()*100);
+  opacity->setValue(m_engine->exclusionOpacity()*100);
   opacity->setSpinBoxVisibility(false);
   opacity->setToolTip(tr("Colored representation's opacity."));
 
@@ -76,7 +76,7 @@ void ColorEngineSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
   saveCheckedState(settings);
 
-  settings->setValue(OPACITY_KEY, m_engine->exlcusionOpacity());
+  settings->setValue(OPACITY_KEY, m_engine->exclusionOpacity());
 }
 
 //-----------------------------------------------------------------------------

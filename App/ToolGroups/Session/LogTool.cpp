@@ -166,7 +166,7 @@ void LogTool::updateToolStatus()
 }
 
 //--------------------------------------------------------------------
-void ESPINA::LogTool::onDialogDestroyed()
+void LogTool::onDialogDestroyed()
 {
   m_dialog = nullptr;
   if(isChecked()) setChecked(false);

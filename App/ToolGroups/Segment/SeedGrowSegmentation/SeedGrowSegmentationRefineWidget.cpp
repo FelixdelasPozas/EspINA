@@ -36,11 +36,6 @@ using namespace ESPINA::GUI::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations::Managers;
 
-// BEGIN DEBUG Only
-bool SeedGrowSegmentationRefineWidget::s_exists = false;
-QMutex SeedGrowSegmentationRefineWidget::s_mutex;
-// END DEBUG Only
-
 // TODO: 26-11-2015 @felix - Would be interesting to add "TouchesROI" to the data shown on the widget,
 // but requires recalculation after loading from disk or storing the value on the SEG with the rest of
 // the filter data.
@@ -166,11 +161,6 @@ SeedGrowSegmentationRefineWidget::SeedGrowSegmentationRefineWidget(SegmentationA
 , m_gui         {new Ui::SeedGrowSegmentationRefineWidget()}
 , m_filter      {std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(segmentation->filter())}
 {
-  s_mutex.lock();
-  Q_ASSERT(!s_exists);
-  s_exists = true;
-  s_mutex.unlock();
-
   m_gui->setupUi(this);
 
   auto toolbar = new QToolBar(m_gui->roiFrame);
@@ -252,11 +242,6 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
       modifyFilter();
     }
   }
-
-  s_mutex.lock();
-  Q_ASSERT(s_exists);
-  s_exists = false;
-  s_mutex.unlock();
 
   getContext().viewState().removeTemporalRepresentations(m_seedPrototypes);
 

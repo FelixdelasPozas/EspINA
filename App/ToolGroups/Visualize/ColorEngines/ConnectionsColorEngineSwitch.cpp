@@ -63,7 +63,7 @@ void ConnectionsColorEngineSwitch::restoreSettings(std::shared_ptr<QSettings> se
 {
   restoreCheckedState(settings);
 
-  m_criteria       = settings->value(CRITERIA_SETTINGS_KEY, QStringList()).toStringList();
+  m_criteria       = settings->value(CRITERIA_SETTINGS_KEY,          QStringList()).toStringList();
   m_validHue       = settings->value(VALID_COLOR_SETTINGS_KEY,       QColor{Qt::green}.hue()).toInt();
   m_invalidHue     = settings->value(INVALID_COLOR_SETTINGS_KEY,     QColor{Qt::red}.hue()).toInt();
   m_incompleteHue  = settings->value(INCOMPLETE_COLOR_SETTINGS_KEY,  QColor{Qt::blue}.hue()).toInt();
@@ -77,10 +77,10 @@ void ConnectionsColorEngineSwitch::saveSettings(std::shared_ptr<QSettings> setti
 {
   saveCheckedState(settings);
 
-  settings->setValue(CRITERIA_SETTINGS_KEY, m_criteria);
-  settings->setValue(VALID_COLOR_SETTINGS_KEY, m_validHue);
-  settings->setValue(INVALID_COLOR_SETTINGS_KEY, m_invalidHue);
-  settings->setValue(INCOMPLETE_COLOR_SETTINGS_KEY, m_incompleteHue);
+  settings->setValue(CRITERIA_SETTINGS_KEY,          m_criteria);
+  settings->setValue(VALID_COLOR_SETTINGS_KEY,       m_validHue);
+  settings->setValue(INVALID_COLOR_SETTINGS_KEY,     m_invalidHue);
+  settings->setValue(INCOMPLETE_COLOR_SETTINGS_KEY,  m_incompleteHue);
   settings->setValue(UNCONNECTED_COLOR_SETTINGS_KEY, m_unconnectedHue);
 }
 
