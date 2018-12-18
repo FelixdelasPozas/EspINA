@@ -55,6 +55,7 @@
 #include <vtkGlyphSource2D.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkTransform.h>
+#include <vtkFreeTypeLabelRenderStrategy.h>
 
 // Qt
 #include <QMutexLocker>
@@ -200,6 +201,7 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_labelProperty = vtkSmartPointer<vtkTextProperty>::New();
   m_labelProperty->SetBold(true);
   m_labelProperty->SetFontFamilyToArial();
+  m_labelProperty->SetShadow(false);
   m_labelProperty->SetFontSize(m_labelSize);
   m_labelProperty->SetJustificationToCentered();
   m_labelProperty->SetVerticalJustificationToCentered();
@@ -208,17 +210,24 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
   m_labelFilter->SetInputData(m_labelData);
   m_labelFilter->SetLabelArrayName("Labels");
-  m_labelFilter->SetTextProperty(m_labelProperty);
+  m_labelFilter->GetTextProperty()->SetFontSize(m_labelSize);
+  m_labelFilter->GetTextProperty()->SetBold(true);
+
+  auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
+  strategy->SetDefaultTextProperty(m_labelProperty);
 
   m_labelPlacer = vtkSmartPointer<vtkLabelPlacementMapper>::New();
   m_labelPlacer->SetInputConnection(m_labelFilter->GetOutputPort());
   m_labelPlacer->SetPlaceAllLabels(true);
-  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF()*0.6, m_labelColor.blueF()*0.6);
-  m_labelPlacer->SetBackgroundOpacity(0.5);
   m_labelPlacer->SetShapeToRoundedRect();
   m_labelPlacer->SetMaximumLabelFraction(0.9);
   m_labelPlacer->SetUseDepthBuffer(false);
   m_labelPlacer->SetStyleToFilled();
+  m_labelPlacer->SetRenderStrategy(strategy);
+  m_labelPlacer->SetGeneratePerturbedLabelSpokes(false);
+  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF()*0.6, m_labelColor.blueF()*0.6);
+  m_labelPlacer->SetBackgroundOpacity(0.5);
+  m_labelPlacer->SetMargin(3);
 
   m_labelActor = vtkSmartPointer<vtkActor2D>::New();
   m_labelActor->SetMapper(m_labelPlacer);
@@ -1055,9 +1064,10 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_labels->Modified();
   m_labelData->Modified();
   m_labelFilter->Update();
-  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF() * 0.6, m_labelColor.blueF() * 0.6);
   m_labelPlacer->SetUpdateExtentToWholeExtent();
   m_labelPlacer->RemoveAllClippingPlanes();
+  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF() * 0.6, m_labelColor.blueF() * 0.6);
+  m_labelPlacer->SetBackgroundOpacity(0.5);
   m_labelPlacer->Update();
   m_labelActor->SetVisibility(m_showLabels);
   m_labelActor->Modified();
@@ -1856,6 +1866,7 @@ void vtkSkeletonWidgetRepresentation::setLabelsColor(const QColor& color)
     m_labelColor = color;
 
     m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF()*0.6, m_labelColor.blueF()*0.6);
+    m_labelPlacer->SetBackgroundOpacity(0.5);
     m_labelPlacer->Update();
     m_labelActor->Modified();
 
@@ -1870,9 +1881,10 @@ void vtkSkeletonWidgetRepresentation::setLabelsSize(unsigned int size)
   {
     m_labelSize = size;
 
-    m_labelProperty->SetLineOffset(m_labelSize);
     m_labelProperty->SetFontSize(m_labelSize);
     m_labelProperty->Modified();
+    m_labelFilter->GetTextProperty()->SetFontSize(m_labelSize);
+    m_labelFilter->GetTextProperty()->Modified();
     m_labelFilter->Update();
     m_labelPlacer->Update();
     m_labelActor->Modified();

@@ -47,6 +47,7 @@
 #include <vtkGlyph3DMapper.h>
 #include <vtkGlyphSource2D.h>
 #include <vtkFollower.h>
+#include <vtkFreeTypeLabelRenderStrategy.h>
 
 // Qt
 #include <QDebug>
@@ -270,31 +271,43 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     labelsData->SetPoints(labelPoints);
     labelsData->GetPointData()->AddArray(labelText);
 
+    auto textSize =  SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
+
     auto property = vtkSmartPointer<vtkTextProperty>::New();
     property->SetBold(true);
     property->SetFontFamilyToArial();
-    property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
+    property->SetFontSize(textSize);
     property->SetJustificationToCentered();
+    property->SetVerticalJustificationToCentered();
+    property->Modified();
 
     auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
     labelFilter->SetInputData(labelsData);
     labelFilter->SetLabelArrayName("Labels");
-    labelFilter->SetTextProperty(property);
+    labelFilter->GetTextProperty()->SetFontSize(textSize);
+    labelFilter->GetTextProperty()->SetBold(true);
     labelFilter->Update();
+
+    auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
+    strategy->SetDefaultTextProperty(property);
 
     auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
     labelMapper->SetInputConnection(labelFilter->GetOutputPort());
-    labelMapper->SetGeneratePerturbedLabelSpokes(true);
-    labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
-    labelMapper->SetBackgroundOpacity(0.5);
+    labelMapper->SetGeneratePerturbedLabelSpokes(false);
     labelMapper->SetPlaceAllLabels(true);
-    labelMapper->SetMaximumLabelFraction(1);
+    labelMapper->SetMaximumLabelFraction(0.9);
     labelMapper->SetUseDepthBuffer(false);
     labelMapper->SetShapeToRoundedRect();
     labelMapper->SetStyleToFilled();
+    labelMapper->SetRenderStrategy(strategy);
+    labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+    labelMapper->SetBackgroundOpacity(0.5);
+    labelMapper->SetMargin(5);
 
     auto labelActor = vtkSmartPointer<vtkActor2D>::New();
     labelActor->SetMapper(labelMapper);
+    labelActor->SetPickable(false);
+    labelActor->SetDragable(false);
     labelActor->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
 
     actors << labelActor;

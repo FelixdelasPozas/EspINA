@@ -25,7 +25,6 @@
 #include <GUI/EspinaGUI_Export.h>
 
 // ESPINA
-#include <GUI/Utils/ColorRange.h>
 #include <GUI/ColorEngines/ColorEngine.h>
 
 namespace ESPINA

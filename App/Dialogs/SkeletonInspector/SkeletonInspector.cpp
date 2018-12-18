@@ -65,6 +65,7 @@
 #include <vtkGlyph3DMapper.h>
 #include <vtkTransform.h>
 #include <vtkFollower.h>
+#include <vtkFreeTypeLabelRenderStrategy.h>
 
 // Qt
 #include <QToolBar>
@@ -766,22 +767,29 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     labelsData->SetPoints(labelPoints);
     labelsData->GetPointData()->AddArray(labelText);
 
+    auto textSize = SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
+
     auto property = vtkSmartPointer<vtkTextProperty>::New();
     property->SetBold(true);
     property->SetFontFamilyToArial();
-    property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
+    property->SetFontSize(textSize);
     property->SetJustificationToCentered();
 
     auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
     labelFilter->SetInputData(labelsData);
     labelFilter->SetLabelArrayName("Labels");
-    labelFilter->SetTextProperty(property);
+    labelFilter->GetTextProperty()->SetFontSize(textSize);
+    labelFilter->GetTextProperty()->SetBold(true);
     labelFilter->Update();
+
+    auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
+    strategy->SetDefaultTextProperty(property);
 
     auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
     labelMapper->SetInputConnection(labelFilter->GetOutputPort());
     labelMapper->SetGeneratePerturbedLabelSpokes(true);
     labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+    labelMapper->SetBackgroundOpacity(0.5);
     labelMapper->SetPlaceAllLabels(true);
     labelMapper->SetShapeToRoundedRect();
     labelMapper->SetStyleToFilled();

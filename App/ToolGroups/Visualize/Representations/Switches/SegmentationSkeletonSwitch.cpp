@@ -20,6 +20,7 @@
  */
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
 #include <GUI/Representations/Settings/PipelineStateUtils.h>
 #include <GUI/Widgets/Styles.h>
@@ -120,9 +121,10 @@ void SegmentationSkeletonSwitch::onSettingsModified()
   m_annotationsTextWidget->setValue(m_settings->annotationsSize());
   m_annotationsTextWidget->setVisible(m_settings->showAnnotations());
 
-  auto items = m_manager->pools().first()->sources();
+  ViewItemAdapterList validItems;
+  for(auto item: m_manager->pools().first()->sources()) if(hasSkeletonData(item->output())) validItems << item;
 
-  invalidateRepresentations(items);
+  invalidateRepresentations(validItems);
 }
 
 //---------------------------------------------------------------------
