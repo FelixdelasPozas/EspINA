@@ -88,6 +88,12 @@ namespace ESPINA
        */
       void updateList();
 
+      /** \brief Updates the selection on the dialog when the application selection changes.
+       * \param[in] segmentations Selected segmentations.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
+
     private:
       /** \brief Helper method to connect the signals to the slots.
        *

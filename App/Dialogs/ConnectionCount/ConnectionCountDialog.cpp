@@ -94,8 +94,9 @@ void ConnectionCountDialog::connectSignals()
     connect(list, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(onItemClicked(QListWidgetItem *)));
   }
 
-  connect(getModel().get(), SIGNAL(segmentationsAdded(ViewItemAdapterSList)), this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
-  connect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)), this, SLOT(updateList()));
+  connect(getModel().get(),     SIGNAL(segmentationsAdded(ViewItemAdapterSList)),   this, SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
+  connect(getModel().get(),     SIGNAL(segmentationsRemoved(ViewItemAdapterSList)), this, SLOT(updateList()));
+  connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),  this, SLOT(onSelectionChanged(SegmentationAdapterList)));
 
   for(auto segmentation: getModel()->segmentations())
   {
@@ -336,4 +337,34 @@ void ConnectionCountDialog::updateCriteriaLabel()
   text.replace("<br>", ", ");
 
   m_criteriaLabel->setText(text);
+}
+
+//--------------------------------------------------------------------
+void ConnectionCountDialog::onSelectionChanged(SegmentationAdapterList segmentations)
+{
+  m_fullList->selectionModel()->clearSelection();
+  m_halfList->selectionModel()->clearSelection();
+  m_invalidList->selectionModel()->clearSelection();
+  m_noneList->selectionModel()->clearSelection();
+
+  if(segmentations.size() == 1)
+  {
+    auto segmentation = segmentations.first();
+    if(segmentation->category()->classificationName().startsWith("Synapse", Qt::CaseInsensitive))
+    {
+      for(auto list: {m_noneList, m_invalidList, m_halfList, m_fullList})
+      {
+        for(auto i = 0; i < list->count(); ++i)
+        {
+          auto item = list->item(i);
+          if(item->data(Qt::DisplayRole).toString() == segmentation->data(Qt::DisplayRole).toString())
+          {
+            list->setCurrentRow(i, QItemSelectionModel::Select);
+            list->scrollToItem(item, QAbstractItemView::EnsureVisible);
+            return;
+          }
+        }
+      }
+    }
+  }
 }
