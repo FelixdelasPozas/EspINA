@@ -772,8 +772,8 @@ void InformationColorEngineWidgetRepresentationImplementation::updateActors()
       auto increment = (max-min)/256.;
 
       m_lut->SetTableRange(min, max);
-      int j = 0;
-      for(double i = min; i <= max; i += increment, ++j)
+      double i = min;
+      for(int j = 0; j < 256; ++j, i += increment)
       {
         auto color = m_properties.colors->color(i);
         m_lut->SetTableValue(j, color.redF(), color.greenF(), color.blueF());
