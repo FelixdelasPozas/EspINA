@@ -29,6 +29,8 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 
+const QList<QVariant::Type> NUMERICAL_TYPES = { QVariant::Int, QVariant::UInt, QVariant::LongLong, QVariant::ULongLong, QVariant::Double, QVariant::Bool };
+
 //-----------------------------------------------------------------------------
 InformationColorEngine::InformationColorEngine()
 : ColorEngine("PropertyColorEngine", tr("Color by a property value."))
@@ -56,6 +58,19 @@ void InformationColorEngine::setInformation(const SegmentationExtension::Informa
 }
 
 //-----------------------------------------------------------------------------
+void InformationColorEngine::setInformation(const Core::SegmentationExtension::InformationKey& key, const QStringList categories)
+{
+  m_key = key;
+
+  m_categories = categories;
+  m_colorRange->setMinimumValue(0);
+  m_colorRange->setMaximumValue(m_categories.size()-1);
+
+  emit modified();
+}
+
+
+//-----------------------------------------------------------------------------
 QColor InformationColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
   Q_ASSERT(segmentation);
@@ -70,9 +85,25 @@ QColor InformationColorEngine::color(ConstSegmentationAdapterPtr segmentation)
     {
       auto info = extensions->information(m_key);
 
-      if (info.isValid() && info.canConvert<double>())
+      if (info.isValid())
       {
-        color = m_colorRange->color(info.toDouble());
+        if(NUMERICAL_TYPES.contains(info.type()))
+        {
+          color = m_colorRange->color(info.toDouble());
+        }
+        else
+        {
+          if(info.type() == QVariant::String || info.canConvert<QString>())
+          {
+            auto category = info.toString();
+            if(m_categories.contains(category))
+            {
+              auto pos = m_categories.indexOf(category);
+
+              color = m_colorRange->color(pos);
+            }
+          }
+        }
       }
     }
   }

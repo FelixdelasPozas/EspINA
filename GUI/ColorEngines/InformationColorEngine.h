@@ -51,13 +51,20 @@ namespace ESPINA
            */
           virtual ~InformationColorEngine();
 
-          /** \brief Sets the information key and range values.
+          /** \brief Sets the information key and range values for numerical data.
            * \param[in] key extension information key.
            * \param[in] min minimum value.
            * \param[in] max maximum value.
            *
            */
           void setInformation(const Core::SegmentationExtension::InformationKey &key, double min, double max);
+
+          /** \brief Sets the information key and categories for categorical data.
+           * \param[in] key extension information key.
+           * \param[in] categories Obtained categories from data.
+           *
+           */
+          void setInformation(const Core::SegmentationExtension::InformationKey &key, const QStringList categories);
 
           /** \brief Sets the extension using to color the segmentations, optional.
            * \param[in] extension Segmentation extension object.
@@ -85,6 +92,11 @@ namespace ESPINA
           Utils::RangeHSV *colorRange() const
           { return m_colorRange; }
 
+          /** \brief Returns the list of categories for categorical data.
+           *
+           */
+          const QStringList categories() const;
+
           virtual ColorEngineSPtr clone()
           { return std::make_shared<InformationColorEngine>(); }
 
@@ -93,6 +105,7 @@ namespace ESPINA
           Utils::RangeHSV                            *m_colorRange; /** used color range.                         */
           QMap<QColor, LUTSPtr>                       m_luts;       /** color-lookuptable map.                    */
           Core::SegmentationExtensionSPtr             m_extension;  /** segmentation extension.                   */
+          QStringList                                 m_categories; /** possible categories for categorical data. */
       };
     }
   }

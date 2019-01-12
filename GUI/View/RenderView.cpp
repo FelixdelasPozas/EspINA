@@ -32,7 +32,7 @@
 #include <GUI/Representations/Frame.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
-#include <GUI/Dialogs/ImageResolutionDialog.h>
+#include <GUI/Dialogs/ImageResolutionDialog/ImageResolutionDialog.h>
 
 // VTK
 #include <vtkMath.h>
@@ -807,6 +807,14 @@ void RenderView::keyPressEvent(QKeyEvent* event)
 void RenderView::keyReleaseEvent(QKeyEvent* event)
 {
   if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::resizeEvent(QResizeEvent *event)
+{
+  QWidget::resizeEvent(event);
+
+  emit viewResized(size());
 }
 
 //-----------------------------------------------------------------------------

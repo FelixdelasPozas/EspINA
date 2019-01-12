@@ -134,7 +134,7 @@ double RangeHSV::adjustRange(const double value,
                              const double minValue,
                              const double maxValue) const
 {
-  return qMax(minValue, qMin(value, maxValue));
+  return std::max(minValue, std::min(value, maxValue));
 }
 
 //-----------------------------------------------------------------------------

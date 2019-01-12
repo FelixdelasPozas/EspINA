@@ -84,7 +84,7 @@ void HueSelector::setVal(int v)
 {
   if (m_hue == v) return;
 
-  m_hue = qMax(0, qMin(v, m_reserveInitialValue ? 360 : 359));
+  m_hue = std::max(0, std::min(v, m_reserveInitialValue ? 360 : 359));
   delete m_pix;
   m_pix = 0;
   repaint();

@@ -12,7 +12,9 @@ qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
   ColorEngines/MultiColorEngine.h
-  Dialogs/ImageResolutionDialog.h
+  Dialogs/ImageResolutionDialog/ImageResolutionDialog.h
+  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h
+  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
   Model/ViewItemAdapter.h
@@ -88,8 +90,10 @@ qt4_wrap_cpp(GUI_MOC
   )
 
 qt4_wrap_ui (GUI_UI
-  Dialogs/CategorySelectorDialog.ui
-  Dialogs/ImageResolutionDialog.ui
+  Dialogs/CategorySelectorDialog/CategorySelectorDialog.ui
+  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.ui
+  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.ui
+  Dialogs/ImageResolutionDialog/ImageResolutionDialog.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
   Widgets/TagSelector.ui
@@ -109,9 +113,11 @@ set (GUI_SOURCES
   ColorEngines/SelectionHighlighter.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
-  Dialogs/CategorySelectorDialog.cpp
   Dialogs/DefaultDialogs.cpp
-  Dialogs/ImageResolutionDialog.cpp
+  Dialogs/CategorySelectorDialog/CategorySelectorDialog.cpp
+  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.cpp
+  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.cpp
+  Dialogs/ImageResolutionDialog/ImageResolutionDialog.cpp
   Extension/Visualization/VisualizationState.cpp
   Model/CategoryAdapter.cpp
   Model/ChannelAdapter.cpp

@@ -45,32 +45,18 @@ ColorBar::ColorBar(ColorRange *range, QWidget *parent)
 }
 
 //------------------------------------------------------------------------
-ColorBar::~ColorBar()
-{
-}
-
-//------------------------------------------------------------------------
 void ColorBar::paintEvent(QPaintEvent *event)
 {
-  const int BORDER_WITH = 1;
+  const int BORDER_WIDTH = 1;
 
   QRect rect(0, 0, width(), height());
 
-  int wi = rect.width()  - 2*BORDER_WITH;
-  int hi = rect.height() - 2*BORDER_WITH;
+  int wi = rect.width()  - 2*BORDER_WIDTH;
+  int hi = rect.height() - 2*BORDER_WIDTH;
 
   if (m_colorMap.height() != hi || m_colorMap.width() != wi)
   {
-    QImage img(wi, hi, QImage::Format_RGB32);
-
-    for (int x = 0; x < wi; x++)
-    {
-      auto color = m_colorRange->color(x, 0, wi);
-      for (int y = 0; y < hi; y++)
-      {
-        img.setPixel(x, y, color.rgb());
-      }
-    }
+    auto img = rangeImage(m_colorRange, wi, hi);
 
     m_colorMap.convertFromImage(img);
   }
@@ -79,7 +65,7 @@ void ColorBar::paintEvent(QPaintEvent *event)
 
   p.setBrush(QBrush(Qt::black));
   p.drawRect(rect);
-  p.drawPixmap(BORDER_WITH, BORDER_WITH, m_colorMap);
+  p.drawPixmap(BORDER_WIDTH, BORDER_WIDTH, m_colorMap);
 }
 
 //------------------------------------------------------------------------
@@ -88,4 +74,21 @@ void ColorBar::updateTooltip()
   auto toolTip = QString("(%1, %2)").arg(m_colorRange->minimumValue())
                                     .arg(m_colorRange->maximumValue());
   setToolTip(toolTip);
+}
+
+//------------------------------------------------------------------------
+QImage ColorBar::rangeImage(const Utils::ColorRange *range, int width, int height)
+{
+  QImage img(width, height, QImage::Format_RGB32);
+
+  for (int x = 0; x < width; x++)
+  {
+    auto color = range->color(x, 0, width);
+    for (int y = 0; y < height; y++)
+    {
+      img.setPixel(x, y, color.rgb());
+    }
+  }
+
+  return img;
 }
