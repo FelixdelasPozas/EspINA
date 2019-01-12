@@ -196,6 +196,18 @@ namespace ESPINA
          */
         const int getNumberOfDecimals() const;
 
+        /** \brief Modifies the options of the widget if it's not for numerical data.
+         * \param[in] value True to enable options for numerical widget and false otherwise.
+         *
+         */
+        void setNumerical(const bool value);
+
+        /** \brief Returns true if the widget is for numerical data and false otherwise.
+         *
+         */
+        const bool isNumerical() const
+        { return m_isNumerical; }
+
       signals:
         void widgetsEnabled(int value);
         void widgetsPropertiesModified();
@@ -229,8 +241,9 @@ namespace ESPINA
          */
         void connectSignals();
 
-        HueSelector *m_fromSelector; /** from color hue selector for custom range. */
-        HueSelector *m_toSelector;   /** to color hue selector for custom range.   */
+        HueSelector *m_fromSelector; /** from color hue selector for custom range.   */
+        HueSelector *m_toSelector;   /** to color hue selector for custom range.     */
+        bool         m_isNumerical;  /** true if data is numerical, false otherwise. */
     };
   
   } // namespace GUI

@@ -600,6 +600,7 @@ void InformationColorEngineSwitch::onRangeButtonClicked()
   auto widgetsVisible = (m_repFactory != nullptr);
 
   ColorEngineRangeDefinitionDialog dialog;
+  dialog.setNumerical(m_properties.categories.isEmpty());
   dialog.setRangeColors(range->minimumColor().hue(), range->maximumColor().hue());
   dialog.setShowRangeInViews(widgetsVisible);
   dialog.setWidgetPosition(m_properties.position);

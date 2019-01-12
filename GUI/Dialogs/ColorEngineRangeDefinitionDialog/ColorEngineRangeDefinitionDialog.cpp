@@ -30,7 +30,8 @@ using namespace ESPINA::GUI::Widgets;
 
 //--------------------------------------------------------------------
 ColorEngineRangeDefinitionDialog::ColorEngineRangeDefinitionDialog(QWidget *parent, Qt::WindowFlags flags)
-: QDialog{parent, flags}
+: QDialog      {parent, flags}
+, m_isNumerical{true}
 {
   setupUi(this);
 
@@ -128,20 +129,20 @@ void ColorEngineRangeDefinitionDialog::onWidgetsEnabled(int value)
 
   m_positionLabel    ->setEnabled(enabled);
   m_positionCombo    ->setEnabled(enabled);
-  m_orientationLabel ->setEnabled(enabled);
-  m_orientationCombo ->setEnabled(enabled);
-  m_textPositionLabel->setEnabled(enabled);
-  m_textPositionCombo->setEnabled(enabled);
-  m_numlabelsLabel   ->setEnabled(enabled);
-  m_labelsSpin       ->setEnabled(enabled);
+  m_orientationLabel ->setEnabled(enabled && m_isNumerical);
+  m_orientationCombo ->setEnabled(enabled && m_isNumerical);
+  m_textPositionLabel->setEnabled(enabled && m_isNumerical);
+  m_textPositionCombo->setEnabled(enabled && m_isNumerical);
+  m_numlabelsLabel   ->setEnabled(enabled && m_isNumerical);
+  m_labelsSpin       ->setEnabled(enabled && m_isNumerical);
   m_widthLabel       ->setEnabled(enabled);
   m_widthSlider      ->setEnabled(enabled);
   m_heightLabel      ->setEnabled(enabled);
   m_heightSlider     ->setEnabled(enabled);
-  m_barRatioLabel    ->setEnabled(enabled);
-  m_barRatioSlider   ->setEnabled(enabled);
-  m_decimalsLabel    ->setEnabled(enabled);
-  m_decimalsSpin     ->setEnabled(enabled);
+  m_barRatioLabel    ->setEnabled(enabled && m_isNumerical);
+  m_barRatioSlider   ->setEnabled(enabled && m_isNumerical);
+  m_decimalsLabel    ->setEnabled(enabled && m_isNumerical);
+  m_decimalsSpin     ->setEnabled(enabled && m_isNumerical);
 }
 
 //--------------------------------------------------------------------
@@ -243,6 +244,17 @@ void ColorEngineRangeDefinitionDialog::onOrientationChanged(int value)
   m_widthSlider->blockSignals(true);
   m_widthSlider->setValue(height);
   m_widthSlider->blockSignals(false);
+}
+
+//--------------------------------------------------------------------
+void ColorEngineRangeDefinitionDialog::setNumerical(const bool value)
+{
+  if(m_isNumerical != value)
+  {
+    m_isNumerical = value;
+
+    onWidgetsEnabled(m_showRange->isChecked() ? Qt::Checked : Qt::Unchecked);
+  }
 }
 
 //--------------------------------------------------------------------
