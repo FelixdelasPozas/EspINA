@@ -96,10 +96,10 @@ CategorySPtr Category::createSubCategory(const QString& name)
 void Category::addSubCategory(CategorySPtr subCategory)
 {
   // check if already present
-  for(auto category: m_subCategories)
-  {
-    if(category == subCategory) return;
-  }
+  auto booleanOp = [subCategory](const CategorySPtr &category) { return (category.get() == subCategory.get()); };
+  auto it = std::find_if(m_subCategories.begin(), m_subCategories.end(), booleanOp);
+
+  if(it != m_subCategories.end()) return;
 
   if (subCategory->m_parent)
   {

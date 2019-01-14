@@ -73,7 +73,6 @@ vtkZoomSelectionWidgetRepresentation::vtkZoomSelectionWidgetRepresentation()
   // Setup actor and mapper
   auto mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   mapper->SetInputData(polyData);
-  mapper->SetUpdateExtentToWholeExtent();
 
   m_lineActor->SetMapper(mapper);
   m_lineActor->GetProperty()->SetColor(1,1,1);
@@ -124,7 +123,7 @@ void vtkZoomSelectionWidgetRepresentation::StartWidgetInteraction(double e[2])
     m_worldPoints->SetPoint(i, displayPos);
   }
   m_worldPoints->Modified();
-  m_lineActor->GetMapper()->Update();
+  m_lineActor->GetMapper()->UpdateWholeExtent();
 
   m_lineActor->VisibilityOn();
 }
@@ -148,7 +147,7 @@ void vtkZoomSelectionWidgetRepresentation::WidgetInteraction(double e[2])
   m_worldPoints->SetPoint(3, displayPos);
 
   m_worldPoints->Modified();
-  m_lineActor->GetMapper()->Update();
+  m_lineActor->GetMapper()->UpdateWholeExtent();
 }
 
 //----------------------------------------------------------------------------

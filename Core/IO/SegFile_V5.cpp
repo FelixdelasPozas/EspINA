@@ -85,15 +85,15 @@ QByteArray formatInfo()
 }
 
 //-----------------------------------------------------------------------------
-int segFileVersion(const QString &formatInfo)
+int segFileVersion(const QString &info)
 {
   const int EQUAL_LENGTH = 1;
-  auto start = formatInfo.indexOf(SEG_FILE_VERSION)
+  auto start = info.indexOf(SEG_FILE_VERSION)
              + SEG_FILE_VERSION.length()
              + EQUAL_LENGTH;
-  auto n     = formatInfo.indexOf("\n", start) - start;
+  auto n     = info.indexOf("\n", start) - start;
 
-  return formatInfo.mid(start, n).toInt();
+  return info.mid(start, n).toInt();
 }
 
 //-----------------------------------------------------------------------------
@@ -160,8 +160,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
     if (file == FORMAT_INFO_FILE)
     {
-      auto formatInfo = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-      if (segFileVersion(formatInfo) <= FIX_SOURCE_INPUTS_SEG_FILE_VERSION)
+      auto info = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+      if (segFileVersion(info) <= FIX_SOURCE_INPUTS_SEG_FILE_VERSION)
       {
         m_fixSourceInputs = true;
       }

@@ -99,10 +99,10 @@ RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(Cons
       voxelContour->UpdateWholeExtent();
 
       auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      mapper->SetUpdateExtent(slice->GetExtent());
       mapper->SetColorModeToDefault();
       mapper->ScalarVisibilityOff();
       mapper->StaticOff();
+      mapper->UpdateWholeExtent();
 
       auto actor = vtkSmartPointer<vtkActor>::New();
       actor->SetMapper(mapper);
@@ -113,7 +113,6 @@ RepresentationPipeline::ActorList SegmentationContourPipeline::createActors(Cons
       {
         auto tubes = vtkSmartPointer<vtkTubeFilter>::New();
         tubes->SetInputData(voxelContour->GetOutput());
-        tubes->SetUpdateExtent(slice->GetExtent());
         tubes->SetCapping(false);
         tubes->SetGenerateTCoordsToUseLength();
         tubes->SetNumberOfSides(4);

@@ -85,7 +85,7 @@ namespace ESPINA
 
       virtual bool hasInformationToShow() override;
 
-      virtual QItemDelegate *itemDelegate() const;
+      virtual QItemDelegate *itemDelegate() const override;
 
     public slots:
       virtual void updateSelection();

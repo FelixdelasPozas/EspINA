@@ -54,7 +54,6 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkGlyphSource2D.h>
-#include <vtkFollower.h>
 #include <vtkTransform.h>
 #include <vtkFreeTypeLabelRenderStrategy.h>
 
@@ -400,8 +399,12 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
       glyphMapper->Update();
 
-      auto truncatedActor = vtkSmartPointer<vtkFollower>::New();
+      auto truncatedActor = vtkSmartPointer<vtkActor>::New();
       truncatedActor->SetMapper(glyphMapper);
+      truncatedActor->GetProperty()->SetColor(1, 0, 0);
+      truncatedActor->GetProperty()->Modified();
+      truncatedActor->SetPosition(0, 0, 0);
+      truncatedActor->Modified();
 
       actors << truncatedActor;
     }

@@ -148,7 +148,7 @@ void Scheduler::abort()
   {
     for (auto task : m_scheduledTasks[priority])
     {
-      QMutexLocker lock(&task->m_submissionMutex);
+      QMutexLocker sbLock(&task->m_submissionMutex);
       task->m_submitted = false;
 
       if (!task->hasFinished())

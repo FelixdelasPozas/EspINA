@@ -552,7 +552,7 @@ void SkeletonWidget2D::uninitializeImplementation()
 {
   if(m_view)
   {
-    if(m_view)
+    if(m_successActor)
     {
       m_view->removeActor(m_successActor);
       m_successActor = nullptr;

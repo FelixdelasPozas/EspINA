@@ -310,14 +310,14 @@ namespace ESPINA
   template <typename T>
   Output::ReadLockData<T> outputReadLockData(Output *output, DataUpdatePolicy policy)
   {
-    auto type = T::TYPE;
+    auto dataType = T::TYPE;
 
     if (policy == DataUpdatePolicy::Request)
     {
-      output->update(type);
+      output->update(dataType);
     }
 
-    return output->readLockData<T>(type);
+    return output->readLockData<T>(dataType);
   }
 
   /** \brief Returns the data of the specified type of the specified output locked for read/write access.
@@ -328,14 +328,14 @@ namespace ESPINA
   template <typename T>
   Output::WriteLockData<T> outputWriteLockData(Output *output, DataUpdatePolicy policy)
   {
-    auto type = T::TYPE;
+    auto dataType = T::TYPE;
 
     if (policy == DataUpdatePolicy::Request)
     {
-      output->update(type);
+      output->update(dataType);
     }
 
-    return output->writeLockData<T>(type);
+    return output->writeLockData<T>(dataType);
   }
 
 } // namespace ESPINA

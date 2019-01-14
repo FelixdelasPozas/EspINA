@@ -46,14 +46,14 @@ namespace ESPINA
 
       if (channel && channel->analysis())
       {
-        auto analysis      = channel->analysis();
-        auto relationships = analysis->relationships();
-        auto samples       = relationships->ancestors(channel, Channel::STAIN_LINK);
+        auto analysis   = channel->analysis();
+        auto relations  = analysis->relationships();
+        auto sampleList = relations->ancestors(channel, Channel::STAIN_LINK);
 
-        if (!samples.isEmpty())
+        if (!sampleList.isEmpty())
         {
-          Q_ASSERT(samples.size() == 1); // Even with tiling, channels can only have 1 sample
-          sample = std::dynamic_pointer_cast<Sample>(samples[0]);
+          Q_ASSERT(sampleList.size() == 1); // Even with tiling, channels can only have 1 sample
+          sample = std::dynamic_pointer_cast<Sample>(sampleList.first());
         }
       }
 
@@ -69,40 +69,40 @@ namespace ESPINA
     //------------------------------------------------------------------------
     SampleSList samples(SegmentationPtr segmentation)
     {
-      SampleSList samples;
+      SampleSList samplesList;
 
       if (segmentation && segmentation->analysis())
       {
-        auto analysis      = segmentation->analysis();
-        auto relationships = analysis->relationships();
-        auto relatedItems  = relationships->ancestors(segmentation, Sample::CONTAINS);
+        auto analysis     = segmentation->analysis();
+        auto relations    = analysis->relationships();
+        auto relatedItems = relations->ancestors(segmentation, Sample::CONTAINS);
 
         for(auto item : relatedItems)
         {
-          samples << std::dynamic_pointer_cast<Sample>(item);
+          samplesList << std::dynamic_pointer_cast<Sample>(item);
         }
       }
 
-      return samples;
+      return samplesList;
     }
 
     //------------------------------------------------------------------------
     ChannelSList channels(SampleSPtr sample)
     {
-      ChannelSList channels;
+      ChannelSList stacks;
 
       if (sample && sample->analysis())
       {
-        auto analysis      = sample->analysis();
-        auto relationships = analysis->relationships();
+        auto analysis  = sample->analysis();
+        auto relations = analysis->relationships();
 
-        for(auto item : relationships->successors(sample, Channel::STAIN_LINK))
+        for(auto item : relations->successors(sample, Channel::STAIN_LINK))
         {
-          channels << std::dynamic_pointer_cast<Channel>(item);
+          stacks << std::dynamic_pointer_cast<Channel>(item);
         }
       }
 
-      return channels;
+      return stacks;
     }
 
     //------------------------------------------------------------------------
@@ -118,34 +118,34 @@ namespace ESPINA
 
       if (segmentation && segmentation->analysis())
       {
-        auto content  = segmentation->analysis()->content();
+        auto analysisContents = segmentation->analysis()->content();
 
         // Find first channel ancestors
-        auto ancestors = content->ancestors(segmentation);
+        auto ancestors = analysisContents->ancestors(segmentation);
 
         while (!ancestors.isEmpty())
         {
           auto ancestor = ancestors.takeFirst();
-          auto successors = content->successors(ancestor);
+          auto successors = analysisContents->successors(ancestor);
 
-          ChannelSPtr channel = nullptr;
+          ChannelSPtr stack = nullptr;
           int i = 0;
-          while (!channel && i < successors.size())
+          while (!stack && i < successors.size())
           {
-            channel = std::dynamic_pointer_cast<Channel>(successors[i]);
+            stack = std::dynamic_pointer_cast<Channel>(successors[i]);
             ++i;
           }
 
-          if (channel)
+          if (stack)
           {
-            if(!channels.contains(channel))
+            if(!channels.contains(stack))
             {
-              channels << channel;
+              channels << stack;
             }
           }
           else
           {
-            for(auto itemAncestor: content->ancestors(ancestor))
+            for(auto itemAncestor: analysisContents->ancestors(ancestor))
             {
               if(!ancestors.contains(itemAncestor))
               {
@@ -166,9 +166,9 @@ namespace ESPINA
 
       if (sample && sample->analysis())
       {
-        auto analysis      = sample->analysis();
-        auto relationships = analysis->relationships();
-        auto relatedItems  = relationships->successors(sample, Sample::CONTAINS);
+        auto analysis     = sample->analysis();
+        auto relations    = analysis->relationships();
+        auto relatedItems = relations->successors(sample, Sample::CONTAINS);
 
         for(auto item : relatedItems)
         {
@@ -197,16 +197,16 @@ namespace ESPINA
     //------------------------------------------------------------------------
     SampleSPtr sample(ChannelSPtr channel)
     {
-      auto analysis = channel->analysis();
-      auto samples  = analysis->relationships()->ancestors(channel, Channel::STAIN_LINK);
+      auto analysis    = channel->analysis();
+      auto samplesList = analysis->relationships()->ancestors(channel, Channel::STAIN_LINK);
 
-      SampleSPtr sample;
+      SampleSPtr sample{nullptr};
 
-      if (samples.size() == 1)
+      if (samplesList.size() == 1)
       {
-        sample = std::dynamic_pointer_cast<Sample>(samples.first());
+        sample = std::dynamic_pointer_cast<Sample>(samplesList.first());
       }
-      else if (samples.size() > 1)
+      else if (samplesList.size() > 1)
       {
         qWarning() << "Query Relations: Unexpected number of channel samples";
       }

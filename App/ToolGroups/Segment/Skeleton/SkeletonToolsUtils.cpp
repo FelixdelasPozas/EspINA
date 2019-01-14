@@ -30,6 +30,9 @@
 #include <QWidgetAction>
 #include <QBitmap>
 
+// C++
+#include <functional>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 
@@ -162,9 +165,9 @@ QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const 
       copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
       copy.setMask(original.createMaskFromColor(Qt::transparent));
 
-      auto action = menu->addAction(stroke.name);
-      action->setIcon(QIcon(copy));
-      action->setIconVisibleInMenu(true);
+      auto strokeAction = menu->addAction(stroke.name);
+      strokeAction->setIcon(QIcon(copy));
+      strokeAction->setIconVisibleInMenu(true);
     }
 
     menu->addSeparator();

@@ -349,7 +349,10 @@ vtkSmartPointer<vtkFollower> SegmentationSkeleton3DPipeline::createTruncatedPoin
   actor->SetDragable(false);
   actor->SetPickable(false);
   actor->SetOrigin(point);
+  actor->GetProperty()->SetColor(1, 0, 0);
+  actor->GetProperty()->Modified();
   actor->SetPosition(0,0,0);
+  actor->Modified();
 
   return actor;
 }

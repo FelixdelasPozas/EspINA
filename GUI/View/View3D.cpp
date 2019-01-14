@@ -388,13 +388,13 @@ void View3D::addActor(vtkProp *actor)
 {
   if(actor)
   {
+    m_renderer->AddActor(actor);
+
     auto follower = dynamic_cast<vtkFollower *>(actor);
     if(follower)
     {
-      follower->SetCamera(mainRenderer()->GetActiveCamera());
+      follower->SetCamera(m_renderer->GetActiveCamera());
     }
-
-    m_renderer->AddActor(actor);
   }
 }
 

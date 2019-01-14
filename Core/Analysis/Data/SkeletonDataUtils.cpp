@@ -553,11 +553,9 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
   {
     for(auto node: set)
     {
-      auto count = 0;
-      for(auto connection: node->connections.keys())
-      {
-        if(edge == node->connections[connection]) ++count;
-      }
+      auto equalEdge = [edge, node](const SkeletonNode *connection){ if(edge == node->connections[connection]) return true; return false; };
+      const auto nodeConnections = node->connections.keys();
+      auto count = std::count_if(nodeConnections.begin(), nodeConnections.end(), equalEdge);
 
       if(count == 1)
       {

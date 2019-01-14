@@ -48,7 +48,7 @@ namespace ESPINA
     static EspinaInteractorAdapter* New()
     {
       EspinaInteractorAdapter *result = new EspinaInteractorAdapter;
-      vtkObjectFactory::ConstructInstance(result->GetClassName());
+
       return result;
     }
 
@@ -159,7 +159,7 @@ namespace ESPINA
      *
      */
     explicit EspinaInteractorAdapter()
-    {}
+    { T::InitializeObjectBase(); }
 
   };
 

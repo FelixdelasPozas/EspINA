@@ -336,13 +336,10 @@ bool Output::isSegmentationOutput() const
     auto content  = analysis->content();
     auto outEdges = content->outEdges(m_filter, QString::number(m_id));
 
-    for (auto edge : outEdges)
-    {
-      if (std::dynamic_pointer_cast<Segmentation>(edge.target))
-      {
-        return true;
-      }
-    }
+    auto booleanOp = [](const DirectedGraph::Edge &edge) { return (nullptr != std::dynamic_pointer_cast<Segmentation>(edge.target)); };
+    auto it = std::find_if(outEdges.begin(), outEdges.end(), booleanOp);
+
+    return (it != outEdges.end());
   }
 
   return false;

@@ -88,7 +88,7 @@ namespace ESPINA
       virtual ~SkeletonCreationTool();
 
       virtual void abortOperation() override
-      { deactivateEventHandler(); };
+      { if(isChecked()) deactivateEventHandler(); };
 
     private slots:
       /** \brief Performs tool initialization/de-initialization.

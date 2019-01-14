@@ -72,10 +72,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segm
 
   connectSignals();
 
-  for(auto segmentation : segmentations)
-  {
-    addSegmentation(segmentation);
-  }
+  for(auto segmentation: segmentations) addSegmentation(segmentation);
 
   initView3D(context.availableRepresentations());
 
@@ -160,24 +157,25 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
     {
       // if there aren't any other segmentations that uses
       // this channel. we must remove it
-      auto channelToBeChecked = channels.first();
+      auto stackToBeChecked = channels.first();
 
       bool stillUsed = false;
-      for(auto remainingSegmenation : m_segmentations)
+      int i = 0;
+
+      while(i < m_segmentations.size() && !stillUsed)
       {
-        auto remainingChannels = QueryAdapter::channels(remainingSegmenation);
-        for (auto remainingChannel : remainingChannels)
-        {
-          if (remainingChannel == channelToBeChecked)
-          {
-            stillUsed = true;
-          }
-        }
+        auto remainingSegmentation = m_segmentations.at(i);
+        auto remainingStacks = QueryAdapter::channels(remainingSegmentation);
+        auto equalOp = [stackToBeChecked](const ChannelAdapterSPtr stack) { return (stack.get() == stackToBeChecked.get()); };
+
+        auto it = std::find_if(remainingStacks.begin(), remainingStacks.end(), equalOp);
+
+        stillUsed = (it != remainingStacks.end());
       }
 
       if (!stillUsed)
       {
-        removeChannel(channelToBeChecked.get());
+        removeChannel(stackToBeChecked.get());
       }
     }
   }
@@ -457,7 +455,7 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
   for(auto repSwitch: switches)
   {
-    for (auto action : repSwitch->actions())
+    for(auto action: repSwitch->actions())
     {
       m_toolbar->addAction(action);
     }

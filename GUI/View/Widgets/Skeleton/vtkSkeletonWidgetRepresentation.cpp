@@ -186,6 +186,8 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 
   m_truncatedActor = vtkSmartPointer<vtkFollower>::New();
   m_truncatedActor->SetMapper(m_glyphMapper);
+  m_truncatedActor->GetProperty()->SetColor(1, 0, 0);
+  m_truncatedActor->GetProperty()->Modified();
 
   m_showLabels = true;
 
@@ -1033,29 +1035,29 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_pointsData->GetPointData()->Modified();
   m_glypher->SetInputData(m_pointsData);
   m_glypher->SetScaleFactor(distance * HandleSize);
-  m_glypher->Update();
-  m_mapper->Update();
+  m_glypher->UpdateWholeExtent();
+  m_mapper->UpdateWholeExtent();
   m_actor->Modified();
 
   m_lines->SetLines(cells);
   m_lines->GetCellData()->SetScalars(cellsColors);
   m_lines->SetPoints(m_points);
   m_lines->Modified();
-  m_linesMapper->Update();
+  m_linesMapper->UpdateWholeExtent();
   m_linesActor->Modified();
 
   m_dashedLines->SetLines(dashedCells);
   m_dashedLines->GetCellData()->SetScalars(dashedCellsColors);
   m_dashedLines->SetPoints(m_points);
   m_dashedLines->Modified();
-  m_dashedLinesMapper->Update();
+  m_dashedLinesMapper->UpdateWholeExtent();
   m_dashedLinesActor->Modified();
 
   m_truncatedPoints->Modified();
   m_truncatedData->Modified();
   m_truncatedData->GetPointData()->Modified();
   m_glyphMapper->SetScaleFactor(distance * HandleSize);
-  m_glyphMapper->Update();
+  m_glyphMapper->UpdateWholeExtent();
   m_truncatedActor->SetVisibility(m_truncatedPoints->GetNumberOfPoints() != 0);
   m_truncatedActor->Modified();
 
@@ -1064,11 +1066,11 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_labels->Modified();
   m_labelData->Modified();
   m_labelFilter->Update();
-  m_labelPlacer->SetUpdateExtentToWholeExtent();
+  m_labelPlacer->UpdateWholeExtent();
   m_labelPlacer->RemoveAllClippingPlanes();
   m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF() * 0.6, m_labelColor.blueF() * 0.6);
   m_labelPlacer->SetBackgroundOpacity(0.5);
-  m_labelPlacer->Update();
+  m_labelPlacer->UpdateWholeExtent();
   m_labelActor->SetVisibility(m_showLabels);
   m_labelActor->Modified();
 
@@ -2459,9 +2461,9 @@ bool vtkSkeletonWidgetRepresentation::ToggleStrokeProperty(const Core::SkeletonN
     if(!node1->isTerminal() && !node2->isTerminal()) return false;
     if(node1->isTerminal() && node2->isTerminal())   return false;
 
-    auto node = node1->isTerminal() ? node1 : node2;
+    auto operationNode = node1->isTerminal() ? node1 : node2;
 
-    node->flags ^= property;
+    operationNode->flags ^= property;
   }
 
   return true;

@@ -96,11 +96,11 @@ void SpineInformationReport::show(SegmentationAdapterList input) const
       QString message;
       if(input.isEmpty())
       {
-        auto message = tr("There are no dendrites in the current session.");
+        message = tr("There are no dendrites in the current session.");
       }
       else
       {
-        auto message = tr("The current selection contains no dendrites.");
+        message = tr("The current selection contains no dendrites.");
       }
 
       auto details = tr("The report will be empty if there are no spines.");
@@ -125,11 +125,11 @@ void SpineInformationReport::show(SegmentationAdapterList input) const
     QString message;
     if(input.isEmpty())
     {
-      auto message = tr("The dendrites in the session have no spines.");
+      message = tr("The dendrites in the session have no spines.");
     }
     else
     {
-      auto message = tr("The selected dendrites have no spines.");
+      message = tr("The selected dendrites have no spines.");
     }
 
     auto details = tr("The report will be empty if there are no spines.");

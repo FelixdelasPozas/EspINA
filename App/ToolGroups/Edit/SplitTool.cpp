@@ -329,8 +329,6 @@ void SplitTool::onSelectionChanged()
 //------------------------------------------------------------------------
 void SplitTool::createSegmentations()
 {
-  WaitingCursor cursor;
-
   auto filter = dynamic_cast<FilterPtr>(sender());
   Q_ASSERT(m_executingTasks.keys().contains(filter));
 

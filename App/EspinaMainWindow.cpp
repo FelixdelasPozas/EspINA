@@ -281,11 +281,11 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         m_availableSettingsPanels << settings;
       }
 
-      for (auto factory : validApplicationPlugin->representationFactories())
+      for (auto repFactory : validApplicationPlugin->representationFactories())
       {
         qDebug() << plugin << "- Representation Factory  ...... OK";
-        registerRepresentationFactory(factory);
-        registerRepresentationSwitches(m_context.representation(factory));
+        registerRepresentationFactory(repFactory);
+        registerRepresentationSwitches(m_context.representation(repFactory));
       }
     }
   }
@@ -524,11 +524,10 @@ void EspinaMainWindow::openAnalysis(QStringList filenames)
 
     if(!failedFiles.isEmpty())
     {
-      QString message(tr("The following files couldn't be loaded because they do not exist:\n"));
-      for(auto filename: failedFiles)
-      {
-        message += QString("\n") + filename;
-      }
+      auto joinFilenamesOp = [](const QString &A, const QString &B) { return A + QString("\n") + B; };
+      auto message = std::accumulate(failedFiles.begin(), failedFiles.end(),
+                                     QString("The following files couldn't be loaded because they do not exist:\n"),
+                                     joinFilenamesOp);
 
       DefaultDialogs::InformationMessage(message, tr("Error loading files"));
     }
@@ -1438,13 +1437,12 @@ void EspinaMainWindow::assignActiveStack()
 
       if(!stackName.isEmpty())
       {
-        for(const auto stack: model->channels())
+        auto selectionOp = [stackName](const ChannelAdapterSPtr stack) { return (stack->data(Qt::DisplayRole).toString().compare(stackName) == 0); };
+        auto it = std::find_if(model->channels().begin(), model->channels().end(), selectionOp);
+
+        if(it != model->channels().end())
         {
-          if(stack->data(Qt::DisplayRole).toString().compare(stackName) == 0)
-          {
-            activeStack = stack.get();
-            break;
-          }
+          activeStack = (*it).get();
         }
       }
     }

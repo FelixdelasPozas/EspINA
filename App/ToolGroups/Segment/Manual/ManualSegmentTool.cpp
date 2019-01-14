@@ -147,7 +147,7 @@ ManualSegmentTool::~ManualSegmentTool()
 //------------------------------------------------------------------------
 void ManualSegmentTool::abortOperation()
 {
-  setChecked(false);
+  if(isChecked()) setChecked(false);
 }
 
 //------------------------------------------------------------------------

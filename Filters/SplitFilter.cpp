@@ -150,22 +150,22 @@ void SplitFilter::execute()
 
   if (hasVoxels1 && hasVoxels2)
   {
-    auto spacing = input->spacing();
+    auto iSpacing = input->spacing();
 
     for(auto i: {0, 1})
     {
-      auto bounds = minimalBounds<itkVolumeType>(volumes[i], SEG_BG_VALUE);
-      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
+      auto bounds  = minimalBounds<itkVolumeType>(volumes[i], SEG_BG_VALUE);
+      auto iVolume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, iSpacing);
       
-      volume->draw(volumes[i], bounds);
+      iVolume->draw(volumes[i], bounds);
 
       if (!m_outputs.contains(i))
       {
-        m_outputs[i] = std::make_shared<Output>(this, i, spacing);
+        m_outputs[i] = std::make_shared<Output>(this, i, iSpacing);
       }
-      m_outputs[i]->setData(volume);
+      m_outputs[i]->setData(iVolume);
       m_outputs[i]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[i].get()));
-      m_outputs[i]->setSpacing(spacing);
+      m_outputs[i]->setSpacing(iSpacing);
 
       reportProgress(75 + 25*i);
       if (!canExecute()) return;

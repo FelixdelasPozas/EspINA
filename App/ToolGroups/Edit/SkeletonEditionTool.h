@@ -68,7 +68,7 @@ namespace ESPINA
       virtual ~SkeletonEditionTool();
 
       virtual void abortOperation() override
-      { deactivateEventHandler(); };
+      { if(isChecked()) deactivateEventHandler(); };
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;

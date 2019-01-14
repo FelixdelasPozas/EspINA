@@ -221,15 +221,15 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo&      file,
 
       auto output = std::make_shared<Output>(sourceFilter.get(), id, ToNmVector3<itkVolumeType>(spacing));
 
-      auto bounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
-      auto spacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
+      auto segBounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
+      auto segSpacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
 
-      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
+      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(segBounds, segSpacing);
       volume->draw(segmentationVolume);
 
       output->setData(volume);
       output->setData(std::make_shared<MarchingCubesMesh>(output.get()));
-      output->setSpacing(spacing);
+      output->setSpacing(segSpacing);
 
       sourceFilter->addOutput(id, output);
 

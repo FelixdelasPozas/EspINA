@@ -177,15 +177,15 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     auto lines = vtkSmartPointer<vtkCellArray>::New();
     lines->SetNumberOfCells(path.seen.size() -1);
 
-    for(vtkIdType i = 0; i < path.seen.size(); ++i)
+    for(vtkIdType j = 0; j < path.seen.size(); ++j)
     {
-      points->SetPoint(i, path.seen.at(i)->position);
+      points->SetPoint(j, path.seen.at(j)->position);
 
-      if(i > 0)
+      if(j > 0)
       {
         auto line = vtkSmartPointer<vtkLine>::New();
-        line->GetPointIds()->SetId(0, i-1);
-        line->GetPointIds()->SetId(1, i);
+        line->GetPointIds()->SetId(0, j-1);
+        line->GetPointIds()->SetId(1, j);
 
         lines->InsertNextCell(line);
       }
@@ -272,6 +272,9 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
         truncatedActor->SetPickable(false);
         truncatedActor->SetOrigin(node->position);
         truncatedActor->SetPosition(0,0,0);
+        truncatedActor->GetProperty()->SetColor(1, 0, 0);
+        truncatedActor->GetProperty()->Modified();
+        truncatedActor->Modified();
 
         info.actors << truncatedActor;
         break;
@@ -525,19 +528,15 @@ void SkeletonInspector::focusOnActor(int row)
 {
   Bounds focusBounds;
   auto name = m_table->item(row, 0)->data(Qt::DisplayRole);
+  auto equalOp = [name](const StrokeInfo &stroke) {return (stroke.name == name); };
 
-  for(auto &stroke: m_strokes)
-  {
-    if(stroke.name == name)
-    {
-      focusBounds = Bounds{stroke.actors.first()->GetBounds()};
-      break;
-    }
-  }
+  auto it = std::find_if(m_strokes.begin(), m_strokes.end(), equalOp);
 
-  if(focusBounds.areValid())
+  if(it != m_strokes.end())
   {
-    getViewState().focusViewOn(centroid(focusBounds));
+    auto focusBounds = Bounds{(*it).actors.first()->GetBounds()};
+
+    if(focusBounds.areValid()) getViewState().focusViewOn(centroid(focusBounds));
   }
 }
 

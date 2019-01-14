@@ -72,7 +72,7 @@ SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefin
 //----------------------------------------------------------------------------
 SegmentationProperties::~SegmentationProperties()
 {
-  reset();
+  hideInformation();
 }
 
 //----------------------------------------------------------------------------

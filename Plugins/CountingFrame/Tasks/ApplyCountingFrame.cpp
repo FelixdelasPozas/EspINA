@@ -95,12 +95,12 @@ void ApplyCountingFrame::run()
       auto maxTasks = Scheduler::maxRunningTasks();
       QVector<SegmentationSList> partitions(maxTasks);
 
-      int i = 0;
+      int iteration = 0;
       for(auto segmentation: validSegmentations)
       {
         if (!canExecute()) break;
 
-        partitions[i++ % maxTasks] << segmentation;
+        partitions[iteration++ % maxTasks] << segmentation;
       }
 
       for(unsigned int i = 0; i < maxTasks; ++i)

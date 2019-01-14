@@ -58,7 +58,7 @@ PositionMarksTool::~PositionMarksTool()
 //-----------------------------------------------------------------------------
 void PositionMarksTool::abortOperation()
 {
-  setChecked(false);
+  if(isChecked()) setChecked(false);
 }
 
 //-----------------------------------------------------------------------------

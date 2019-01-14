@@ -349,18 +349,18 @@ void AppositionSurfacePlugin::finishedTask()
   QString errorMessage;
 
   auto number = firstUnusedSegmentationNumber(m_context->model());
-  for(auto filter: m_finishedTasks.keys())
+  for(auto task: m_finishedTasks.keys())
   {
-    if(filter->hasErrors())
+    if(task->hasErrors())
     {
-      errorMessage += tr("- %1\n").arg(m_finishedTasks.value(filter).segmentation->data().toString());
+      errorMessage += tr("- %1\n").arg(m_finishedTasks.value(task).segmentation->data().toString());
       continue;
     }
 
-    auto segmentation = factory->createSegmentation(m_finishedTasks.value(filter).adapter, 0);
+    auto segmentation = factory->createSegmentation(m_finishedTasks.value(task).adapter, 0);
     segmentation->setCategory(category);
     segmentation->setNumber(number++);
-    segmentation->setData(SAS_PREFIX + QString::number(m_finishedTasks[filter].segmentation->number()), Qt::EditRole);
+    segmentation->setData(SAS_PREFIX + QString::number(m_finishedTasks[task].segmentation->number()), Qt::EditRole);
 
     auto extensions   = segmentation->extensions();
     auto extension    = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
@@ -368,7 +368,7 @@ void AppositionSurfacePlugin::finishedTask()
 
     extensions->add(sasExtension);
 
-    auto samples = QueryAdapter::samples(m_finishedTasks.value(filter).segmentation);
+    auto samples = QueryAdapter::samples(m_finishedTasks.value(task).segmentation);
     Q_ASSERT(!samples.empty());
 
     for(index = 0; index < usedSamples.size(); ++index)
@@ -392,7 +392,7 @@ void AppositionSurfacePlugin::finishedTask()
     }
 
     Relation relation;
-    relation.ancestor = m_finishedTasks[filter].segmentation;
+    relation.ancestor = m_finishedTasks[task].segmentation;
     relation.successor = segmentation;
     relation.relation = SAS;
 

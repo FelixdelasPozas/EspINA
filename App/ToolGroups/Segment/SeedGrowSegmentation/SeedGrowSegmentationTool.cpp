@@ -158,7 +158,7 @@ SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::abortOperation()
 {
-  deactivateEventHandler();
+  if(isChecked()) deactivateEventHandler();
 }
 
 //-----------------------------------------------------------------------------

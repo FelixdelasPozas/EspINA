@@ -31,9 +31,9 @@ RemoveChannel::RemoveChannel(ChannelAdapterSPtr channel, Support::Context &conte
 , m_channel   {channel}
 , m_sample    {nullptr}
 , m_context   (context)
+, m_relations {context.model()->relations(channel.get(), ESPINA::RELATION_INOUT)}
+, m_active    {Support::getActiveChannel(context) == m_channel.get()}
 {
-  m_relations = context.model()->relations(channel.get(), ESPINA::RELATION_INOUT);
-  m_active    = (Support::getActiveChannel(context) == m_channel.get());
 }
 
 //------------------------------------------------------------------------

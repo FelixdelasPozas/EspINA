@@ -53,7 +53,7 @@ CustomFileDialog::CustomFileDialog(QWidget* parent, const QString& caption, cons
 void CustomFileDialog::onOptionsToggled()
 {
   auto visible    = m_options->isVisible();
-  auto widgetSize = m_options->size().width();
+  auto widgetSize = m_options->sizeHint().width();
   auto spacing    = layout()->spacing();
 
   m_options->setVisible(!visible);
@@ -76,7 +76,7 @@ void CustomFileDialog::resizeEvent(QResizeEvent *event)
   QFileDialog::resizeEvent(event);
 
   m_size = size();
-  auto widgetSize = m_options->size().width();
+  auto widgetSize = m_options->sizeHint().width();
   auto spacing    = layout()->spacing();
   if(m_options->isVisible())
   {

@@ -66,14 +66,14 @@ void StrokeDefinitionDialog::onAddButtonPressed()
   QStringList names;
   for(auto stroke: m_strokes)
   {
-    if(stroke.name.startsWith("Undefined"))
+    if(stroke.name.startsWith("Undefined", Qt::CaseInsensitive))
     {
       names << stroke.name;
     }
   }
 
   int number = 0;
-  auto name = tr("Undefined%1").arg(number == 0 ? "" : " (" + QString::number(number + 1) + ")");
+  auto name = tr("Undefined");
   while(names.contains(name))
   {
     ++number;
@@ -124,28 +124,18 @@ void StrokeDefinitionDialog::onStrokeChanged(int row)
   auto defaultvalues = defaultStrokes(m_category);
   auto index  = std::min(row, m_strokes.size() - 1);
   auto stroke = m_strokes.at(index);
-  for(auto defaultStroke: defaultvalues)
-  {
-    if(stroke.name == defaultStroke.name)
-    {
-      m_removeButton->setEnabled(false);
-      m_name->setEnabled(false);
-      return;
-    }
-  }
 
-  m_removeButton->setEnabled(true);
-  m_name->setEnabled(true);
+  auto equalOp    = [stroke](const SkeletonStroke &other) { return (stroke.name == other.name); };
+  auto duplicated = std::any_of(defaultvalues.begin(), defaultvalues.end(), equalOp);
+
+  m_removeButton->setEnabled(!duplicated);
+  m_name->setEnabled(!duplicated);
 }
 
 //--------------------------------------------------------------------
 void StrokeDefinitionDialog::closeEvent(QCloseEvent* event)
 {
-  int number = 0;
-  for(auto stroke: m_strokes)
-  {
-    if(stroke.name.startsWith("Undefined")) ++number;
-  }
+  auto number = std::count_if(m_strokes.begin(), m_strokes.end(), [](Core::SkeletonStroke &stroke){ return stroke.name.startsWith("Undefined", Qt::CaseInsensitive); });
 
   if(number != 0)
   {

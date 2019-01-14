@@ -61,11 +61,6 @@ MeasureLengthTool::~MeasureLengthTool()
 }
 
 //----------------------------------------------------------------------------
-void MeasureLengthTool::abortOperation()
-{
-}
-
-//----------------------------------------------------------------------------
 void MeasureLengthTool::onToolActivated(bool value)
 {
   if (value)
