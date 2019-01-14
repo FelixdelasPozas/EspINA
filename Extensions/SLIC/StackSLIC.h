@@ -98,6 +98,7 @@ namespace ESPINA
         unsigned char getSupervoxelColor(unsigned int supervoxel);
         itkVolumeType::IndexType getSupervoxelCenter(unsigned int supervoxel);
         bool drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data);
+        itk::Image<unsigned int, 3> getLabeledImageFromBounds(Bounds bounds);
         bool drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data);
         bool isComputed();
         bool isRunning();

@@ -502,6 +502,7 @@ void StackSLIC::SLICComputeTask::run()
 
   qDebug() << QString("Starting post-process connectivity algorithm: %1").arg(timer.elapsed()/1000);
   ensureConnectivity();
+  ensureConnectivity();
 
   if(!canExecute())
   {
@@ -700,6 +701,85 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+itk::Image<unsigned int, 3> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
+{
+  //Partial results shouldn't ever be useful outside of the preview
+  //that is handled already in drawSliceInImageData()
+  //Only returns something if SLIC has been computed
+  if(isRunning()) {
+    //TODO: Throw exception?
+    return nullptr;
+  }
+  if(!bounds.areValid() || !contains(m_extendedItem->output()->bounds(), bounds)) {
+    //TODO: Throw exception?
+    return nullptr;
+  }
+
+  //TODO: Use Core/Utils/SpatialUtils.hxx & Core/Analysis/Data/VolumetricDataUtils.hxx
+  using ImageType = itk::Image<unsigned int, 3>;
+
+  auto spacing = m_extendedItem->output()->spacing();
+  unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
+  unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
+  unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
+
+  ImageType::Pointer image = ImageType::New();
+  ImageType::RegionType region;
+  region.SetIndex(ImageType::IndexType{bounds[0], bounds[2], bounds[4]});
+  region.SetSize(ImageType::SizeType{bounds[1], bounds[3], bounds[5]});
+  image->SetRegions(region);
+  image->Allocate();
+
+  auto data = image->GetBufferPointer();
+
+  unsigned long long int pixel_count = max_x*max_y;
+  unsigned long long int pixel;
+  auto data_offset = data;
+  unsigned int x, y, z;
+  QReadLocker lock(&result.m_dataMutex);
+  for(z = bounds[4]; z < bounds[4] + bounds[5]; z++) {
+    pixel = 0;
+    QDataStream stream(&result.voxels[z], QIODevice::ReadOnly);
+    stream.setVersion(QDataStream::Qt_4_0);
+
+    unsigned int label;
+    unsigned short voxel_count;
+
+    while(pixel < pixel_count)
+    {
+      stream >> label;
+      stream >> voxel_count;
+      y = pixel / max_x;
+      x = pixel - y * max_x; // x = pixel % max_x without dividing again
+      pixel += voxel_count;
+
+      if(x + voxel_count >= max_x) {
+        //TODO: Exception warning that RLE implementation must have changed
+        //because it should be saving rows independently so this code
+        //should be updated accordingly
+        return nullptr;
+      }
+
+      if(x < bounds[0]) {
+        voxel_count -= bounds[0]-x;
+        x = bounds[0];
+      }
+      if(x + voxel_count > bounds[1])
+        voxel_count = bounds[0] + bounds[1];
+
+      data_offset = data[y*max_x + x];
+      for(x = 0; x < voxel_count; x++, data_offset++) {
+        data_offset = label;
+      }
+
+    }
+  }
+
+  image->Modified();
+  return image;
 }
 
 //-----------------------------------------------------------------------------
@@ -1320,7 +1400,7 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
   int range = distance*2+1;
   IndexType center = label.center;
   IndexType current = center;
-  IndexType contiguous[6];
+  IndexType contiguous[27];//[6];
   long long int region[3] = {center[0] - distance, center[1] - distance, center[2] - distance};
   long long int length[3] = {range, range, range};
   fitRegionToBounds(region, length);
@@ -1348,12 +1428,20 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
     search_queue.pop();
     offsetImage = current[0] + current[1]*max_x + current[2]*slice_area;
 
-    contiguous[0] = {current[0]+1, current[1], current[2]};
+    /*contiguous[0] = {current[0]+1, current[1], current[2]};
     contiguous[1] = {current[0]-1, current[1], current[2]};
     contiguous[2] = {current[0], current[1]+1, current[2]};
     contiguous[3] = {current[0], current[1]-1, current[2]};
     contiguous[4] = {current[0], current[1], current[2]+1};
-    contiguous[5] = {current[0], current[1], current[2]-1};
+    contiguous[5] = {current[0], current[1], current[2]-1};*/
+
+    for(int adj_x = -1, i = 0; adj_x <= 1; adj_x++)
+      for(int adj_y = -1; adj_y <= 1; adj_y++)
+        for(int adj_z = -1; adj_z <= 1; adj_z++, i++)
+          contiguous[i] = {current[0]+adj_x, current[1]+adj_y, current[2]+adj_z};
+
+
+
     for(IndexType next : contiguous) {
       if(isInBounds(next[0], next[1], next[2])) {
         //Skip voxels outside the valid subregion
@@ -1443,7 +1531,7 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
       std::sort(adjacent_labels.begin(), adjacent_labels.end());
       int max_occurrences = 0;
       int occurrences = 1;
-      unsigned int l = adjacent_labels.size() == 1?adjacent_labels[0]:label.index;
+      unsigned int l = adjacent_labels.size() > 0?adjacent_labels[0]:label.index;
       for(int j = 0; j < adjacent_labels.size()-1; j++) {
         if(adjacent_labels[j] == adjacent_labels[j+1]) {
           occurrences ++;
