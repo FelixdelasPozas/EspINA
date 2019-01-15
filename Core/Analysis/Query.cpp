@@ -77,10 +77,8 @@ namespace ESPINA
         auto relations    = analysis->relationships();
         auto relatedItems = relations->ancestors(segmentation, Sample::CONTAINS);
 
-        for(auto item : relatedItems)
-        {
-          samplesList << std::dynamic_pointer_cast<Sample>(item);
-        }
+        auto castOperation = [&samplesList](const DirectedGraph::Vertex vertex) { auto sample = std::dynamic_pointer_cast<Sample>(vertex); if(sample) samplesList << sample; };
+        std::for_each(relatedItems.begin(), relatedItems.end(), castOperation);
       }
 
       return samplesList;
@@ -95,11 +93,10 @@ namespace ESPINA
       {
         auto analysis  = sample->analysis();
         auto relations = analysis->relationships();
+        auto relatedItems = relations->successors(sample, Channel::STAIN_LINK);
 
-        for(auto item : relations->successors(sample, Channel::STAIN_LINK))
-        {
-          stacks << std::dynamic_pointer_cast<Channel>(item);
-        }
+        auto castOperation = [&stacks] (const DirectedGraph::Vertex vertex) { auto stack = std::dynamic_pointer_cast<Channel>(vertex); if(stack) stacks << stack; };
+        std::for_each(relatedItems.begin(), relatedItems.end(), castOperation);
       }
 
       return stacks;
@@ -170,10 +167,8 @@ namespace ESPINA
         auto relations    = analysis->relationships();
         auto relatedItems = relations->successors(sample, Sample::CONTAINS);
 
-        for(auto item : relatedItems)
-        {
-          segmentations << std::dynamic_pointer_cast<Segmentation>(item);
-        }
+        auto castOperation = [&segmentations] (const DirectedGraph::Vertex vertex) { auto seg = std::dynamic_pointer_cast<Segmentation>(vertex); if(seg) segmentations << seg; };
+        std::for_each(relatedItems.begin(), relatedItems.end(), castOperation);
       }
 
       return segmentations;
@@ -217,14 +212,13 @@ namespace ESPINA
     //------------------------------------------------------------------------
     SampleSPtr sample(ChannelPtr channel)
     {
-      auto channels = channel->analysis()->channels();
+      auto stacks = channel->analysis()->channels();
 
-      for(auto analysisChannel: channels)
+      auto it = std::find_if(stacks.begin(), stacks.end(), [channel](const ChannelSPtr otherChannel) { return otherChannel.get() == channel; });
+
+      if(it != stacks.end())
       {
-        if(analysisChannel.get() == channel)
-        {
-          return sample(analysisChannel);
-        }
+        return sample(*it);
       }
 
       return SampleSPtr();
@@ -233,16 +227,14 @@ namespace ESPINA
     //------------------------------------------------------------------------
     SampleSList samples(SegmentationSPtr segmentation)
     {
-      auto analysis = segmentation->analysis();
-      auto samples = analysis->relationships()->ancestors(segmentation, Sample::CONTAINS);
+      auto analysis   = segmentation->analysis();
+      auto vertexList = analysis->relationships()->ancestors(segmentation, Sample::CONTAINS);
 
-      SampleSList samplesList;
-      for(auto sample : samples)
-      {
-        samplesList << std::dynamic_pointer_cast<Sample>(sample);
-      }
+      SampleSList segmentationSamples;
+      auto castOperation = [&segmentationSamples](const DirectedGraph::Vertex vertex) { auto pointer = std::dynamic_pointer_cast<Sample>(vertex); if(pointer) segmentationSamples << pointer; };
+      std::for_each(vertexList.begin(), vertexList.end(), castOperation);
 
-      return samplesList;
+      return segmentationSamples;
     }
 
     //------------------------------------------------------------------------
@@ -250,32 +242,25 @@ namespace ESPINA
     {
       auto segmentations = segmentation->analysis()->segmentations();
 
-      for(auto analysisSegmentation: segmentations)
+      auto it = std::find_if(segmentations.begin(), segmentations.end(), [segmentation](const SegmentationSPtr otherSeg) { return otherSeg.get() == segmentation; });
+
+      if(it != segmentations.end())
       {
-        if(analysisSegmentation.get() == segmentation)
-        {
-          return samples(analysisSegmentation);
-        }
+        return samples(*it);
       }
 
-      SampleSList emptyList;
-      return emptyList;
+      return SampleSList();
     }
 
     //------------------------------------------------------------------------
     ChannelSList channels(SampleSPtr sample)
     {
-      auto channels = sample->analysis()->relationships()->successors(sample, Channel::STAIN_LINK);
+      auto vertexList = sample->analysis()->relationships()->successors(sample, Channel::STAIN_LINK);
 
-      ChannelSList channelsList;
-      for (auto channel : channels)
-      {
-        auto channelPointer = std::dynamic_pointer_cast<Channel>(channel);
-        Q_ASSERT(channelPointer != nullptr);
-        channelsList << channelPointer;
-      }
+      ChannelSList stackList;
+      std::for_each(vertexList.begin(), vertexList.end(), [&stackList](const DirectedGraph::Vertex vertex) { auto stack = std::dynamic_pointer_cast<Channel>(vertex); if(stack) stackList << stack; });
 
-      return channelsList;
+      return stackList;
     }
 
     //------------------------------------------------------------------------
@@ -291,12 +276,11 @@ namespace ESPINA
     {
       auto segmentations = segmentation->analysis()->segmentations();
 
-      for(auto analysisSegmentation: segmentations)
+      auto it = std::find_if(segmentations.begin(), segmentations.end(), [segmentation](const SegmentationSPtr otherSeg) { return otherSeg.get() == segmentation; });
+
+      if(it != segmentations.end())
       {
-        if(analysisSegmentation.get() == segmentation)
-        {
-          return channels(analysisSegmentation);
-        }
+        return channels(*it);
       }
 
       return ChannelSList();
@@ -308,12 +292,7 @@ namespace ESPINA
       auto segmentations = sample->analysis()->relationships()->successors(sample, Sample::CONTAINS);
 
       SegmentationSList segmentationList;
-      for(auto segmentation: segmentations)
-      {
-        auto segmentationSPointer = std::dynamic_pointer_cast<Segmentation>(segmentation);
-        Q_ASSERT(segmentationSPointer != nullptr);
-        segmentationList << segmentationSPointer;
-      }
+      std::for_each(segmentations.begin(), segmentations.end(), [&segmentationList](const DirectedGraph::Vertex vertex) { auto segSPtr = std::dynamic_pointer_cast<Segmentation>(vertex); if(segSPtr) segmentationList << segSPtr; });
 
       return segmentationList;
     }

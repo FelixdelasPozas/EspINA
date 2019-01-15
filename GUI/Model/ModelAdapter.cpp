@@ -760,15 +760,15 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
     }
   }
 
-  for(auto relation: relations)
+  auto invalidRelationOp = [](const Relation relation) { return (!relation.ancestor || !relation.successor); };
+  auto it = std::find_if(relations.begin(), relations.end(), invalidRelationOp);
+  if(it != relations.end())
   {
-    if(!relation.ancestor || !relation.successor)
-    {
-      auto what    = tr("Wrong relation in relationships graph, null ancestor or successor.");
-      auto details = tr("ModelAdapter::relations() -> ancestor: %1 - successor: %2 - relation: %3").arg((!relation.ancestor ? "null" : "valid")).arg((!relation.successor ? "null" : "valid")).arg(relation.relation);
+    auto relation = *it;
+    auto what     = tr("Wrong relation in relationships graph, null ancestor or successor.");
+    auto details  = tr("ModelAdapter::relations() -> ancestor: %1 - successor: %2 - relation: %3").arg((!relation.ancestor ? "null" : "valid")).arg((!relation.successor ? "null" : "valid")).arg(relation.relation);
 
-      throw EspinaException(what, details);
-    }
+    throw EspinaException(what, details);
   }
 
   return relations;
@@ -1186,12 +1186,9 @@ void ModelAdapter::resetInternalData()
 //------------------------------------------------------------------------
 bool ModelAdapter::contains(ItemAdapterSPtr &item, const ItemCommandsList &list) const
 {
-  for (auto itemCommands : list)
-  {
-    if (itemCommands.Item == item) return true;
-  }
+  auto exists = std::any_of(list.begin(), list.end(), [item] (const ItemCommands command) { return (command.Item == item); });
 
-  return false;
+  return exists;
 }
 
 //------------------------------------------------------------------------

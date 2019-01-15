@@ -553,7 +553,7 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
   {
     for(auto node: set)
     {
-      auto equalEdge = [edge, node](const SkeletonNode *connection){ if(edge == node->connections[connection]) return true; return false; };
+      auto equalEdge = [edge, node](SkeletonNode *connection){ if(edge == node->connections[connection]) return true; return false; };
       const auto nodeConnections = node->connections.keys();
       auto count = std::count_if(nodeConnections.begin(), nodeConnections.end(), equalEdge);
 
@@ -833,16 +833,11 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
 
   auto substitute = [&skeleton](const int strokeIndex, const int previous, const int value)
   {
-    for(auto &edge: skeleton.edges)
-    {
-      if(edge.strokeIndex == strokeIndex && edge.strokeNumber == previous)
-      {
-        edge.strokeNumber = value;
-        return;
-      }
-    }
+    auto equalOp = [strokeIndex, previous](const SkeletonEdge &edge) { return (edge.strokeIndex == strokeIndex && edge.strokeNumber == previous); };
+    auto it = std::find_if(skeleton.edges.begin(), skeleton.edges.end(), equalOp);
 
-    Q_ASSERT(false); // this should be dead code.
+    Q_ASSERT(it != skeleton.edges.end());
+    (*it).strokeNumber = value;
   };
 
   for(auto value: recount.keys())
@@ -1011,12 +1006,9 @@ const bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
   if(node->path.end->isTerminal() && node->path.end->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
     return true;
 
-  for(auto child: node->children)
-  {
-    if(isTruncated(child)) return true;
-  }
+  auto result = std::any_of(node->children.begin(), node->children.end(), [](const PathHierarchyNode *child) { return isTruncated(child); });
 
-  return false;
+  return result;
 }
 
 //--------------------------------------------------------------------
@@ -1051,10 +1043,8 @@ const QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *
   if(node->path.end->isTerminal() && connectionPoints.contains(endPoint))
     points << endPoint;
 
-  for(const auto child: node->children)
-  {
-    points << connectionsInNode(child, connectionPoints);
-  }
+  auto operation = [&connectionPoints, &points](const PathHierarchyNode *child) { points << connectionsInNode(child, connectionPoints); };
+  std::for_each(node->children.begin(), node->children.end(), operation);
 
   return points;
 }

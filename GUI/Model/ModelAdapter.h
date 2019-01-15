@@ -808,7 +808,7 @@ namespace ESPINA
           /** \brief Executes the stored expression.
            *
            */
-          virtual void execute()
+          virtual void execute() override
           { m_lambda();}
 
         private:

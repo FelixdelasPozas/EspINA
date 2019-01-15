@@ -189,7 +189,7 @@ QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentation
 {
   QStringList pointers;
 
-  auto getPointerStrings = [pointers](const SegmentationAdapterPtr seg) { pointers << QString().number(reinterpret_cast<unsigned long long>(seg)); };
+  auto getPointerStrings = [&pointers](const SegmentationAdapterPtr seg) { pointers << QString().number(reinterpret_cast<unsigned long long>(seg)); };
   std::for_each(segmentations.begin(), segmentations.end(), getPointerStrings);
 
   pointers.sort(); // O(n log n).

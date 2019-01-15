@@ -444,10 +444,8 @@ unsigned int Scheduler::numberOfTasks() const
   QMutexLocker lock(&m_mutex);
 
   unsigned int result = 0;
-  for (auto priority: {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW})
-  {
-    result += m_scheduledTasks[priority].size();
-  }
+  auto priorities = {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW};
+  std::for_each(priorities.begin(), priorities.end(), [&result, this] (const Priority priority) { result += m_scheduledTasks[priority].size(); });
 
   return result;
 }

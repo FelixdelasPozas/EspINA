@@ -291,10 +291,7 @@ void RepresentationParallelUpdater::computeProgress(ParallelUpdaterTask *task, i
 
     m_tasks[task].Progress = progress;
 
-    for(auto data: m_tasks)
-    {
-      totalProgress += data.Progress;
-    }
+    std::for_each(m_tasks.begin(), m_tasks.end(), [&totalProgress](const RepresentationParallelUpdater::Data data) { totalProgress += data.Progress; });
   }
 
   reportProgress(totalProgress/m_taskNum);

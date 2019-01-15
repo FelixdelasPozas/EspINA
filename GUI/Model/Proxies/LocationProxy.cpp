@@ -321,12 +321,12 @@ QModelIndex LocationProxy::mapFromSource(const QModelIndex &sourceIndex) const
           auto segmentation = segmentationPtr(item);
           if(segmentation)
           {
-            for(auto stack: m_segmentations.keys())
+            auto stacks = m_segmentations.keys();
+            auto containsOp = [this, segmentation](const ChannelAdapterPtr stack) { return this->m_segmentations[stack].contains(segmentation); };
+            auto it = std::find_if(stacks.begin(), stacks.end(), containsOp);
+            if(it != stacks.end())
             {
-              if(m_segmentations[stack].contains(segmentation))
-              {
-                return createIndex(m_segmentations[stack].indexOf(segmentation), 0, sourceIndex.internalPointer());
-              }
+              return createIndex(m_segmentations[*it].indexOf(segmentation), 0, sourceIndex.internalPointer());
             }
           }
         }
@@ -556,16 +556,16 @@ void LocationProxy::sourceRowsAboutToBeRemoved(const QModelIndex &sourceParent, 
         }
         else
         {
-          for(auto stack: m_segmentations.keys())
+          auto stacks = m_segmentations.keys();
+          auto containsOp = [this, segmentation](const ChannelAdapterPtr stack) { return this->m_segmentations[stack].contains(segmentation); };
+          auto it = std::find_if(stacks.begin(), stacks.end(), containsOp);
+
+          if(it != stacks.end())
           {
-            if(m_segmentations[stack].contains(segmentation))
-            {
-              auto numStart = m_segmentations[stack].indexOf(segmentation);
-              beginRemoveRows(channelIndex(stack), numStart, numStart);
-              m_segmentations[stack].removeAll(segmentation);
-              endRemoveRows();
-              break;
-            }
+            auto numStart = m_segmentations[*it].indexOf(segmentation);
+            beginRemoveRows(channelIndex(*it), numStart, numStart);
+            m_segmentations[*it].removeAll(segmentation);
+            endRemoveRows();
           }
         }
       }
@@ -929,10 +929,11 @@ const ChannelAdapterPtr LocationProxy::stackOf(const SegmentationAdapterPtr segm
 {
   ChannelAdapterPtr result = nullptr;
 
-  for(auto stack: m_segmentations.keys())
-  {
-    if(m_segmentations[stack].contains(segmentation)) return stack;
-  }
+  auto stacks = m_segmentations.keys();
+  auto containsOp = [this, segmentation](const ChannelAdapterPtr stack) { return this->m_segmentations[stack].contains(segmentation); };
+  auto it = std::find_if(stacks.begin(), stacks.end(), containsOp);
+
+  if(it != stacks.end()) return *it;
 
   return result;
 }

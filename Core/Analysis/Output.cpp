@@ -337,9 +337,9 @@ bool Output::isSegmentationOutput() const
     auto outEdges = content->outEdges(m_filter, QString::number(m_id));
 
     auto booleanOp = [](const DirectedGraph::Edge &edge) { return (nullptr != std::dynamic_pointer_cast<Segmentation>(edge.target)); };
-    auto it = std::find_if(outEdges.begin(), outEdges.end(), booleanOp);
+    auto exists = std::any_of(outEdges.begin(), outEdges.end(), booleanOp);
 
-    return (it != outEdges.end());
+    return exists;
   }
 
   return false;
