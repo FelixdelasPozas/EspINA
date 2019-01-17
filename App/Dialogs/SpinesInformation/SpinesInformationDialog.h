@@ -23,12 +23,14 @@
 #define APP_DIALOGS_SPINESINFORMATION_SPINESINFORMATIONDIALOG_H_
 
 // ESPINA
+#include <Core/MultiTasking/Task.h>
 #include <Extensions/SkeletonInformation/DendriteInformation.h>
 #include <Support/Context.h>
 
 // Qt
 #include <QDialog>
 #include <QTableWidgetItem>
+#include <QtCore>
 
 class QCloseEvent;
 class QTableWidget;
@@ -55,8 +57,7 @@ namespace ESPINA
       /** \brief SpinesInformationDialog class virtual destructor.
        *
        */
-      virtual ~SpinesInformationDialog()
-      {};
+      virtual ~SpinesInformationDialog();
 
     protected:
       virtual void closeEvent(QCloseEvent *event) override;
@@ -96,8 +97,14 @@ namespace ESPINA
        */
       void focusOnActor(int row);
 
+      /** \brief Retrieves the task obtained information and updates the table.
+       *
+       */
+      void onTaskFinished();
+
     private:
       class Item;
+      class ComputeInformationTask;
 
       /** \brief Helper method to connect model signals.
        *
@@ -121,10 +128,11 @@ namespace ESPINA
        */
       void saveToXLS(const QString &filename);
 
-      /** \brief Helper method that obtains the spines information and fills the table.
+      /** \brief Helper method that launches the task that obtains the spines information.
+       * \param[in] items List of segmentation to obtain information from.
        *
        */
-      void computeInformation();
+      void computeInformation(SegmentationAdapterList items);
 
       /** \brief Fills the table with information.
        *
@@ -133,9 +141,10 @@ namespace ESPINA
 
       using SpinesList = QList<Extensions::DendriteSkeletonInformation::SpineInformation>;
 
-      SegmentationAdapterList                  m_segmentations; /** input segmentations.    */
-      QTableWidget                            *m_table;         /** table widget.           */
-      QMap<SegmentationAdapterPtr, SpinesList> m_spinesMap;     /** spines information map. */
+      SegmentationAdapterList                        m_segmentations;      /** input segmentations.              */
+      QTableWidget                                  *m_table;              /** table widget.                     */
+      QMap<SegmentationAdapterPtr, SpinesList>       m_spinesMap;          /** spines information map.           */
+      QList<std::shared_ptr<ComputeInformationTask>> m_pendingInformation; /** list of task currently computing. */
   };
 
   /** \class SpinesInformationDialog::Item
@@ -153,32 +162,70 @@ namespace ESPINA
       : QTableWidgetItem{info}
       {};
 
-      virtual bool operator<(const QTableWidgetItem &other) const
+      virtual bool operator<(const QTableWidgetItem &other) const override
       {
-        if(row() == 0)
+        if(column() == 0 || column() == 1)
         {
-          auto data  = this->data(Qt::DisplayRole).toString();
-          auto oData = other.data(Qt::DisplayRole).toString();
+          auto rdata = this->data(Qt::DisplayRole).toString();
+          auto ldata = other.data(Qt::DisplayRole).toString();
 
-          if(data.endsWith(" (Truncated)", Qt::CaseInsensitive)) data = data.left(data.length()-12);
-          if(oData.endsWith(" (Truncated)", Qt::CaseInsensitive)) oData = oData.left(data.length()-12);
+          if(rdata == ldata && (column() == 1) && this->tableWidget())
+          {
+            rdata = this->tableWidget()->item(row(), 0)->data(Qt::DisplayRole).toString();
+            ldata = this->tableWidget()->item(other.row(), 0)->data(Qt::DisplayRole).toString();
+          }
 
-          return (data < oData);
-        }
+          if(rdata.endsWith("(Truncated)", Qt::CaseInsensitive)) rdata = rdata.left(rdata.length()-12);
+          if(ldata.endsWith("(Truncated)", Qt::CaseInsensitive)) ldata = ldata.left(ldata.length()-12);
 
-        if(row() == 1)
-        {
-          auto data  = this->data(Qt::DisplayRole).toString();
-          auto oData = other.data(Qt::DisplayRole).toString();
-
-          auto diff = data.length() - oData.length();
+          auto diff = rdata.length() - ldata.length();
           if(diff < 0) return true;
           if(diff > 0) return false;
-          return (data < oData);
+
+          return (rdata < ldata);
         }
 
         return QTableWidgetItem::operator<(other);
       }
+  };
+
+  /** \class SpinesInformationDialog::ComputeInformationTask
+   * \brief EspINA task implementation to obtain spines information.
+   *
+   */
+  class SpinesInformationDialog::ComputeInformationTask
+  : public Task
+  {
+      Q_OBJECT
+    public:
+      /** \brief ComputeInformationTask class constructor.
+       * \param[in] segmentations List of segmentations to obtain information.
+       * \param[in] factory Model factory.
+       * \param[in] scheduler Application task scheduler.
+       *
+       */
+      explicit ComputeInformationTask(const SegmentationAdapterList &segmentations,
+                                      ModelFactorySPtr               factory,
+                                      SchedulerSPtr                  scheduler);
+
+      /** \brief ComputeInformationTask class virtual destructor.
+       *
+       */
+      virtual ~ComputeInformationTask()
+      {};
+
+      /** \brief Returns the computed information in form of a table segmentation<->spines.
+       *
+       */
+      const QMap<SegmentationAdapterPtr, SpinesList> &information() const
+      { return m_spinesMap; }
+
+    protected:
+      virtual void run() override;
+
+    private:
+      ModelFactorySPtr                         m_factory;   /** model factory.          */
+      QMap<SegmentationAdapterPtr, SpinesList> m_spinesMap; /** spines information map. */
   };
 
 } // namespace ESPINA

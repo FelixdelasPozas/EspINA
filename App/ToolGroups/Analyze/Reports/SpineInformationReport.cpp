@@ -139,7 +139,7 @@ void SpineInformationReport::show(SegmentationAdapterList input) const
   {
     WaitingCursor cursor;
 
-    auto dialog = new SpinesInformationDialog(input.isEmpty() ? input : valid, getContext());
+    auto dialog = new SpinesInformationDialog(input, getContext());
     dialog->setAttribute(Qt::WA_DeleteOnClose, true);
     dialog->show();
   }
