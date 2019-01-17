@@ -534,7 +534,7 @@ void SpinesInformationDialog::refreshTable()
 
     m_table->setUpdatesEnabled(true);
     m_table->setSortingEnabled(true);
-    if(selectedRow != -1) m_table->selectRow(selectedRow);
+    if(selectedRow != -1) m_table->selectRow(std::min(selectedRow, m_table->rowCount()));
     m_table->resizeColumnsToContents();
   }
 }
