@@ -37,7 +37,7 @@ ColorEngineRangeLimitsDialog::ColorEngineRangeLimitsDialog(const double min, con
 
   m_min->setValue(min);
   m_max->setValue(max);
-  m_property->setText(tr("'%1'").arg(property));
+  m_property->setText(tr("%1").arg(property));
 
   connectSignals();
 }
