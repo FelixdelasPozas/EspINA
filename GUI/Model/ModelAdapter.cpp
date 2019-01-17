@@ -325,7 +325,7 @@ void ModelAdapter::remove(ChannelAdapterSPtr channel)
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::remove(ChannelAdapterSList channels)
+void ModelAdapter::remove(const ChannelAdapterSList &channels)
 {
   for(auto channel : channels)
   {
@@ -336,7 +336,7 @@ void ModelAdapter::remove(ChannelAdapterSList channels)
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::remove(SegmentationAdapterSPtr segmentation)
+void ModelAdapter::remove(const SegmentationAdapterSPtr segmentation)
 {
   auto segConnections = connections(segmentation);
   if(!segConnections.isEmpty()) deleteConnections(segConnections);
@@ -347,7 +347,7 @@ void ModelAdapter::remove(SegmentationAdapterSPtr segmentation)
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::remove(SegmentationAdapterSList segmentations)
+void ModelAdapter::remove(const SegmentationAdapterSList &segmentations)
 {
   for(auto segmentation : segmentations)
   {
@@ -522,7 +522,7 @@ QVariant ModelAdapter::data(const QModelIndex& index, int role) const
 }
 
 //------------------------------------------------------------------------
-void ModelAdapter::deleteRelation(ItemAdapterSPtr ancestor, ItemAdapterSPtr successor, const RelationName& relation)
+void ModelAdapter::deleteRelation(const ItemAdapterSPtr ancestor, const ItemAdapterSPtr successor, const RelationName& relation)
 {
   m_analysis->deleteRelation(ancestor->m_analysisItem, successor->m_analysisItem, relation);
 }

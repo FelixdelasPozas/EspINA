@@ -1425,8 +1425,9 @@ void EspinaMainWindow::checkAnalysisConsistency()
 void EspinaMainWindow::assignActiveStack()
 {
   auto model = m_context.model();
+  const auto &stacks = model->channels();
 
-  if (!model->channels().isEmpty())
+  if (!stacks.isEmpty())
   {
     ChannelAdapterPtr activeStack{nullptr};
 
@@ -1438,9 +1439,9 @@ void EspinaMainWindow::assignActiveStack()
       if(!stackName.isEmpty())
       {
         auto selectionOp = [stackName](const ChannelAdapterSPtr stack) { return (stack->data(Qt::DisplayRole).toString().compare(stackName) == 0); };
-        auto it = std::find_if(model->channels().begin(), model->channels().end(), selectionOp);
+        auto it = std::find_if(stacks.constBegin(), stacks.constEnd(), selectionOp);
 
-        if(it != model->channels().end())
+        if(it != stacks.constEnd())
         {
           activeStack = (*it).get();
         }
@@ -1449,7 +1450,7 @@ void EspinaMainWindow::assignActiveStack()
 
     if(!activeStack)
     {
-      activeStack = model->channels().first().get();
+      activeStack = stacks.first().get();
     }
 
     getSelection(m_context)->setActiveChannel(activeStack);
