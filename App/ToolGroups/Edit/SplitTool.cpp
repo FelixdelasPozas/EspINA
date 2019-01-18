@@ -231,6 +231,7 @@ void SplitTool::applyCurrentState()
 
   auto stencil = Stencil::fromPlane(m_splitPlane, bounds);
   filter->setStencil(stencil);
+  filter->setStencilPlane(m_splitPlane);
 
   Data data(filter, getModel()->smartPointer(selectedSeg));
   m_executingTasks.insert(filter.get(), data);
@@ -355,22 +356,68 @@ void SplitTool::createSegmentations()
       }
 
       auto undoStack        = getUndoStack();
-      auto segmentation     = m_executingTasks[filter].segmentation.get();
+      auto segmentationSPtr = m_executingTasks[filter].segmentation;
+      auto segmentation     = segmentationSPtr.get();
       auto newSegmentation1 = segmentationsList.first()->data().toString();
       auto newSegmentation2 = segmentationsList.last()->data().toString();
+
+      auto connections = getModel()->connections(m_executingTasks[filter].segmentation);
+      if(!connections.isEmpty())
+      {
+        auto splitFilter = dynamic_cast<SplitFilter *>(filter);
+        Q_ASSERT(splitFilter);
+        auto segmentationName = segmentation->data().toString();
+
+        if(hasVolumetricData(segmentation->output()))
+        {
+          auto stencil = splitFilter->stencil();
+          auto spacing = getSelection()->activeChannel()->output()->spacing();
+
+          for(auto &connection: connections)
+          {
+            if(stencil->IsInside(connection.point[0]/spacing[0], connection.point[1]/spacing[1], connection.point[2]/spacing[2]))
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.first();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.first();
+            }
+            else
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.last();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.last();
+            }
+          }
+        }
+        else
+        {
+          auto plane = splitFilter->plane();
+
+          for(auto &connection: connections)
+          {
+            double point[3]{connection.point[0], connection.point[1], connection.point[2]};
+            if(plane->Evaluate(plane->GetNormal(), plane->GetOrigin(), point) > 0)
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.first();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.first();
+            }
+            else
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.last();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.last();
+            }
+          }
+        }
+      }
 
       {
         WaitingCursor cursor;
 
         undoStack->beginMacro(tr("Split segmentation '%1' into '%2' and '%3'.").arg(segmentation->data().toString()).arg(newSegmentation1).arg(newSegmentation2));
         undoStack->push(new RemoveSegmentations(segmentation, model));
-        undoStack->push(new AddSegmentations(segmentationsList, sample, model));
+        undoStack->push(new AddSegmentations(segmentationsList, sample, model, connections));
         undoStack->endMacro();
       }
 
       deactivateEventHandler();
-
-      m_executingTasks[filter].segmentation->setBeingModified(false);
 
       getSelection()->clear();
       getSelection()->set(toViewItemList(segmentations[1]));
@@ -380,9 +427,9 @@ void SplitTool::createSegmentations()
       auto msg = tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations.");
       
       DefaultDialogs::InformationMessage(msg);
-
-      return;
     }
+
+    m_executingTasks[filter].segmentation->setBeingModified(false);
   }
 
   m_executingTasks.remove(filter);
@@ -391,13 +438,14 @@ void SplitTool::createSegmentations()
 //------------------------------------------------------------------------
 bool SplitTool::acceptsNInputs(int n) const
 {
-  return n == 1;
+  return (n == 1);
 }
 
 //------------------------------------------------------------------------
 bool SplitTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return EditTool::acceptsVolumetricSegmentations(segmentations) && segmentations.size() == 1;
+  return (segmentations.size() == 1) &&
+         (EditTool::acceptsVolumetricSegmentations(segmentations) || EditTool::acceptsSkeletonSegmentations(segmentations));
 }
 
 //------------------------------------------------------------------------

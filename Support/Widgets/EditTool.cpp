@@ -19,6 +19,7 @@
  */
 
 // ESPINA
+#include <Core/Analysis/Data/SkeletonData.h>
 #include "EditTool.h"
 
 
@@ -38,16 +39,21 @@ EditTool::EditTool(const QString &id, const QString& icon, const QString& toolti
 }
 
 //------------------------------------------------------------------------
-bool EditTool::acceptsVolumetricSegmentations(SegmentationAdapterList segmentations)
+const bool EditTool::acceptsVolumetricSegmentations(const SegmentationAdapterList &segmentations) const
 {
-  bool hasRequiredData = true;
+  auto operation = [](const SegmentationAdapterPtr segmentation) { return hasVolumetricData(segmentation->output()); };
+  auto valid = std::all_of(segmentations.begin(), segmentations.end(), operation);
 
-  for(auto segmentation : segmentations)
-  {
-    hasRequiredData &= hasVolumetricData(segmentation->output());
-  }
+  return valid;
+}
 
-  return hasRequiredData;
+//------------------------------------------------------------------------
+const bool EditTool::acceptsSkeletonSegmentations(const SegmentationAdapterList &segmentations) const
+{
+  auto operation = [](const SegmentationAdapterPtr segmentation) { return hasSkeletonData(segmentation->output()); };
+  auto valid = std::all_of(segmentations.begin(), segmentations.end(), operation);
+
+  return valid;
 }
 
 //------------------------------------------------------------------------

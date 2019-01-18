@@ -78,6 +78,7 @@
 
 // C++
 #include <sstream>
+#include <numeric>
 
 // Qt
 #include <QtGui>

@@ -186,8 +186,6 @@ const bool UpdateColorEngineTask::isCategorical() const
 //-----------------------------------------------------------------------------
 const QStringList UpdateColorEngineTask::categories() const
 {
-  qSort(m_categories);
-
   return m_categories;
 }
 

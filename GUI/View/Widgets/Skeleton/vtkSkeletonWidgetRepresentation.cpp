@@ -1352,7 +1352,7 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 
   performPathsMerge();
 
-  adjustStrokeNumbers(s_skeleton);
+  Core::adjustStrokeNumbers(s_skeleton);
 
   return Core::toPolyData(s_skeleton);
 }
