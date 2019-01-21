@@ -84,6 +84,8 @@ void SplitFilter::execute()
     }
   }
 
+  m_outputs.clear(); // invalidate previous execution.
+
   int shift[3]; // Stencil origin differ from creation to fetch
 
   double origin[3];
@@ -211,13 +213,13 @@ void SplitFilter::execute()
           {
             if(!splits[0].nodes.contains(connNode))
             {
-              auto edge = node->connections[connNode];
               double t = 0;
               double intersection[3];
 
               if(0 != m_plane->IntersectWithLine(node->position, connNode->position, t, intersection))
               {
                 for(const auto j: {0,1,2}) intersection[j] = std::round(intersection[j]/spacing[j]) * spacing[j];
+                auto edge = node->connections[connNode];
 
                 auto intersection1 = new SkeletonNode{intersection};
                 intersection1->connections.insert(node, edge);
@@ -242,6 +244,7 @@ void SplitFilter::execute()
           splits[i].strokes = skeleton.strokes;
           splits[i].edges   = skeleton.edges;
 
+          // this could delete nodes in skeleton definition, so we need to join nodes later before clearing the structs.
           Core::cleanSkeletonStrokes(splits[i]);
           Core::removeIsolatedNodes(splits[i].nodes);
           Core::mergeSamePositionNodes(splits[i].nodes);
@@ -262,6 +265,10 @@ void SplitFilter::execute()
       }
 
       m_ignoreCurrentOutputs = false;
+
+      // we don't need to clear() splits because the nodes will be deleted here and the rest (count, strokes, edges) are structs.
+      skeleton.nodes = splits[0].nodes + splits[1].nodes;
+      skeleton.clear();
     }
   }
 }
