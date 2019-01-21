@@ -26,6 +26,7 @@
 #include "ui_SkeletonInspector.h"
 #include "SkeletonInspectorTreeModel.h"
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/View/View3D.h>
@@ -253,6 +254,7 @@ namespace ESPINA
       RepresentationList       m_representations;     /** list of view's representations factories and switches. */
       QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                            */
       TemporalPipelineSPtr     m_temporalPipeline;    /** segmentation temporal representation.                  */
+      Core::SkeletonDefinition m_definition;          /** skeleton definition struct.                            */
   };
 
   /** \class SkeletonInspectorRepresentationSwitch

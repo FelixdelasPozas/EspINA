@@ -592,6 +592,8 @@ void DendriteSkeletonInformation::updateInformation() const
     {
       markAsInvalid(DENDRITE_SYNAPSES_RATIO);
     }
+
+    definition.clear();
   }
 }
 

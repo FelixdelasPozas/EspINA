@@ -213,6 +213,7 @@ namespace ESPINA
       QList<struct StrokeInfo>     &m_strokes;           /** List of stroke information structs.                                   */
       bool                          m_useRandomColoring; /** true to color strokes with random color, false to use stroke color.   */
       unsigned int                  m_connectionLevel;   /** Connection level.                                                     */
+      Core::SkeletonDefinition      m_definition;        /** skeleton definition struct.                                           */
   };
 
 } // namespace ESPINA

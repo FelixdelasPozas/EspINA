@@ -195,5 +195,7 @@ void AxonSkeletonInformation::updateInformation() const
 
     auto ratio = (shaftConnections == 0 ? 0 : static_cast<double>(spineConnections)/shaftConnections);
     updateInfoCache(AXON_SYNAPSES_RATIO, ratio);
+
+    definition.clear();
   }
 }

@@ -214,6 +214,8 @@ void SynapseConnectionInformation::updateInformation() const
             }
           }
         }
+
+        definition.clear();
       }
 
       if(other->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))

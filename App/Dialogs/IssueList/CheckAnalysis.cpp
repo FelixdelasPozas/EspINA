@@ -598,6 +598,8 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
+
+    definition.clear();
   }
 }
 

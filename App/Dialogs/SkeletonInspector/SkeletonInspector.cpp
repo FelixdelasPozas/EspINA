@@ -132,6 +132,7 @@ void SkeletonInspector::closeEvent(QCloseEvent *event)
   m_segmentation->clearTemporalRepresentation();
   for(auto &stroke: m_strokes) stroke.actors.clear();
   m_strokes.clear();
+  m_definition.clear();
 }
 
 //--------------------------------------------------------------------
@@ -140,8 +141,8 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
   Q_ASSERT(hasSkeletonData(segmentation->output()));
 
   auto skeleton    = readLockSkeleton(segmentation->output())->skeleton();
-  auto definition  = toSkeletonDefinition(skeleton);
-  auto pathList    = paths(definition.nodes, definition.edges, definition.strokes);
+  m_definition     = toSkeletonDefinition(skeleton);
+  auto pathList    = paths(m_definition.nodes, m_definition.edges, m_definition.strokes);
   auto connections = getModel()->connections(segmentation);
 
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -167,8 +168,8 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     info.path      = path;
     info.selected  = true;
     info.length    = path.length();
-    info.used      = definition.strokes.at(path.stroke).useMeasure;
-    info.hue       = definition.strokes.at(path.stroke).colorHue;
+    info.used      = m_definition.strokes.at(path.stroke).useMeasure;
+    info.hue       = m_definition.strokes.at(path.stroke).colorHue;
     info.randomHue = assignRandomFromHue(info.hue);
 
     auto points = vtkSmartPointer<vtkPoints>::New();
@@ -223,14 +224,14 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputData(polyData);
 
-    auto hue   = definition.strokes.at(path.stroke).colorHue;
+    auto hue   = m_definition.strokes.at(path.stroke).colorHue;
     auto color = QColor::fromHsv(hue, 255,255);
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
     actor->GetProperty()->SetLineWidth(1);
     actor->SetPickable(false);
-    if(definition.strokes.at(path.stroke).type != 0)
+    if(m_definition.strokes.at(path.stroke).type != 0)
     {
       actor->GetProperty()->SetLineStipplePattern(0xFF00);
     }

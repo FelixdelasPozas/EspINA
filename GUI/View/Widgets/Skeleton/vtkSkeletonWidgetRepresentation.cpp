@@ -1489,16 +1489,7 @@ void vtkSkeletonWidgetRepresentation::ClearRepresentation()
 {
   QMutexLocker lock(&s_skeletonMutex);
 
-  for(auto node: s_skeleton.nodes)
-  {
-    node->connections.clear();
-    delete node;
-  }
-
-  s_skeleton.nodes.clear();
-  s_skeleton.count.clear();
-  s_skeleton.edges.clear();
-  s_skeleton.strokes.clear();
+  s_skeleton.clear();
 
   s_currentVertex = nullptr;
 }
@@ -2500,7 +2491,7 @@ void vtkSkeletonWidgetRepresentation::setWidth(const int width)
 }
 
 //--------------------------------------------------------------------
-void ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::setChangeCoincidetHue(const bool value)
+void vtkSkeletonWidgetRepresentation::setChangeCoincidetHue(const bool value)
 {
   if(m_changeCoincidentHue != value)
   {
@@ -2513,7 +2504,7 @@ void ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::setC
 }
 
 //--------------------------------------------------------------------
-const bool ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::changeCoincidentHue() const
+const bool vtkSkeletonWidgetRepresentation::changeCoincidentHue() const
 {
   return m_changeCoincidentHue;
 }

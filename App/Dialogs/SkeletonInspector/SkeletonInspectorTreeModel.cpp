@@ -57,6 +57,8 @@ SkeletonInspectorTreeModel::~SkeletonInspectorTreeModel()
 {
   if(m_StrokesTree) delete m_StrokesTree;
   if(m_ConnectTree) delete m_ConnectTree;
+
+  m_definition.clear();
 };
 
 //--------------------------------------------------------------------
@@ -423,11 +425,11 @@ void SkeletonInspectorTreeModel::computeStrokesTree()
   m_StrokesTree = new TreeNode();
   m_StrokesTree->type = TreeNode::Type::ROOT;
 
-  auto definition = toSkeletonDefinition(readLockSkeleton(m_segmentation->output())->skeleton());
+  m_definition = toSkeletonDefinition(readLockSkeleton(m_segmentation->output())->skeleton());
 
   PathList pathList;
   for(auto stroke: m_strokes) pathList << stroke.path;
-  auto hierarchy  = pathHierarchy(pathList, definition.edges, definition.strokes);
+  auto hierarchy  = pathHierarchy(pathList, m_definition.edges, m_definition.strokes);
 
   int i = 0;
   std::function<TreeNode *(PathHierarchyNode *)> fillNode = [&fillNode, this, &i](PathHierarchyNode *node)
