@@ -78,16 +78,25 @@ namespace ESPINA
       virtual bool ignoreStorageContent() const;
 
     protected:
-      /** \brief Performs the logical addition of the input segmentations.
+      /** \brief Performs the logical addition of the input volumetric segmentations.
        *
        */
-      void addition();
+      void volumetricAddition();
 
-      /** \brief Performs the subtraction off all the segmentations from the
-       * first one.
+      /** \brief Performs the logical addition of the input skeleton segmentations.
        *
        */
-      void subtraction();
+      void skeletonAddition();
+
+      /** \brief Performs the subtraction of all the volumetric segmentations from the first one.
+       *
+       */
+      void volumetricSubtraction();
+
+      /** \brief Performs the subtraction of all the skeleton segmentations from the first one.
+       *
+       */
+      void skeletonSubtraction();
 
     private:
       Operation m_operation;

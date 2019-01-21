@@ -23,13 +23,20 @@
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
+#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Utils/BinaryMask.hxx>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
 
+// C++
+#include <algorithm>
+
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 //-----------------------------------------------------------------------------
 ImageLogicFilter::ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)
@@ -73,11 +80,26 @@ void ImageLogicFilter::execute(Output::Id oId)
   switch (m_operation)
   {
     case Operation::ADDITION:
-      addition();
+      if(hasVolumetricData(m_inputs[0]->output()))
+      {
+        volumetricAddition();
+      }
+      else
+      {
+        skeletonAddition();
+      }
       break;
     case Operation::SUBTRACTION:
-      subtraction();
+      if(hasVolumetricData(m_inputs[0]->output()))
+      {
+        volumetricSubtraction();
+      }
+      else
+      {
+        skeletonSubtraction();
+      }
       break;
+    case Operation::NOSIGN:
     default:
       Q_ASSERT(false);
       break;
@@ -88,7 +110,7 @@ void ImageLogicFilter::execute(Output::Id oId)
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::addition()
+void ImageLogicFilter::volumetricAddition()
 {
   auto firstVolume    = readLockVolume(m_inputs[0]->output());
   auto boundingBounds = firstVolume->bounds();
@@ -145,7 +167,132 @@ void ImageLogicFilter::addition()
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::subtraction()
+void ImageLogicFilter::skeletonAddition()
+{
+  auto data     = readLockSkeleton(m_inputs[0]->output());
+  auto spacing  = m_inputs[0]->output()->spacing();
+  auto skeleton = Core::toSkeletonDefinition(data->skeleton());
+
+  auto additionOp = [&skeleton, this](const InputSPtr input)
+  {
+    auto otherSkeleton = Core::toSkeletonDefinition(readLockSkeleton(input->output())->skeleton());
+
+    // add different nodes
+    for(auto otherNode: otherSkeleton.nodes)
+    {
+      auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
+      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
+
+      if(it == skeleton.nodes.end())
+      {
+        auto newNode = new SkeletonNode{otherNode->position};
+        newNode->flags = otherNode->flags;
+
+        skeleton.nodes << newNode;
+      }
+    }
+
+    // add different strokes
+    for(auto otherStroke: otherSkeleton.strokes)
+    {
+      auto equalStrokeOp = [&otherStroke](const SkeletonStroke &stroke) { return (stroke.name == otherStroke.name); };
+      auto it = std::find_if(skeleton.strokes.begin(), skeleton.strokes.end(), equalStrokeOp);
+
+      if(it == skeleton.strokes.end())
+      {
+        skeleton.strokes << otherStroke;
+        skeleton.count.insert(otherStroke, 0);
+      }
+    }
+
+    // add edges
+    QMap<int, int> oldToNew;
+    for(auto otherNode: otherSkeleton.nodes)
+    {
+      auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
+      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
+      Q_ASSERT(it != skeleton.nodes.end()); // exists
+
+      for(auto connectionNode: otherNode->connections.keys())
+      {
+        auto equalCNodeOp = [connectionNode](const SkeletonNode *node) { return std::memcmp(connectionNode->position, node->position, 3* sizeof(double)) == 0; };
+        auto cIt = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalCNodeOp);
+        Q_ASSERT(cIt != skeleton.nodes.end()); // exists
+
+        if((*it)->connections.keys().contains(*cIt)) continue;
+
+        auto otherEdge = otherNode->connections[connectionNode];
+        if(!oldToNew.keys().contains(otherEdge))
+        {
+          auto otherStroke = otherSkeleton.strokes.at(otherSkeleton.edges.at(otherEdge).strokeIndex);
+          auto equalStrokeOp = [&otherStroke](const SkeletonStroke &stroke) { return (stroke.name == otherStroke.name); };
+          auto sIt = std::find_if(skeleton.strokes.begin(), skeleton.strokes.end(), equalStrokeOp);
+          Q_ASSERT(sIt != skeleton.strokes.end());
+
+          SkeletonEdge edge;
+          edge.strokeIndex = skeleton.strokes.indexOf(*sIt);
+          edge.strokeNumber = ++skeleton.count[*sIt];
+          edge.parentEdge = -1;
+
+          skeleton.edges << edge;
+          oldToNew.insert(otherEdge, skeleton.edges.indexOf(edge));
+        }
+
+        (*it)->connections.insert(*cIt, oldToNew[otherEdge]);
+      }
+    }
+
+    // adjust edges parents now that all edges are in
+    for(auto otherNode: otherSkeleton.nodes)
+    {
+      auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
+      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
+      Q_ASSERT(it != skeleton.nodes.end()); // exists
+
+      for(auto connectionNode: otherNode->connections.keys())
+      {
+        auto equalCNodeOp = [connectionNode](const SkeletonNode *node) { return std::memcmp(connectionNode->position, node->position, 3* sizeof(double)) == 0; };
+        auto cIt = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalCNodeOp);
+        Q_ASSERT(cIt != skeleton.nodes.end()); // exists
+
+        auto otherEdge = otherNode->connections[connectionNode];
+        auto parent = otherSkeleton.edges.at(otherEdge).parentEdge;
+        if(parent == -1) continue;
+
+        parent = oldToNew.contains(parent) ? oldToNew[parent] : -1;
+        skeleton.edges[oldToNew[otherEdge]].parentEdge = parent;
+      }
+    }
+
+    otherSkeleton.clear();
+
+    auto pos = this->m_inputs.indexOf(input);
+    reportProgress((100/m_inputs.size())*pos);
+  };
+
+  // do the magic
+  std::for_each(m_inputs.begin() + 1, m_inputs.end(), additionOp);
+
+  Core::cleanSkeletonStrokes(skeleton);
+  Core::removeIsolatedNodes(skeleton.nodes);
+  Core::mergeSamePositionNodes(skeleton.nodes);
+  Core::adjustStrokeNumbers(skeleton);
+
+  auto skeletonPolydata = Core::toPolyData(skeleton);
+
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
+  }
+
+  m_outputs[0]->setData(std::make_shared<RawSkeleton>(skeletonPolydata, spacing));
+  m_outputs[0]->setSpacing(spacing);
+
+  skeleton.clear();
+}
+
+//-----------------------------------------------------------------------------
+void ImageLogicFilter::volumetricSubtraction()
 {
   auto firstVolume = readLockVolume(m_inputs[0]->output());
   auto firstBounds = firstVolume->bounds();
@@ -200,6 +347,52 @@ void ImageLogicFilter::subtraction()
   m_outputs[0]->setData(outputVolume);
   m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
+}
+
+//-----------------------------------------------------------------------------
+void ImageLogicFilter::skeletonSubtraction()
+{
+  auto data     = readLockSkeleton(m_inputs[0]->output());
+  auto spacing  = m_inputs[0]->output()->spacing();
+  auto skeleton = Core::toSkeletonDefinition(data->skeleton());
+
+  auto subtractionOp = [&skeleton, this](const InputSPtr input)
+  {
+    auto otherSkeleton = Core::toSkeletonDefinition(readLockSkeleton(input->output())->skeleton());
+
+    // add different nodes
+    for(auto otherNode: otherSkeleton.nodes)
+    {
+      auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
+      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
+
+      if(it != skeleton.nodes.end())
+      {
+        skeleton.nodes.removeAll(*it);
+        delete *it; // removes connections also
+      }
+    }
+  };
+
+  // do the magic
+  std::for_each(m_inputs.begin() + 1, m_inputs.end(), subtractionOp);
+
+  Core::cleanSkeletonStrokes(skeleton);
+  Core::removeIsolatedNodes(skeleton.nodes);
+  Core::mergeSamePositionNodes(skeleton.nodes);
+  Core::adjustStrokeNumbers(skeleton);
+
+  auto skeletonPolydata = Core::toPolyData(skeleton);
+
+  if (!m_outputs.contains(0))
+  {
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
+  }
+
+  m_outputs[0]->setData(std::make_shared<RawSkeleton>(skeletonPolydata, spacing));
+  m_outputs[0]->setSpacing(spacing);
+
+  skeleton.clear();
 }
 
 //-----------------------------------------------------------------------------

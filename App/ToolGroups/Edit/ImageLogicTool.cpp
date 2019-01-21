@@ -59,13 +59,13 @@ void ImageLogicTool::setOperation(ImageLogicFilter::Operation operation)
 //------------------------------------------------------------------------
 bool ImageLogicTool::acceptsNInputs(int n) const
 {
-  return n > 1;
+  return (n > 1);
 }
 
 //------------------------------------------------------------------------
 bool ImageLogicTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return EditTool::acceptsVolumetricSegmentations(segmentations);
+  return (EditTool::acceptsVolumetricSegmentations(segmentations) || EditTool::acceptsSkeletonSegmentations(segmentations));
 }
 
 //------------------------------------------------------------------------
@@ -163,11 +163,13 @@ void ImageLogicTool::onTaskFinished()
                      .arg(taskContext.Operation == ImageLogicFilter::Operation::SUBTRACTION ? "subtraction" : "addition")
                      .arg(opSegmentations);
 
+    auto connections = operationConnections(segmentation, segmentationList, m_operation);
+
     {
       WaitingCursor cursor;
 
       undoStack->beginMacro(macroText);
-      undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
+      undoStack->push(new AddSegmentations(segmentation, samples, getModel(), connections));
       undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
       undoStack->endMacro();
     }
@@ -179,7 +181,7 @@ void ImageLogicTool::onTaskFinished()
   {
     for(auto item: m_executingTasks[filter].Segmentations)
     {
-      markAsBeingModified(item, false);
+      item->setBeingModified(false);
     }
   }
 
@@ -208,4 +210,64 @@ void ImageLogicTool::abortTasks()
   }
 
   m_executingTasks.clear();
+}
+
+//------------------------------------------------------------------------
+const ConnectionList ImageLogicTool::operationConnections(const SegmentationAdapterSPtr segmentation, const SegmentationAdapterList& segmentations, const ImageLogicFilter::Operation operation) const
+{
+  ConnectionList result;
+  auto it = segmentations.begin();
+  ++it;
+  std::function<void(const SegmentationAdapterPtr)> connectionOperation;
+
+  // TODO
+  switch(operation)
+  {
+    case ImageLogicFilter::Operation::ADDITION:
+      connectionOperation = [&result, segmentation, this](const SegmentationAdapterPtr otherSeg)
+      {
+        const auto connections = getModel()->connections(getModel()->smartPointer(otherSeg));
+        for(auto connection: connections)
+        {
+          if(connection.item1.get() == otherSeg) connection.item1 = segmentation;
+          if(connection.item2.get() == otherSeg) connection.item2 = segmentation;
+
+          if(!result.contains(connection)) result << connection;
+        }
+      };
+      break;
+    case ImageLogicFilter::Operation::SUBTRACTION:
+      {
+        auto first = segmentations.first();
+        const auto connections = getModel()->connections(getModel()->smartPointer(first));
+        for(auto connection: connections)
+        {
+          if(connection.item1.get() == first) connection.item1 = segmentation;
+          if(connection.item2.get() == first) connection.item2 = segmentation;
+
+          result << connection;
+        }
+
+        connectionOperation = [&result, segmentation, this](const SegmentationAdapterPtr otherSeg)
+        {
+          const auto connections = getModel()->connections(getModel()->smartPointer(otherSeg));
+          for(auto connection: connections)
+          {
+            if(connection.item1.get() == otherSeg) connection.item1 = segmentation;
+            if(connection.item2.get() == otherSeg) connection.item2 = segmentation;
+
+            if(result.contains(connection)) result.removeAll(connection);
+          }
+        };
+      }
+      break;
+    case ImageLogicFilter::Operation::NOSIGN:
+    default:
+      Q_ASSERT(false); // error
+      break;
+  }
+
+  std::for_each(segmentations.begin(), segmentations.end(), connectionOperation);
+
+  return result;
 }
