@@ -120,6 +120,8 @@ RepresentationParallelUpdater::~RepresentationParallelUpdater()
 //--------------------------------------------------------------------
 void RepresentationParallelUpdater::run()
 {
+  if(!m_needsUpdate) return;
+
   auto frame = std::make_shared<Frame>();
   RepresentationState settings;
   UpdateRequestList updateList;
@@ -200,6 +202,7 @@ void RepresentationParallelUpdater::run()
   {
     if(isValid(frame))
     {
+      m_needsUpdate = false;
       emit actorsReady(frame, m_actors);
     }
   }
