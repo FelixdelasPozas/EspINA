@@ -97,7 +97,7 @@ void Category::addSubCategory(CategorySPtr subCategory)
 {
   // check if already present
   auto booleanOp = [subCategory](const CategorySPtr &category) { return (category.get() == subCategory.get()); };
-  auto exists = std::any_of(m_subCategories.begin(), m_subCategories.end(), booleanOp);
+  auto exists = std::any_of(m_subCategories.constBegin(), m_subCategories.constEnd(), booleanOp);
 
   if(exists) return;
 

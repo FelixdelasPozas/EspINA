@@ -142,7 +142,7 @@ void RepresentationParallelUpdater::run()
     updateList = *m_updateList;
     updateList.detach();
 
-    m_updateList    = &m_sources;
+    m_updateList = &m_sources;
     m_requestedSources.clear();
   }
 
@@ -291,7 +291,8 @@ void RepresentationParallelUpdater::computeProgress(ParallelUpdaterTask *task, i
 
     m_tasks[task].Progress = progress;
 
-    std::for_each(m_tasks.begin(), m_tasks.end(), [&totalProgress](const RepresentationParallelUpdater::Data data) { totalProgress += data.Progress; });
+    const auto tasks = m_tasks.values();
+    std::for_each(tasks.constBegin(), tasks.constEnd(), [&totalProgress](const RepresentationParallelUpdater::Data &data) { totalProgress += data.Progress; });
   }
 
   reportProgress(totalProgress/m_taskNum);

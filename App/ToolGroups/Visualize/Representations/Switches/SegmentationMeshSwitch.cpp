@@ -131,7 +131,7 @@ void SegmentationMeshSwitch::onSmoothChanged(int value)
 
     if(m_smoothEnabled)
     {
-      ViewItemAdapterList items = m_smoothedMeshManager->pools().first()->sources();
+      const ViewItemAdapterList items = m_smoothedMeshManager->pools().first()->sources();
 
       invalidateRepresentations(items);
     }

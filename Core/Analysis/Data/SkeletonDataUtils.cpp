@@ -555,7 +555,7 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
     {
       auto equalEdge = [edge, node](SkeletonNode *connection){ if(edge == node->connections[connection]) return true; return false; };
       const auto nodeConnections = node->connections.keys();
-      auto count = std::count_if(nodeConnections.begin(), nodeConnections.end(), equalEdge);
+      auto count = std::count_if(nodeConnections.constBegin(), nodeConnections.constEnd(), equalEdge);
 
       if(count == 1)
       {
@@ -1006,7 +1006,7 @@ const bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
   if(node->path.end->isTerminal() && node->path.end->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
     return true;
 
-  auto result = std::any_of(node->children.begin(), node->children.end(), [](const PathHierarchyNode *child) { return isTruncated(child); });
+  auto result = std::any_of(node->children.constBegin(), node->children.constEnd(), [](const PathHierarchyNode *child) { return isTruncated(child); });
 
   return result;
 }
@@ -1044,7 +1044,7 @@ const QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *
     points << endPoint;
 
   auto operation = [&connectionPoints, &points](const PathHierarchyNode *child) { points << connectionsInNode(child, connectionPoints); };
-  std::for_each(node->children.begin(), node->children.end(), operation);
+  std::for_each(node->children.constBegin(), node->children.constEnd(), operation);
 
   return points;
 }

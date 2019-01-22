@@ -78,7 +78,7 @@ namespace ESPINA
         auto relatedItems = relations->ancestors(segmentation, Sample::CONTAINS);
 
         auto castOperation = [&samplesList](const DirectedGraph::Vertex vertex) { auto sample = std::dynamic_pointer_cast<Sample>(vertex); if(sample) samplesList << sample; };
-        std::for_each(relatedItems.begin(), relatedItems.end(), castOperation);
+        std::for_each(relatedItems.constBegin(), relatedItems.constEnd(), castOperation);
       }
 
       return samplesList;
@@ -96,7 +96,7 @@ namespace ESPINA
         auto relatedItems = relations->successors(sample, Channel::STAIN_LINK);
 
         auto castOperation = [&stacks] (const DirectedGraph::Vertex vertex) { auto stack = std::dynamic_pointer_cast<Channel>(vertex); if(stack) stacks << stack; };
-        std::for_each(relatedItems.begin(), relatedItems.end(), castOperation);
+        std::for_each(relatedItems.constBegin(), relatedItems.constEnd(), castOperation);
       }
 
       return stacks;
@@ -168,7 +168,7 @@ namespace ESPINA
         auto relatedItems = relations->successors(sample, Sample::CONTAINS);
 
         auto castOperation = [&segmentations] (const DirectedGraph::Vertex vertex) { auto seg = std::dynamic_pointer_cast<Segmentation>(vertex); if(seg) segmentations << seg; };
-        std::for_each(relatedItems.begin(), relatedItems.end(), castOperation);
+        std::for_each(relatedItems.constBegin(), relatedItems.constEnd(), castOperation);
       }
 
       return segmentations;
@@ -232,7 +232,7 @@ namespace ESPINA
 
       SampleSList segmentationSamples;
       auto castOperation = [&segmentationSamples](const DirectedGraph::Vertex vertex) { auto pointer = std::dynamic_pointer_cast<Sample>(vertex); if(pointer) segmentationSamples << pointer; };
-      std::for_each(vertexList.begin(), vertexList.end(), castOperation);
+      std::for_each(vertexList.constBegin(), vertexList.constEnd(), castOperation);
 
       return segmentationSamples;
     }
@@ -240,9 +240,9 @@ namespace ESPINA
     //------------------------------------------------------------------------
     SampleSList samples(SegmentationPtr segmentation)
     {
-      auto segmentations = segmentation->analysis()->segmentations();
+      const auto segmentations = segmentation->analysis()->segmentations();
 
-      auto it = std::find_if(segmentations.begin(), segmentations.end(), [segmentation](const SegmentationSPtr otherSeg) { return otherSeg.get() == segmentation; });
+      auto it = std::find_if(segmentations.constBegin(), segmentations.constEnd(), [segmentation](const SegmentationSPtr otherSeg) { return otherSeg.get() == segmentation; });
 
       if(it != segmentations.end())
       {
@@ -255,10 +255,10 @@ namespace ESPINA
     //------------------------------------------------------------------------
     ChannelSList channels(SampleSPtr sample)
     {
-      auto vertexList = sample->analysis()->relationships()->successors(sample, Channel::STAIN_LINK);
+      const auto vertexList = sample->analysis()->relationships()->successors(sample, Channel::STAIN_LINK);
 
       ChannelSList stackList;
-      std::for_each(vertexList.begin(), vertexList.end(), [&stackList](const DirectedGraph::Vertex vertex) { auto stack = std::dynamic_pointer_cast<Channel>(vertex); if(stack) stackList << stack; });
+      std::for_each(vertexList.constBegin(), vertexList.constEnd(), [&stackList](const DirectedGraph::Vertex vertex) { auto stack = std::dynamic_pointer_cast<Channel>(vertex); if(stack) stackList << stack; });
 
       return stackList;
     }
@@ -289,10 +289,10 @@ namespace ESPINA
     //------------------------------------------------------------------------
     SegmentationSList segmentations(SampleSPtr sample)
     {
-      auto segmentations = sample->analysis()->relationships()->successors(sample, Sample::CONTAINS);
+      const auto segmentations = sample->analysis()->relationships()->successors(sample, Sample::CONTAINS);
 
       SegmentationSList segmentationList;
-      std::for_each(segmentations.begin(), segmentations.end(), [&segmentationList](const DirectedGraph::Vertex vertex) { auto segSPtr = std::dynamic_pointer_cast<Segmentation>(vertex); if(segSPtr) segmentationList << segSPtr; });
+      std::for_each(segmentations.constBegin(), segmentations.constEnd(), [&segmentationList](const DirectedGraph::Vertex vertex) { auto segSPtr = std::dynamic_pointer_cast<Segmentation>(vertex); if(segSPtr) segmentationList << segSPtr; });
 
       return segmentationList;
     }

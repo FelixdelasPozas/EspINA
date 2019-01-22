@@ -208,7 +208,7 @@ SegmentationAdapterSList QueryAdapter::segmentationsOfCategory(ModelAdapterSPtr 
     }
   };
 
-  std::for_each(model->segmentations().begin(), model->segmentations().end(), selectionOp);
+  std::for_each(model->segmentations().constBegin(), model->segmentations().constEnd(), selectionOp);
 
   return results;
 }

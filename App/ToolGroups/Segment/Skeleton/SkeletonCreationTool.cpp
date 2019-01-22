@@ -592,7 +592,7 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
 
     m_nextButton->setEnabled(m_item != getActiveChannel());
 
-    std::for_each(m_pointWidgets.begin(), m_pointWidgets.end(), [](ConnectionPointsTemporalRepresentation2DSPtr pointWidget) { pointWidget->clearPoints(); });
+    std::for_each(m_pointWidgets.constBegin(), m_pointWidgets.constEnd(), [](ConnectionPointsTemporalRepresentation2DSPtr pointWidget) { pointWidget->clearPoints(); });
   }
   else
   {

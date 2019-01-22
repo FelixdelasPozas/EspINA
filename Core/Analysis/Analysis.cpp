@@ -504,10 +504,10 @@ bool Analysis::findRelation(PersistentSPtr    ancestor,
                             PersistentSPtr    succesor,
                             const RelationName& relation)
 {
-  auto edges = m_relations->outEdges(ancestor, relation);
+  const auto edges = m_relations->outEdges(ancestor, relation);
 
   auto booleanOp = [relation, succesor](const DirectedGraph::Edge &edge) {return (edge.relationship == relation.toStdString() && edge.target == succesor); };
-  return std::any_of(edges.begin(), edges.end(), booleanOp);
+  return std::any_of(edges.constBegin(), edges.constEnd(), booleanOp);
 }
 
 //------------------------------------------------------------------------

@@ -164,6 +164,11 @@ void View3D::onCrosshairChanged(const FrameCSPtr frame)
     m_coronalScrollBar ->blockSignals(false);
     m_sagittalScrollBar->blockSignals(false);
   }
+
+  if(frame->flags.testFlag(Frame::Option::Focus))
+  {
+    moveCamera(point);
+  }
 }
 
 //-----------------------------------------------------------------------------

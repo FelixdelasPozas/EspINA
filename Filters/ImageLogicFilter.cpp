@@ -271,7 +271,7 @@ void ImageLogicFilter::skeletonAddition()
   };
 
   // do the magic
-  std::for_each(m_inputs.begin() + 1, m_inputs.end(), additionOp);
+  std::for_each(m_inputs.constBegin() + 1, m_inputs.constEnd(), additionOp);
 
   Core::cleanSkeletonStrokes(skeleton);
   Core::removeIsolatedNodes(skeleton.nodes);
@@ -375,7 +375,7 @@ void ImageLogicFilter::skeletonSubtraction()
   };
 
   // do the magic
-  std::for_each(m_inputs.begin() + 1, m_inputs.end(), subtractionOp);
+  std::for_each(m_inputs.constBegin() + 1, m_inputs.constEnd(), subtractionOp);
 
   Core::cleanSkeletonStrokes(skeleton);
   Core::removeIsolatedNodes(skeleton.nodes);

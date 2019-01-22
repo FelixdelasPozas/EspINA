@@ -128,7 +128,7 @@ void CategoryAdapter::addProperty(const QString& prop, const QVariant& value)
 void CategoryAdapter::addSubCategory(CategoryAdapterSPtr subCategory)
 {
   auto equalOp = [subCategory](const CategoryAdapterSPtr elem) { return (elem == subCategory); };
-  auto exists = std::any_of(m_subCategories.begin(), m_subCategories.end(), equalOp);
+  auto exists = std::any_of(m_subCategories.constBegin(), m_subCategories.constEnd(), equalOp);
 
   if(exists) return;
 

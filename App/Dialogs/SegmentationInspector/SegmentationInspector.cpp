@@ -72,7 +72,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segm
 
   connectSignals();
 
-  std::for_each(segmentations.begin(), segmentations.end(), [this](const SegmentationAdapterPtr segmentation) { addSegmentation(segmentation); });
+  std::for_each(segmentations.constBegin(), segmentations.constEnd(), [this](const SegmentationAdapterPtr segmentation) { addSegmentation(segmentation); });
 
   initView3D(context.availableRepresentations());
 

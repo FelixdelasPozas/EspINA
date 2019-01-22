@@ -76,7 +76,7 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
           {
             double length = 0;
             auto strokeSumLengthOp = [&length](const StrokeInfo &stroke) { if(stroke.used) length += stroke.length; };
-            std::for_each(m_strokes.begin(), m_strokes.end(), strokeSumLengthOp);
+            std::for_each(m_strokes.constBegin(), m_strokes.constEnd(), strokeSumLengthOp);
 
             return tr("%1 (%2 nm)").arg(m_segmentation->data().toString()).arg(length);
           }
@@ -176,7 +176,7 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
             case 0:
               {
                 auto strokeIsVisible = [](const struct StrokeInfo &stroke) { if(stroke.actors.first()->GetVisibility()) return true; else return false; };
-                auto count = std::count_if(m_strokes.begin(), m_strokes.end(), strokeIsVisible);
+                auto count = std::count_if(m_strokes.constBegin(), m_strokes.constEnd(), strokeIsVisible);
                 if(count == 0) return Qt::Unchecked;
               }
               break;

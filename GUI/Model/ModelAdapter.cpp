@@ -1186,7 +1186,7 @@ void ModelAdapter::resetInternalData()
 //------------------------------------------------------------------------
 bool ModelAdapter::contains(ItemAdapterSPtr &item, const ItemCommandsList &list) const
 {
-  auto exists = std::any_of(list.begin(), list.end(), [item] (const ItemCommands command) { return (command.Item == item); });
+  auto exists = std::any_of(list.constBegin(), list.constEnd(), [item] (const ItemCommands &command) { return (command.Item == item); });
 
   return exists;
 }

@@ -178,7 +178,8 @@ void ApplyCountingFrame::onTaskProgress(int value, ApplySegmentationCountingFram
   m_tasks[task].Progress = value;
 
   double progressValue = 0;
-  std::for_each(m_tasks.values().begin(), m_tasks.values().end(), [&progressValue](const CF::ApplyCountingFrame::Data data) { progressValue += data.Progress; });
+  const auto tasks = m_tasks.values();
+  std::for_each(tasks.constBegin(), tasks.constEnd(), [&progressValue](const CF::ApplyCountingFrame::Data &data) { progressValue += data.Progress; });
 
   reportProgress(progressValue/Scheduler::maxRunningTasks());
 }

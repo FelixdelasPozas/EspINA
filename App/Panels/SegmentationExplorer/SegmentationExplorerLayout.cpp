@@ -185,14 +185,14 @@ void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspect
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentations)
+QString SegmentationExplorer::Layout::toKey(const SegmentationAdapterList segmentations)
 {
   QStringList pointers;
 
   auto getPointerStrings = [&pointers](const SegmentationAdapterPtr seg) { pointers << QString().number(reinterpret_cast<unsigned long long>(seg)); };
   std::for_each(segmentations.begin(), segmentations.end(), getPointerStrings);
 
-  pointers.sort(); // O(n log n).
+  pointers.sort();
 
   auto result = pointers.join("|");
 
@@ -210,7 +210,7 @@ void SegmentationExplorer::Layout::reset()
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
+QString SegmentationExplorer::Layout::toKey(const SegmentationAdapterPtr segmentation)
 {
   return QString("%1|").arg(reinterpret_cast<unsigned long long>(segmentation));
 }

@@ -126,7 +126,7 @@ void StrokeDefinitionDialog::onStrokeChanged(int row)
   auto stroke = m_strokes.at(index);
 
   auto equalOp    = [stroke](const SkeletonStroke &other) { return (stroke.name == other.name); };
-  auto duplicated = std::any_of(defaultvalues.begin(), defaultvalues.end(), equalOp);
+  auto duplicated = std::any_of(defaultvalues.constBegin(), defaultvalues.constEnd(), equalOp);
 
   m_removeButton->setEnabled(!duplicated);
   m_name->setEnabled(!duplicated);
@@ -135,7 +135,7 @@ void StrokeDefinitionDialog::onStrokeChanged(int row)
 //--------------------------------------------------------------------
 void StrokeDefinitionDialog::closeEvent(QCloseEvent* event)
 {
-  auto number = std::count_if(m_strokes.begin(), m_strokes.end(), [](Core::SkeletonStroke &stroke){ return stroke.name.startsWith("Undefined", Qt::CaseInsensitive); });
+  auto number = std::count_if(m_strokes.constBegin(), m_strokes.constEnd(), [](const Core::SkeletonStroke &stroke){ return stroke.name.startsWith("Undefined", Qt::CaseInsensitive); });
 
   if(number != 0)
   {

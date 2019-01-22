@@ -42,7 +42,7 @@ EditTool::EditTool(const QString &id, const QString& icon, const QString& toolti
 const bool EditTool::acceptsVolumetricSegmentations(const SegmentationAdapterList &segmentations) const
 {
   auto operation = [](const SegmentationAdapterPtr segmentation) { return hasVolumetricData(segmentation->output()); };
-  auto valid = std::all_of(segmentations.begin(), segmentations.end(), operation);
+  auto valid = std::all_of(segmentations.constBegin(), segmentations.constEnd(), operation);
 
   return valid;
 }
@@ -51,7 +51,7 @@ const bool EditTool::acceptsVolumetricSegmentations(const SegmentationAdapterLis
 const bool EditTool::acceptsSkeletonSegmentations(const SegmentationAdapterList &segmentations) const
 {
   auto operation = [](const SegmentationAdapterPtr segmentation) { return hasSkeletonData(segmentation->output()); };
-  auto valid = std::all_of(segmentations.begin(), segmentations.end(), operation);
+  auto valid = std::all_of(segmentations.constBegin(), segmentations.constEnd(), operation);
 
   return valid;
 }
