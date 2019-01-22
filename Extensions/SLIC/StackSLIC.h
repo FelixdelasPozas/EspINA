@@ -98,7 +98,7 @@ namespace ESPINA
         unsigned char getSupervoxelColor(unsigned int supervoxel);
         itkVolumeType::IndexType getSupervoxelCenter(unsigned int supervoxel);
         bool drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data);
-        itk::Image<unsigned int, 3> getLabeledImageFromBounds(Bounds bounds);
+        itk::SmartPointer<itk::Image<unsigned int, 3>> getLabeledImageFromBounds(Bounds bounds);
         bool drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data);
         bool isComputed();
         bool isRunning();
@@ -146,12 +146,32 @@ namespace ESPINA
       private:
         class SLICComputeTask;
 
+        class ResultCache
+        {
+            const int capacity = 10;
+            typedef struct ResultCacheValue {
+                int z;
+                int accessTime;
+                QByteArray array;
+            } ResultCacheValue;
+            struct CacheCompare {
+                bool operator() (const ResultCacheValue& lhs, const ResultCacheValue& rhs) const {
+                    return lhs.accessTime < rhs.accessTime;
+                }
+            };
+            std::set<ResultCacheValue, CacheCompare> voxel_cache;
+            friend struct SLICResult;
+            friend class StackSLIC;
+        };
 
         typedef struct SLICResult
         {
+          private:
+            ResultCache cache;
+          public:
             QList<SuperVoxel> supervoxels;
             unsigned int supervoxel_count = 0;
-            QList<QByteArray> voxels;
+            //QList<QByteArray> voxels;
             unsigned int slice_count = 0;
             double tolerance;
             unsigned int iterations;
@@ -159,9 +179,15 @@ namespace ESPINA
             unsigned char m_c;
             SLICVariant variant;
             bool computed = false;
+            bool modified = false;
             Bounds bounds;
+            TemporalStorage temp_storage;
+            QByteArray getSlice(int slice);
+            QByteArray getSliceUncached(int slice) const;
             mutable QReadWriteLock m_dataMutex;
+            StackSLIC *stack_instance;
         } SLICResult;
+
         SchedulerSPtr m_scheduler; /** application scheduler. */
         CoreFactory  *m_factory;   /** core factory.          */
         std::shared_ptr<SLICComputeTask> task;

@@ -27,6 +27,7 @@
 #include <Core/Utils/EspinaException.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Core/Types.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 
 //ITK
 #include <itkImage.hxx>
@@ -72,6 +73,7 @@ StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCa
 , task       {nullptr}
 {
   qDebug() << "Constructor StackSLIC";
+  result.stack_instance = this;
 }
 
 //-----------------------------------------------------------------------------
@@ -105,7 +107,8 @@ Snapshot StackSLIC::snapshot() const
   auto labelsName = snapshotName(LABELS_FILE);
   for(int i = 0; i<result.slice_count; i++) {
     voxelsName = snapshotName(QString(VOXELS_FILE).arg(i));
-    snapshot << SnapshotData(voxelsName, result.voxels[i]);
+    //snapshot << SnapshotData(voxelsName, result.voxels[i]);
+    snapshot << SnapshotData(voxelsName, result.getSliceUncached(i));
   }
 
   QByteArray labelBuffer;
@@ -179,7 +182,7 @@ bool StackSLIC::loadFromSnapshot()
   stream >> result.iterations;
   stream >> result.tolerance;
 
-  result.voxels.clear();
+  /*result.voxels.clear();
   QString voxelsName;
   for(int i = 0; i<result.slice_count; i++) {
     voxelsName = snapshotName(QString(VOXELS_FILE).arg(i));
@@ -195,9 +198,10 @@ bool StackSLIC::loadFromSnapshot()
       result.supervoxels.clear();
       return false;
     }
-    result.voxels.append(voxelsFile.readAll());
-  }
+    result.voxels.append(voxelsFile.readAll());*
+  }*/
 
+  result.modified = false;
   result.computed = true;
 
   return true;
@@ -539,7 +543,8 @@ unsigned long int StackSLIC::getSupervoxel(unsigned int x, unsigned int y, unsig
   if(!result.computed)
     return 0;
 
-  QDataStream stream(&result.voxels[z], QIODevice::ReadOnly);
+  auto slice = result.getSlice(z);
+  QDataStream stream(&slice, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
   unsigned int current_x = 0;
@@ -676,7 +681,8 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
   data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   auto buffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
 
-  QDataStream stream(&result.voxels[slice], QIODevice::ReadOnly);
+  auto sliceArray = result.getSlice(slice);
+  QDataStream stream(&sliceArray, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
   unsigned int label;
@@ -704,18 +710,20 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
 }
 
 //-----------------------------------------------------------------------------
-itk::Image<unsigned int, 3> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
+itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
 {
   //Partial results shouldn't ever be useful outside of the preview
   //that is handled already in drawSliceInImageData()
   //Only returns something if SLIC has been computed
   if(isRunning()) {
-    //TODO: Throw exception?
-    return nullptr;
+    auto what    = QObject::tr("SLIC results called during computation");
+    auto details = QObject::tr("StackSLIC::getLabeledImageFromBounds() -> Results are not available while SLIC computation is running.");
+    throw Utils::EspinaException(what, details);
   }
   if(!bounds.areValid() || !contains(m_extendedItem->output()->bounds(), bounds)) {
-    //TODO: Throw exception?
-    return nullptr;
+    auto what    = QObject::tr("invalid bounds");
+    auto details = QObject::tr("StackSLIC::getLabeledImageFromBounds() -> Requested area is outside the image bounds.");
+    throw Utils::EspinaException(what, details);
   }
 
   //TODO: Use Core/Utils/SpatialUtils.hxx & Core/Analysis/Data/VolumetricDataUtils.hxx
@@ -726,12 +734,14 @@ itk::Image<unsigned int, 3> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
   unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
   unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
 
-  ImageType::Pointer image = ImageType::New();
+  /*ImageType::Pointer image = ImageType::New();
   ImageType::RegionType region;
   region.SetIndex(ImageType::IndexType{bounds[0], bounds[2], bounds[4]});
   region.SetSize(ImageType::SizeType{bounds[1], bounds[3], bounds[5]});
   image->SetRegions(region);
-  image->Allocate();
+  image->Allocate();*/
+
+  auto image = create_itkImage<ImageType>(bounds, SEG_BG_VALUE, spacing);
 
   auto data = image->GetBufferPointer();
 
@@ -742,7 +752,8 @@ itk::Image<unsigned int, 3> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
   QReadLocker lock(&result.m_dataMutex);
   for(z = bounds[4]; z < bounds[4] + bounds[5]; z++) {
     pixel = 0;
-    QDataStream stream(&result.voxels[z], QIODevice::ReadOnly);
+    auto sliceArray = result.getSlice(z);
+    QDataStream stream(&sliceArray, QIODevice::ReadOnly);
     stream.setVersion(QDataStream::Qt_4_0);
 
     unsigned int label;
@@ -757,10 +768,9 @@ itk::Image<unsigned int, 3> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
       pixel += voxel_count;
 
       if(x + voxel_count >= max_x) {
-        //TODO: Exception warning that RLE implementation must have changed
-        //because it should be saving rows independently so this code
-        //should be updated accordingly
-        return nullptr;
+        auto what    = QObject::tr("uncompressed voxels exceed volume");
+        auto details = QObject::tr("StackSLIC::getLabeledImageFromBounds() -> Uncompressed voxels exceed the width of the image. This is either a bug or the compression algorithm has been changed and it hasn't been reflected here.");
+        throw Utils::EspinaException(what, details);
       }
 
       if(x < bounds[0]) {
@@ -770,9 +780,9 @@ itk::Image<unsigned int, 3> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
       if(x + voxel_count > bounds[1])
         voxel_count = bounds[0] + bounds[1];
 
-      data_offset = data[y*max_x + x];
+      data_offset = &data[y*max_x + x];
       for(x = 0; x < voxel_count; x++, data_offset++) {
-        data_offset = label;
+        *data_offset = label;
       }
 
     }
@@ -938,7 +948,7 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
   result->slice_count = max_z;
   result->supervoxel_count = labels.size();
   result->supervoxels.clear();
-  result->voxels.clear();
+  //result->voxels.clear();
 
   for(label_index=0;label_index<labels.size();label_index++)
   {
@@ -984,9 +994,14 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
       stream << current_label;
       stream << same_label_count;
     }
-    result->voxels.append(data);
+    auto fileName = QString(VOXELS_FILE).arg(z);
+    QFileInfo filePath(result->temp_storage.absoluteFilePath(fileName));
+    QFile file(filePath.absoluteFilePath());
+    file.write(data);
+    //result->voxels.append(data);
   }
 
+  result->modified = true;
   result->computed = true;
 }
 
@@ -1400,7 +1415,7 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
   int range = distance*2+1;
   IndexType center = label.center;
   IndexType current = center;
-  IndexType contiguous[27];//[6];
+  IndexType contiguous[6];//[26];
   long long int region[3] = {center[0] - distance, center[1] - distance, center[2] - distance};
   long long int length[3] = {range, range, range};
   fitRegionToBounds(region, length);
@@ -1428,17 +1443,18 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
     search_queue.pop();
     offsetImage = current[0] + current[1]*max_x + current[2]*slice_area;
 
-    /*contiguous[0] = {current[0]+1, current[1], current[2]};
+    contiguous[0] = {current[0]+1, current[1], current[2]};
     contiguous[1] = {current[0]-1, current[1], current[2]};
     contiguous[2] = {current[0], current[1]+1, current[2]};
     contiguous[3] = {current[0], current[1]-1, current[2]};
     contiguous[4] = {current[0], current[1], current[2]+1};
-    contiguous[5] = {current[0], current[1], current[2]-1};*/
+    contiguous[5] = {current[0], current[1], current[2]-1};
 
-    for(int adj_x = -1, i = 0; adj_x <= 1; adj_x++)
+    /*for(int adj_x = -1, i = 0; adj_x <= 1; adj_x++)
       for(int adj_y = -1; adj_y <= 1; adj_y++)
         for(int adj_z = -1; adj_z <= 1; adj_z++, i++)
-          contiguous[i] = {current[0]+adj_x, current[1]+adj_y, current[2]+adj_z};
+          if(adj_x != 0 && adj_y != 0 && adj_z != 0)
+            contiguous[i] = {current[0]+adj_x, current[1]+adj_y, current[2]+adj_z};*/
 
 
 
@@ -1552,4 +1568,60 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
 
   if(unconnected_count>0)
     qDebug() << QString("Label %1 - %2 unconnected voxels").arg(label.index).arg(unconnected_count);
+}
+
+//-----------------------------------------------------------------------------
+QByteArray StackSLIC::SLICResult::getSlice(int slice) {
+
+  if(!computed) {
+    //TODO: Throw Exception? Callers already check if computed
+    return nullptr;
+  }
+
+  int time = 0;
+
+  for(auto &cached : cache.voxel_cache)
+    if(cached.z == slice) {
+      QWriteLocker lock(&m_dataMutex);
+      cache.voxel_cache.erase(cached);
+      cache.voxel_cache.insert(ResultCache::ResultCacheValue{cached.z, time, cached.array});
+      return cached.array;
+    }
+
+  ResultCache::ResultCacheValue entry;
+  entry.z = slice;
+  entry.accessTime = time;
+  entry.array = getSliceUncached(slice);
+  QWriteLocker lock(&m_dataMutex);
+  if(cache.voxel_cache.size() > cache.capacity) {
+    cache.voxel_cache.erase(cache.voxel_cache.begin());
+  }
+  cache.voxel_cache.insert(entry);
+
+  return entry.array;
+}
+
+//-----------------------------------------------------------------------------
+QByteArray StackSLIC::SLICResult::getSliceUncached(int slice) const {
+  QReadLocker lock(&m_dataMutex);
+  QFileInfo filePath;
+
+  auto fileName = QString(VOXELS_FILE).arg(slice);
+  if(modified) {
+    filePath = temp_storage.absoluteFilePath(fileName);
+  } else {
+    filePath = stack_instance->m_extendedItem->storage()->absoluteFilePath(fileName);
+  }
+
+  if(!filePath.exists() ) {
+    //Throw exception, shouldn't happen ever
+    return nullptr;
+  }
+  QFile file(filePath.absoluteFilePath());
+  if(!file.open(QIODevice::ReadOnly)) {
+    //Throw exception, shouldn't happen ever
+    return nullptr;
+  }
+
+  return file.readAll();
 }
