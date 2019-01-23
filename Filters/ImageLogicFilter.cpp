@@ -41,7 +41,8 @@ using namespace ESPINA::Core;
 //-----------------------------------------------------------------------------
 ImageLogicFilter::ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler)
-, m_operation  {Operation::NOSIGN}
+, m_operation{Operation::NOSIGN}
+, m_hue      {0}
 {
 }
 
@@ -200,6 +201,7 @@ void ImageLogicFilter::skeletonAddition()
 
       if(it == skeleton.strokes.constEnd())
       {
+        otherStroke.colorHue = m_hue;
         skeleton.strokes << otherStroke;
         skeleton.count.insert(otherStroke, 0);
       }

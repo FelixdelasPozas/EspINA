@@ -166,7 +166,7 @@ void AxonSkeletonInformation::updateInformation() const
         break;
       }
 
-      Q_ASSERT(dendriteSeg);
+      if(!dendriteSeg) continue;
       auto segmentation = std::dynamic_pointer_cast<Segmentation>(dendriteSeg);
       Q_ASSERT(segmentation && hasSkeletonData(segmentation->output()));
 

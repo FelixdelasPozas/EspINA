@@ -78,6 +78,7 @@ void ImageLogicTool::applyFilter()
   auto type        = EditionFilterFactory::ADDITION_FILTER;
   auto description = tr("Segmentation addition.");
   auto remove      = true;
+  int  hue         = segmentations.first()->category()->color().hue();
 
   if (ImageLogicFilter::Operation::SUBTRACTION == m_operation)
   {
@@ -101,6 +102,7 @@ void ImageLogicTool::applyFilter()
   auto filter = getFactory()->createFilter<ImageLogicFilter>(inputs, type);
   filter->setOperation(m_operation);
   filter->setDescription(description);
+  filter->setNewSkeletonStrokesHue(hue);
 
   TaskContext taskContext;
 
