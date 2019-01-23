@@ -488,8 +488,8 @@ void RepresentationManager::onChildTerminated(RepresentationManager *sender)
   if(manager)
   {
     auto equalOp = [&manager] (const RepresentationManager *child) { return manager == child; };
-    auto it = std::find_if(m_childs.begin(), m_childs.end(), equalOp);
-    if(it != m_childs.end())
+    auto it = std::find_if(m_childs.constBegin(), m_childs.constEnd(), equalOp);
+    if(it != m_childs.constEnd())
     {
       m_childs.removeOne(*it);
       return;

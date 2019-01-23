@@ -806,8 +806,8 @@ void CF::Panel::onMarginsComputed()
   ComputeOptimalMarginsSPtr optimalMargins;
 
   auto equalOp = [&task](const PendingCF cf) { return cf.Task.get() == task; };
-  auto it = std::find_if(m_pendingCFs.begin(), m_pendingCFs.end(), equalOp);
-  if(it != m_pendingCFs.end())
+  auto it = std::find_if(m_pendingCFs.constBegin(), m_pendingCFs.constEnd(), equalOp);
+  if(it != m_pendingCFs.constEnd())
   {
     pendingCF = *it;
     optimalMargins = (*it).Task;

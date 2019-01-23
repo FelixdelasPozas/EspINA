@@ -137,9 +137,11 @@ SegmentationAdapterSList QueryAdapter::segmentationsOnChannel(ChannelAdapterSPtr
 //------------------------------------------------------------------------
 SampleAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SampleSPtr adaptedSample)
 {
+  const auto samples = model->samples();
+
   auto equalOp = [adaptedSample](const SampleAdapterSPtr sample) { return (sample->m_sample == adaptedSample); };
-  auto it = std::find_if(model->samples().begin(), model->samples().end(), equalOp);
-  if(it != model->samples().end())
+  auto it = std::find_if(samples.constBegin(), samples.constEnd(), equalOp);
+  if(it != samples.constEnd())
   {
     return *it;
   }
@@ -168,9 +170,9 @@ ChannelAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, ChannelSLi
   for (auto channel : model->channels())
   {
     auto equalOp = [channel](const ChannelSPtr adaptedStack) { return (channel->m_channel == adaptedStack); };
-    auto it = std::find_if(adaptedChannels.begin(), adaptedChannels.end(), equalOp);
+    auto it = std::find_if(adaptedChannels.constBegin(), adaptedChannels.constEnd(), equalOp);
 
-    if(it != adaptedChannels.end())
+    if(it != adaptedChannels.constEnd())
     {
       adaptedChannels.removeOne(*it);
       channels << channel;
@@ -185,9 +187,11 @@ ChannelAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, ChannelSLi
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SegmentationSPtr adaptedSegmentation)
 {
+  const auto segmentations = model->segmentations();
+
   auto selectionOp = [adaptedSegmentation](const SegmentationAdapterSPtr segmentation) { return (segmentation->m_segmentation == adaptedSegmentation); };
-  auto it = std::find_if(model->segmentations().begin(), model->segmentations().end(), selectionOp);
-  if(it != model->segmentations().end())
+  auto it = std::find_if(segmentations.constBegin(), segmentations.constEnd(), selectionOp);
+  if(it != segmentations.constEnd())
   {
     return *it;
   }
@@ -221,8 +225,8 @@ SegmentationAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, Segme
   for (auto segmentation : model->segmentations())
   {
     auto equalOp = [segmentation](const SegmentationSPtr adaptedSegmentation) { return (segmentation->m_segmentation == adaptedSegmentation); };
-    auto it = std::find_if(adaptedSegmentations.begin(), adaptedSegmentations.end(), equalOp);
-    if(it != adaptedSegmentations.end())
+    auto it = std::find_if(adaptedSegmentations.constBegin(), adaptedSegmentations.constEnd(), equalOp);
+    if(it != adaptedSegmentations.constEnd())
     {
       adaptedSegmentations.removeOne(*it);
       segmentations << segmentation;

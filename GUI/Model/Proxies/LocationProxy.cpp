@@ -321,10 +321,10 @@ QModelIndex LocationProxy::mapFromSource(const QModelIndex &sourceIndex) const
           auto segmentation = segmentationPtr(item);
           if(segmentation)
           {
-            auto stacks = m_segmentations.keys();
+            const auto stacks = m_segmentations.keys();
             auto containsOp = [this, segmentation](const ChannelAdapterPtr stack) { return this->m_segmentations[stack].contains(segmentation); };
-            auto it = std::find_if(stacks.begin(), stacks.end(), containsOp);
-            if(it != stacks.end())
+            auto it = std::find_if(stacks.constBegin(), stacks.constEnd(), containsOp);
+            if(it != stacks.constEnd())
             {
               return createIndex(m_segmentations[*it].indexOf(segmentation), 0, sourceIndex.internalPointer());
             }
@@ -556,11 +556,11 @@ void LocationProxy::sourceRowsAboutToBeRemoved(const QModelIndex &sourceParent, 
         }
         else
         {
-          auto stacks = m_segmentations.keys();
+          const auto stacks = m_segmentations.keys();
           auto containsOp = [this, segmentation](const ChannelAdapterPtr stack) { return this->m_segmentations[stack].contains(segmentation); };
-          auto it = std::find_if(stacks.begin(), stacks.end(), containsOp);
+          auto it = std::find_if(stacks.constBegin(), stacks.constEnd(), containsOp);
 
-          if(it != stacks.end())
+          if(it != stacks.constEnd())
           {
             auto numStart = m_segmentations[*it].indexOf(segmentation);
             beginRemoveRows(channelIndex(*it), numStart, numStart);
@@ -929,11 +929,11 @@ const ChannelAdapterPtr LocationProxy::stackOf(const SegmentationAdapterPtr segm
 {
   ChannelAdapterPtr result = nullptr;
 
-  auto stacks = m_segmentations.keys();
+  const auto stacks = m_segmentations.keys();
   auto containsOp = [this, segmentation](const ChannelAdapterPtr stack) { return this->m_segmentations[stack].contains(segmentation); };
-  auto it = std::find_if(stacks.begin(), stacks.end(), containsOp);
+  auto it = std::find_if(stacks.constBegin(), stacks.constEnd(), containsOp);
 
-  if(it != stacks.end()) return *it;
+  if(it != stacks.constEnd()) return *it;
 
   return result;
 }

@@ -212,11 +212,11 @@ namespace ESPINA
     //------------------------------------------------------------------------
     SampleSPtr sample(ChannelPtr channel)
     {
-      auto stacks = channel->analysis()->channels();
+      const auto stacks = channel->analysis()->channels();
 
-      auto it = std::find_if(stacks.begin(), stacks.end(), [channel](const ChannelSPtr otherChannel) { return otherChannel.get() == channel; });
+      auto it = std::find_if(stacks.constBegin(), stacks.constEnd(), [channel](const ChannelSPtr otherChannel) { return otherChannel.get() == channel; });
 
-      if(it != stacks.end())
+      if(it != stacks.constEnd())
       {
         return sample(*it);
       }
@@ -274,11 +274,11 @@ namespace ESPINA
     //------------------------------------------------------------------------
     ChannelSList channels(SegmentationPtr segmentation)
     {
-      auto segmentations = segmentation->analysis()->segmentations();
+      const auto segmentations = segmentation->analysis()->segmentations();
 
-      auto it = std::find_if(segmentations.begin(), segmentations.end(), [segmentation](const SegmentationSPtr otherSeg) { return otherSeg.get() == segmentation; });
+      auto it = std::find_if(segmentations.constBegin(), segmentations.constEnd(), [segmentation](const SegmentationSPtr otherSeg) { return otherSeg.get() == segmentation; });
 
-      if(it != segmentations.end())
+      if(it != segmentations.constEnd())
       {
         return channels(*it);
       }

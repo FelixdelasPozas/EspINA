@@ -133,6 +133,12 @@ namespace ESPINA
        */
       void onSaveButtonPressed();
 
+      /** \brief Updates the tree selection when a row in the table is selected.
+       * \param[in] row Row of the activated cell.
+       *
+       */
+      void onCellClicked(int row);
+
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
        * \param[in] segmentation Skeleton segmentation object.
@@ -244,6 +250,42 @@ namespace ESPINA
         private:
           QList<struct StrokeInfo> &m_strokes;        /** stroke information structs list.                          */
           bool                      m_randomColoring; /** true to use random colors and false to use stroke colors. */
+      };
+
+      /** \class Item
+       * \brief Reimplementation of a table widget item, needed for sorting the table.
+       *
+       */
+      class Item
+      : public QTableWidgetItem
+      {
+        public:
+          /** \brief Item class constructor.
+           *
+           */
+          explicit Item(const QString &info)
+          : QTableWidgetItem{info}
+          {};
+
+          virtual bool operator<(const QTableWidgetItem &other) const override
+          {
+            if(column() == 0)
+            {
+              auto rdata = this->data(Qt::DisplayRole).toString();
+              auto ldata = other.data(Qt::DisplayRole).toString();
+
+              if(rdata.endsWith("(Truncated)", Qt::CaseInsensitive)) rdata = rdata.left(rdata.length()-12);
+              if(ldata.endsWith("(Truncated)", Qt::CaseInsensitive)) ldata = ldata.left(ldata.length()-12);
+
+              auto diff = rdata.length() - ldata.length();
+              if(diff < 0) return true;
+              if(diff > 0) return false;
+
+              return (rdata < ldata);
+            }
+
+            return QTableWidgetItem::operator<(other);
+          }
       };
 
       using TemporalPipelineSPtr = std::shared_ptr<SkeletonInspectorPipeline>;

@@ -168,9 +168,7 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
         auto remainingStacks = QueryAdapter::channels(remainingSegmentation);
         auto equalOp = [stackToBeChecked](const ChannelAdapterSPtr stack) { return (stack.get() == stackToBeChecked.get()); };
 
-        auto it = std::find_if(remainingStacks.begin(), remainingStacks.end(), equalOp);
-
-        stillUsed = (it != remainingStacks.end());
+        stillUsed = std::any_of(remainingStacks.constBegin(), remainingStacks.constEnd(), equalOp);
       }
 
       if (!stillUsed)

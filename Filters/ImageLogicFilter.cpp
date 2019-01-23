@@ -181,9 +181,9 @@ void ImageLogicFilter::skeletonAddition()
     for(auto otherNode: otherSkeleton.nodes)
     {
       auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
-      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
+      auto it = std::find_if(skeleton.nodes.constBegin(), skeleton.nodes.constEnd(), equalNodeOp);
 
-      if(it == skeleton.nodes.end())
+      if(it == skeleton.nodes.constEnd())
       {
         auto newNode = new SkeletonNode{otherNode->position};
         newNode->flags = otherNode->flags;
@@ -196,9 +196,9 @@ void ImageLogicFilter::skeletonAddition()
     for(auto otherStroke: otherSkeleton.strokes)
     {
       auto equalStrokeOp = [&otherStroke](const SkeletonStroke &stroke) { return (stroke.name == otherStroke.name); };
-      auto it = std::find_if(skeleton.strokes.begin(), skeleton.strokes.end(), equalStrokeOp);
+      auto it = std::find_if(skeleton.strokes.constBegin(), skeleton.strokes.constEnd(), equalStrokeOp);
 
-      if(it == skeleton.strokes.end())
+      if(it == skeleton.strokes.constEnd())
       {
         skeleton.strokes << otherStroke;
         skeleton.count.insert(otherStroke, 0);
@@ -210,14 +210,14 @@ void ImageLogicFilter::skeletonAddition()
     for(auto otherNode: otherSkeleton.nodes)
     {
       auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
-      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
-      Q_ASSERT(it != skeleton.nodes.end()); // exists
+      auto it = std::find_if(skeleton.nodes.constBegin(), skeleton.nodes.constEnd(), equalNodeOp);
+      Q_ASSERT(it != skeleton.nodes.constEnd()); // exists
 
       for(auto connectionNode: otherNode->connections.keys())
       {
         auto equalCNodeOp = [connectionNode](const SkeletonNode *node) { return std::memcmp(connectionNode->position, node->position, 3* sizeof(double)) == 0; };
-        auto cIt = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalCNodeOp);
-        Q_ASSERT(cIt != skeleton.nodes.end()); // exists
+        auto cIt = std::find_if(skeleton.nodes.constBegin(), skeleton.nodes.constEnd(), equalCNodeOp);
+        Q_ASSERT(cIt != skeleton.nodes.constEnd()); // exists
 
         if((*it)->connections.keys().contains(*cIt)) continue;
 
@@ -226,8 +226,8 @@ void ImageLogicFilter::skeletonAddition()
         {
           auto otherStroke = otherSkeleton.strokes.at(otherSkeleton.edges.at(otherEdge).strokeIndex);
           auto equalStrokeOp = [&otherStroke](const SkeletonStroke &stroke) { return (stroke.name == otherStroke.name); };
-          auto sIt = std::find_if(skeleton.strokes.begin(), skeleton.strokes.end(), equalStrokeOp);
-          Q_ASSERT(sIt != skeleton.strokes.end());
+          auto sIt = std::find_if(skeleton.strokes.constBegin(), skeleton.strokes.constEnd(), equalStrokeOp);
+          Q_ASSERT(sIt != skeleton.strokes.constEnd());
 
           SkeletonEdge edge;
           edge.strokeIndex = skeleton.strokes.indexOf(*sIt);
@@ -246,14 +246,14 @@ void ImageLogicFilter::skeletonAddition()
     for(auto otherNode: otherSkeleton.nodes)
     {
       auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
-      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
-      Q_ASSERT(it != skeleton.nodes.end()); // exists
+      auto it = std::find_if(skeleton.nodes.constBegin(), skeleton.nodes.constEnd(), equalNodeOp);
+      Q_ASSERT(it != skeleton.nodes.constEnd()); // exists
 
       for(auto connectionNode: otherNode->connections.keys())
       {
         auto equalCNodeOp = [connectionNode](const SkeletonNode *node) { return std::memcmp(connectionNode->position, node->position, 3* sizeof(double)) == 0; };
-        auto cIt = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalCNodeOp);
-        Q_ASSERT(cIt != skeleton.nodes.end()); // exists
+        auto cIt = std::find_if(skeleton.nodes.constBegin(), skeleton.nodes.constEnd(), equalCNodeOp);
+        Q_ASSERT(cIt != skeleton.nodes.constEnd()); // exists
 
         auto otherEdge = otherNode->connections[connectionNode];
         auto parent = otherSkeleton.edges.at(otherEdge).parentEdge;
@@ -364,9 +364,9 @@ void ImageLogicFilter::skeletonSubtraction()
     for(auto otherNode: otherSkeleton.nodes)
     {
       auto equalNodeOp = [otherNode](const SkeletonNode *node) { return std::memcmp(otherNode->position, node->position, 3* sizeof(double)) == 0; };
-      auto it = std::find_if(skeleton.nodes.begin(), skeleton.nodes.end(), equalNodeOp);
+      auto it = std::find_if(skeleton.nodes.constBegin(), skeleton.nodes.constEnd(), equalNodeOp);
 
-      if(it != skeleton.nodes.end())
+      if(it != skeleton.nodes.constEnd())
       {
         skeleton.nodes.removeAll(*it);
         delete *it; // removes connections also

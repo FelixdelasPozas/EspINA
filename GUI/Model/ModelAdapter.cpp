@@ -760,9 +760,9 @@ RelationList ModelAdapter::relations(ItemAdapterPtr item, RelationType type, con
     }
   }
 
-  auto invalidRelationOp = [](const Relation relation) { return (!relation.ancestor || !relation.successor); };
-  auto it = std::find_if(relations.begin(), relations.end(), invalidRelationOp);
-  if(it != relations.end())
+  auto invalidRelationOp = [](const Relation &relation) { return (!relation.ancestor || !relation.successor); };
+  auto it = std::find_if(relations.constBegin(), relations.constEnd(), invalidRelationOp);
+  if(it != relations.constEnd())
   {
     auto relation = *it;
     auto what     = tr("Wrong relation in relationships graph, null ancestor or successor.");

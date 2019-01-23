@@ -440,8 +440,8 @@ void SpinesInformationDialog::onTaskFinished()
     }
 
     auto selectionOp = [task](std::shared_ptr<ComputeInformationTask> otherTask) { return otherTask.get() == task; };
-    auto it = std::find_if(m_pendingInformation.begin(), m_pendingInformation.end(), selectionOp);
-    if(it != m_pendingInformation.end())
+    auto it = std::find_if(m_pendingInformation.constBegin(), m_pendingInformation.constEnd(), selectionOp);
+    if(it != m_pendingInformation.constEnd())
     {
       m_pendingInformation.removeAll(*it);
     }

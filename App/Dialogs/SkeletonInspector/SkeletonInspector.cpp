@@ -75,6 +75,7 @@
 // C++
 #include <random>
 #include <chrono>
+#include <functional>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -285,9 +286,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     m_strokes << info;
   }
 
-  auto lessThan = [](const struct StrokeInfo &lhs, const struct StrokeInfo &rhs) { return lhs < rhs; };
-
-  qSort(m_strokes.begin(), m_strokes.end(), lessThan);
+  qSort(m_strokes);
 }
 
 //--------------------------------------------------------------------
@@ -529,11 +528,10 @@ void SkeletonInspector::focusOnActor(int row)
 {
   Bounds focusBounds;
   auto name = m_table->item(row, 0)->data(Qt::DisplayRole);
-  auto equalOp = [name](const StrokeInfo &stroke) {return (stroke.name == name); };
+  auto equalOp = [&name](const StrokeInfo &stroke) {return (stroke.name == name); };
+  auto it = std::find_if(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
 
-  auto it = std::find_if(m_strokes.begin(), m_strokes.end(), equalOp);
-
-  if(it != m_strokes.end())
+  if(it != m_strokes.constEnd())
   {
     auto focusBounds = Bounds{(*it).actors.first()->GetBounds()};
 
@@ -990,6 +988,7 @@ void SkeletonInspector::initSpinesTable()
   m_spinesButton->setChecked(false);
 
   connect(m_spinesButton, SIGNAL(clicked(bool)), this, SLOT(onSpinesButtonClicked(bool)));
+  connect(m_table, SIGNAL(cellClicked(int, int)), this, SLOT(onCellClicked(int)));
   connect(m_table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(focusOnActor(int)));
 
   auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(m_segmentation, getFactory());
@@ -1005,24 +1004,26 @@ void SkeletonInspector::initSpinesTable()
   m_table->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
   m_table->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
   m_table->setHorizontalHeaderLabels(headers.split(";"));
+  m_table->sortByColumn(0, Qt::AscendingOrder);
+  m_table->setSortingEnabled(false);
 
   for(int i = 0; i < spines.size(); ++i)
   {
     auto spine = spines.at(i);
-    m_table->setItem(i, 0,new QTableWidgetItem(spine.name));
-    m_table->setItem(i, 1,new QTableWidgetItem(spine.complete ? "yes":"no"));
-    m_table->setItem(i, 2,new QTableWidgetItem(spine.branched ? "yes":"no"));
-    m_table->setItem(i, 3,new QTableWidgetItem(QString::number(spine.length)));
-    m_table->setItem(i, 4,new QTableWidgetItem(QString::number(spine.numSynapses)));
-    m_table->setItem(i, 5,new QTableWidgetItem(QString::number(spine.numAsymmetric)));
-    m_table->setItem(i, 6,new QTableWidgetItem(QString::number(spine.numAsymmetricHead)));
-    m_table->setItem(i, 7,new QTableWidgetItem(QString::number(spine.numAsymmetricNeck)));
-    m_table->setItem(i, 8,new QTableWidgetItem(QString::number(spine.numSymmetric)));
-    m_table->setItem(i, 9,new QTableWidgetItem(QString::number(spine.numSymmetricHead)));
-    m_table->setItem(i,10,new QTableWidgetItem(QString::number(spine.numSymmetricNeck)));
-    m_table->setItem(i,11,new QTableWidgetItem(QString::number(spine.numAxons)));
-    m_table->setItem(i,12,new QTableWidgetItem(QString::number(spine.numAxonsInhibitory)));
-    m_table->setItem(i,13,new QTableWidgetItem(QString::number(spine.numAxonsExcitatory)));
+    m_table->setItem(i, 0,new Item(spine.name));
+    m_table->setItem(i, 1,new Item(spine.complete ? "yes":"no"));
+    m_table->setItem(i, 2,new Item(spine.branched ? "yes":"no"));
+    m_table->setItem(i, 3,new Item(QString::number(spine.length)));
+    m_table->setItem(i, 4,new Item(QString::number(spine.numSynapses)));
+    m_table->setItem(i, 5,new Item(QString::number(spine.numAsymmetric)));
+    m_table->setItem(i, 6,new Item(QString::number(spine.numAsymmetricHead)));
+    m_table->setItem(i, 7,new Item(QString::number(spine.numAsymmetricNeck)));
+    m_table->setItem(i, 8,new Item(QString::number(spine.numSymmetric)));
+    m_table->setItem(i, 9,new Item(QString::number(spine.numSymmetricHead)));
+    m_table->setItem(i,10,new Item(QString::number(spine.numSymmetricNeck)));
+    m_table->setItem(i,11,new Item(QString::number(spine.numAxons)));
+    m_table->setItem(i,12,new Item(QString::number(spine.numAxonsInhibitory)));
+    m_table->setItem(i,13,new Item(QString::number(spine.numAxonsExcitatory)));
   }
 
   connect(m_table->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)),
@@ -1032,6 +1033,7 @@ void SkeletonInspector::initSpinesTable()
   m_table->adjustSize();
   m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   m_table->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  m_table->setSortingEnabled(true);
 
   m_tabWidget->setVisible(false);
 }
@@ -1067,6 +1069,42 @@ void SkeletonInspector::saveToCSV(const QString& filename) const
     out << dendriteName << "\n";
   }
   file.close();
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onCellClicked(int row)
+{
+  auto name = m_table->item(row,0)->data(Qt::DisplayRole).toString();
+
+  std::function<const QModelIndex (const QModelIndex &index, const QAbstractItemModel *model)> checkIndex = [&name, &checkIndex](const QModelIndex &index, const QAbstractItemModel *model)
+  {
+    if(index.isValid() && index.data(Qt::DisplayRole).toString() == name)
+    {
+      return index;
+    }
+
+    if(model->hasChildren(index))
+    {
+      for(auto i = 0; i < model->rowCount(index); ++i)
+      {
+        for(auto j = 0; j < model->columnCount(index); ++j)
+        {
+          auto child = checkIndex(model->index(i,j, index), model);
+          if(child != QModelIndex()) return child;
+        }
+      }
+    }
+
+    return QModelIndex();
+  };
+
+  auto index = checkIndex(m_treeView->rootIndex(), m_treeView->model());
+  if(index != QModelIndex())
+  {
+    m_treeView->blockSignals(true);
+    m_treeView->setCurrentIndex(index);
+    m_treeView->blockSignals(false);
+  }
 }
 
 //--------------------------------------------------------------------

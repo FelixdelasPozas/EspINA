@@ -167,9 +167,9 @@ int raw_skeleton_constructor( int argc, char** argv )
       const auto otherConns = nodeOut->connections.keys();
 
       auto equalOp = [&connIn](const SkeletonNode *connOut) { return memcmp(connIn->position, connOut->position, 3*sizeof(double)) == 0; };
-      auto it = std::find_if(otherConns.begin(), otherConns.end(), equalOp);
+      auto it = std::find_if(otherConns.constBegin(), otherConns.constEnd(), equalOp);
 
-      if(it == nodeOut->connections.keys().end())
+      if(it == otherConns.constEnd())
       {
         std::cerr << "Different connected nodes position. Number " << j+1 << " of " << nodeIn->connections.size() << std::endl;
         std::cerr << "No connection with position  { " << connIn->position[0] << ", " << connIn->position[1] << ", " << connIn->position[2] << "}" << std::endl;
