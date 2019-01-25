@@ -37,6 +37,7 @@ StrokeDefinitionDialog::StrokeDefinitionDialog(SkeletonStrokes &strokes, const C
 : QDialog   {parent, flags}
 , m_strokes (strokes)
 , m_category{category}
+, m_modified{false}
 {
   setupUi(this);
   m_hueWidget->reserveInitialValue(false);
@@ -80,7 +81,8 @@ void StrokeDefinitionDialog::onAddButtonPressed()
     name = tr("Undefined%1").arg(number == 0 ? "" : " (" + QString::number(number + 1) + ")");
   }
 
-  m_strokes.push_back(SkeletonStroke{name, categoryColor, 0, true});
+  SkeletonStroke stroke{name, categoryColor, 0, true};
+  m_strokes.push_back(stroke);
 
   auto item = new QListWidgetItem(copy, name);
   m_list->addItem(item);
@@ -88,15 +90,20 @@ void StrokeDefinitionDialog::onAddButtonPressed()
   m_list->update();
 
   m_removeButton->setEnabled(true);
+
+  m_modified = true;
+  emit strokeAdded(stroke);
 }
 
 //--------------------------------------------------------------------
 void StrokeDefinitionDialog::onRemoveButtonPressed()
 {
   auto index = m_list->currentIndex();
+  SkeletonStroke stroke;
+
   if(index.isValid())
   {
-    auto stroke = m_strokes[index.row()];
+    stroke = m_strokes[index.row()];
     m_strokes.removeOne(stroke);
 
     m_list->blockSignals(true);
@@ -113,6 +120,9 @@ void StrokeDefinitionDialog::onRemoveButtonPressed()
   updateStrokeProperties();
 
   m_removeButton->setEnabled(!m_strokes.isEmpty());
+
+  m_modified = true;
+  emit strokeRemoved(stroke);
 }
 
 //--------------------------------------------------------------------
@@ -287,6 +297,9 @@ void StrokeDefinitionDialog::onHueChanged(int hueValue)
     auto item = m_list->currentItem();
     item->setIcon(copy);
     m_list->update();
+
+    m_modified = true;
+    emit strokeModified(stroke);
   }
 }
 
@@ -298,6 +311,10 @@ void StrokeDefinitionDialog::onTextChanged(const QString& text)
   if(index.isValid())
   {
     auto &stroke = m_strokes[index.row()];
+
+    m_modified = true;
+    emit strokeRenamed(stroke.name, text);
+
     stroke.name = text;
 
     auto item = m_list->currentItem();
@@ -324,6 +341,9 @@ void StrokeDefinitionDialog::onTypeChanged(int index)
     auto item = m_list->currentItem();
     item->setIcon(copy);
     m_list->update();
+
+    m_modified = true;
+    emit strokeModified(stroke);
   }
 }
 
@@ -336,6 +356,9 @@ void StrokeDefinitionDialog::onValidCheckChanged()
   {
     auto &stroke = m_strokes[currentIndex.row()];
     stroke.useMeasure = m_validMeasure->isChecked();
+
+    m_modified = true;
+    emit strokeModified(stroke);
   }
 }
 
@@ -356,5 +379,8 @@ void StrokeDefinitionDialog::onCategoryColorChecked(int unused)
     }
 
     m_hueWidget->setEnabled(!checked);
+
+    m_modified = true;
+    emit strokeModified(m_strokes[currentIndex.row()]);
   }
 }

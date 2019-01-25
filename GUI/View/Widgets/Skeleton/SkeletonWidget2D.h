@@ -92,6 +92,18 @@ namespace ESPINA
                */
               void setStroke(const Core::SkeletonStroke &stroke);
 
+              /** \brief Removes the stroke from the skeleton (also removing all edges of the stroke).
+               *
+               */
+              void removeStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Renames the stroke with the old name with the new one.
+               * \param[in] oldName Stroke current name.
+               * \param[in] newName Stroke new name.
+               *
+               */
+              void renameStroke(const QString &oldName, const QString &newName);
+
               /** \brief Initialize skeleton data structure.
                * \param[in] pd Skeleton vtkPolyData smartPointer.
                *

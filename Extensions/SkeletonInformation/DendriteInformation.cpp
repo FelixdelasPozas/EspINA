@@ -367,8 +367,7 @@ void DendriteSkeletonInformation::updateInformation() const
           }
           else
           {
-            Q_ASSERT(!next);
-            next = connection;
+            if(!next) next = connection; // if "next" is not null the path is malformed.
           }
         }
 

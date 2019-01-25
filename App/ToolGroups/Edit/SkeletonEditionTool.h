@@ -187,6 +187,31 @@ namespace ESPINA
        */
       void onTruncationSuccess();
 
+      /** \brief Updates the skeleton when a stroke is modified in the stroke definition dialog.
+       * \param[in] stroke SkeletonStroke struct of modified stroke.
+       *
+       */
+      void onStrokeModified(const Core::SkeletonStroke &stroke);
+
+      /** \brief Updates the skeleton when a stroke is renamed in the stroke definition dialog.
+       * \param[in] oldName Stroke old name.
+       * \param[in] newName Stroke new name.
+       *
+       */
+      void onStrokeRenamed(const QString &oldName, const QString &newName);
+
+      /** \brief Updates the skeleton when a stroke is added in the stroke definition dialog.
+       * \param[in] stroke SkeletonStroke struct of added stroke.
+       *
+       */
+      void onStrokeAdded(const Core::SkeletonStroke &stroke);
+
+      /** \brief Updates the skeleton when a stroke is removed in the stroke definition dialog.
+       * \param[in] stroke SkeletonStroke struct of removed stroke.
+       *
+       */
+      void onStrokeRemoved(const Core::SkeletonStroke &stroke);
+
     private:
       virtual bool acceptsNInputs(int n) const;
 
@@ -278,6 +303,7 @@ namespace ESPINA
       QList<SkeletonWidgetSPtr>                           m_widgets;         /** list of widgets currently on views.               */
       QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;    /** list of point representations currently on views. */
       bool                                                m_allowSwich;      /** true if the skeleton creation tool is enabled.    */
+      Core::SkeletonStrokes                               m_strokes;         /** list of strokes of the segmentation.              */
   };
 
 } // namespace ESPINA

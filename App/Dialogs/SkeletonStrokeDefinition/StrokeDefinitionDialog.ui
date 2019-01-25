@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>448</width>
-    <height>571</height>
+    <height>562</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -146,6 +146,9 @@
      <property name="text">
       <string>Strokes that use a color other than that of the category will be displayed in that color regardless of the color engine used.</string>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+     </property>
      <property name="wordWrap">
       <bool>true</bool>
      </property>
@@ -154,7 +157,23 @@
    <item>
     <widget class="QLabel" name="label_5">
      <property name="text">
-      <string>If the 'Use measure' option is not checked then the stroke won't be taken into consideration when computing skeleton measures.</string>
+      <string>If the 'Use measure' option is not checked then the stroke won't be taken into consideration when computing the skeleton length.</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignJustify|Qt::AlignVCenter</set>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>Warning: deleting a stroke will also delete all edges in the skeleton related to that stroke.</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignJustify|Qt::AlignVCenter</set>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

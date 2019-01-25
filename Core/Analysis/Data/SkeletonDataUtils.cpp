@@ -1086,6 +1086,64 @@ void ESPINA::Core::cleanSkeletonStrokes(SkeletonDefinition& skeleton)
 
   skeleton.strokes = cleanSkeleton.strokes;
   skeleton.edges   = cleanSkeleton.edges;
+
+  // identify identical name strokes.
+  QStringList duplicated;
+  for(int i = 0; i < skeleton.strokes.size(); ++i)
+  {
+    const auto name = skeleton.strokes[i].name;
+    auto count = std::count_if(skeleton.strokes.begin(), skeleton.strokes.end(), [name](const SkeletonStroke &other) { return name == other.name; });
+    if(count > 1) duplicated << name;
+  }
+
+  while(!duplicated.isEmpty())
+  {
+    SkeletonStrokes toRemove;
+    auto name = duplicated.takeFirst();
+
+    auto it = std::find_if(skeleton.strokes.begin(), skeleton.strokes.end(), [&name](const SkeletonStroke &stroke) { return name == stroke.name; });
+    auto position = skeleton.strokes.indexOf(*it);
+    auto count    = skeleton.count[*it];
+
+    while(it != skeleton.strokes.end())
+    {
+      it = std::find_if(it + 1, skeleton.strokes.end(), [&name](const SkeletonStroke &stroke) { return name == stroke.name; });
+      if(it != skeleton.strokes.end())
+      {
+        toRemove << *it;
+        auto otherPosition = skeleton.strokes.indexOf(*it);
+
+        auto replaceEdges = [position, otherPosition, count](SkeletonEdge &edge)
+        {
+          if(edge.strokeIndex == otherPosition)
+          {
+            edge.strokeIndex = position;
+            edge.strokeNumber += count;
+          }
+          else
+          {
+            if(edge.strokeIndex > otherPosition)
+            {
+              edge.strokeIndex -= 1;
+            }
+          }
+        };
+
+        std::for_each(skeleton.edges.begin(), skeleton.edges.end(), replaceEdges);
+        count += skeleton.count[*it];
+      }
+    }
+
+    if(!toRemove.isEmpty())
+    {
+      skeleton.count[skeleton.strokes.at(position)] = count;
+      for(auto &stroke: toRemove)
+      {
+        skeleton.strokes.removeAll(stroke);
+        skeleton.count.remove(stroke);
+      }
+    }
+  }
 }
 
 //--------------------------------------------------------------------

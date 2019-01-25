@@ -681,3 +681,23 @@ void SkeletonWidget2D::updateCues()
     }
   }
 }
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::removeStroke(const Core::SkeletonStroke& stroke)
+{
+  if(m_widget)
+  {
+    m_widget->removeStroke(stroke);
+
+    emit modified(m_widget->getSkeleton());
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::renameStroke(const QString& oldName, const QString& newName)
+{
+  if(m_widget)
+  {
+    m_widget->renameStroke(oldName, newName);
+  }
+}

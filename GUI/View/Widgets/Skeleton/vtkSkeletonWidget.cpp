@@ -580,6 +580,13 @@ const Core::SkeletonStroke vtkSkeletonWidget::stroke() const
 }
 
 //-----------------------------------------------------------------------------
+void vtkSkeletonWidget::removeStroke(const Core::SkeletonStroke& stroke)
+{
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  if(rep) rep->removeStroke(stroke);
+}
+
+//-----------------------------------------------------------------------------
 void vtkSkeletonWidget::createCursors()
 {
   QPixmap crossMinusPixmap, crossPlusPixmap, crossCheckPixmap, crossScissorsPixmap;
@@ -736,4 +743,11 @@ const bool vtkSkeletonWidget::strokeHueModification() const
   }
 
   return false;
+}
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::renameStroke(const QString& oldName, const QString& newName)
+{
+  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  if(rep) rep->renameStroke(oldName, newName);
 }

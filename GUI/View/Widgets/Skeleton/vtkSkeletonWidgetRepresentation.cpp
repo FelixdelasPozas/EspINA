@@ -257,6 +257,7 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
 
   {
     auto stroke = currentStroke();
+    if(stroke.isNull()) return ;
 
     QMutexLocker lock(&s_skeletonMutex);
 
@@ -282,7 +283,7 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
           {
             unsigned int prioritary = 0;
             int prioritaryIndex = -1;
-            for(auto edgeIndex: s_currentVertex->connections)
+            for(auto edgeIndex: s_currentVertex->connections.values())
             {
               auto otherStroke = s_skeleton.strokes.at(s_skeleton.edges.at(edgeIndex).strokeIndex);
               if(otherStroke.useMeasure)
@@ -302,7 +303,7 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
             {
               s_skeleton.count[stroke]++;
 
-              edge.strokeIndex  = m_currentStrokeIndex;
+              edge.strokeIndex  = s_skeleton.strokes.indexOf(stroke);
               edge.strokeNumber = s_skeleton.count[stroke];
               edge.parentEdge   = prioritaryIndex;
               s_skeleton.edges << edge;
@@ -573,6 +574,11 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
 
   if (node_i != node_j)
   {
+    {
+      QMutexLocker lock(&s_skeletonMutex);
+      if(s_currentVertex && s_skeleton.nodes[node_i]->connections[s_skeleton.nodes[node_j]] == m_currentEdgeIndex) return false;
+    }
+
     AddNodeAtPosition(worldPos); // adds a new node and makes it current node, so it's joined to cursor, if any.
     int contourEdgeIndex = -1;
     {
@@ -613,6 +619,15 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
   }
   else
   {
+    {
+      QMutexLocker lock(&s_skeletonMutex);
+      auto addedNode = s_skeleton.nodes[node_i];
+      const auto nodeConn = addedNode->connections.keys();
+      auto operation = [this, addedNode](SkeletonNode *node) { return addedNode->connections.value(node) == this->m_currentEdgeIndex; };
+      auto count = std::count_if(nodeConn.constBegin(), nodeConn.constEnd(), operation);
+      if(count > 1) return false;
+    }
+
     SkeletonNode *addedNode = nullptr;
     int nodeEdge = -1;
     int noPrioritary = -1;
@@ -1549,16 +1564,38 @@ bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::setStroke(const Core::SkeletonStroke &stroke)
 {
-  QMutexLocker lock(&s_skeletonMutex);
-
-  if(!s_skeleton.strokes.contains(stroke))
+  bool updated = false;
   {
-    s_skeleton.strokes << stroke;
-    s_skeleton.count.insert(stroke, 0);
+    QMutexLocker lock(&s_skeletonMutex);
+
+    auto equalNameOp = [stroke](const SkeletonStroke &other) { return stroke.name == other.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalNameOp);
+    if(it == s_skeleton.strokes.end())
+    {
+      s_skeleton.strokes << stroke;
+      s_skeleton.count.insert(stroke, 0);
+    }
+    else
+    {
+      (*it).colorHue   = stroke.colorHue;
+      (*it).type       = stroke.type;
+      (*it).useMeasure = stroke.useMeasure;
+
+      auto countKeys = s_skeleton.count.keys();
+      auto cIt = std::find_if(countKeys.begin(), countKeys.end(), equalNameOp);
+      Q_ASSERT(cIt != countKeys.end());
+      auto count = s_skeleton.count[*cIt];
+      s_skeleton.count.remove(*cIt);
+      s_skeleton.count.insert(stroke, count);
+
+      updated = true;
+    }
+
+    m_currentStrokeIndex = s_skeleton.strokes.indexOf(stroke);
+    m_currentEdgeIndex   = -1;
   }
 
-  m_currentStrokeIndex = s_skeleton.strokes.indexOf(stroke);
-  m_currentEdgeIndex   = -1;
+  if(updated) BuildRepresentation();
 }
 
 //-----------------------------------------------------------------------------
@@ -1600,8 +1637,16 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
     return true;
   }
 
+  if(m_currentEdgeIndex != -1)
+  {
+    auto closestConnections = closestNode->connections.keys();
+    auto operation = [this, closestNode](SkeletonNode *node){ return (closestNode->connections.value(node) == this->m_currentEdgeIndex); };
+    auto count = std::count_if(closestConnections.constBegin(), closestConnections.constEnd(), operation);
+    if(count > 1) return false;
+  }
+
   QMutexLocker lock(&s_skeletonMutex);
-  for (auto connectionNode : s_currentVertex->connections.keys())
+  for (auto connectionNode: s_currentVertex->connections.keys())
   {
     if(!connectionNode->connections.contains(closestNode)) connectionNode->connections.insert(closestNode, s_currentVertex->connections[connectionNode]);
     if(!closestNode->connections.contains(connectionNode)) closestNode->connections.insert(connectionNode, s_currentVertex->connections[connectionNode]);
@@ -1701,11 +1746,25 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
     }
     connectionNode->connections.clear();
 
-    // get the stroke values.
-    if(!s_skeleton.strokes.contains(stroke))
+    auto equalNameOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalNameOp);
+    if(it == s_skeleton.strokes.end())
     {
       s_skeleton.strokes << stroke;
       s_skeleton.count.insert(stroke, 0);
+    }
+    else
+    {
+      (*it).colorHue   = stroke.colorHue;
+      (*it).useMeasure = stroke.useMeasure;
+      (*it).type       = stroke.type;
+
+      auto countKeys = s_skeleton.count.keys();
+      auto cIt = std::find_if(countKeys.begin(), countKeys.end(), equalNameOp);
+      Q_ASSERT(cIt != countKeys.end());
+      auto count = s_skeleton.count[*cIt];
+      s_skeleton.count.remove(*cIt);
+      s_skeleton.count.insert(stroke, count);
     }
 
     s_skeleton.count[stroke]++;
@@ -2507,6 +2566,107 @@ void vtkSkeletonWidgetRepresentation::setChangeCoincidetHue(const bool value)
 const bool vtkSkeletonWidgetRepresentation::changeCoincidentHue() const
 {
   return m_changeCoincidentHue;
+}
+
+//--------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::removeStroke(const Core::SkeletonStroke &stroke)
+{
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+
+    auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalOp);
+
+    if(it != s_skeleton.strokes.end())
+    {
+      auto strokeIndex = s_skeleton.strokes.indexOf(*it);
+      s_skeleton.count.remove(*it);
+      s_skeleton.strokes.removeAll(*it);
+
+      std::vector<int> edgesToRemove; // QList doesn't have a reverse iterator, std::vector does.
+
+      auto processEdges = [strokeIndex, &edgesToRemove](SkeletonEdge &edge)
+      {
+        if(edge.strokeIndex == strokeIndex)
+        {
+          edgesToRemove.push_back(s_skeleton.edges.indexOf(edge));
+        }
+        else
+        {
+          if(edge.strokeIndex > strokeIndex)
+          {
+            edge.strokeIndex -= 1;
+          }
+        }
+      };
+
+      auto processEdgesParents = [&edgesToRemove](SkeletonEdge &edge)
+      {
+        if(std::any_of(edgesToRemove.cbegin(), edgesToRemove.cend(), [&edge](const int edgeIndex) { return edgeIndex == edge.parentEdge; }))
+        {
+          edge.parentEdge = -1;
+        }
+      };
+
+      std::for_each(s_skeleton.edges.begin(), s_skeleton.edges.end(), processEdges);
+      std::for_each(s_skeleton.edges.begin(), s_skeleton.edges.end(), processEdgesParents);
+
+      auto processNodes = [](const int edgeIndex)
+      {
+        for(auto node: s_skeleton.nodes)
+        {
+          SkeletonNodes toRemove;
+          for(auto cNode: node->connections.keys())
+          {
+            if(node->connections[cNode] == edgeIndex)
+            {
+              toRemove << cNode;
+            }
+            else
+            {
+              if(node->connections[cNode] > edgeIndex) node->connections[cNode] -= 1;
+            }
+          }
+
+          if(!toRemove.isEmpty())
+          {
+            for(auto cNode: toRemove) node->connections.remove(cNode);
+          }
+        }
+      };
+
+      std::sort(edgesToRemove.begin(), edgesToRemove.end());
+
+      std::for_each(edgesToRemove.crbegin(), edgesToRemove.crend(), processNodes);
+      std::for_each(edgesToRemove.crbegin(), edgesToRemove.crend(), [](const int edgeIndex) { s_skeleton.edges.removeAt(edgeIndex); });
+
+      Core::removeIsolatedNodes(s_skeleton.nodes);
+    }
+  }
+
+  BuildRepresentation();
+}
+
+//--------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::renameStroke(const QString &oldName, const QString &newName)
+{
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+
+    auto equalOp = [&oldName](const Core::SkeletonStroke &stroke) { return oldName == stroke.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalOp);
+
+    if(it != s_skeleton.strokes.end())
+    {
+      SkeletonStroke oldStroke = *it;
+      auto count = s_skeleton.count[oldStroke];
+      s_skeleton.count.remove(oldStroke);
+      (*it).name = newName;
+      s_skeleton.count.insert(*it, count);
+    }
+  }
+
+  BuildRepresentation();
 }
 
 //--------------------------------------------------------------------

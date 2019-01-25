@@ -60,6 +60,18 @@ namespace ESPINA
       virtual ~StrokeDefinitionDialog()
       {}
 
+      /** \brief Returns true if the strokes of the skeleton have been modified and false otherwise.
+       *
+       */
+      const bool hasModifiedStrokes() const
+      { return m_modified; }
+
+    signals:
+      void strokeModified(const Core::SkeletonStroke &stroke);
+      void strokeRenamed(const QString &oldName, const QString &newName);
+      void strokeAdded(const Core::SkeletonStroke &stroke);
+      void strokeRemoved(const Core::SkeletonStroke &stroke);
+
     protected:
       virtual void closeEvent(QCloseEvent *event) override;
 
@@ -131,8 +143,9 @@ namespace ESPINA
        */
       void updateStrokeProperties();
 
-      Core::SkeletonStrokes &m_strokes;  /** stroke definitions map. */
-      CategoryAdapterSPtr    m_category; /** strokes' category.      */
+      Core::SkeletonStrokes &m_strokes;  /** stroke definitions map.                                                      */
+      CategoryAdapterSPtr    m_category; /** strokes' category.                                                           */
+      bool                   m_modified; /** true if there has been modification in the skeleton stroke, false otherwise. */
   };
 
 } // namespace ESPINA

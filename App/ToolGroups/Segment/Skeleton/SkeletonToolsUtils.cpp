@@ -69,6 +69,10 @@ Core::SkeletonStrokes ESPINA::SkeletonToolsUtils::defaultStrokes(const CategoryA
 
     result << SkeletonStroke(QObject::tr("Stroke"), hue, 0, true);
   }
+  else
+  {
+    result << SkeletonStroke(QObject::tr("Stroke"), 0, 0, true);
+  }
 
   return result;
 }
@@ -137,11 +141,11 @@ void ESPINA::SkeletonToolsUtils::loadStrokes(std::shared_ptr<QSettings> settings
 }
 
 //--------------------------------------------------------------------
-QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const QString &category)
+QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const Core::SkeletonStrokes &strokes)
 {
   QMenu *menu = nullptr;
 
-  if(STROKES.keys().contains(category))
+  if(!strokes.isEmpty())
   {
     menu = new QMenu(title, nullptr);
     menu->setHidden(true);
@@ -156,9 +160,9 @@ QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const 
 
     menu->addAction(action);
 
-    for(int i = 0; i < STROKES[category].size(); ++i)
+    for(int i = 0; i < strokes.size(); ++i)
     {
-      auto stroke = STROKES[category].at(i);
+      auto stroke = strokes.at(i);
 
       QPixmap original(ICONS.at(stroke.type));
       QPixmap copy(original.size());
