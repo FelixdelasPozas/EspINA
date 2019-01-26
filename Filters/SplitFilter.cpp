@@ -84,8 +84,6 @@ void SplitFilter::execute()
     }
   }
 
-  m_outputs.clear(); // invalidate previous execution.
-
   int shift[3]; // Stencil origin differ from creation to fetch
 
   double origin[3];
@@ -94,7 +92,7 @@ void SplitFilter::execute()
   m_stencil->GetOrigin(origin);
   m_stencil->GetSpacing(spacing);
 
-  for (const auto i: {0,1,2}) shift[i] = std::round(origin[i] / spacing[i]);
+  for (const auto i: {0,1,2}) shift[i] = vtkMath::Round(origin[i] / spacing[i]);
 
   if(hasVolumetricData(input))
   {
@@ -218,7 +216,7 @@ void SplitFilter::execute()
 
               if(0 != m_plane->IntersectWithLine(node->position, connNode->position, t, intersection))
               {
-                for(const auto j: {0,1,2}) intersection[j] = std::round(intersection[j]/spacing[j]) * spacing[j];
+                for(const auto j: {0,1,2}) intersection[j] = vtkMath::Round(intersection[j]/spacing[j]) * spacing[j];
                 auto edge = node->connections[connNode];
 
                 auto intersection1 = new SkeletonNode{intersection};
@@ -477,11 +475,14 @@ State SplitFilter::state() const
 {
   State state;
 
-  NmVector3 origin{m_plane->GetOrigin()[0], m_plane->GetOrigin()[1], m_plane->GetOrigin()[2]};
-  NmVector3 normal{m_plane->GetNormal()[0], m_plane->GetNormal()[1], m_plane->GetNormal()[2]};
+  if(m_plane != nullptr)
+  {
+    NmVector3 origin{m_plane->GetOrigin()[0], m_plane->GetOrigin()[1], m_plane->GetOrigin()[2]};
+    NmVector3 normal{m_plane->GetNormal()[0], m_plane->GetNormal()[1], m_plane->GetNormal()[2]};
 
-  state += StatePair(PLANE_ORIGIN, origin);
-  state += StatePair(PLANE_NORMAL, normal);
+    state += StatePair(PLANE_ORIGIN, origin);
+    state += StatePair(PLANE_NORMAL, normal);
+  }
 
   return state;
 }
