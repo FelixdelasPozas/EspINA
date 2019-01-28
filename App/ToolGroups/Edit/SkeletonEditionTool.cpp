@@ -129,7 +129,14 @@ void SkeletonEditionTool::initTool(bool value)
     auto skeleton   = readLockSkeleton(m_item->output())->skeleton();
     auto definition = Core::toSkeletonDefinition(skeleton);
 
-    m_strokes = definition.strokes;
+    m_strokes.clear();
+
+    for(const auto &stroke: definition.strokes)
+    {
+      auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+      auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
+      if(!exists && stroke.name != "Stroke") { m_strokes << stroke; }
+    };
 
     definition.clear();
 
@@ -668,7 +675,7 @@ void SkeletonEditionTool::onStrokeConfigurationPressed()
 
     connect(&dialog, SIGNAL(strokeModified(const Core::SkeletonStroke &)),    this, SLOT(onStrokeModified(const Core::SkeletonStroke &)), Qt::DirectConnection);
     connect(&dialog, SIGNAL(strokeRenamed(const QString &, const QString &)), this, SLOT(onStrokeRenamed(const QString &, const QString &)), Qt::DirectConnection);
-    connect(&dialog, SIGNAL(strokeAdded(const Core::SkeletonStroke &)),       this, SLOT(onStrokeAdded(const Core::SkeletonStroke &)), Qt::DirectConnection);
+    connect(&dialog, SIGNAL(strokeAdded(const Core::SkeletonStroke &)),       this, SLOT(onStrokeModified(const Core::SkeletonStroke &)), Qt::DirectConnection);
     connect(&dialog, SIGNAL(strokeRemoved(const Core::SkeletonStroke &)),     this, SLOT(onStrokeRemoved(const Core::SkeletonStroke &)), Qt::DirectConnection);
 
     dialog.exec();
@@ -774,11 +781,18 @@ void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentatio
       auto skeleton = readLockSkeleton(selectedSeg->output())->skeleton();
       auto definition = Core::toSkeletonDefinition(skeleton);
 
-      m_strokes = definition.strokes;
+      m_strokes.clear();
 
-      updateStrokes();
+      for(const auto &stroke: definition.strokes)
+      {
+        auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+        auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
+        if(!exists && stroke.name != "Stroke") { m_strokes << stroke; }
+      };
 
       definition.clear();
+
+      updateStrokes();
 
       SkeletonWidget2D::ClearRepresentation();
       SkeletonWidget2D::initializeData(readLockSkeleton(m_item->output())->skeleton());
@@ -816,9 +830,23 @@ void SkeletonEditionTool::updateStrokes()
   {
     auto segmentation = segmentationPtr(m_item);
     auto category     = segmentation->category();
+    const auto name   = category->classificationName();
 
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->clear();
+
+    const auto keys = STROKES.keys();
+    if(keys.contains(name))
+    {
+      for(const auto &stroke: STROKES[name])
+      {
+        auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+        auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
+        if(!exists && stroke.name != "Stroke") { m_strokes << stroke; }
+      }
+    }
+
+    qSort(m_strokes);
 
     for(int i = 0; i < m_strokes.size(); ++i)
     {
@@ -919,18 +947,6 @@ void SkeletonEditionTool::onStrokeRenamed(const QString &oldName, const QString 
   {
     auto widget = m_widgets.first();
     widget->renameStroke(oldName, newName);
-
-    getViewState().refresh();
-  }
-}
-
-//--------------------------------------------------------------------
-void SkeletonEditionTool::onStrokeAdded(const Core::SkeletonStroke &stroke)
-{
-  if(!m_widgets.isEmpty())
-  {
-    auto widget = m_widgets.first();
-    widget->setStroke(stroke);
 
     getViewState().refresh();
   }

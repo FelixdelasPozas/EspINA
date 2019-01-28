@@ -2571,6 +2571,7 @@ const bool vtkSkeletonWidgetRepresentation::changeCoincidentHue() const
 //--------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::removeStroke(const Core::SkeletonStroke &stroke)
 {
+  bool updated{false};
   {
     QMutexLocker lock(&s_skeletonMutex);
 
@@ -2641,15 +2642,17 @@ void vtkSkeletonWidgetRepresentation::removeStroke(const Core::SkeletonStroke &s
       std::for_each(edgesToRemove.crbegin(), edgesToRemove.crend(), [](const int edgeIndex) { s_skeleton.edges.removeAt(edgeIndex); });
 
       Core::removeIsolatedNodes(s_skeleton.nodes);
+      updated = true;
     }
   }
 
-  BuildRepresentation();
+  if(updated) BuildRepresentation();
 }
 
 //--------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::renameStroke(const QString &oldName, const QString &newName)
 {
+  bool updated{false};
   {
     QMutexLocker lock(&s_skeletonMutex);
 
@@ -2663,10 +2666,12 @@ void vtkSkeletonWidgetRepresentation::renameStroke(const QString &oldName, const
       s_skeleton.count.remove(oldStroke);
       (*it).name = newName;
       s_skeleton.count.insert(*it, count);
+
+      updated = true;
     }
   }
 
-  BuildRepresentation();
+  if(updated) BuildRepresentation();
 }
 
 //--------------------------------------------------------------------

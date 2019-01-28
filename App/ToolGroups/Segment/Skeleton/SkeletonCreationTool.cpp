@@ -794,6 +794,8 @@ void SkeletonCreationTool::updateStrokes()
       STROKES[categoryName] = defaultStrokes(currentCategory);
     }
 
+    qSort(strokes);
+
     for(int i = 0; i < strokes.size(); ++i)
     {
       auto stroke = strokes.at(i);

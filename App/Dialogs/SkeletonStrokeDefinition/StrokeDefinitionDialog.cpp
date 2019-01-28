@@ -116,10 +116,8 @@ void StrokeDefinitionDialog::onRemoveButtonPressed()
   if(!m_strokes.isEmpty())
   {
     m_list->setCurrentItem(m_list->item(0));
+    onStrokeChanged(0);
   }
-  updateStrokeProperties();
-
-  m_removeButton->setEnabled(!m_strokes.isEmpty());
 
   m_modified = true;
   emit strokeRemoved(stroke);

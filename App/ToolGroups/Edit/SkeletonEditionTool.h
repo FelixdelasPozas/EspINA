@@ -187,7 +187,7 @@ namespace ESPINA
        */
       void onTruncationSuccess();
 
-      /** \brief Updates the skeleton when a stroke is modified in the stroke definition dialog.
+      /** \brief Updates the skeleton when a stroke is modified or added in the stroke definition dialog.
        * \param[in] stroke SkeletonStroke struct of modified stroke.
        *
        */
@@ -199,12 +199,6 @@ namespace ESPINA
        *
        */
       void onStrokeRenamed(const QString &oldName, const QString &newName);
-
-      /** \brief Updates the skeleton when a stroke is added in the stroke definition dialog.
-       * \param[in] stroke SkeletonStroke struct of added stroke.
-       *
-       */
-      void onStrokeAdded(const Core::SkeletonStroke &stroke);
 
       /** \brief Updates the skeleton when a stroke is removed in the stroke definition dialog.
        * \param[in] stroke SkeletonStroke struct of removed stroke.
