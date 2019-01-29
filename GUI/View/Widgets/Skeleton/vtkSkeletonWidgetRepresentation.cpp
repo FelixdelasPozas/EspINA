@@ -92,8 +92,6 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_colors->SetNumberOfComponents(3);
 
   m_points = vtkSmartPointer<vtkPoints>::New();
-  m_points->SetNumberOfPoints(1);
-  m_points->SetPoint(0, 0.0, 0.0, 0.0);
 
   m_pointsData = vtkSmartPointer<vtkPolyData>::New();
   m_pointsData->SetPoints(m_points);
@@ -117,8 +115,6 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 
   auto polyData = vtkSmartPointer<vtkPolyData>::New();
   auto points = vtkSmartPointer<vtkPoints>::New();
-  points->SetNumberOfPoints(1);
-  points->InsertNextPoint(0, 0, 0);
   polyData->SetPoints(points);
 
   m_pointer = vtkSmartPointer<vtkGlyph3D>::New();
@@ -355,16 +351,18 @@ bool vtkSkeletonWidgetRepresentation::ActivateNode(int displayPos[2])
   GetWorldPositionFromDisplayPosition(displayPos, worldPos);
 
   double distance2 = VTK_DOUBLE_MAX;
-  for (auto node : m_visiblePoints.keys())
+  const auto nodes = m_visiblePoints.keys();
+
+  auto closestNodeOp = [&distance2, &worldPos, &closestNode](SkeletonNode * const &node)
   {
     auto nodeDistance = vtkMath::Distance2BetweenPoints(worldPos, node->position);
-
     if (nodeDistance < distance2)
     {
       distance2 = nodeDistance;
       closestNode = node;
     }
-  }
+  };
+  std::for_each(nodes.constBegin(), nodes.constEnd(), closestNodeOp);
 
   if (closestNode == nullptr || (m_tolerance < distance2))
   {
@@ -525,12 +523,8 @@ void vtkSkeletonWidgetRepresentation::deleteNode(SkeletonNode *node)
   delete node;
   node = nullptr;
 
-  for (auto connection : connections)
-  {
-    if (connection->connections.isEmpty()) toDelete << connection;
-  }
-
-  for (auto otherNode : toDelete) deleteNode(otherNode);
+  std::for_each(connections.constBegin(), connections.constEnd(), [&toDelete](SkeletonNode *node) { if(node->connections.isEmpty()) toDelete << node; });
+  std::for_each(toDelete.begin(), toDelete.end(), [this](SkeletonNode *node){ this->deleteNode(node); });
 }
 
 //-----------------------------------------------------------------------------
@@ -777,12 +771,12 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   // to use as scale factor later.
   distance = 1000 * distance / scale;
 
-  m_points->Reset();
-  m_lines->Reset();
-  m_dashedLines->Reset();
-  m_truncatedPoints->Reset();
-  m_labelPoints->Reset();
-  m_labels->Reset();
+  m_points->Initialize();
+  m_lines->Initialize();
+  m_dashedLines->Initialize();
+  m_truncatedPoints->Initialize();
+  m_labelPoints->Initialize();
+  m_labels->Initialize();
 
   auto cells = vtkSmartPointer<vtkCellArray>::New();
   auto dashedCells = vtkSmartPointer<vtkCellArray>::New();
@@ -798,7 +792,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   unsigned char green[3]       {  0,255,  0};
   unsigned char blue[3]        {  0,  0,255};
   unsigned char intersection[3]{255,  0,255};
-  m_colors->Reset();
+  m_colors->Initialize();
 
   m_visiblePoints.clear();
   QSet<int> truncatedStrokes, visibleStrokes;
@@ -902,10 +896,10 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
     }
     else
     {
-      for (auto connectedNode : node->connections.keys())
+      for (auto connectedNode: node->connections.keys())
       {
-        if ((node->position[planeIndex] < m_slice && connectedNode->position[planeIndex] >= m_slice)
-            || (node->position[planeIndex] > m_slice && connectedNode->position[planeIndex] <= m_slice))
+        if ((node->position[planeIndex] < m_slice && connectedNode->position[planeIndex] >= m_slice) ||
+            (node->position[planeIndex] > m_slice && connectedNode->position[planeIndex] <= m_slice))
         {
           if (!m_visiblePoints.contains(node))
           {
@@ -1104,14 +1098,14 @@ void vtkSkeletonWidgetRepresentation::UpdatePointer()
 
   QMutexLocker lock(&s_skeletonMutex);
 
-  if (s_currentVertex != nullptr && (std::abs(s_currentVertex->position[idx] - m_slice) <= std::abs(m_shift)))
+  if ((s_currentVertex != nullptr) && (std::abs(s_currentVertex->position[idx] - m_slice) <= std::abs(m_shift)))
   {
     double pos[3];
     std::memcpy(pos, s_currentVertex->position, 3 * sizeof(double));
     pos[idx] = m_slice + m_shift;
 
     auto polyData = vtkPolyData::SafeDownCast(m_pointer->GetInput());
-    polyData->GetPoints()->Reset();
+    polyData->GetPoints()->Initialize();
     polyData->GetPoints()->SetNumberOfPoints(1);
     polyData->GetPoints()->SetPoint(0, pos);
     polyData->GetPoints()->Modified();
@@ -1203,35 +1197,13 @@ void vtkSkeletonWidgetRepresentation::ReleaseGraphicsResources(vtkWindow* win)
 int vtkSkeletonWidgetRepresentation::RenderOverlay(vtkViewport* viewport)
 {
   int count = 0;
-  if (m_pointerActor->GetVisibility())
-  {
-    count += m_pointerActor->RenderOverlay(viewport);
-  }
 
-  if (m_linesActor->GetVisibility())
-  {
-    count += m_linesActor->RenderOverlay(viewport);
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    count += m_dashedLinesActor->RenderOverlay(viewport);
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    count += m_actor->RenderOverlay(viewport);
-  }
-
-  if(m_truncatedActor->GetVisibility())
-  {
-    count += m_truncatedActor->RenderOverlay(viewport);
-  }
-
-  if(m_labelActor->GetVisibility())
-  {
-    count += m_labelActor->RenderOverlay(viewport);
-  }
+  if (m_pointerActor->GetVisibility())     count += m_pointerActor->RenderOverlay(viewport);
+  if (m_linesActor->GetVisibility())       count += m_linesActor->RenderOverlay(viewport);
+  if (m_dashedLinesActor->GetVisibility()) count += m_dashedLinesActor->RenderOverlay(viewport);
+  if (m_actor->GetVisibility())            count += m_actor->RenderOverlay(viewport);
+  if(m_truncatedActor->GetVisibility())    count += m_truncatedActor->RenderOverlay(viewport);
+  if(m_labelActor->GetVisibility())        count += m_labelActor->RenderOverlay(viewport);
 
   return count;
 }
@@ -1243,35 +1215,13 @@ int vtkSkeletonWidgetRepresentation::RenderOpaqueGeometry(vtkViewport* viewport)
   BuildRepresentation();
 
   int count = 0;
-  if (m_pointerActor->GetVisibility())
-  {
-    count += m_pointerActor->RenderOpaqueGeometry(viewport);
-  }
 
-  if (m_linesActor->GetVisibility())
-  {
-    count += m_linesActor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    count += m_dashedLinesActor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    count += m_actor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_truncatedActor->GetVisibility())
-  {
-    count += m_truncatedActor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_labelActor->GetVisibility())
-  {
-    count += m_labelActor->RenderOpaqueGeometry(viewport);
-  }
+  if (m_pointerActor->GetVisibility())     count += m_pointerActor->RenderOpaqueGeometry(viewport);
+  if (m_linesActor->GetVisibility())       count += m_linesActor->RenderOpaqueGeometry(viewport);
+  if (m_dashedLinesActor->GetVisibility()) count += m_dashedLinesActor->RenderOpaqueGeometry(viewport);
+  if (m_actor->GetVisibility())            count += m_actor->RenderOpaqueGeometry(viewport);
+  if (m_truncatedActor->GetVisibility())   count += m_truncatedActor->RenderOpaqueGeometry(viewport);
+  if (m_labelActor->GetVisibility())       count += m_labelActor->RenderOpaqueGeometry(viewport);
 
   return count;
 }
@@ -1281,35 +1231,12 @@ int vtkSkeletonWidgetRepresentation::RenderTranslucentPolygonalGeometry(vtkViewp
 {
   int count = 0;
 
-  if (m_pointerActor->GetVisibility())
-  {
-    count += m_pointerActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_linesActor->GetVisibility())
-  {
-    count += m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    count += m_dashedLinesActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    count += m_actor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_truncatedActor->GetVisibility())
-  {
-    count += m_truncatedActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_labelActor->GetVisibility())
-  {
-    count += m_labelActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
+  if (m_pointerActor->GetVisibility())     count += m_pointerActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_linesActor->GetVisibility())       count += m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_dashedLinesActor->GetVisibility()) count += m_dashedLinesActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_actor->GetVisibility())            count += m_actor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_truncatedActor->GetVisibility())   count += m_truncatedActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_labelActor->GetVisibility())       count += m_labelActor->RenderTranslucentPolygonalGeometry(viewport);
 
   return count;
 }
@@ -1319,35 +1246,12 @@ int vtkSkeletonWidgetRepresentation::HasTranslucentPolygonalGeometry()
 {
   int result = 0;
 
-  if (m_pointerActor->GetVisibility())
-  {
-    result |= m_pointerActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_linesActor->GetVisibility())
-  {
-    result |= m_linesActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    result |= m_dashedLinesActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    result |= m_actor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_truncatedActor->GetVisibility())
-  {
-    result |= m_truncatedActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_labelActor->GetVisibility())
-  {
-    result |= m_labelActor->HasTranslucentPolygonalGeometry();
-  }
+  if (m_pointerActor->GetVisibility())     result |= m_pointerActor->HasTranslucentPolygonalGeometry();
+  if (m_linesActor->GetVisibility())       result |= m_linesActor->HasTranslucentPolygonalGeometry();
+  if (m_dashedLinesActor->GetVisibility()) result |= m_dashedLinesActor->HasTranslucentPolygonalGeometry();
+  if (m_actor->GetVisibility())            result |= m_actor->HasTranslucentPolygonalGeometry();
+  if (m_truncatedActor->GetVisibility())   result |= m_truncatedActor->HasTranslucentPolygonalGeometry();
+  if (m_labelActor->GetVisibility())       result |= m_labelActor->HasTranslucentPolygonalGeometry();
 
   return result;
 }
@@ -1411,19 +1315,21 @@ void vtkSkeletonWidgetRepresentation::FindClosestNode(const int X, const int Y, 
 
   GetWorldPositionFromDisplayPosition(displayPos, pos);
 
-  for(auto i = 0; i < s_skeleton.nodes.size(); ++i)
+  auto closestNodeOp = [this, &distance, planeIndex, &pos, &worldPos, &closestNode](SkeletonNode * const &node)
   {
-    if(!areEqual(s_skeleton.nodes[i]->position[planeIndex], m_slice)) continue;
+    if(!areEqual(node->position[planeIndex], m_slice)) return;
 
-    auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, s_skeleton.nodes[i]->position);
+    auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, node->position);
     if(distance > nodeDistance)
     {
       distance = nodeDistance;
-      closestNode = i;
+      closestNode = s_skeleton.nodes.indexOf(node);
 
-      std::memcpy(worldPos, s_skeleton.nodes[i]->position, 3* sizeof(double));
+      std::memcpy(worldPos, node->position, 3* sizeof(double));
     }
-  }
+  };
+
+  std::for_each(s_skeleton.nodes.constBegin(), s_skeleton.nodes.constEnd(), closestNodeOp);
 }
 
 //-----------------------------------------------------------------------------
@@ -1470,12 +1376,14 @@ void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
     {
       if(s_skeletonSpacing != spacing)
       {
-        for(auto node: s_skeleton.nodes)
+        auto changeSpacingOp = [&spacing](SkeletonNode *node)
         {
           node->position[0] = node->position[0]/s_skeletonSpacing[0] * spacing[0];
           node->position[1] = node->position[1]/s_skeletonSpacing[1] * spacing[1];
           node->position[2] = node->position[2]/s_skeletonSpacing[2] * spacing[2];
-        }
+        };
+
+        std::for_each(s_skeleton.nodes.begin(), s_skeleton.nodes.end(), changeSpacingOp);
 
         s_skeletonSpacing = spacing;
       }
@@ -1487,7 +1395,7 @@ void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
 
     auto planeIdx = normalCoordinateIndex(m_orientation);
     double max = -1;
-    for(int i = 0; i < 3; ++i)
+    for(auto i: {0,1,2})
     {
       if(i == planeIdx) continue;
       max = std::max(spacing[i], max);
