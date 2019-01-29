@@ -238,6 +238,12 @@ namespace ESPINA
        */
       void updateStrokes();
 
+      /** \brief Helper method to insert strokes into m_strokes.
+       * \param[in] strokes List of skeleton strokes to check and add if not present in m_strokes.
+       *
+       */
+      void populateStrokes(const Core::SkeletonStrokes &strokes);
+
     private:
       /** \class NullRepresentationPipeline
        * \brief Implements an empty representation.

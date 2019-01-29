@@ -131,12 +131,7 @@ void SkeletonEditionTool::initTool(bool value)
 
     m_strokes.clear();
 
-    for(const auto &stroke: definition.strokes)
-    {
-      auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
-      auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
-      if(!exists && stroke.name != "Stroke") { m_strokes << stroke; }
-    };
+    populateStrokes(definition.strokes);
 
     definition.clear();
 
@@ -783,12 +778,7 @@ void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentatio
 
       m_strokes.clear();
 
-      for(const auto &stroke: definition.strokes)
-      {
-        auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
-        auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
-        if(!exists && stroke.name != "Stroke") { m_strokes << stroke; }
-      };
+      populateStrokes(definition.strokes);
 
       definition.clear();
 
@@ -838,15 +828,8 @@ void SkeletonEditionTool::updateStrokes()
     const auto keys = STROKES.keys();
     if(keys.contains(name))
     {
-      for(const auto &stroke: STROKES[name])
-      {
-        auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
-        auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
-        if(!exists && stroke.name != "Stroke") { m_strokes << stroke; }
-      }
+      populateStrokes(STROKES[name]);
     }
-
-    qSort(m_strokes);
 
     for(int i = 0; i < m_strokes.size(); ++i)
     {
@@ -962,4 +945,27 @@ void SkeletonEditionTool::onStrokeRemoved(const Core::SkeletonStroke &stroke)
 
     getViewState().refresh();
   }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::populateStrokes(const Core::SkeletonStrokes& strokes)
+{
+  auto segmentation = segmentationPtr(m_item);
+  if(segmentation)
+  {
+    const auto defaultStrokes = SkeletonToolsUtils::defaultStrokes(segmentation->category());
+
+    for(const auto &stroke: strokes)
+    {
+      // Some categories can have an unused stroke "Stroke" present in every category originated in early
+      // skeleton tools and data development. So if the default strokes size is not 1 then we can hide it.
+      if(stroke.name == "Stroke" && defaultStrokes.size() > 1) continue;
+
+      auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+      auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
+      if(!exists) { m_strokes << stroke; }
+    };
+  }
+
+  qSort(m_strokes);
 }
