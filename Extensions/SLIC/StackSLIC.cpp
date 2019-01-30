@@ -318,7 +318,7 @@ void StackSLIC::SLICComputeTask::run()
 
   //TODO: Set up minimums and maximums if ROI enabled
   //max_x/y/z = min(ROI_max_x/y/z, max_x/y/z)
-  //min_x/y/z = min(ROI_min_x/y/z, min_x/y/z)
+  //min_x/y/z = max(ROI_min_x/y/z, min_x/y/z)
 
   //Calculate total number of voxels
   n_voxels = max_x*max_y*max_z;
@@ -506,7 +506,6 @@ void StackSLIC::SLICComputeTask::run()
 
   qDebug() << QString("Starting post-process connectivity algorithm: %1").arg(timer.elapsed()/1000);
   ensureConnectivity();
-  ensureConnectivity();
 
   if(!canExecute())
   {
@@ -536,34 +535,15 @@ void StackSLIC::SLICComputeTask::onAbort()
 }
 
 //-----------------------------------------------------------------------------
-unsigned long int StackSLIC::getSupervoxel(unsigned int x, unsigned int y, unsigned int z)
+unsigned long int StackSLIC::getSupervoxel(itkVolumeType::IndexType position)
 {
   //TODO: Check if x,y,z is in bounds
 
   if(!result.computed)
     return 0;
 
-  auto slice = result.getSlice(z);
-  QDataStream stream(&slice, QIODevice::ReadOnly);
-  stream.setVersion(QDataStream::Qt_4_0);
-
-  unsigned int current_x = 0;
-  unsigned int current_y = 0;
-  unsigned int label;
-  unsigned short voxel_count;
-  unsigned int max_x = result.bounds.lenght(Axis::X);
-
-  while(current_y < y && current_x < x) {
-    stream >> label;
-    stream >> voxel_count;
-    current_x += voxel_count;
-    if(current_x >= max_x) {
-      current_x = 0;
-      current_y++;
-    }
-  }
-
-  return label;
+  auto slice = getUncompressedSlice(position[2]).get();
+  return slice[position[0]+position[1]*(int)result.bounds.lenght(Axis::X)];
 }
 
 //-----------------------------------------------------------------------------
@@ -681,30 +661,7 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
   data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   auto buffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
 
-  auto sliceArray = result.getSlice(slice);
-  QDataStream stream(&sliceArray, QIODevice::ReadOnly);
-  stream.setVersion(QDataStream::Qt_4_0);
-
-  unsigned int label;
-  unsigned short voxel_count;
-  unsigned char color;
-
-  while(pixel < pixel_count)
-  {
-    stream >> label;
-    stream >> voxel_count;
-    //Check for voxels out of edges (no label assigned)
-    if(label == std::numeric_limits<unsigned int>::max())
-      color = 0;
-    else
-      color = result.supervoxels[label].color;
-    for(int i = 0; i < voxel_count; i++)
-    {
-      *buffer = color;
-      ++buffer;
-    }
-    pixel += voxel_count;
-  }
+  memcpy(buffer, getUncompressedSlice(slice).get(), pixel_count);
 
   return true;
 }
@@ -751,40 +708,14 @@ itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBou
   unsigned int x, y, z;
   QReadLocker lock(&result.m_dataMutex);
   for(z = bounds[4]; z < bounds[4] + bounds[5]; z++) {
-    pixel = 0;
-    auto sliceArray = result.getSlice(z);
-    QDataStream stream(&sliceArray, QIODevice::ReadOnly);
-    stream.setVersion(QDataStream::Qt_4_0);
-
-    unsigned int label;
-    unsigned short voxel_count;
-
-    while(pixel < pixel_count)
-    {
-      stream >> label;
-      stream >> voxel_count;
-      y = pixel / max_x;
-      x = pixel - y * max_x; // x = pixel % max_x without dividing again
-      pixel += voxel_count;
-
-      if(x + voxel_count >= max_x) {
-        auto what    = QObject::tr("uncompressed voxels exceed volume");
-        auto details = QObject::tr("StackSLIC::getLabeledImageFromBounds() -> Uncompressed voxels exceed the width of the image. This is either a bug or the compression algorithm has been changed and it hasn't been reflected here.");
-        throw Utils::EspinaException(what, details);
+    auto s = getUncompressedLabeledSlice(z);
+    auto slice_buffer = s.get();
+    for(int y = bounds[2]; y < bounds[2]+bounds[3]; y++) {
+      slice_buffer = s.get();
+      slice_buffer += y * max_x;
+      for(int x = bounds[0]; x < bounds[0] + bounds[1]; x++) {
+        *(data_offset++) = *(slice_buffer++);
       }
-
-      if(x < bounds[0]) {
-        voxel_count -= bounds[0]-x;
-        x = bounds[0];
-      }
-      if(x + voxel_count > bounds[1])
-        voxel_count = bounds[0] + bounds[1];
-
-      data_offset = &data[y*max_x + x];
-      for(x = 0; x < voxel_count; x++, data_offset++) {
-        *data_offset = label;
-      }
-
     }
   }
 
@@ -939,8 +870,6 @@ void StackSLIC::SLICComputeTask::fitRegionToBounds(long long int region_position
 //-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *voxels)
 {
-  unsigned int voxel_index = 0, current_label, label_index;
-  unsigned short same_label_count = 0;
   Label *label;
 
   QWriteLocker lock(&result->m_dataMutex);
@@ -950,7 +879,7 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
   result->supervoxels.clear();
   //result->voxels.clear();
 
-  for(label_index=0;label_index<labels.size();label_index++)
+  for(unsigned int label_index=0;label_index<labels.size();label_index++)
   {
     label=&labels[label_index];
     result->supervoxels.append({label->center, label->color});
@@ -963,37 +892,8 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
     QDataStream stream(&data, QIODevice::WriteOnly);
     stream.setVersion(QDataStream::Qt_4_0);
 
-    for (unsigned int y = 0; y < max_y; y++)
-    {
-      voxel_index = y * max_x + z * max_x * max_y;
-      for (unsigned int x = 0; x < max_x; x++)
-      {
-        if (x != 0)
-        {
-          if (voxels[voxel_index] != current_label)
-          {
-            //Write RLE
-            stream << current_label;
-            stream << same_label_count;
-            current_label = voxels[voxel_index];
-            same_label_count = 1;
-          }
-          else
-          {
-            same_label_count++;
-          }
-        }
-        else
-        {
-          current_label = voxels[voxel_index];
-          same_label_count = 1;
-        }
-        voxel_index++;
-      }
-      //Write last supervoxel in row
-      stream << current_label;
-      stream << same_label_count;
-    }
+    compressSlice(stream, z);
+
     auto fileName = QString(VOXELS_FILE).arg(z);
     QFileInfo filePath(result->temp_storage.absoluteFilePath(fileName));
     QFile file(filePath.absoluteFilePath());
@@ -1003,6 +903,44 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
 
   result->modified = true;
   result->computed = true;
+}
+
+//-----------------------------------------------------------------------------
+void StackSLIC::SLICComputeTask::compressSlice(QDataStream &stream, unsigned int z) {
+  //Compression algorithm goes here
+  unsigned int voxel_index = 0, current_label, same_label_count = 0;
+
+  for (unsigned int y = 0; y < max_y; y++)
+  {
+    voxel_index = y * max_x + z * max_x * max_y;
+    for (unsigned int x = 0; x < max_x; x++)
+    {
+      if (x != 0)
+      {
+        if (voxels[voxel_index] != current_label)
+        {
+          //Write RLE
+          stream << current_label;
+          stream << same_label_count;
+          current_label = voxels[voxel_index];
+          same_label_count = 1;
+        }
+        else
+        {
+          same_label_count++;
+        }
+      }
+      else
+      {
+        current_label = voxels[voxel_index];
+        same_label_count = 1;
+      }
+      voxel_index++;
+    }
+    //Write last supervoxel in row
+    stream << current_label;
+    stream << same_label_count;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1052,34 +990,6 @@ void StackSLIC::SLICComputeTask::findCandidateRegion(itkVolumeType::IndexType &c
 //-----------------------------------------------------------------------------
 bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension)
 {
-  //QFutureSynchronizer<void> synchronizer;
-  /*QList<IndexType> centers;
-
-  for(unsigned int z=parameter_m_s/2+min_z;z<max_z;z+=parameter_m_s/spacing[2])
-  {
-    //auto sliceRegion = edgesExtension->sliceRegion(z);
-
-    for(unsigned int y=parameter_m_s/2+min_y;y<max_y;y+=parameter_m_s/spacing[1])
-    {
-      for(unsigned int x=parameter_m_s/2+min_x;x<max_x;x+=parameter_m_s/spacing[0])
-      {
-
-        //Skip if out of the region of interest or image bounds
-        if(!isInBounds(x, y, z)) continue;
-        centers.append((IndexType) {x,y,z});
-      }
-    }
-  }
-
-  if(!canExecute()) return false;
-  auto func = std::bind(&StackSLIC::SLICComputeTask::createSupervoxel, this, std::placeholders::_1, edgesExtension, image, &labels);
-  watcher.setFuture(QtConcurrent::map(centers, func));
-  watcher.waitForFinished();*/
-
-  //synchronizer.waitForFinished();
-  //synchronizer.clearFutures();
-
-
   using IndexType = itkVolumeType::IndexType;
   using GradientType = itk::Image<float,3>;
   using ImageRegion = itk::ImageRegion<3>;
@@ -1450,14 +1360,6 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
     contiguous[4] = {current[0], current[1], current[2]+1};
     contiguous[5] = {current[0], current[1], current[2]-1};
 
-    /*for(int adj_x = -1, i = 0; adj_x <= 1; adj_x++)
-      for(int adj_y = -1; adj_y <= 1; adj_y++)
-        for(int adj_z = -1; adj_z <= 1; adj_z++, i++)
-          if(adj_x != 0 && adj_y != 0 && adj_z != 0)
-            contiguous[i] = {current[0]+adj_x, current[1]+adj_y, current[2]+adj_z};*/
-
-
-
     for(IndexType next : contiguous) {
       if(isInBounds(next[0], next[1], next[2])) {
         //Skip voxels outside the valid subregion
@@ -1571,6 +1473,78 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label) {
 }
 
 //-----------------------------------------------------------------------------
+std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(int slice) {
+  auto compressed = result.getSlice(slice);
+
+  QDataStream stream(&compressed, QIODevice::ReadOnly);
+  stream.setVersion(QDataStream::Qt_4_0);
+
+  unsigned int label;
+  unsigned short voxel_count;
+
+  Bounds bounds = m_extendedItem->bounds();
+  OutputSPtr output = m_extendedItem->output();
+  NmVector3 spacing = output->spacing();
+  unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
+  unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
+  unsigned long long int pixel_count = max_x*max_y;
+  unsigned long long int pixel = 0;
+
+  std::unique_ptr<char[]> buffer(new char[pixel_count]);
+  auto buffer_ptr = buffer.get();
+
+  unsigned int i = 0;
+  while(pixel < pixel_count)
+  {
+    stream >> label;
+    stream >> voxel_count;
+    for(int i = 0; i < voxel_count; i++)
+    {
+      *buffer_ptr++ = label == std::numeric_limits<unsigned int>::max() ? 0 : result.supervoxels[label].color;
+    }
+    pixel += voxel_count;
+  }
+
+  return buffer;
+}
+
+//-----------------------------------------------------------------------------
+std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(int slice) {
+  auto compressed = result.getSlice(slice);
+
+  QDataStream stream(&compressed, QIODevice::ReadOnly);
+  stream.setVersion(QDataStream::Qt_4_0);
+
+  unsigned int label;
+  unsigned short voxel_count;
+
+  Bounds bounds = m_extendedItem->bounds();
+  OutputSPtr output = m_extendedItem->output();
+  NmVector3 spacing = output->spacing();
+  unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
+  unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
+  unsigned long long int pixel_count = max_x*max_y;
+  unsigned long long int pixel = 0;
+
+  std::unique_ptr<long long[]> buffer(new long long[pixel_count]);
+  auto buffer_ptr = buffer.get();
+
+  unsigned int i = 0;
+  while(pixel < pixel_count)
+  {
+    stream >> label;
+    stream >> voxel_count;
+    for(int i = 0; i < voxel_count; i++)
+    {
+      *buffer_ptr++ = label;
+    }
+    pixel += voxel_count;
+  }
+
+  return buffer;
+}
+
+//-----------------------------------------------------------------------------
 QByteArray StackSLIC::SLICResult::getSlice(int slice) {
 
   if(!computed) {
@@ -1580,23 +1554,24 @@ QByteArray StackSLIC::SLICResult::getSlice(int slice) {
 
   int time = 0;
 
-  for(auto &cached : cache.voxel_cache)
+  //TODO: Move cache to getUncompressedLabeledSlice()
+  /*for(auto &cached : cache.voxel_cache)
     if(cached.z == slice) {
       QWriteLocker lock(&m_dataMutex);
       cache.voxel_cache.erase(cached);
       cache.voxel_cache.insert(ResultCache::ResultCacheValue{cached.z, time, cached.array});
       return cached.array;
-    }
+    }*/
 
-  ResultCache::ResultCacheValue entry;
+  ResultCacheValue entry;
   entry.z = slice;
   entry.accessTime = time;
   entry.array = getSliceUncached(slice);
-  QWriteLocker lock(&m_dataMutex);
+  /*QWriteLocker lock(&m_dataMutex);
   if(cache.voxel_cache.size() > cache.capacity) {
     cache.voxel_cache.erase(cache.voxel_cache.begin());
   }
-  cache.voxel_cache.insert(entry);
+  cache.voxel_cache.insert(entry);*/
 
   return entry.array;
 }
@@ -1614,13 +1589,15 @@ QByteArray StackSLIC::SLICResult::getSliceUncached(int slice) const {
   }
 
   if(!filePath.exists() ) {
-    //Throw exception, shouldn't happen ever
-    return nullptr;
+    auto what    = QObject::tr("Slice file not found");
+    auto details = QObject::tr("StackSLIC::getSliceUncached() -> The path to the slice file doesn't exist.");
+    throw Utils::EspinaException(what, details);
   }
   QFile file(filePath.absoluteFilePath());
   if(!file.open(QIODevice::ReadOnly)) {
-    //Throw exception, shouldn't happen ever
-    return nullptr;
+    auto what    = QObject::tr("Slice file couldn't be read");
+    auto details = QObject::tr("StackSLIC::getSliceUncached() -> The slice file couldn't be read.");
+    throw Utils::EspinaException(what, details);
   }
 
   return file.readAll();
