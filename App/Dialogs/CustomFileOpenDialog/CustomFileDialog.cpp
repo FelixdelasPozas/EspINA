@@ -38,15 +38,15 @@ using namespace ESPINA::IO;
 //--------------------------------------------------------------------
 CustomFileDialog::CustomFileDialog(QWidget* parent, Qt::WindowFlags flags)
 : QFileDialog{parent, flags}
+, m_options{nullptr}
 {
-  modifyUI();
 }
 
 //--------------------------------------------------------------------
 CustomFileDialog::CustomFileDialog(QWidget* parent, const QString& caption, const QString& directory, const QString& filter)
 : QFileDialog{parent, caption, directory, filter}
+, m_options{nullptr}
 {
-  modifyUI();
 }
 
 //--------------------------------------------------------------------
@@ -76,10 +76,11 @@ void CustomFileDialog::resizeEvent(QResizeEvent *event)
   QFileDialog::resizeEvent(event);
 
   m_size = size();
-  auto widgetSize = m_options->sizeHint().width();
-  auto spacing    = layout()->spacing();
-  if(m_options->isVisible())
+  auto spacing = layout()->spacing();
+
+  if(m_options && m_options->isVisible())
   {
+    auto widgetSize = m_options->sizeHint().width();
     m_size = QSize(m_size.width() - widgetSize - spacing, m_size.height());
   }
 }
@@ -87,6 +88,8 @@ void CustomFileDialog::resizeEvent(QResizeEvent *event)
 //--------------------------------------------------------------------
 void CustomFileDialog::showEvent(QShowEvent* event)
 {
+  modifyUI();
+
   QFileDialog::showEvent(event);
 
   m_size = size();
