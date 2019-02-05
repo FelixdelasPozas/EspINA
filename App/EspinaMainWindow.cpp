@@ -402,8 +402,14 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
 
   m_minimizedStatus = false;
 
-  // perform initialization actions after the show event.
-  QTimer::singleShot(0, this, SLOT(delayedInitActions()));
+  static bool started = true;
+  if(started)
+  {
+    started = false;
+
+    // perform initialization actions after first show.
+    QTimer::singleShot(0, this, SLOT(delayedInitActions()));
+  }
 }
 
 //------------------------------------------------------------------------
