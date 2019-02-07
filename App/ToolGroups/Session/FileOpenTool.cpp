@@ -23,6 +23,7 @@
 #include "AutoSave.h"
 #include "RecentDocuments.h"
 #include <Core/IO/ProgressReporter.h>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/EspinaException.h>
 #include <EspinaErrorHandler.h>
@@ -33,6 +34,7 @@
 
 // Qt
 #include <QElapsedTimer>
+#include <QtCore>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -75,16 +77,19 @@ void FileOpenTool::onTriggered()
 {
   auto title   = tr("Open Analysis");
   auto filters = getFactory()->supportedFileExtensions();
+  auto parent  = DefaultDialogs::defaultParentWidget();
 
   RecentDocuments recent;
 
-  CustomFileDialog fileDialog{DefaultDialogs::defaultParentWidget(), title, DefaultDialogs::DefaultPath(), filters};
+  QFileDialog fileDialog{parent, title, DefaultDialogs::DefaultPath(), filters};
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setViewMode(QFileDialog::Detail);
-  fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.resize(800, 480);
+  fileDialog.setSupportedSchemes(QStringList()); // accept all?
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   fileDialog.setModal(true);
+  fileDialog.move(parent->rect().center()-fileDialog.rect().center());
 
   QList<QUrl> urls;
 
@@ -108,7 +113,12 @@ void FileOpenTool::onTriggered()
       auto fileInfo = QFileInfo(fileNames.first());
       m_errorHandler->setDefaultDir(fileInfo.absoluteDir());
 
-      load(fileNames, fileDialog.options());
+      IO::LoadOptions options;
+      options.insert(VolumetricStreamReader::STREAMING_OPTION, QVariant::fromValue(false));
+      options.insert(tr("Load Tool Settings"), QVariant::fromValue(true));
+      options.insert(tr("Check analysis"), QVariant::fromValue(true));
+
+      load(fileNames, options);
     }
   }
 }

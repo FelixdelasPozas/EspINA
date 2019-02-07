@@ -128,13 +128,11 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   this->Mapper->SetInputData(this->Glypher->GetOutput());
   this->Mapper->SetResolveCoincidentTopologyToPolygonOffset();
   this->Mapper->ScalarVisibilityOff();
-  this->Mapper->ImmediateModeRenderingOff();
 
   this->ActiveMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
   this->ActiveMapper->SetInputData(this->ActiveSource->GetOutput());
   this->ActiveMapper->SetResolveCoincidentTopologyToPolygonOffset();
   this->ActiveMapper->ScalarVisibilityOff();
-  this->ActiveMapper->ImmediateModeRenderingOff();
 
   // Set up the initial properties
   this->CreateDefaultProperties();

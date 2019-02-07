@@ -57,8 +57,9 @@ namespace ESPINA
   class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
   : public Core::CorePlugin
   {
-      Q_OBJECT
       Q_INTERFACES(ESPINA::Core::CorePlugin)
+      Q_OBJECT
+      Q_PLUGIN_METADATA(IID "es.upm.cesvima.ESPINA.Core.Plugin/1.0" FILE "plugin.json")
 
     public:
       /** \brief Class SegmhaImporterPlugin class constructor.

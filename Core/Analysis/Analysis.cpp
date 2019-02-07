@@ -94,7 +94,7 @@ void Analysis::add(SampleSPtr sample)
   m_relations->add(sample);
 
   m_itemPointers.insert(sample, sample.get());
-  m_itemUUids.insert(sample, sample->uuid());
+  m_itemUUids.insert(sample, sample->uuid().toString());
 
   sample->setAnalysis(this);
 }
@@ -134,7 +134,7 @@ void Analysis::add(ChannelSPtr channel)
   m_relations->add(channel);
 
   m_itemPointers.insert(channel, channel.get());
-  m_itemUUids.insert(channel, channel->uuid());
+  m_itemUUids.insert(channel, channel->uuid().toString());
 
   channel->setAnalysis(this);
 }
@@ -172,7 +172,7 @@ void Analysis::add(SegmentationSPtr segmentation)
   m_relations->add(segmentation);
 
   m_itemPointers.insert(segmentation, segmentation.get());
-  m_itemUUids.insert(segmentation, segmentation->uuid());
+  m_itemUUids.insert(segmentation, segmentation->uuid().toString());
 
   segmentation->setAnalysis(this);
 }

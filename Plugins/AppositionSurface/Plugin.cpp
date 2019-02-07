@@ -19,7 +19,6 @@
  */
 
 // plugin
-#include "AppositionSurfacePlugin.h"
 #include "SASReport.h"
 
 // ESPINA
@@ -54,6 +53,7 @@
 
 // C++
 #include <memory>
+#include "Plugin.h"
 
 const QString SAS = QObject::tr("SAS");
 const QString SAS_PREFIX = QObject::tr("SAS ");
@@ -481,4 +481,3 @@ void AppositionSurfacePlugin::abortTasks()
   m_finishedTasks.clear();
 }
 
-Q_EXPORT_PLUGIN2(AppositionSurfacePlugin, ESPINA::AppositionSurfacePlugin)

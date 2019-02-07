@@ -150,7 +150,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo&      file,
   analysis->setClassification(classification);
 
   const QString utfFilename = localFile.absoluteFilePath().toUtf8();
-  const QString asciiFilename = utfFilename.toAscii();
+  const QString asciiFilename = utfFilename.toLatin1();
 
   // Read the original image, whose pixels are indeed labelmap object ids
   labelMapReader->SetFileName(utfFilename.toStdString());

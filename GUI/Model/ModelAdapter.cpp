@@ -58,7 +58,10 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 
   emit aboutToBeReset();
 
-  reset(); //It is needed in order to keep the views coherent
+  // reset(); //It is needed in order to keep the views coherent
+  beginResetModel();
+  resetInternalData();
+  endResetModel();
 
   m_analysis = analysis;
 
@@ -428,7 +431,7 @@ const ClassificationAdapterSPtr ModelAdapter::classification() const
 //------------------------------------------------------------------------
 QModelIndex ModelAdapter::classificationRoot() const
 {
-  return createIndex(0, 0, 0);
+  return createIndex(0, 0, nullptr);
 }
 
 //------------------------------------------------------------------------

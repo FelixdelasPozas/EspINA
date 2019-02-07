@@ -13,12 +13,12 @@ include_directories(
 
 #------------------------------------------------------------------------------
 # Add Qt Resource files
-qt4_add_resources(ESPINA_RCC
+qt5_add_resources(ESPINA_RCC
   rsc/espina.qrc
   )
 
 # Create header's MOC files
-qt4_wrap_cpp (ESPINA_MOC
+qt5_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
@@ -110,7 +110,7 @@ qt4_wrap_cpp (ESPINA_MOC
   )
 
 # Create Interface files
-qt4_wrap_ui (ESPINA_UI
+qt5_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ColorEngineSelector/ColorEngineSelector.ui

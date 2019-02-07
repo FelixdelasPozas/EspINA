@@ -35,6 +35,9 @@
 // VTK
 #include <vtkMath.h>
 
+// Qt
+#include <QDataStream>
+
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 

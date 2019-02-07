@@ -27,6 +27,7 @@
 #include <GUI/Types.h>
 
 // Qt
+#include <QObject>
 #include <QColor>
 
 // VTK

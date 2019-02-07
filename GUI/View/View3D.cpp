@@ -93,6 +93,8 @@ View3D::~View3D()
   shutdownAndRemoveManagers();
 
   mainRenderer()->RemoveAllViewProps();
+  
+  QApplication::processEvents();
 }
 
 //-----------------------------------------------------------------------------
@@ -531,7 +533,7 @@ void View3D::exportScene()
 
   auto fileName = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".wrl", suggestion, this);
   const QString utfFilename = fileName.toUtf8();
-  const QString asciiFilename = utfFilename.toAscii();
+  const QString asciiFilename = utfFilename.toLatin1();
 
   if (!fileName.isEmpty())
   {
@@ -609,7 +611,7 @@ void View3D::exportScene()
         prefix += file.baseName();
 
         const QString utfPrefix = prefix.toUtf8();
-        const QString asciiPrefix = utfPrefix.toAscii();
+        const QString asciiPrefix = utfPrefix.toLatin1();
 
         auto exporter = vtkSmartPointer<vtkOBJExporter>::New();
         exporter->SetFilePrefix(asciiPrefix.toStdString().c_str());

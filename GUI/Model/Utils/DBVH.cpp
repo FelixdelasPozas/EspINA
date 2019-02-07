@@ -73,7 +73,7 @@ void DBVHNode::debugInformation(QFile *file) const
 
   if(file && file->isOpen())
   {
-    file->write(text.toAscii());
+    file->write(text.toLatin1());
   }
   else
   {

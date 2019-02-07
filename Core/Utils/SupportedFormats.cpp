@@ -20,12 +20,10 @@
 // ESPINA
 #include <Core/Utils/SupportedFormats.h>
 
-using namespace ESPINA::Core::Utils;
+// Qt
+#include <QObject>
 
-//------------------------------------------------------------------------
-SupportedFormats::SupportedFormats()
-{
-}
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SupportedFormats::SupportedFormats(const QString &name, const QString &extension)

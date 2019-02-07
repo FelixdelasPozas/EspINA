@@ -20,7 +20,8 @@
  */
 
 // ESPINA
-#include "ColorEngineRangeDefinitionDialog.h"
+#include "../RangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h"
+
 #include <GUI/Widgets/ColorBar.h>
 #include <GUI/Widgets/HueSelector.h>
 

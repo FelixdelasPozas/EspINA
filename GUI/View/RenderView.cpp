@@ -105,6 +105,9 @@ RenderView::~RenderView()
 
   m_inactiveManagers.clear();
 
+  
+  QApplication::processEvents();
+  
   delete m_view;
 }
 
@@ -243,7 +246,7 @@ void RenderView::takeSnapshot()
 
   auto imageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
   imageFilter->SetInput(renderwindow);
-  imageFilter->SetMagnification(1);
+  imageFilter->SetScale(1);
   imageFilter->Update();
 
   auto vtkImageData = imageFilter->GetOutput();
@@ -285,7 +288,7 @@ void RenderView::takeSnapshot()
 
       auto image = vtkSmartPointer<vtkWindowToImageFilter>::New();
       image->SetInput(renderwindow);
-      image->SetMagnification(outputMagnification);
+      image->SetScale(outputMagnification);
       image->Update();
 
       renderwindow->SetOffScreenRendering(offScreenRender);
@@ -435,9 +438,9 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const
   if(flags.testFlag(Selector::SEGMENTATION))
   {
     pickedItems = pickImplementation(Selector::SEGMENTATION, x, y, multiselection);
-  }
 
-  if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+    if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+  }
 
   if(flags.testFlag(Selector::CHANNEL) || flags.testFlag(Selector::SAMPLE))
   {

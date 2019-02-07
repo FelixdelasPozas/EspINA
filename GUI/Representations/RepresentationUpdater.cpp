@@ -38,7 +38,6 @@ RepresentationUpdater::RepresentationUpdater(SchedulerSPtr scheduler,
 , m_pipeline   {pipeline}
 , m_updateList {&m_sources}
 , m_actors     {std::make_shared<RepresentationPipeline::ActorsData>()}
-, m_needsUpdate{true}
 {
   setHidden(true);
 }
@@ -145,7 +144,6 @@ void RepresentationUpdater::invalidate()
   QWriteLocker lock(&m_dataLock);
 
   m_frame = Frame::InvalidFrame();
-  m_needsUpdate = true;
 }
 
 //----------------------------------------------------------------------------
@@ -157,8 +155,6 @@ RepresentationPipeline::Actors RepresentationUpdater::actors() const
 //----------------------------------------------------------------------------
 void RepresentationUpdater::run()
 {
-  if(!m_needsUpdate) return;
-
   auto frame = std::make_shared<Frame>();
   RepresentationState settings;
   UpdateRequestList updateList;
@@ -215,7 +211,6 @@ void RepresentationUpdater::run()
 
   if (isValid(frame) && canExecute())
   {
-    m_needsUpdate = false;
     emit actorsReady(frame, m_actors);
   }
 }
@@ -239,7 +234,6 @@ RepresentationPipelineSPtr RepresentationUpdater::sourcePipeline(ViewItemAdapter
 void RepresentationUpdater::updateRepresentations(ViewItemAdapterList sources, const bool createActors)
 {
   QWriteLocker lock(&m_dataLock);
-  m_needsUpdate = !sources.isEmpty();
 
   ViewItemAdapterList sourceItems;
   for(auto source: m_sources)

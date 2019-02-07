@@ -49,7 +49,7 @@ namespace ESPINA
   };
   using RelationList = QList<Relation>;
 
-  struct Connection
+  struct EspinaGUI_EXPORT Connection
   {
     SegmentationAdapterSPtr item1;
     SegmentationAdapterSPtr item2;

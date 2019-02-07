@@ -753,7 +753,7 @@ void ESPINA::Core::Utils::installVTKErrorLogger()
 {
   auto filename  = QDir::home().filePath("VTKErrors.txt");
   const QString utfFilename = filename.toUtf8();
-  const QString asciiFilename = utfFilename.toAscii();
+  const QString asciiFilename = utfFilename.toLatin1();
   auto VTKlogger = vtkSmartPointer<vtkFileOutputWindow>::New();
   VTKlogger->SetAppend(false);
   VTKlogger->SetFileName(asciiFilename.toStdString().c_str());

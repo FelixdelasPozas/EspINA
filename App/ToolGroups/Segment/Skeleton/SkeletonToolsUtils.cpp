@@ -29,6 +29,9 @@
 #include <QLabel>
 #include <QWidgetAction>
 #include <QBitmap>
+#include <QPalette>
+#include <QApplication>
+#include <QColor>
 
 // C++
 #include <functional>
@@ -144,16 +147,22 @@ void ESPINA::SkeletonToolsUtils::loadStrokes(std::shared_ptr<QSettings> settings
 QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const Core::SkeletonStrokes &strokes)
 {
   QMenu *menu = nullptr;
+  const auto palette = QApplication::palette();
+
+  const QString style = QObject::tr("QMenu { background-color: %1; border: 1px solid black; }"
+                                    "QMenu::item { background-color: transparent; }"
+                                    "QMenu::item:selected { background-color: blue; }").arg(palette.color(QPalette::Window).name());
 
   if(!strokes.isEmpty())
   {
     menu = new QMenu(title, nullptr);
     menu->setHidden(true);
+    menu->setStyleSheet(style);
 
     auto label = new QLabel(QObject::tr("<b>%1</b>").arg(title));
-    label->setStyleSheet("QLabel { margin: 3px; background-color : blue; color : white; }");
+    label->setStyleSheet("QLabel { margin: 2px; background-color : darkblue; color : white; }");
     label->setAlignment(Qt::AlignCenter);
-    label->setBaseSize(label->size().width(), label->size().height()+3);
+    label->setBaseSize(label->size().width(), label->size().height()+10);
     auto action = new QWidgetAction(menu);
     action->setDefaultWidget(label);
     action->setEnabled(false);

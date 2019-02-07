@@ -97,8 +97,8 @@ TabularReport::Entry::Entry(const QString   &category,
   setupUi(this);
 
   tableView->setItemDelegate(new InformationDelegate());
-  tableView->horizontalHeader()->setMovable(true);
-  tableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  tableView->horizontalHeader()->setSectionsMovable(true);
+  tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   tableView->adjustSize();
   tableView->sortByColumn(0, Qt::AscendingOrder);
   tableView->horizontalHeader()->setSortIndicatorShown(true);

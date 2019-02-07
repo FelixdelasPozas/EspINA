@@ -20,9 +20,8 @@
  */
 
 // ESPINA
-#include "ColorEngineRangeLimitsDialog.h"
+#include "../RangeLimitsDialog/ColorEngineRangeLimitsDialog.h"
 
-// C++
 #include <numeric>
 #include <QDebug>
 

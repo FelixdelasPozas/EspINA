@@ -400,7 +400,7 @@ DirectedGraph::Vertex SegFile_V4::Loader::inflateVertexV4(DirectedGraph::Vertex 
         catch(const EspinaException & e)
         {
           auto what    = QObject::tr("Unable to create channel, vertex: %1").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unable to create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unable to create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -418,7 +418,7 @@ DirectedGraph::Vertex SegFile_V4::Loader::inflateVertexV4(DirectedGraph::Vertex 
         catch(const EspinaException &e)
         {
           auto what    = QObject::tr("Unable to create filter, vertex: %1").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unable to create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unable to create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -436,7 +436,7 @@ DirectedGraph::Vertex SegFile_V4::Loader::inflateVertexV4(DirectedGraph::Vertex 
         catch (const EspinaException &e)
         {
           auto what    = QObject::tr("Unable to create segmentation, vertex: %1").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unable to create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unable to create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -447,7 +447,7 @@ DirectedGraph::Vertex SegFile_V4::Loader::inflateVertexV4(DirectedGraph::Vertex 
       }
       default:
         auto what    = QObject::tr("Unknown vertex type: %1").arg(static_cast<int>(rov->type()));
-        auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+        auto details = QObject::tr("SegFile_V4::inflateVertexV4() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
         throw EspinaException(what, details);
         break;

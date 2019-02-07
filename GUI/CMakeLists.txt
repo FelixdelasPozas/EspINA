@@ -8,13 +8,13 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
 )
 
-qt4_wrap_cpp(GUI_MOC
+qt5_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
   ColorEngines/MultiColorEngine.h
   Dialogs/ImageResolutionDialog/ImageResolutionDialog.h
-  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h
-  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.h
+  Dialogs/RangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h
+  Dialogs/RangeLimitsDialog/ColorEngineRangeLimitsDialog.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
   Model/ViewItemAdapter.h
@@ -89,10 +89,10 @@ qt4_wrap_cpp(GUI_MOC
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-qt4_wrap_ui (GUI_UI
+qt5_wrap_ui (GUI_UI
   Dialogs/CategorySelectorDialog/CategorySelectorDialog.ui
-  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.ui
-  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.ui
+  Dialogs/RangeDefinitionDialog/ColorEngineRangeDefinitionDialog.ui
+  Dialogs/RangeLimitsDialog/ColorEngineRangeLimitsDialog.ui
   Dialogs/ImageResolutionDialog/ImageResolutionDialog.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
@@ -115,8 +115,8 @@ set (GUI_SOURCES
   ColorEngines/UserColorEngine.cpp
   Dialogs/DefaultDialogs.cpp
   Dialogs/CategorySelectorDialog/CategorySelectorDialog.cpp
-  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.cpp
-  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.cpp
+  Dialogs/RangeDefinitionDialog/ColorEngineRangeDefinitionDialog.cpp
+  Dialogs/RangeLimitsDialog/ColorEngineRangeLimitsDialog.cpp
   Dialogs/ImageResolutionDialog/ImageResolutionDialog.cpp
   Extension/Visualization/VisualizationState.cpp
   Model/CategoryAdapter.cpp

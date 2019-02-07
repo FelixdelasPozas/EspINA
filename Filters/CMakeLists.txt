@@ -9,7 +9,7 @@ include_directories(
 
 include (GenerateExportHeader)
 
-qt4_wrap_cpp(FILTERS_MOC
+qt5_wrap_cpp(FILTERS_MOC
   MorphologicalEditionFilter.h
   SeedGrowSegmentationFilter.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED

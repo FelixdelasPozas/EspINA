@@ -129,7 +129,7 @@ namespace ESPINA
      *
      */
     QString extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const
-    { return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(path); }
+    { return extensionPath(extension) + QString("%1_%2").arg(uuid().toString()).arg(path); }
 
   private:
     QString                   m_alias;

@@ -3,14 +3,14 @@
 #
 project(checkExports)
 
-cmake_minimum_required (VERSION 2.8.6)
+cmake_minimum_required (VERSION 3.1.0)
+
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+#include(${QT_USE_FILE})
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
-  set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
+  set(EXTERNAL_LIBS ${EXTERNAL_LIBS} ${QT_TEST_LIBRARY})
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
-
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -28,7 +28,7 @@ set (SOURCES
 
 set (EXTERNAL_LIBS
   ${EXTERNAL_LIBS}
-  QtCore
+  Qt5::Core
   )
 
 add_executable(checkExports ${SOURCES})

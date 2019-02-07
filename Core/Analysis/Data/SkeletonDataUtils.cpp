@@ -32,6 +32,7 @@
 #include <QMap>
 #include <QSet>
 #include <QStack>
+#include <QDataStream>
 
 // VTK
 #include <vtkPolyData.h>

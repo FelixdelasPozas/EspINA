@@ -81,6 +81,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkAxisActor2D.h>
 #include <vtkRendererCollection.h>
+#include <vtkPointPicker.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -202,6 +203,8 @@ View2D::~View2D()
   m_renderer->RemoveAllViewProps();
   m_thumbnail->RemoveAllViewProps();
 
+  QApplication::processEvents();
+  
   m_state2D = nullptr;
 }
 
@@ -402,6 +405,7 @@ void View2D::updateBorder(vtkPolyData* data, Nm left, Nm right, Nm upper, Nm low
       Q_ASSERT(false);
       break;
   }
+  corners->Modified();
   data->Modified();
 }
 
@@ -488,14 +492,17 @@ void View2D::setThumbnailVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void View2D::addActor(vtkProp* actor)
 {
-  m_renderer->AddViewProp(actor);
-  m_thumbnail->AddViewProp(actor);
+  if(actor)
+  {
+    m_renderer->AddViewProp(actor);
+    m_thumbnail->AddViewProp(actor);
 
-  m_thumbnail->RemoveViewProp(m_channelBorder);
-  m_thumbnail->RemoveViewProp(m_viewportBorder);
+    m_thumbnail->RemoveViewProp(m_channelBorder);
+    m_thumbnail->RemoveViewProp(m_viewportBorder);
 
-  m_thumbnail->AddViewProp(m_channelBorder);
-  m_thumbnail->AddViewProp(m_viewportBorder);
+    m_thumbnail->AddViewProp(m_channelBorder);
+    m_thumbnail->AddViewProp(m_viewportBorder);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -503,8 +510,6 @@ void View2D::removeActor(vtkProp* actor)
 {
   m_renderer->RemoveActor(actor);
   m_thumbnail->RemoveActor(actor);
-
-  //updateThumbnail();
 }
 
 //-----------------------------------------------------------------------------
@@ -633,10 +638,15 @@ void View2D::resetImplementation()
 bool View2D::eventFilter(QObject* caller, QEvent* e)
 {
   int xPos, yPos;
+  m_inThumbnail = false;
 
   eventPosition(xPos, yPos);
 
-  m_inThumbnail = m_thumbnail && m_thumbnail->GetDraw() && m_thumbnail->PickProp(xPos, yPos);
+  if(m_thumbnail && m_thumbnail->GetDraw())
+  {
+    auto picker = vtkSmartPointer<vtkPointPicker>::New();
+    m_inThumbnail = (0 != picker->Pick(xPos, yPos, 0, m_thumbnail));
+  }
 
   if (!m_inThumbnail && eventHandlerFilterEvent(e))
   {
@@ -1200,6 +1210,8 @@ Selector::Selection View2D::pickImplementation(const Selector::SelectionFlags fl
           pickedItems << item;
           picked = true;
         }
+
+        if(finished) break;
       }
     }
   }

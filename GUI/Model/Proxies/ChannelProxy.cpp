@@ -92,7 +92,8 @@ void ChannelProxy::setSourceModel(ModelAdapterSPtr sourceModel)
   }
   else
   {
-    reset();
+    // reset();
+    sourceModelReset();
   }
 }
 

@@ -264,8 +264,11 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       dashedActor->SetMapper(dashedMapper);
       dashedActor->SetPickable(true);
       dashedActor->GetProperty()->SetLineWidth(width);
-      dashedActor->GetProperty()->SetLineStipplePattern(0xFF00);
+      // dashedActor->GetProperty()->SetLineStipplePattern(0xFF00);
       dashedActor->GetProperty()->SetColor(1,0,0);
+
+      stippledLine(dashedActor, 0xF0F0, 1);
+
       dashedActor->Modified();
 
       actors << solidActor << dashedActor;

@@ -1,0 +1,7 @@
+{
+  "name": "Apposition Surface Plugin",
+  "description" : "Computes apposition surface structures from synapses and its properties.",
+  "organization" : "Universidad Politécnica de Madrid.", 
+  "maintainer" : "felix.delaspozas@ctb.upm.es",
+  "version" : "1.0.0"
+}

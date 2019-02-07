@@ -11,7 +11,7 @@ include_directories(
   ${XLSLIB_INCLUDE_DIRS}
 )
 
-qt4_wrap_cpp(Support_MOC
+qt5_wrap_cpp(Support_MOC
   Plugin.h
   Representations/RepresentationSwitch.h
   Representations/Slice3DManager.h
@@ -24,7 +24,7 @@ qt4_wrap_cpp(Support_MOC
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-qt4_wrap_ui (Support_UI
+qt5_wrap_ui (Support_UI
   Widgets/TabularReportEntry.ui
   )
 

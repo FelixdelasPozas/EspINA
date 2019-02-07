@@ -154,5 +154,3 @@ void CountingFramePlugin::onAnalysisClosed()
     dynamic_cast<Panel *>(m_dockWidget)->deleteCountingFrames();
   }
 }
-
-Q_EXPORT_PLUGIN2(CountingFramePlugin, ESPINA::CF::CountingFramePlugin)

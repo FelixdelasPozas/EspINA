@@ -23,12 +23,12 @@
 // ESPINA
 #include <GUI/ColorEngines/InformationColorEngine.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
-#include <GUI/Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h>
 #include <GUI/Utils/ColorRange.h>
 #include <Support/Widgets/ColorEngineSwitch.h>
 
 // VTK
 #include <vtkSmartPointer.h>
+#include "../../../../GUI/Dialogs/RangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h"
 
 class vtkScalarBarActor;
 class vtkLookupTable;

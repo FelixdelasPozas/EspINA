@@ -1,6 +1,8 @@
 find_package (VTK REQUIRED NO_MODULE)
 include (${VTK_USE_FILE})
 
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+
 enable_testing()
 
 set (BUILD_UNIT_TESTS OFF  CACHE BOOL "Build ESPINA Unit Tests")
@@ -29,7 +31,7 @@ include_directories(
   
 set(EXTERNAL_LIBS_DEPENDENCIES
   ${QT_LIBRARIES}
-  Qt4::QtTest
+  Qt5::Test
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${QUAZIP_LIBRARIES}
@@ -37,10 +39,10 @@ set(EXTERNAL_LIBS_DEPENDENCIES
 )
 
 # Core
-qt4_add_resources(CORE_RCCS
+qt5_add_resources(CORE_RCCS
   ${CORE_DIR}/rsc/core.qrc
   )
-qt4_wrap_cpp(CORE_MOCS
+qt5_wrap_cpp(CORE_MOCS
   ${CORE_DIR}/Analysis/Data.h
   ${CORE_DIR}/Analysis/Output.h
   ${CORE_DIR}/Analysis/Extensions.h
@@ -102,7 +104,7 @@ target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Filters
-qt4_wrap_cpp(FILTERS_MOCS
+qt5_wrap_cpp(FILTERS_MOCS
   ${FILTERS_DIR}/MorphologicalEditionFilter.h
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.h
 )
@@ -130,7 +132,7 @@ target_link_libraries(EspinaExtensionsTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # GUI
-qt4_wrap_cpp(GUI_MOCS
+qt5_wrap_cpp(GUI_MOCS
   ${GUI_DIR}/Model/ItemAdapter.h
   ${GUI_DIR}/Model/ModelAdapter.h
   ${GUI_DIR}/Model/Proxies/ChannelProxy.h
@@ -173,7 +175,7 @@ set (GUI_SOURCES
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
 target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} EspinaExtensionsTesting)
 
-qt4_wrap_cpp(PLUGIN_MOCS
+qt5_wrap_cpp(PLUGIN_MOCS
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.h
 )
 
@@ -185,7 +187,7 @@ add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
 target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Testing
-qt4_wrap_cpp(TESTING_MOCS
+qt5_wrap_cpp(TESTING_MOCS
   ModelProfiler.h
   ModelTest.h
 )

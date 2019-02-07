@@ -194,7 +194,7 @@ Snapshot Channel::snapshot() const
     stream.writeEndElement();
     stream.writeEndDocument();
 
-    QString file = extensionsPath() + QString("%1.xml").arg(uuid());
+    QString file = extensionsPath() + QString("%1.xml").arg(uuid().toString());
     snapshot << SnapshotData(file, xml);
   }
 

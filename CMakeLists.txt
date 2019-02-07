@@ -1,35 +1,52 @@
-cmake_minimum_required (VERSION 2.8.6)
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#   EspINA
+#   2018 (c) Universidad Politécnica de Madrid
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+cmake_minimum_required( VERSION 3.1.0 )
 
 if(CMAKE_MAJOR_VERSION EQUAL 3 OR CMAKE_MAJOR_VERSION GREATER 3)
   cmake_policy(SET CMP0048 OLD) # Don't use project version
 endif()
 
-project (ESPINA)
-
+project(ESPINA)
+# You can set the version: project( ESPINA VERSION 1.0.0 )
+# Compilation definitions.
 add_definitions(
   -std=c++11
   -fpermissive)
   
+# MINGW.  
 if(DEFINED MINGW)
 	add_definitions(-mwindows)
 else(DEFINED MINGW)
 	add_definitions(-rdynamic)
 endif(DEFINED MINGW)
 
+list( APPEND CMAKE_MODULE_PATH
+ ${PROJECT_SOURCE_DIR}/CMake/Modules )
+
+# Packages.
 find_package(QuaZip REQUIRED)
 include_directories(${QUAZIP_INCLUDE_DIR})
-
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-
-find_package (VTK REQUIRED NO_MODULE)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+#include(${QT_USE_FILE})
+set (QT_LIBRARIES
+  Qt5::Core 
+  Qt5::Gui 
+  Qt5::Network 
+  Qt5::Widgets 
+)
+set (QT_TEST_LIBRARY
+  Qt5::Test
+)
+find_package(VTK REQUIRED NO_MODULE)
 include (${VTK_USE_FILE})
-
-find_package (ITK REQUIRED)
+find_package(ITK REQUIRED)
 include (${ITK_USE_FILE})
-
-set(Boost_USE_MULTITHREADED ON)
 find_package(Boost REQUIRED COMPONENTS graph regex)
+set(Boost_USE_MULTITHREADED ON)
 link_directories (${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIR})
 
@@ -48,7 +65,7 @@ if (AUTOMATIC_VERSION)
   execute_process(COMMAND git describe --tags COMMAND cut -d. -f3 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE ESPINA_VERSION_PATCH OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif ()
 
-if (NOT AUTOMATIC_VERSION OR  ESPINA_VERSION_MAJOR STREQUAL "" OR  ESPINA_VERSION_MINOR STREQUAL "" OR  ESPINA_VERSION_PATCH STREQUAL "")
+if (NOT AUTOMATIC_VERSION OR ESPINA_VERSION_MAJOR STREQUAL "" OR  ESPINA_VERSION_MINOR STREQUAL "" OR  ESPINA_VERSION_PATCH STREQUAL "")
   # Version Number
   set (ESPINA_VERSION_MAJOR ${FOUND_ESPINA_VERSION_MAJOR} CACHE INTEGER "ESPINA major version")
   set (ESPINA_VERSION_MINOR ${FOUND_ESPINA_VERSION_MINOR} CACHE INTEGER "ESPINA minor version")

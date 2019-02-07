@@ -43,6 +43,9 @@
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/EspinaException.h>
 
+// Qt
+#include <QDataStream>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
@@ -200,13 +203,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
 {
-  for (auto vertex : vertices)
-  {
-    if (vertex->uuid() == uuid)
-    {
-      return vertex;
-    }
-  }
+  auto it = std::find_if(vertices.constBegin(), vertices.constEnd(), [&uuid](const DirectedGraph::Vertex &vertex) {return vertex->uuid() == uuid; });
+  if(it != vertices.constEnd()) return *it;
 
   return DirectedGraph::Vertex();
 }
@@ -365,7 +363,7 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
   if (!filter)
   {
     auto what    = QObject::tr("Invalid input, filter is null in vertex %1").arg(roVertex->name());
-    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
     throw EspinaException(what, details);
   }
 
@@ -417,7 +415,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         catch (const EspinaException &e)
         {
           auto what    = QObject::tr("Failed to create channel: %1. ").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -435,7 +433,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         catch (const EspinaException &e)
         {
           auto what    = QObject::tr("Failed to create filter: %1. ").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -453,7 +451,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         catch (const EspinaException &e)
         {
           auto what    = QObject::tr("Failed to create segmentation: %1. ").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -464,7 +462,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
       }
       default:
         auto what    = QObject::tr("Unknown vertex type: %1. ").arg(static_cast<int>(rov->type()));
-        auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+        auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
         throw EspinaException(what, details);
         break;
@@ -637,7 +635,7 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
 {
-  auto xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
+  auto xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid().toString());
 
   if (!segmentation->storage()->exists(xmlFile)) return;
 

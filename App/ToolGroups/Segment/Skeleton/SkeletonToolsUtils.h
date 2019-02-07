@@ -27,6 +27,7 @@
 #include <GUI/Model/CategoryAdapter.h>
 
 class QMenu;
+class QWidget;
 
 namespace ESPINA
 {

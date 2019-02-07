@@ -40,6 +40,7 @@
 #include <QStack>
 #include <QHBoxLayout>
 #include <QDebug>
+#include <QMimeData>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;

@@ -266,8 +266,7 @@ void AppositionSurfaceFilter::execute()
       else
       {
         pointsList.push_front(auxPlane->GetPoints());
-        if (pointsList.size() > MAXSAVEDSTATUSES)
-          pointsList.pop_back();
+        if (pointsList.size() > MAXSAVEDSTATUSES) pointsList.pop_back();
       }
     }
   }
@@ -282,9 +281,9 @@ void AppositionSurfaceFilter::execute()
   /**
    * Traslate
    */
-  auto transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   auto transform       = vtkSmartPointer<vtkTransform>::New();
   transform->Translate(-spacing[0]*padding[0], -spacing[1]*padding[0], -spacing[2]*padding[0]);
+  auto transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   transformFilter->SetTransform(transform);
   transformFilter->SetInputData(clippedPlane);
   transformFilter->Update();
@@ -544,7 +543,7 @@ void AppositionSurfaceFilter::vectorImageToVTKImage(const CovariantVectorImageTy
   image->SetSpacing(spacing[0], spacing[1], spacing[2]);
 
   // image->Print(std::cout);
-  vtkSmartPointer<vtkFloatArray> vectors = vtkSmartPointer<vtkFloatArray>::New();
+  auto vectors = vtkSmartPointer<vtkFloatArray>::New();
   vectors->SetNumberOfComponents(3);
   vectors->SetNumberOfTuples(imageSize[0] * imageSize[1] * imageSize[2]);
   vectors->SetName("GradientVectors");
@@ -573,7 +572,7 @@ void AppositionSurfaceFilter::vectorImageToVTKImage(const CovariantVectorImageTy
         // #ifdef DEBUG_AP_FILES
         //  covarianceFile << val[0] << " " << val[1] << " " << val[2] << std::endl;
         // #endif
-        vectors->InsertTupleValue(counter, val);
+        vectors->InsertTypedTuple(counter, val);
         counter++;
       }
 
@@ -581,14 +580,14 @@ void AppositionSurfaceFilter::vectorImageToVTKImage(const CovariantVectorImageTy
       //   covarianceFile.close();
       // #endif
 
-      image->GetPointData()->SetVectors(vectors);
-      image->GetPointData()->SetScalars(vectors);
+  image->GetPointData()->SetVectors(vectors);
+  image->GetPointData()->SetScalars(vectors);
 }
 
 //----------------------------------------------------------------------------
 void AppositionSurfaceFilter::projectVectors(vtkImageData* vectors_image, double *unitary) const
 {
-  vtkSmartPointer<vtkDataArray> vectors = vectors_image->GetPointData()->GetVectors();
+  auto vectors = vectors_image->GetPointData()->GetVectors();
   int numTuples = vectors->GetNumberOfTuples();
 
   // #ifdef DEBUG_AP_FILES
@@ -620,8 +619,7 @@ void AppositionSurfaceFilter::computeIterationLimits(const double *min, const do
   double min_in_pixels[3] = { 0, 0, 0 };
   double step[3] = { 0, 0, 0 };
 
-  for (unsigned int i = 0; i < 3; i++)
-    step[i] = min[i];
+  for (unsigned int i = 0; i < 3; i++) step[i] = min[i];
 
   vtkMath::Normalize(step);
   for (unsigned int i = 0; i < 3; i++)
@@ -639,12 +637,13 @@ bool AppositionSurfaceFilter::hasConverged(vtkPoints * lastPlanePoints, PointsLi
 {
   double error = 0;
 
-  for (PointsListType::iterator it = pointsList.begin();
-       it != pointsList.end(); ++it) {
+  for (auto it = pointsList.begin(); it != pointsList.end(); ++it)
+  {
     computeMeanEuclideanError(lastPlanePoints, *it, error);
-  if (error <= threshold) return true;
-       }
-       return false;
+    if (error <= threshold) return true;
+  }
+
+  return false;
 }
 
 //----------------------------------------------------------------------------
@@ -654,8 +653,7 @@ int AppositionSurfaceFilter::computeMeanEuclideanError(vtkPoints * pointsA, vtkP
   euclideanError = 0;
   int pointsCount = 0;
 
-  if (pointsA->GetNumberOfPoints() != pointsB->GetNumberOfPoints())
-    return -1;
+  if (pointsA->GetNumberOfPoints() != pointsB->GetNumberOfPoints()) return -1;
 
   pointsCount = pointsA->GetNumberOfPoints();
 
@@ -673,13 +671,13 @@ int AppositionSurfaceFilter::computeMeanEuclideanError(vtkPoints * pointsA, vtkP
 //----------------------------------------------------------------------------
 AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(vtkPolyData *plane, vtkImageData* image) const
 {
-  vtkSmartPointer<vtkImplicitVolume> implicitVolFilter = vtkSmartPointer<vtkImplicitVolume>::New();
+  auto implicitVolFilter = vtkSmartPointer<vtkImplicitVolume>::New();
   implicitVolFilter->SetVolume(image);
   implicitVolFilter->SetOutValue(0);
 
   double inValue = image->GetScalarRange()[1];
 
-  vtkSmartPointer<vtkClipPolyData> clipper = vtkSmartPointer<vtkClipPolyData>::New();
+  auto clipper = vtkSmartPointer<vtkClipPolyData>::New();
   clipper->SetClipFunction(implicitVolFilter);
   clipper->SetInputData(plane);
   clipper->SetValue(inValue*CLIPPINGTHRESHOLD);
@@ -696,11 +694,11 @@ AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::clipPlane(vtkPolyData
 //----------------------------------------------------------------------------
 AppositionSurfaceFilter::PolyData AppositionSurfaceFilter::triangulate(PolyData plane) const
 {
-  vtkSmartPointer<vtkTriangleFilter> triangle_filter = vtkSmartPointer<vtkTriangleFilter>::New();
+  auto triangle_filter = vtkSmartPointer<vtkTriangleFilter>::New();
   triangle_filter->SetInputData(plane);
   triangle_filter->Update();
 
-  vtkSmartPointer<vtkPolyDataNormals> normals = vtkSmartPointer<vtkPolyDataNormals>::New();
+  auto normals = vtkSmartPointer<vtkPolyDataNormals>::New();
   normals->SetInputData(triangle_filter->GetOutput());
   normals->SplittingOff();
   normals->Update();

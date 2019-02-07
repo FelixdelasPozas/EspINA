@@ -9,11 +9,11 @@ include_directories(
 include (GenerateExportHeader)
 
 # Add Qt Resource files
-qt4_add_resources(CORE_RCC
+qt5_add_resources(CORE_RCC
   rsc/core.qrc
   )
 
-qt4_wrap_cpp(CORE_MOC
+qt5_wrap_cpp(CORE_MOC
   Plugin.h
   Analysis/Data.h
   Analysis/Extensions.h

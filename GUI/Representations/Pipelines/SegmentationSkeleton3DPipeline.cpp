@@ -198,7 +198,10 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     auto dashedActor = vtkSmartPointer<vtkActor>::New();
     dashedActor->SetMapper(dashedMapper);
     dashedActor->GetProperty()->SetLineWidth(width);
-    dashedActor->GetProperty()->SetLineStipplePattern(0xFF00);
+    // dashedActor->GetProperty()->SetLineStipplePattern(0xFF00);
+
+    stippledLine(dashedActor, 0xF0F0, 1);
+
     dashedActor->Modified();
 
     actors << solidActor << dashedActor;

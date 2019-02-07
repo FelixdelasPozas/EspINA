@@ -191,7 +191,7 @@ namespace ESPINA
     volume->ReleaseDataFlagOff();
 
     const QString utfFilename = filename.toUtf8();
-    const QString asciiFilename = utfFilename.toAscii();
+    const QString asciiFilename = utfFilename.toLatin1();
 
     auto writer = itk::ImageFileWriter<T>::New();
     writer->SetFileName(asciiFilename.toStdString());
@@ -220,7 +220,7 @@ namespace ESPINA
     volume->ReleaseDataFlagOff();
 
     const QString utfFilename = path.toUtf8();
-    const QString asciiFilename = utfFilename.toAscii();
+    const QString asciiFilename = utfFilename.toLatin1();
 
     auto writer = itk::ImageFileWriter<T>::New();
     writer->SetFileName(asciiFilename.toStdString());
@@ -281,7 +281,7 @@ namespace ESPINA
   typename T::Pointer readVolume(const QString &filename)
   {
     const QString utfFilename = filename.toUtf8();
-    const QString asciiFilename = utfFilename.toAscii();
+    const QString asciiFilename = utfFilename.toLatin1();
     auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiFilename.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetGlobalWarningDisplay(false);
     imageIO->SetFileName(asciiFilename.toStdString());
@@ -322,7 +322,7 @@ namespace ESPINA
     std::shared_ptr<ReporterType> reporter = nullptr;
 
     const QString utfFilename = filename.toUtf8();
-    const QString asciiFilename = utfFilename.toAscii();
+    const QString asciiFilename = utfFilename.toLatin1();
     auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiFilename.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetGlobalWarningDisplay(false);
     imageIO->SetFileName(asciiFilename.toStdString());

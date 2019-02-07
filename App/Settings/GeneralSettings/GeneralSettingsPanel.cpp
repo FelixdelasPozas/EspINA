@@ -38,11 +38,11 @@ GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, Support::GeneralS
   setupUi(this);
 
   m_userName          ->setText(m_settings->userName());
-  m_autosavePath      ->setText(m_autoSave.path().absolutePath());
+  m_autosavePath      ->setText(QDir::toNativeSeparators(m_autoSave.path().absolutePath()));
   m_autosaveInterval  ->setValue(m_autoSave.interval());
   m_autoSaveBackground->setChecked(autoSave.autoSaveInThread());
   m_loadSEGSettings   ->setChecked(m_settings->loadSEGfileSettings());
-  m_temporalPath      ->setText(m_settings->temporalPath());
+  m_temporalPath      ->setText(QDir::toNativeSeparators(m_settings->temporalPath()));
   m_doCheck           ->setChecked(m_settings->performAnalysisCheckOnLoad());
 
   auto isSystemTemporalPath = (m_settings->temporalPath() == QDir::tempPath());

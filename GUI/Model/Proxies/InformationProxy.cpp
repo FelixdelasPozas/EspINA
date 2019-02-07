@@ -209,17 +209,18 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
 
   if(role == Qt::ForegroundRole || role == Qt::BackgroundRole)
   {
+    QVariant::fromValue(Qt::black);
     if(proxyIndex.column() == 0) return QAbstractProxyModel::data(proxyIndex, role);
 
     if (!m_pendingInformation.contains(segmentation) || !m_pendingInformation[segmentation]->hasFinished())
     {
-      return role == Qt::ForegroundRole ? Qt::black : Qt::lightGray;
+      return role == Qt::ForegroundRole ? QVariant::fromValue(Qt::black) : QVariant::fromValue(Qt::lightGray);
     }
 
     auto info = data(proxyIndex, Qt::DisplayRole);
     if(info.canConvert(QVariant::String) && (info.toString().contains("Fail", Qt::CaseInsensitive) || info.toString().contains("Error", Qt::CaseInsensitive)))
     {
-      return role == Qt::ForegroundRole ? Qt::white : Qt::red;
+      return role == Qt::ForegroundRole ? QVariant::fromValue(Qt::white) : QVariant::fromValue(Qt::red);
     }
 
     return QAbstractProxyModel::data(proxyIndex, role);

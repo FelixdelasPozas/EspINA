@@ -22,8 +22,6 @@
 #include <GUI/ColorEngines/InformationColorEngine.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <Core/Utils/EspinaException.h>
-#include <GUI/Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h>
-#include <GUI/Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.h>
 #include <GUI/Widgets/ColorBar.h>
 #include <GUI/Widgets/InformationSelector.h>
 #include <GUI/Widgets/Styles.h>
@@ -46,6 +44,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkLegendBoxActor.h>
 #include <vtkGlyphSource2D.h>
+#include "../../../../GUI/Dialogs/RangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h"
+#include "../../../../GUI/Dialogs/RangeLimitsDialog/ColorEngineRangeLimitsDialog.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Core;

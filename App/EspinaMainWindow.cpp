@@ -83,6 +83,7 @@
 // Qt
 #include <QtGui>
 #include <QDateTime>
+#include <QStatusBar>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -402,8 +403,14 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
 
   m_minimizedStatus = false;
 
-  // perform initialization actions after the show event.
-  QTimer::singleShot(0, this, SLOT(delayedInitActions()));
+  static bool started = true;
+  if(started)
+  {
+    started = false;
+
+    // perform initialization actions after the show event.
+    QTimer::singleShot(0, this, SLOT(delayedInitActions()));
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1461,10 +1468,9 @@ void EspinaMainWindow::assignActiveStack()
 //------------------------------------------------------------------------
 void EspinaMainWindow::analyzeStackEdges()
 {
-  for (auto channel : m_context.model()->channels())
-  {
-    retrieveOrCreateStackExtension(channel, ChannelEdges::TYPE, m_context.factory());
-  }
+  const auto stacks = m_context.model()->channels();
+  auto createStackExtensionOp = [this](ChannelAdapterSPtr stack){ retrieveOrCreateStackExtension(stack, ChannelEdges::TYPE, m_context.factory()); };
+  std::for_each(stacks.begin(), stacks.end(), createStackExtensionOp);
 }
 
 //------------------------------------------------------------------------

@@ -23,6 +23,7 @@
 #include "Segmentation.h"
 #include "Category.h"
 #include "Data/SkeletonData.h"
+#include <Core/Utils/StatePair.h>
 
 // VTK
 #include <vtkAlgorithm.h>
@@ -125,7 +126,7 @@ Snapshot Segmentation::snapshot() const
     stream.writeEndElement();
     stream.writeEndDocument();
 
-    auto file = extensionsPath() + QString("%1.xml").arg(uuid());
+    auto file = extensionsPath() + QString("%1.xml").arg(uuid().toString());
     snapshot << SnapshotData(file, xml);
   }
 
@@ -135,27 +136,13 @@ Snapshot Segmentation::snapshot() const
 //------------------------------------------------------------------------
 State Segmentation::state() const
 {
-  State state = QString("%1=%2;").arg(STATE_NUMBER).arg(m_number);
-  QStringList usersList = m_users.toList();
-
-  QStringList::iterator it = usersList.begin();
-  state += QString("%1=").arg(STATE_USERS);
-  while (it != usersList.end())
-  {
-    state += (*it);
-    ++it;
-    if (it != usersList.end())
-      state += QString("/");
-  }
-  state += QString(";");
-
-//   if (output())
-//     state += QString("OUTPUT=%1;").arg(output()->id());
-  state += QString("%1=%2;").arg(STATE_CATEGORY).arg(m_category?m_category->classificationName():"");
+  State state = StatePair(STATE_NUMBER, m_number);
+  state += StatePair(STATE_USERS, m_users.toList().join(","));
+  state += StatePair(STATE_CATEGORY, m_category ? m_category->classificationName() : "");
 
   if (!m_alias.isEmpty())
   {
-    state += QString("%1=%2;").arg(STATE_ALIAS).arg(m_alias);
+    state += StatePair(STATE_ALIAS, m_alias);
   }
 
   return state;

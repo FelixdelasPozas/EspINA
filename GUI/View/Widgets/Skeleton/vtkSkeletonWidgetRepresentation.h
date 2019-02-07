@@ -450,7 +450,8 @@ namespace ESPINA
               /** \brief vtkSkeletonWidgetRepresentation class virtual destructor.
                *
                */
-              virtual ~vtkSkeletonWidgetRepresentation();
+              virtual ~vtkSkeletonWidgetRepresentation()
+              {}
 
               /** \brief Given a display position this computes the world position
                * using the renderer of this class.
