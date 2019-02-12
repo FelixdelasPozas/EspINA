@@ -316,16 +316,14 @@ void SeedGrowSegmentationTool::onRadiusValueChanged(int value)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 {
-  if (selectedItems.size() != 1) return;
+  // check if any selection is a channel, and then select the primary one.
+  auto isValidChannelOp = [](const Selector::SelectionItem &item) { return item.first && item.second && isChannel(item.second) && item.first->numberOfVoxels() == 1; };
+  auto it = std::find_if(selectedItems.constBegin(), selectedItems.constEnd(), isValidChannelOp);
+  if(it == selectedItems.constEnd()) return;
 
-  auto element = selectedItems.first();
-
-  Q_ASSERT(element.first->numberOfVoxels() == 1); // with one pixel
-
+  auto element   = (*it);
   auto seedPoint = centroid(element.first->bounds());
-
-  Q_ASSERT(isChannel(element.second));
-  auto channel = inputChannel();
+  auto channel   = inputChannel();
 
   if (!channel) return;
 
