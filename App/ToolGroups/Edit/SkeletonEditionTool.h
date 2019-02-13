@@ -68,7 +68,18 @@ namespace ESPINA
       virtual ~SkeletonEditionTool();
 
       virtual void abortOperation() override
-      { deactivateEventHandler(); };
+      { if(isChecked()) deactivateEventHandler(); };
+
+      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
+
+      virtual void onExclusiveToolInUse(ProgressTool* tool) override;
+
+    protected slots:
+      /** \brief Enables/Disables the tool depending on the current segmentation selection.
+       *
+       */
+      virtual void updateStatus() override;
 
     private slots:
       /** \brief Performs tool initialization/de-initialization.
@@ -158,6 +169,43 @@ namespace ESPINA
        */
       void onStrokeChanged(const Core::SkeletonStroke stroke);
 
+      /** \brief Changes the segmentation being edited or deactivates tool depending on the current selection.
+       * \param[in] segmentations Currently selected segmentations list.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
+
+      /** \brief Changes the color of strokes with the same color to facilitate visualization.
+       * \param[in] value True to change the hue of strokes with the same color except the first one and false
+       *  to draw all the strokes with the given hue.
+       *
+       */
+      void onHueModificationsButtonClicked(bool value);
+
+      /** \brief Deactivates the truncation button after a succesfull skeleton modification.
+       *
+       */
+      void onTruncationSuccess();
+
+      /** \brief Updates the skeleton when a stroke is modified or added in the stroke definition dialog.
+       * \param[in] stroke SkeletonStroke struct of modified stroke.
+       *
+       */
+      void onStrokeModified(const Core::SkeletonStroke &stroke);
+
+      /** \brief Updates the skeleton when a stroke is renamed in the stroke definition dialog.
+       * \param[in] oldName Stroke old name.
+       * \param[in] newName Stroke new name.
+       *
+       */
+      void onStrokeRenamed(const QString &oldName, const QString &newName);
+
+      /** \brief Updates the skeleton when a stroke is removed in the stroke definition dialog.
+       * \param[in] stroke SkeletonStroke struct of removed stroke.
+       *
+       */
+      void onStrokeRemoved(const Core::SkeletonStroke &stroke);
+
     private:
       virtual bool acceptsNInputs(int n) const;
 
@@ -189,6 +237,12 @@ namespace ESPINA
        *
        */
       void updateStrokes();
+
+      /** \brief Helper method to insert strokes into m_strokes.
+       * \param[in] strokes List of skeleton strokes to check and add if not present in m_strokes.
+       *
+       */
+      void populateStrokes(const Core::SkeletonStrokes &strokes);
 
     private:
       /** \class NullRepresentationPipeline
@@ -233,19 +287,23 @@ namespace ESPINA
       using TemporalRepresentationsSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
       using SkeletonWidgetSPtr          = GUI::View::Widgets::Skeleton::SkeletonWidget2DSPtr;
 
-      bool                                                m_init;          /** true if the tool has been initialized.            */
-      SkeletonToolsEventHandlerSPtr                       m_eventHandler;  /** tool's event handler.                             */
-      GUI::Widgets::ToolButton                           *m_eraseButton;   /** Paint/erase button.                               */
-      DoubleSpinBoxAction                                *m_minWidget;     /** min distance between points widget.               */
-      DoubleSpinBoxAction                                *m_maxWidget;     /** max distance between points widget.               */
-      GUI::Widgets::ToolButton                           *m_moveButton;    /** Move nodes button.                                */
-      QComboBox                                          *m_strokeCombo;   /** stroke type combobox.                             */
-      GUI::Widgets::ToolButton                           *m_strokeButton;  /** stroke configuration dialog button.               */
-      ViewItemAdapterPtr                                  m_item;          /** current element being created or channel in init. */
-      TemporalRepresentationsSPtr                         m_factory;       /** representation prototypes.                        */
-      TemporalRepresentationsSPtr                         m_pointsFactory; /** representation prototypes.                        */
-      QList<SkeletonWidgetSPtr>                           m_widgets;       /** list of widgets currently on views.               */
-      QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;  /** list of point representations currently on views. */
+      bool                                                m_init;            /** true if the tool has been initialized.            */
+      SkeletonToolsEventHandlerSPtr                       m_eventHandler;    /** tool's event handler.                             */
+      GUI::Widgets::ToolButton                           *m_eraseButton;     /** Paint/erase button.                               */
+      DoubleSpinBoxAction                                *m_minWidget;       /** min distance between points widget.               */
+      DoubleSpinBoxAction                                *m_maxWidget;       /** max distance between points widget.               */
+      GUI::Widgets::ToolButton                           *m_moveButton;      /** Move nodes button.                                */
+      QComboBox                                          *m_strokeCombo;     /** stroke type combobox.                             */
+      GUI::Widgets::ToolButton                           *m_strokeButton;    /** stroke configuration dialog button.               */
+      GUI::Widgets::ToolButton                           *m_changeHueButton; /** Change coincident hue strokes during edition.     */
+      GUI::Widgets::ToolButton                           *m_truncateButton;  /** Mark truncated branch button.                     */
+      ViewItemAdapterPtr                                  m_item;            /** current element being created or channel in init. */
+      TemporalRepresentationsSPtr                         m_factory;         /** representation prototypes.                        */
+      TemporalRepresentationsSPtr                         m_pointsFactory;   /** representation prototypes.                        */
+      QList<SkeletonWidgetSPtr>                           m_widgets;         /** list of widgets currently on views.               */
+      QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;    /** list of point representations currently on views. */
+      bool                                                m_allowSwich;      /** true if the skeleton creation tool is enabled.    */
+      Core::SkeletonStrokes                               m_strokes;         /** list of strokes of the segmentation.              */
   };
 
 } // namespace ESPINA

@@ -134,8 +134,8 @@ namespace ESPINA
     in.getline(buff, MAX);
     QString uuid(buff);
 
-    std::string type;
-    in >> type;
+    std::string vType;
+    in >> vType;
     in.getline(buff, 2);//Consume type's endl
 
     in.getline(buff, MAX);
@@ -144,7 +144,7 @@ namespace ESPINA
     in.getline(buff, MAX);
     State state(buff);
 
-    v = PersistentSPtr{new ReadOnlyVertex(vertexType(type), uuid.toInt())};
+    v = PersistentSPtr{new ReadOnlyVertex(vertexType(vType), uuid.toInt())};
     v->setName(name);
     v->setUuid(uuid);
     v->restoreState(state);

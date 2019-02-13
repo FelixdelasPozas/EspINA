@@ -2,6 +2,7 @@
 
 // ESPINA
 #include <Core/Utils/EspinaException.h>
+#include <Core/Types.h>
 
 // Qt
 #include <QString>
@@ -9,6 +10,7 @@
 
 // C++
 #include <iostream>
+#include <algorithm>
 
 // VTK
 #include <vtkMath.h>
@@ -70,9 +72,12 @@ const QString Category::classificationName() const
 //------------------------------------------------------------------------
 void Category::setColor(const Hue color)
 {
-  if (m_color != color)
+  const Hue maxHue{359}, minHue{0};
+  Hue adjusted = std::min(maxHue, std::max(minHue, color));
+
+  if (m_color != adjusted)
   {
-    m_color = color;
+    m_color = adjusted;
   }
 }
 
@@ -91,10 +96,10 @@ CategorySPtr Category::createSubCategory(const QString& name)
 void Category::addSubCategory(CategorySPtr subCategory)
 {
   // check if already present
-  for(auto category: m_subCategories)
-  {
-    if(category == subCategory) return;
-  }
+  auto booleanOp = [subCategory](const CategorySPtr &category) { return (category.get() == subCategory.get()); };
+  auto exists = std::any_of(m_subCategories.constBegin(), m_subCategories.constEnd(), booleanOp);
+
+  if(exists) return;
 
   if (subCategory->m_parent)
   {

@@ -17,7 +17,39 @@
    <iconset resource="../../rsc/espina.qrc">
     <normaloff>:/espina/espina.svg</normaloff>:/espina/espina.svg</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1,0,0">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,1,0">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Connection criteria:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="m_criteriaLabel">
+       <property name="text">
+        <string>No criteria established</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="m_changeButton">
+       <property name="text">
+        <string>Change...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
      <item>
@@ -37,14 +69,32 @@
     </layout>
    </item>
    <item>
-    <widget class="Line" name="line_3">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QVBoxLayout" name="m_invalidLayout">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,1">
+         <item>
+          <widget class="QLabel" name="m_invalidTextLabel">
+           <property name="text">
+            <string>Invalid:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="m_invalidLabel">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QListWidget" name="m_invalidList"/>
+       </item>
+      </layout>
+     </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
@@ -52,7 +102,7 @@
          <item>
           <widget class="QLabel" name="label_2">
            <property name="text">
-            <string>Completely connected:</string>
+            <string>Valid:</string>
            </property>
           </widget>
          </item>
@@ -77,7 +127,7 @@
          <item>
           <widget class="QLabel" name="m_halfConnected">
            <property name="text">
-            <string>Half connected:</string>
+            <string>Incomplete:</string>
            </property>
           </widget>
          </item>

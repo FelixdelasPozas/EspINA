@@ -72,7 +72,19 @@ QString SASReport::requiredInputDescription() const
 //----------------------------------------------------------------------------
 void SASReport::show(SegmentationAdapterList input) const
 {
-  auto dialog = new SASReportDialog(input, getContext());
-  dialog->setAttribute(Qt::WA_DeleteOnClose, true);
-  dialog->show();
+  SegmentationAdapterList inputSynapses;
+  for(auto segmentation: input)
+  {
+    if(AppositionSurfacePlugin::isValidSynapse(segmentation))
+    {
+      inputSynapses << segmentation;
+    }
+  }
+
+  if(!inputSynapses.isEmpty())
+  {
+    auto dialog = new SASReportDialog(inputSynapses, getContext());
+    dialog->setAttribute(Qt::WA_DeleteOnClose, true);
+    dialog->show();
+  }
 }

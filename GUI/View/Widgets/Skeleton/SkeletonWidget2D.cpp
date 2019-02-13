@@ -21,12 +21,18 @@
 // ESPINA
 #include "SkeletonWidget2D.h"
 #include "vtkSkeletonWidget.h"
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/View/View2D.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Representations/Settings/SegmentationSkeletonPoolSettings.h>
+#include <GUI/View/Widgets/Skeleton/vtkSkeletonWidgetRepresentation.h>
 
 // VTK
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 
 // C++
 #include <limits>
@@ -37,20 +43,27 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QMouseEvent>
+#include <QTimer>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::Representations::Settings;
 using namespace ESPINA::GUI::View::Widgets::Skeleton;
 
 //-----------------------------------------------------------------------------
-SkeletonWidget2D::SkeletonWidget2D(SkeletonEventHandlerSPtr handler)
-: m_widget    {vtkSmartPointer<vtkSkeletonWidget>::New()}
-, m_view      {nullptr}
-, m_position  {-std::numeric_limits<Nm>::max()}
-, m_handler   {handler}
-, m_mode      {Mode::CREATE}
-, m_moving    {false}
+SkeletonWidget2D::SkeletonWidget2D(SkeletonEventHandlerSPtr handler, SkeletonPoolSettingsSPtr settings)
+: m_widget      {vtkSmartPointer<vtkSkeletonWidget>::New()}
+, m_view        {nullptr}
+, m_position    {-std::numeric_limits<Nm>::max()}
+, m_handler     {handler}
+, m_mode        {Mode::CREATE}
+, m_moving      {false}
+, m_settings    {settings}
+, m_hasTruncated{false}
 {
+  connect(m_settings.get(), SIGNAL(modified()), this, SLOT(updateRepresentation()));
 }
   
 //-----------------------------------------------------------------------------
@@ -68,9 +81,9 @@ SkeletonWidget2D::~SkeletonWidget2D()
 }
 
 //-----------------------------------------------------------------------------
-void SkeletonWidget2D::initialize(vtkSmartPointer<vtkPolyData> pd)
+void SkeletonWidget2D::initializeData(vtkSmartPointer<vtkPolyData> pd)
 {
-  m_widget->Initialize(pd);
+  vtkSkeletonWidgetRepresentation::Initialize(pd);
 }
 
 //-----------------------------------------------------------------------------
@@ -110,7 +123,9 @@ void SkeletonWidget2D::setRepresentationDepth(Nm depth)
 //-----------------------------------------------------------------------------
 TemporalRepresentation2DSPtr SkeletonWidget2D::cloneImplementation()
 {
-  return std::make_shared<SkeletonWidget2D>(m_handler);
+  auto clone = std::make_shared<SkeletonWidget2D>(m_handler, m_settings);
+
+  return clone;
 }
 
 //-----------------------------------------------------------------------------
@@ -166,6 +181,9 @@ void SkeletonWidget2D::initializeImplementation(RenderView* view)
     m_widget->SetShift(view2d->widgetDepth());
     m_widget->SetCurrentRenderer(view->mainRenderer());
     m_widget->SetInteractor(view->renderWindow()->GetInteractor());
+    m_widget->setRepresentationWidth(m_settings->width());
+    m_widget->setRepresentationShowText(m_settings->showAnnotations());
+    m_widget->setRepresentationTextSize(m_settings->annotationsSize());
     m_widget->EnabledOn();
 
     m_handler->addWidget(this);
@@ -173,6 +191,8 @@ void SkeletonWidget2D::initializeImplementation(RenderView* view)
     connect(this, SIGNAL(updateWidgets()), m_handler.get(), SLOT(updateRepresentations()));
 
     connectSignals();
+
+    initializeVisualCues();
   }
 }
 
@@ -229,7 +249,7 @@ void SkeletonWidget2D::disconnectSignals()
 //--------------------------------------------------------------------
 void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
 {
-  if(view != m_view) return;
+  if(view != m_view || track.isEmpty()) return;
 
   auto point = track.first();
 
@@ -255,10 +275,10 @@ void SkeletonWidget2D::onTrackStarted(Track track, RenderView* view)
         m_widget->movePoint();
       }
       break;
+    case Mode::MARK:
     case Mode::ERASE:
-      m_widget->updateCursor();
-      break;
     default:
+      m_widget->updateCursor();
       break;
   }
 }
@@ -294,6 +314,7 @@ void SkeletonWidget2D::onTrackUpdated(Track track, RenderView *view)
       case Mode::ERASE:
         m_widget->updateCursor();
         break;
+      case Mode::MARK:
       default:
         break;
     }
@@ -324,14 +345,16 @@ void SkeletonWidget2D::onCursorPositionChanged(const QPoint& p, RenderView *view
       }
       m_widget->updateCursor();
       break;
+    case Mode::MARK:
     case Mode::ERASE:
       m_widget->selectNode();
       m_widget->updateCursor();
       break;
     default:
-
       break;
   }
+
+  m_view->refresh();
 }
 
 //--------------------------------------------------------------------
@@ -359,6 +382,84 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
         emit updateWidgets();
       }
       break;
+    case Mode::MARK:
+      if (button == Qt::LeftButton)
+      {
+        m_hasTruncated = false;
+        m_widget->GetInteractor()->SetEventInformationFlipY(p.x(), p.y(), 0, 0);
+        auto paths = m_widget->selectedPaths();
+
+        switch(paths.size())
+        {
+          case 0:
+            {
+              auto title   = tr("Skeleton edition tool");
+              auto message = tr("Cannot mark stroke as truncated");
+              auto details = tr("No selected strokes.");
+              DefaultDialogs::InformationMessage(message, title, details);
+            }
+            break;
+          case 1:
+            {
+              auto path = paths.first();
+              auto title   = tr("Skeleton edition tool");
+              auto message = tr("Cannot toggle selected stroke as truncated");
+
+              if(!path.note.startsWith("Spine", Qt::CaseInsensitive) &&
+                 !path.note.startsWith("Subspine", Qt::CaseInsensitive))
+              {
+                auto details = tr("Stroke is not a spine or subspine.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              if(m_points.contains(NmVector3{path.seen.first()->position}) ||
+                 m_points.contains(NmVector3{path.seen.last()->position}))
+              {
+                auto details = tr("Stroke has a connection and can't be truncated.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              if((path.seen.first()->isTerminal()) && (path.seen.last()->isTerminal()))
+              {
+                auto details = tr("Stroke is not connected.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              if((!path.seen.first()->isTerminal()) && (!path.seen.last()->isTerminal()))
+              {
+                auto details = tr("Stroke has no terminal points.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              if((path.seen.first()->isBranching()) && (path.seen.last()->isBranching()))
+              {
+                auto details = tr("Stroke has not a terminal node to toggle as truncated.");
+                DefaultDialogs::InformationMessage(message, title, details);
+                break;
+              }
+
+              m_widget->markAsTruncated();
+              emit modified(m_widget->getSkeleton());
+              emit updateWidgets();
+              m_hasTruncated = true;
+              m_successActor->SetInput(tr("Successfully modified %1").arg(path.note).toStdString().c_str());
+            }
+            break;
+          default:
+            {
+              auto title   = tr("Skeleton edition tool");
+              auto message = tr("Cannot mark stroke as truncated");
+              auto details = tr("The selected node (or the closest one to the clicked point) belongs to more than one stroke.");
+              DefaultDialogs::InformationMessage(message, title, details);
+            }
+            break;
+        }
+      }
+      break;
     case Mode::MODIFY:
       if (button == Qt::LeftButton)
       {
@@ -381,10 +482,6 @@ void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, 
 
   switch (m_mode)
   {
-    case Mode::CREATE:
-      break;
-    case Mode::ERASE:
-      break;
     case Mode::MODIFY:
       if(button == Qt::LeftButton && m_moving)
       {
@@ -394,6 +491,25 @@ void SkeletonWidget2D::onMouseRelease(Qt::MouseButtons button, const QPoint &p, 
         m_moving = false;
       }
       break;
+    case Mode::MARK:
+    {
+      if(m_hasTruncated)
+      {
+        m_hasTruncated = false;
+        emit truncationSuccess();
+
+        const auto opacity = m_successActor->GetTextProperty()->GetOpacity();
+        m_successActor->GetTextProperty()->SetOpacity(1);
+        m_successActor->GetTextProperty()->SetBackgroundOpacity(0.5);
+        if(opacity == 0.)
+        {
+          QTimer::singleShot(100, this, SLOT(updateCues()));
+        }
+      }
+    }
+      break;
+    case Mode::CREATE:
+    case Mode::ERASE:
     default:
       break;
   }
@@ -410,7 +526,9 @@ void SkeletonWidget2D::stop()
     if (m_widget->numberOfPoints() < 2)
     {
       // not allowed strokes of only one point.
-      m_widget->Initialize();
+      initializeData(nullptr);
+
+      m_widget->UpdateRepresentation();
     }
     else
     {
@@ -434,15 +552,27 @@ void SkeletonWidget2D::uninitializeImplementation()
 {
   if(m_view)
   {
+    if(m_successActor)
+    {
+      m_view->removeActor(m_successActor);
+      m_successActor = nullptr;
+    }
+
     disconnectSignals();
 
-    m_widget->EnabledOff();
-    m_widget->SetCurrentRenderer(nullptr);
-    m_widget->SetInteractor(nullptr);
+    if(m_widget)
+    {
+      m_widget->EnabledOff();
+      m_widget->SetCurrentRenderer(nullptr);
+      m_widget->SetInteractor(nullptr);
+    }
 
     disconnect(this, SIGNAL(updateWidgets()), m_handler.get(), SLOT(updateRepresentations()));
 
-    m_handler->removeWidget(this);
+    if(m_handler)
+    {
+      m_handler->removeWidget(this);
+    }
 
     m_view = nullptr;
   }
@@ -460,6 +590,9 @@ void SkeletonWidget2D::setMode(Mode mode)
     case Mode::ERASE:
       m_widget->setCurrentOperationMode(vtkSkeletonWidget::Delete);
       break;
+    case Mode::MARK:
+      m_widget->setCurrentOperationMode(vtkSkeletonWidget::Mark);
+      break;
     case Mode::MODIFY:
     default:
       m_widget->setCurrentOperationMode(vtkSkeletonWidget::Manipulate);
@@ -470,5 +603,101 @@ void SkeletonWidget2D::setMode(Mode mode)
 //--------------------------------------------------------------------
 void SkeletonWidget2D::updateRepresentation()
 {
+  m_widget->setRepresentationWidth(m_settings->width());
+  m_widget->setRepresentationShowText(m_settings->showAnnotations());
+  m_widget->setRepresentationTextSize(m_settings->annotationsSize());
   m_widget->BuildRepresentation();
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::setRepresentationTextColor(const QColor &color)
+{
+  m_widget->setRepresentationTextColor(color);
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::setStrokeHueModification(const bool value)
+{
+  m_widget->setStrokeHueModification(value);
+}
+
+//--------------------------------------------------------------------
+const bool SkeletonWidget2D::strokeHueModification() const
+{
+  return m_widget->strokeHueModification();
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::ClearRepresentation()
+{
+  vtkSkeletonWidgetRepresentation::ClearRepresentation();
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::initializeVisualCues()
+{
+  auto property = vtkSmartPointer<vtkTextProperty>::New();
+  property->SetFontFamilyToArial();
+  property->SetFontSize(20);
+  property->SetColor(1,1,1);
+  property->SetBold(true);
+  property->SetShadow(true);
+  property->SetShadowOffset(3,-3);
+  property->SetBackgroundColor(0,0,0);
+  property->SetBackgroundOpacity(0.5);
+  property->SetOpacity(0);
+
+  m_successActor = vtkSmartPointer<vtkTextActor>::New();
+  m_successActor->SetTextScaleModeToNone();
+  m_successActor->SetLayerNumber(0);
+  m_successActor->SetPickable(false);
+  m_successActor->SetDisplayPosition(10,10);
+  m_successActor->SetInput("Successfully modified");
+  m_successActor->SetTextProperty(property);
+  m_successActor->SetVisibility(false);
+
+  m_view->addActor(m_successActor);
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::updateCues()
+{
+  if(m_successActor)
+  {
+    auto opacity = m_successActor->GetTextProperty()->GetOpacity();
+
+    if(opacity > 0)
+    {
+      auto time = opacity == 1 ? 1000 : 100;
+      opacity = std::max(opacity - 0.05, 0.);
+      m_successActor->GetTextProperty()->SetOpacity(opacity);
+      m_successActor->GetTextProperty()->SetBackgroundOpacity(opacity/2.);
+      m_successActor->GetTextProperty()->Modified();
+      m_successActor->SetVisibility(true);
+      m_successActor->Modified();
+
+      QTimer::singleShot(time, this, SLOT(updateCues()));
+      m_view->refresh();
+    }
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::removeStroke(const Core::SkeletonStroke& stroke)
+{
+  if(m_widget)
+  {
+    m_widget->removeStroke(stroke);
+
+    emit modified(m_widget->getSkeleton());
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::renameStroke(const QString& oldName, const QString& newName)
+{
+  if(m_widget)
+  {
+    m_widget->renameStroke(oldName, newName);
+  }
 }

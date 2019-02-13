@@ -29,6 +29,7 @@
 #include <Core/Analysis/Filters/SourceFilter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Model/SegmentationAdapter.h>
@@ -50,8 +51,10 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Model::Utils;
 
 const Filter::Type ManualFilterFactory::SOURCE_FILTER    = "FreeFormSource";
@@ -60,7 +63,7 @@ const Filter::Type ManualFilterFactory::SOURCE_FILTER_V4 = "::FreeFormSource";
 const QString MODE = "Stroke mode";
 
 //-----------------------------------------------------------------------------
-FilterTypeList ManualFilterFactory::providedFilters() const
+const FilterTypeList ManualFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -125,7 +128,7 @@ ManualSegmentTool::ManualSegmentTool(Support::Context &context)
           this,             SLOT(onPainterChanged(MaskPainterSPtr)));
 
   connect(&m_drawingWidget, SIGNAL(strokeStarted(BrushPainter*,RenderView*)),
-          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)));
+          this,             SLOT(onStrokeStarted(BrushPainter*,RenderView*)), Qt::DirectConnection);
 
   connect(&m_drawingWidget, SIGNAL(maskPainted(BinaryMaskSPtr<unsigned char>)),
           this,             SLOT(onMaskCreated(BinaryMaskSPtr<unsigned char>)));
@@ -144,7 +147,7 @@ ManualSegmentTool::~ManualSegmentTool()
 //------------------------------------------------------------------------
 void ManualSegmentTool::abortOperation()
 {
-  setChecked(false);
+  if(isChecked()) setChecked(false);
 }
 
 //------------------------------------------------------------------------
@@ -256,17 +259,23 @@ void ManualSegmentTool::createSegmentation(BinaryMaskSPtr<unsigned char> mask)
   filter->addOutputData(0, mesh);
 
   auto segmentation = m_factory->createSegmentation(filter, 0);
-  segmentation->setCategory(m_drawingWidget.selectedCategory());
+  auto category     = m_drawingWidget.selectedCategory();
+  segmentation->setCategory(category);
+  segmentation->setNumber(firstUnusedSegmentationNumber(getModel()));
 
   SampleAdapterSList samples;
   samples << QueryAdapter::sample(channel);
   Q_ASSERT(channel && (samples.size() == 1));
 
-  auto undoStack = getUndoStack();
+  {
+    WaitingCursor cursor;
 
-  undoStack->beginMacro(tr("Add Segmentation"));
-  undoStack->push(new AddSegmentations(segmentation, samples, m_model));
-  undoStack->endMacro();
+    auto undoStack = getUndoStack();
+
+    undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
+    undoStack->push(new AddSegmentations(segmentation, samples, m_model));
+    undoStack->endMacro();
+  }
 
   getSelection()->clear();
   getSelection()->set(toViewItemList(segmentation.get()));
@@ -279,10 +288,18 @@ void ManualSegmentTool::modifySegmentation(BinaryMaskSPtr<unsigned char> mask)
 {
   clearTemporalPipeline();
 
-  auto undoStack = getUndoStack();
-  undoStack->beginMacro(tr("Modify Segmentation"));
-  undoStack->push(new DrawUndoCommand(referenceSegmentation(), mask));
-  undoStack->endMacro();
+  auto undoStack    = getUndoStack();
+  auto segmentation = referenceSegmentation();
+  auto bounds       = mask->bounds().bounds().toString();
+  auto mode         = mask->foregroundValue() == SEG_VOXEL_VALUE ? "Paint":"Erase";
+
+  {
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("%1 segmentation '%2' in bounds %3.").arg(mode).arg(segmentation->data().toString()).arg(bounds));
+    undoStack->push(new DrawUndoCommand(segmentation, mask));
+    undoStack->endMacro();
+  }
 
   if(mask->foregroundValue() == SEG_BG_VALUE)
   {
@@ -314,8 +331,7 @@ void ManualSegmentTool::onStrokeStarted(BrushPainter *painter, RenderView *view)
     if (intersect(volumeBounds, view->previewBounds(false), volumeBounds.spacing()))
     {
       auto bounds = intersection(volumeBounds, view->previewBounds(false), volumeBounds.spacing());
-
-      auto slice = readLockVolume(m_referenceItem->output())->itkImage(bounds);
+      auto slice  = readLockVolume(m_referenceItem->output())->itkImage(bounds);
 
       itk::ImageRegionConstIteratorWithIndex<itkVolumeType> it(slice, slice->GetLargestPossibleRegion());
       it.GoToBegin();
@@ -482,15 +498,19 @@ void ManualSegmentTool::onVoxelDeletion(ViewItemAdapterPtr item)
 
     DefaultDialogs::InformationMessage(msg, title);
 
-    auto undoStack = getUndoStack();
+    {
+      WaitingCursor cursor;
 
-    undoStack->blockSignals(true);
-    undoStack->undo();
-    undoStack->blockSignals(false);
+      auto undoStack = getUndoStack();
 
-    undoStack->beginMacro(tr("Remove Segmentation"));
-    undoStack->push(new RemoveSegmentations(segmentation, getModel()));
-    undoStack->endMacro();
+      undoStack->blockSignals(true);
+      undoStack->undo();
+      undoStack->blockSignals(false);
+
+      undoStack->beginMacro(tr("Remove segmentation '%1'.").arg(name));
+      undoStack->push(new RemoveSegmentations(segmentation, getModel()));
+      undoStack->endMacro();
+    }
   }
 }
 

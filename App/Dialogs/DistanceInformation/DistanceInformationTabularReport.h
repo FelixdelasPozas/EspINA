@@ -65,7 +65,7 @@ namespace ESPINA
        * \param[in] deselected group of deselected items (previous selected items).
        *
        */
-      virtual void updateSelection(QItemSelection selected, QItemSelection deselected) override;
+      virtual void updateSelection(QItemSelection selected, QItemSelection deselected) final;
 
     protected:
       /** \brief Saves the tabular report information to disk.
@@ -107,19 +107,23 @@ namespace ESPINA
                      const DistanceInformationDialog::DistancesMap   &distances,
                      QWidget                                         *parent);
 
+
+      Entry(const Entry &) = delete;
+      Entry& operator=(const Entry &) = delete;
+
       /** \brief Entry class virtual destructor.
        *
        */
       virtual ~Entry()
       {};
 
-      virtual int rowCount() const override
+      virtual int rowCount() const final
       { return m_verticalHeaders.size() + 1; }
 
-      virtual int columnCount() const override
+      virtual int columnCount() const final
       { return m_horizontalHeaders.size() + 1; }
 
-      virtual GUI::InformationSelector::GroupedInfo availableInformation() override
+      virtual GUI::InformationSelector::GroupedInfo availableInformation() final
       { return GUI::InformationSelector::GroupedInfo(); };
 
       virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, Core::SegmentationExtension::InformationKeyList informationOrder) override
@@ -138,13 +142,13 @@ namespace ESPINA
       { return m_verticalHeaders; }
 
     private slots:
-      virtual void changeDisplayedInformation() override {};
-      virtual void refreshAllInformation() override {};
-      virtual void saveSelectedInformation() override {};
+      virtual void changeDisplayedInformation() final {};
+      virtual void refreshAllInformation() final {};
+      virtual void saveSelectedInformation() final {};
 
     private:
-      virtual void refreshGUIImplementation() override {};
-      virtual void extractInformation() override;
+      virtual void refreshGUIImplementation() final {};
+      virtual void extractInformation() final;
 
       SegmentationAdapterList m_horizontalHeaders; /** segmentations in the horizontal headers. */
       SegmentationAdapterList m_verticalHeaders;   /** segmentations in the vertical headers.   */

@@ -81,7 +81,8 @@ void NumericalInput::setWidgetsToolTip(const QString& tooltip)
 //------------------------------------------------------------------------
 void NumericalInput::setValue(int value)
 {
-  m_spinBox->setValue(value);
+  if(m_spinBox->value() != value) m_spinBox->setValue(value);
+  if(m_slider->value() != value)  m_slider->setValue(value);
 
   emit valueChanged(value);
 }

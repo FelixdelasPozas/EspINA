@@ -84,7 +84,7 @@ void StackRepresentationFactory::createSliceRepresentation(Representation &repre
     auto slice3DSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayStackCrosshairs", slice3DManager, ViewType::VIEW_3D, context);
     slice3DSwitch->setOrder("0-0", "0-Representations");
 
-    representation.Group    = CHANNELS_GROUP;
+    representation.Group    = STACKS_GROUP;
     representation.Pools    << poolXY << poolXZ << poolYZ;
     representation.Managers << slice3DManager;
     representation.Switches << slice3DSwitch;

@@ -50,10 +50,6 @@ namespace ESPINA
       virtual ~FullscreenTool()
       {}
 
-      virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
-
-      virtual void restoreSettings(std::shared_ptr< QSettings > settings) override;
-
     private slots:
       /** \brief Shows the main windows fullscreen or normal depending on the value.
        * \param[in] value true to enter fullscreen and false otherwise.

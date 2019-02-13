@@ -51,27 +51,29 @@ namespace ESPINA
       public:
         struct Data
         {
-          CountingFrameExtension *extension;    /** extension owner of the CF. */
-          CFType                  type;         /** type of the CF to create.  */
-          NmVector3               inclusion;    /** CF inclusion margins.      */
-          NmVector3               exclusion;    /** CF exclusion margins.      */
-          CountingFrame::Id       id;           /** CF identificator.          */
-          QString                 constraint;   /** CF constraint.             */
+          CountingFrameExtension *extension;    /** extension owner of the CF.            */
+          CFType                  type;         /** type of the CF to create.             */
+          NmVector3               inclusion;    /** CF inclusion margins.                 */
+          NmVector3               exclusion;    /** CF exclusion margins.                 */
+          CountingFrame::Id       id;           /** CF identificator.                     */
+          QString                 constraint;   /** CF constraint.                        */
+          bool                    editable;     /** true if editable and false otherwise. */
         };
 
       public:
         /** \brief CountingFrameCreator class constructor.
          * \param[in] data data of the counting frame to create.
          * \param[in] scheduler application task scheduler.
-         * \param[in] factory application object factory.
+         * \param[in] factory stereological inclusion factory.
          *
          */
-        explicit CountingFrameCreator(Data data, SchedulerSPtr scheduler, CoreFactory *factory);
+        explicit CountingFrameCreator(Data data, SchedulerSPtr scheduler, Core::SegmentationExtensionFactorySPtr factory);
 
         /** \brief CountingFrameCreate class virtual destructor.
          *
          */
-        virtual ~CountingFrameCreator();
+        virtual ~CountingFrameCreator()
+        {};
 
         /** \brief Method to obtain the created counting frame.
          *
@@ -87,9 +89,9 @@ namespace ESPINA
         virtual void run();
 
       private:
-        Data           m_data;    /** Data of the counting frame to create. */
-        CountingFrame *m_cf;      /** created counting frame.               */
-        CoreFactory   *m_factory; /** application object factory.           */
+        Data                                   m_data;    /** Data of the counting frame to create. */
+        CountingFrame                         *m_cf;      /** created counting frame.               */
+        Core::SegmentationExtensionFactorySPtr m_factory; /** stereological inclusion factory.      */
     };
   
   } // namespace CF

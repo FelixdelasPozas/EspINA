@@ -25,13 +25,13 @@
 #include "EspinaConfig.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
+#include <Core/Readers/ChannelReader.h>
 #include <Extensions/LibraryExtensionFactory.h>
 #include <Extensions/Issues/Issues.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
 #include <Support/Plugin.h>
-#include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Widgets/Panel.h>
@@ -45,6 +45,7 @@
 #include <App/AutoSave.h>
 
 // Qt
+#include <QApplication>
 #include <QMainWindow>
 #include <QShortcut>
 
@@ -56,10 +57,54 @@ class QPluginLoader;
 class QAction;
 class QFrame;
 class QUndoStack;
-class QShortcut;
 
 namespace ESPINA
 {
+  /** \class EspinaApplication
+   * \brief QApplication subclass to catch exceptions from slots/signals.
+   *  Bugged in Qt 4.x but apparently works in Qt 5.x kept here for future releases.
+   */
+  class EspinaApplication: public QApplication
+  {
+    public:
+      /** \brief EspinaApplication class constructor.
+       * \param[in] argc Number of parameters including application name and path.
+       * \param[in] argv Parameter buffers.
+       *
+       */
+      explicit EspinaApplication(int &argc, char **argv)
+      : QApplication{argc, argv}
+      {};
+
+      virtual bool notify(QObject *receiver, QEvent *e) override
+      {
+        try
+        {
+          return QApplication::notify(receiver, e);
+        }
+        catch(ESPINA::Core::Utils::EspinaException &e)
+        {
+          std::cout << "ESPINA EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << e.what() << std::endl;
+          std::cout << e.details() << std::endl;
+          std::cout << std::flush;
+        }
+        catch(std::exception& e)
+        {
+          std::cout << "C++ EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << e.what() << std::endl;
+          std::cout << std::flush;
+        }
+        catch(...)
+        {
+          std::cout << "UNKNOWN EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << std::flush;
+        }
+
+        return true;
+      }
+  };
+
   class SeedGrowSegmentationSettings;
   class ROISettings;
   class FileSaveTool;
@@ -112,14 +157,18 @@ namespace ESPINA
 
   private slots:
     /** \brief Replace current session analysis with the loaded one
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
      *
      */
-    void onAnalysisLoaded(AnalysisSPtr analysis);
+    void onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options);
 
     /** \brief Merge loaded analysis to current session analysis
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
      *
      */
-    void onAnalysisImported(AnalysisSPtr analysis);
+    void onAnalysisImported(AnalysisSPtr analysis, const IO::LoadOptions options);
 
     /** \brief Saves tools settings just before saving a session.
      *
@@ -202,38 +251,102 @@ namespace ESPINA
      */
     void stopAnalysisConsistencyCheck();
 
+    /** \brief List of actions to do after the main window have been shown on screen.
+     *
+     */
+    void delayedInitActions();
+
   private:
+    /** \brief Helper method to initialize the available color engines.
+     *
+     */
     void initColorEngines();
 
+    /** \brief Helper method to create and register the given color engine with the given icon.
+     * \param[in] engine Color engine object.
+     * \param[in] icon Qicon object.
+     *
+     */
     void createColorEngine(GUI::ColorEngines::ColorEngineSPtr engine, const QString& icon);
 
+    /** \brief Registers the given color engine in the current context and adds it switch to the UI.
+     * \param[in] colorEngineSwitch Color engine switch button.
+     *
+     */
     void registerColorEngine(Support::Widgets::ColorEngineSwitchSPtr colorEngineSwitch);
 
+    /** \brief Helper method to initialize and register the available representations.
+     *
+     */
     void initRepresentations();
 
+    /** \brief Helper method to create the GUI toolbars.
+     *
+     */
     void createToolbars();
 
+    /** \brief Helper method to create the GUI tool groups.
+     *
+     */
     void createToolGroups();
 
+    /** \brief Helper method to register the tool shorcuts.
+     *
+     */
     void createToolShortcuts();
 
+    /** \brief Helper method to create the Session tool group.
+     *
+     */
     void createSessionToolGroup();
 
+    /** \brief Helper method to create the Explore tool group.
+     *
+     */
     void createExploreToolGroup();
 
+    /** \brief Helper method to create the Restrict tool group.
+     *
+     */
     void createRestrictToolGroup();
 
+    /** \brief Helper method to create the Segment tool group.
+     *
+     */
     void createSegmentToolGroup();
 
+    /** \brief Helper method to create the Edit tool group.
+     *
+     */
     void createEditToolGroup();
 
+    /** \brief Helper method to create the Visualize tool group.
+     *
+     */
     void createVisualizeToolGroup();
 
+    /** \brief Helper method to create the Analyze tool group.
+     *
+     */
     void createAnalyzeToolGroup();
 
+    /** \brief Helper method to create a ToolGroup object.
+     * \param[in] icon Toolgroup icon.
+     * \param[in] title Toolgroup name.
+     *
+     */
     ToolGroupPtr createToolGroup(const QString &icon, const QString &title);
 
+    /** \brief Helper method to create the application default panels.
+     *
+     */
     void createDefaultPanels();
+
+    /** \brief Helper method to register the switches of a representation.
+     * \param[in] representation Representation struct.
+     *
+     */
+    void registerRepresentationSwitches(const Representation &representation);
 
     void saveGeometry();
 
@@ -249,6 +362,9 @@ namespace ESPINA
      */
     void registerRepresentationFactory(RepresentationFactorySPtr factory);
 
+    /** \brief Asks the user if the autosave must be loaded.
+     *
+     */
     void checkAutoSavedAnalysis();
 
     /** \brief Adds a tool group to the application.
@@ -279,11 +395,25 @@ namespace ESPINA
      */
     void updateStatus(QString msg);
 
+    /** \brief Updates the value of the undo stack index backup.
+     *
+     */
     void updateUndoStackIndex();
 
-    void assignActiveChannel();
+    /** \brief Assigns the active stack for segmentation operations.
+     *
+     */
+    void assignActiveStack();
 
-    void analyzeChannelEdges();
+    /** \brief Saves misc session settings onto the settings file in the analysis.
+     *
+     */
+    void saveSessionSettings();
+
+    /** \brief Launches the stack edges analyzer.
+     *
+     */
+    void analyzeStackEdges();
 
     /** \brief Updates the configuration of all the tools.
      *
@@ -295,10 +425,19 @@ namespace ESPINA
      */
     void saveToolsSettings();
 
+    /** \brief Helper method that returns the list of toolgroups in the UI.
+     *
+     */
     const QList<ToolGroupPtr> toolGroups() const;
 
+    /** \brief Returns the list of available tools.
+     *
+     */
     Support::Widgets::ToolSList availableTools() const;
 
+    /** \brief Helper method to initialize the crosshair.
+     *
+     */
     void initializeCrosshair();
 
   private:

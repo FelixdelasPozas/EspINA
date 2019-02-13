@@ -34,6 +34,8 @@ using namespace ESPINA::Core::Utils;
 
 const QString STREAM_FILENAME = "streamingData.mhd";
 
+const QString VolumetricStreamReader::STREAMING_OPTION = QObject::tr("Streaming");
+
 //----------------------------------------------------------------------------
 VolumetricStreamReader::VolumetricStreamReader(InputSList inputs, Type type, SchedulerSPtr scheduler)
 : Filter            {inputs, type, scheduler}
@@ -115,6 +117,8 @@ bool VolumetricStreamReader::needUpdate() const
 //----------------------------------------------------------------------------
 void VolumetricStreamReader::execute()
 {
+  if(!needUpdate()) return;
+
   m_changedStreaming = false;
 
   if (!m_fileName.exists() || !m_fileName.isReadable())
@@ -152,7 +156,7 @@ void VolumetricStreamReader::execute()
 
         bool needRead = false;
 
-        if(m_outputs[0]->hasData(VolumetricData<itkVolumeType>::TYPE))
+        if(m_outputs.contains(0) && m_outputs[0]->hasData(VolumetricData<itkVolumeType>::TYPE))
         {
           // take advantage of whats in memory before deleting it.
           image = readLockVolume(m_outputs[0])->itkImage();
@@ -209,13 +213,9 @@ void VolumetricStreamReader::execute()
   {
     if(!canExecute()) return;
 
-    auto fileName = m_fileName.absoluteFilePath().toUtf8();
-    fileName.detach();
-    auto filename = fileName.constData();
-
     try
     {
-      image = readVolumeWithProgress<itkVolumeType>(filename, this);
+      image = readVolumeWithProgress<itkVolumeType>(m_fileName.absoluteFilePath(), this);
       if(!canExecute()) return;
     }
     catch(const itk::ExceptionObject &e)

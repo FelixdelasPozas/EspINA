@@ -27,7 +27,7 @@ using namespace ESPINA;
 using namespace ESPINA::IO;
 
 //-----------------------------------------------------------------------------
-AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
+const AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
 {
   ExtensionList supportedExtensions;
 
@@ -44,7 +44,8 @@ AnalysisReader::ExtensionList SegFileReader::supportedFileExtensions() const
 AnalysisSPtr SegFileReader::read(const QFileInfo  &file,
                                  CoreFactorySPtr   factory,
                                  ProgressReporter *reporter,
-                                 ErrorHandlerSPtr  handler)
+                                 ErrorHandlerSPtr  handler,
+                                 LoadOptions       options)
 {
-  return SegFile::load(file, factory, reporter, handler);
+  return SegFile::load(file, factory, reporter, handler, options);
 }

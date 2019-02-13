@@ -74,10 +74,10 @@ namespace ESPINA
         virtual Snapshot snapshot() const
         { return Snapshot(); }
 
-        virtual TypeList dependencies() const
+        virtual const TypeList dependencies() const
         { return TypeList(); }
 
-        virtual InformationKeyList availableInformation() const
+        virtual const InformationKeyList availableInformation() const
         { return readyInformation(); }
 
         virtual bool validCategory(const QString& classificationName) const
@@ -86,7 +86,7 @@ namespace ESPINA
         virtual bool validData(const OutputSPtr output) const
         { return true; }
 
-        virtual QString toolTipText() const
+        virtual const QString toolTipText() const
         { return tr("%1 as Read-Only").arg(m_type); }
 
       protected:

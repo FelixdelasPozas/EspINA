@@ -47,7 +47,7 @@ int pipeline_update_fetch_output( int argc, char** argv )
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "SGS";

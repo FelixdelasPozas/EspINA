@@ -52,10 +52,11 @@ namespace ESPINA
              * \param[in] factory, core factory smart pointer.
              * \param[in] handler, error handler smart pointer.
              */
-            Loader(QuaZip&          zip,
-                   CoreFactorySPtr  factory = CoreFactorySPtr(),
+            Loader(QuaZip&           zip,
+                   CoreFactorySPtr   factory  = CoreFactorySPtr(),
                    ProgressReporter *reporter = nullptr,
-                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+                   ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                   const LoadOptions options  = LoadOptions());
 
             /** \brief Process the data and returns an analysis.
              *
@@ -148,6 +149,7 @@ namespace ESPINA
             CoreFactorySPtr         m_factory;
             IO::ProgressReporter   *m_reporter;
             ErrorHandlerSPtr        m_handler;
+            const LoadOptions       m_options;
             DataFactorySPtr         m_dataFactory;
 
             AnalysisSPtr            m_analysis;
@@ -172,10 +174,11 @@ namespace ESPINA
         /** \brief Implements SegFileInterface::load().
          *
          */
-        virtual AnalysisSPtr load(QuaZip&          zip,
-                                  CoreFactorySPtr  factory = CoreFactorySPtr(),
+        virtual AnalysisSPtr load(QuaZip&           zip,
+                                  CoreFactorySPtr   factory  = CoreFactorySPtr(),
                                   ProgressReporter *reporter = nullptr,
-                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                  const LoadOptions options  = LoadOptions());
 
         /** \brief Implements SegFileInterface::save().
          *

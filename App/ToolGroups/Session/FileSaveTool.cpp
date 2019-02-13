@@ -34,6 +34,7 @@
 
 // Qt
 #include <QThread>
+#include <QDateTime>
 
 using namespace ESPINA;
 using namespace ESPINA::IO;
@@ -85,7 +86,11 @@ const QString FileSaveTool::saveFilename() const
 
   if (!filename.endsWith(".seg") || m_askAlways)
   {
-    if(filename.isEmpty()) filename = QDir::home().absoluteFilePath("New EspINA session.seg");
+    if(filename.isEmpty())
+    {
+      auto name = tr("New EspINA session - %1 %2.seg").arg(QDate::currentDate().toString()).arg(QTime::currentTime().toString());
+      filename = QDir::home().absoluteFilePath(name);
+    }
 
     QFileInfo file{filename};
 
@@ -111,8 +116,10 @@ void FileSaveTool::setAlwaysAskUser(bool value)
 }
 
 //----------------------------------------------------------------------------
-void FileSaveTool::saveAnalysis(const QString &filename)
+bool FileSaveTool::saveAnalysis(const QString &filename)
 {
+  auto successValue = false;
+
   if (!filename.isEmpty())
   {
     auto isAutoSave = filename.endsWith("espina-autosave.seg");
@@ -127,7 +134,7 @@ void FileSaveTool::saveAnalysis(const QString &filename)
         DefaultDialogs::ErrorMessage(message, title);
       }
 
-      return;
+      return false;
     }
 
     emit aboutToSaveSession();
@@ -154,7 +161,6 @@ void FileSaveTool::saveAnalysis(const QString &filename)
     else
     {
       WaitingCursor cursor;
-      auto successValue = false;
 
       try
       {
@@ -175,6 +181,8 @@ void FileSaveTool::saveAnalysis(const QString &filename)
 
     setProgress(100);
   }
+
+  return successValue;
 }
 
 //----------------------------------------------------------------------------

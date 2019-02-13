@@ -29,9 +29,11 @@
 
 // Qt
 #include <QList>
+#include <QDebug>
 
 // C++
 #include <memory>
+#include <algorithm>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -162,16 +164,20 @@ int raw_skeleton_constructor( int argc, char** argv )
     for(int j = 0; j < nodeIn->connections.size(); ++j)
     {
       auto connIn = nodeIn->connections.keys().at(j);
-      auto connOut = nodeOut->connections.keys().at(j);
+      const auto otherConns = nodeOut->connections.keys();
 
-      if(memcmp(connIn->position, connOut->position, 3*sizeof(double)) != 0)
+      auto equalOp = [&connIn](const SkeletonNode *connOut) { return memcmp(connIn->position, connOut->position, 3*sizeof(double)) == 0; };
+      auto it = std::find_if(otherConns.constBegin(), otherConns.constEnd(), equalOp);
+
+      if(it == otherConns.constEnd())
       {
-        std::cerr << "Different connected nodes position." << std::endl;
+        std::cerr << "Different connected nodes position. Number " << j+1 << " of " << nodeIn->connections.size() << std::endl;
+        std::cerr << "No connection with position  { " << connIn->position[0] << ", " << connIn->position[1] << ", " << connIn->position[2] << "}" << std::endl;
         error = true;
         break;
       }
 
-      if(nodeIn->connections[connIn] != nodeOut->connections[connOut])
+      if(nodeIn->connections[connIn] != nodeOut->connections[*it])
       {
         std::cerr << "Different edge value in connection." << std::endl;
         error = true;

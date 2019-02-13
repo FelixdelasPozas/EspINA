@@ -62,7 +62,8 @@ namespace ESPINA
         /** \brief Enum that defines the SLIC variant used.
          *
          */
-        typedef enum SLICVariant {
+        typedef enum SLICVariant
+        {
           SLIC,
           SLICO,
           ASLIC
@@ -79,15 +80,15 @@ namespace ESPINA
         { return false; }
         virtual void invalidate()
         {};
-        virtual QString toolTipText() const override
-        { return tr("SLIC Algorithm"); }
-        virtual TypeList dependencies() const
+        virtual const QString toolTipText() const override
+        { return QObject::tr("SLIC Algorithm"); }
+        virtual const TypeList dependencies() const
         {
           Extension::TypeList deps;
           deps << Extensions::ChannelEdges::TYPE;
           return deps;
         }
-        virtual InformationKeyList availableInformation() const;
+        virtual const InformationKeyList availableInformation() const;
 
         /** \brief Returns the label of the supervoxel that
          * the selected voxel belongs to.
@@ -262,7 +263,7 @@ namespace ESPINA
 
         SchedulerSPtr m_scheduler; /** application scheduler. */
         CoreFactory  *m_factory;   /** core factory.          */
-        std::shared_ptr<SLICComputeTask> task; /** Task instance that is currently running SLIC. */
+        std::shared_ptr<SLICComputeTask> m_task; /** Task instance that is currently running SLIC. */
         SLICResult result; /** struct holding the results of the last SLIC computation. */
         QString snapshotName(const QString& file) const;
         bool loadFromSnapshot();
@@ -275,38 +276,70 @@ namespace ESPINA
     {
         Q_OBJECT
       public:
-        explicit SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, SLICResult *result, unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance);
-        virtual ~SLICComputeTask() {};
+        /** \brief SCICComputeTask class constructor.
+         * \param[in] stack Stack pointer.
+         * \param[in] scheduler Application task scheduler.
+         * \param[in] factory Application object factory.
+         * \param[in] result Pointer to results.
+         * \param[in] parameter_m_s Distance between supervoxels.
+         * \param[in] parameter_m_c Color weight.
+         * \param[in] variant SLIC variant.
+         * \param[in] max_iterations Number of maximum iterations of the algorithm.
+         * \param[in] tolerance Tolerance value for an early exit.
+         *
+         */
+        explicit SLICComputeTask(ChannelPtr stack,
+                                 SchedulerSPtr scheduler,
+                                 CoreFactory *factory,
+                                 SLICResult *result,
+                                 unsigned int parameter_m_s,
+                                 unsigned int parameter_m_c,
+                                 SLICVariant variant,
+                                 unsigned int max_iterations,
+                                 double tolerance);
+
+        /** \brief SLICComputeTask class virtual destructor.
+         *
+         */
+        virtual ~SLICComputeTask()
+        {};
 
       private:
-        using IndexType = itkVolumeType::IndexType;
-        //using Label = StackSLIC::Label;
+        using IndexType      = itkVolumeType::IndexType;
         using RegionIterator = itk::ImageRegionConstIteratorWithIndex<itkVolumeType>;
-        using ImageRegion = itk::ImageRegion<3>;
+        using ImageRegion    = itk::ImageRegion<3>;
 
         virtual void run();
         virtual void onAbort();
+
         /** \brief Modifies a custom-defined region to fit the image and ROI.
          * \param[in] int array with x,y,z position values.
          * \param[in] int array with x,y,z axis aligned sizes.
+         *
          */
         void fitRegionToBounds(int region_position[], int region_size[]);
+
         /** \brief Modifies a custom-defined region to fit the image and ROI.
          * \param[in] long long int array with x,y,z position values.
          * \param[in] long long int array with x,y,z axis aligned sizes.
+         *
          */
         void fitRegionToBounds(long long int region_position[], long long int region_size[]);
+
         /** \brief Saves the computed results to the result struct.
          * \param[in] List containing supervoxels information.
          * \param[in] array containing the supervoxel label assigned to each voxel.
          *
          */
         void saveResults(QList<Label> labels, unsigned int *voxels);
+
         /** \brief Compresses a slice and saves it to a QDataStream.
          * \param[out] QDataStream that will hold the compressed slice.
          * \param[in] slice to compress.
+         *
          */
         void compressSlice(QDataStream &stream, unsigned int z);
+
         /** \brief Returns the custom-defined region of voxels that are candidates to belong to the
          * given supervoxel.
          * \param[in] supervoxel position.
@@ -316,6 +349,7 @@ namespace ESPINA
          *
          */
         void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, int region_position[], int region_size[]);
+
         /** \brief Distributes evenly spaced empty supervoxels trying not to place them on edges.
          * \param[in] image to populate with supervoxels.
          * \param[out] list that will hold the created supervoxels.
@@ -323,10 +357,12 @@ namespace ESPINA
          *
          */
         bool initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension);
+
         /** \brief Returns true if the coordinates are inside the computable area.
          *
          */
         bool isInBounds(int x, int y, int z);
+
         //TODO: Check color_distance for nullptr and remove only_spatial?
         /** \brief Calculates the weighted distance between a voxel an a supervoxel.
          * \param[in] coordinates of the voxel.
@@ -340,7 +376,9 @@ namespace ESPINA
          *
          */
         float calculateDistance(IndexType &voxel_index, IndexType &center_index,
-                                unsigned char voxel_color, unsigned char center_color, float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial = false);
+                                unsigned char voxel_color, unsigned char center_color,
+                                float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial = false);
+
         /** \brief Finds the surrounding voxels that belong to the given supervoxel.
          * \param[in,out] label to update.
          * \param[in] pointer to the edges extension.
@@ -349,31 +387,40 @@ namespace ESPINA
          *
          */
         void computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels);
-        //void calculateCenter(Label &label);
+
+        /** \brief Creates the supervoxel with the given parameters.
+         * \param[in] cur_index Supervoxel index number.
+         * \param[in] edgesExtension Channel edges extension of the stack.
+         * \param[in] image Stack image.
+         * \param[in] labels List of labels.
+         *
+         */
         void createSupervoxel(IndexType cur_index, ChannelEdges *edgesExtension, itkVolumeType *image, QList<Label> *labels);
+
         /** \brief Connectivity algorithm that makes sure that all voxels are connected to their assigned supervoxel.
          *
          */
         void ensureConnectivity();
+
         /** \brief Ensures connectivity between a supervoxel and all its assigned voxels.
+         * \param[in] label Label of the supervoxel.
          *
          */
         void labelConnectivity(Label &label);
 
-        ChannelPtr m_stack;
-        CoreFactory *m_factory;
+        ChannelPtr    m_stack;    /** stack to process.                                                  */
+        CoreFactory  *m_factory;  /** core object factory needed to create edges extension if neccesary. */
+        SLICResult   *result;     /** Pointer to the result struct to write the computed results to.     */
+        unsigned int *voxels;     /** Array holding the assigned values of all voxels.                   */
+        QList<Label> *label_list; /** Pointer to the list of supervoxels.                                */
+        NmVector3     spacing;    /** Current stack spacing.                                             */
+        const Bounds  bounds;     /** Region to be computed.                                             */
 
-        SLICResult* result; /** Pointer to the result struct to write the computed results to. */
-        unsigned int *voxels; /** Array holding the assigned values of all voxels. */
-        QList<Label> *label_list; /** Pointer to the list of supervoxels. */
-        NmVector3 spacing; /** Current stack spacing. */
-        const Bounds bounds; /** Region to be computed. */
-
-        unsigned char parameter_m_s; /** Distance between supervoxels. Initial parameter. */
-        unsigned char parameter_m_c; /** Color weight parameter. Initial parameter. */
-        SLICVariant variant; /** SLICVariant to use. Initial parameter. */
-        unsigned int max_iterations; /** Maximum number of iterations. Initial parameter. */
-        double tolerance; /** Tolerance value for an early exit. Initial parameter. */
+        unsigned char parameter_m_s;  /** Distance between supervoxels. Initial parameter.      */
+        unsigned char parameter_m_c;  /** Color weight parameter. Initial parameter.            */
+        SLICVariant   variant;        /** SLICVariant to use. Initial parameter.                */
+        unsigned int  max_iterations; /** Maximum number of iterations. Initial parameter.      */
+        double        tolerance;      /** Tolerance value for an early exit. Initial parameter. */
 
         int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
         unsigned long int n_voxels;
@@ -389,11 +436,8 @@ namespace ESPINA
         QFutureWatcher<void> watcher;
 
         friend StackSLIC;
-
     };
-
-  }
-
-}
+  } // namespace Extensions
+} // namespace ESPINA
 
 #endif /* EXTENSIONS_SLIC_STACKSLIC_H_ */

@@ -50,7 +50,7 @@ int pipeline_image_logic_filter_addition( int argc, char** argv )
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "SGS" << "ADD";

@@ -74,36 +74,39 @@ void RawMesh::setSpacing(const NmVector3 &spacing)
 //----------------------------------------------------------------------------
 void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify)
 {
-  QMutexLocker lock(&m_lock);
-
-  bool hasMesh = (m_mesh != nullptr);
-
-  if(!hasMesh && mesh)
   {
-    m_mesh = vtkSmartPointer<vtkPolyData>::New();
+    QMutexLocker lock(&m_lock);
+
+    bool hasMesh = (m_mesh != nullptr);
+
+    if(!hasMesh && mesh)
+    {
+      m_mesh = vtkSmartPointer<vtkPolyData>::New();
+    }
+
+    if (mesh)
+    {
+      m_mesh->DeepCopy(mesh);
+      m_bounds = polyDataVolumeBounds(mesh, m_bounds.spacing(), m_bounds.origin());
+    }
+    else
+    {
+      m_mesh = nullptr;
+      m_bounds = VolumeBounds(Bounds(), m_bounds.spacing(), m_bounds.origin());
+    }
+
+    if(!m_bounds.areValid()) qDebug() << "has mesh" << hasMesh << "given mesh" << (mesh != nullptr) << "bounds" << m_bounds.toString() << mesh->GetNumberOfCells() << mesh->GetNumberOfPoints();
+
+    // only add as an edited region if there was a previous mesh.
+    if (hasMesh)
+    {
+      BoundsList editedRegions;
+      editedRegions << bounds();
+      setEditedRegions(editedRegions);
+    }
   }
 
-  if (mesh)
-  {
-    m_mesh->DeepCopy(mesh);
-    m_bounds = polyDataVolumeBounds(mesh, m_bounds.spacing(), m_bounds.origin());
-  }
-  else
-  {
-    m_mesh = nullptr;
-    m_bounds = VolumeBounds(Bounds(), m_bounds.spacing(), m_bounds.origin());
-  }
-
-  // only add as an edited region if there was a previous mesh.
-  if (hasMesh)
-  {
-    BoundsList editedRegions;
-    editedRegions << bounds();
-    setEditedRegions(editedRegions);
-  }
-
-  if(notify)
-    updateModificationTime();
+  if(notify) updateModificationTime();
 }
 
 //----------------------------------------------------------------------------

@@ -25,21 +25,26 @@
 // ESPINA
 #include <Core/Factory/AnalysisReader.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class SegFileReader
+   * \brief Reader for Espina SEG files.
+   *
+   */
   class SegFileReader
   : public IO::AnalysisReader
   {
   public:
-    virtual QString type() const override
+    virtual const QString type() const override
     { return "SegFileReader"; }
 
-    virtual ExtensionList supportedFileExtensions() const override;
+    virtual const ExtensionList supportedFileExtensions() const override;
 
     virtual AnalysisSPtr read(const QFileInfo&      file,
                               CoreFactorySPtr       factory,
                               IO::ProgressReporter *reporter = nullptr,
-                              ErrorHandlerSPtr      handler = ErrorHandlerSPtr()) override;
+                              ErrorHandlerSPtr      handler  = ErrorHandlerSPtr(),
+                              IO::LoadOptions       options  = IO::LoadOptions()) override;
   };
 
 }

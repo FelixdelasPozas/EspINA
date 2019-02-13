@@ -48,7 +48,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_invalid_update( int 
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "SGS";

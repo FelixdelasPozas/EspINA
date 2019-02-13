@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+ * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
 
@@ -21,6 +21,8 @@
 
 #ifndef ESPINA_SEGMENTATION_ADAPTER_H
 #define ESPINA_SEGMENTATION_ADAPTER_H
+
+#include <GUI/EspinaGUI_Export.h>
 
 // ESPINA
 #include <GUI/Model/ViewItemAdapter.h>
@@ -99,7 +101,7 @@ namespace ESPINA
      /** \brief Returns the list of tags provided by the segmentation extensions of the segmentation.
       *
       */
-    virtual Core::SegmentationExtension::InformationKeyList availableInformation() const;
+    virtual const Core::SegmentationExtension::InformationKeyList availableInformation() const;
 
     bool hasInformation(const Core::SegmentationExtension::InformationKey &key) const
     { return availableInformation().contains(key); }
@@ -122,6 +124,23 @@ namespace ESPINA
      */
     Bounds bounds() const;
 
+    /** \brief Returns a color engine for this segmentation that overrides the one given by the app, or nullptr to use
+     * the default one.
+     *
+     */
+    GUI::ColorEngines::ColorEngineSPtr colorEngine() const;
+
+    /** \brief Sets a color engine for the segmentation representations.
+     * \param[in] engine Color engine object smart pointer.
+     *
+     */
+    void setColorEngine(GUI::ColorEngines::ColorEngineSPtr engine);
+
+    /** \brief Removes the color engine, if any, of the segmentation.
+     *
+     */
+    void clearColorEngine();
+
   protected:
     virtual void changeOutputImplementation(InputSPtr input);
 
@@ -136,8 +155,9 @@ namespace ESPINA
     QPixmap appendImage(const QPixmap& original, const QString& image, bool slim = false) const;
 
   private:
-    SegmentationSPtr    m_segmentation; /** adapted segmentation object.          */
-    CategoryAdapterSPtr m_category;     /** adapted category of the segmentation. */
+    SegmentationSPtr                   m_segmentation; /** adapted segmentation object.                                         */
+    CategoryAdapterSPtr                m_category;     /** adapted category of the segmentation.                                */
+    GUI::ColorEngines::ColorEngineSPtr m_colorEngine;  /** color engine for the segmentation or nullptr to use the default one. */
 
     friend class ModelFactory;
     friend class ModelAdapter;

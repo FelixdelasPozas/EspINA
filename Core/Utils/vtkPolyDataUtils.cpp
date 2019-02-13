@@ -64,10 +64,13 @@ QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtk
 }
 
 //------------------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString fileName)
+vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(const QString &fileName)
 {
+  const QString utfFilename = fileName.toUtf8();
+  const QString asciiFilename = utfFilename.toAscii();
+
   auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-  reader->SetFileName(fileName.toUtf8());
+  reader->SetFileName(asciiFilename.toStdString().c_str());
   reader->SetReadAllFields(true);
   reader->Update();
 
@@ -79,8 +82,11 @@ vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(QString
     throw EspinaException(what, details);
   }
 
+  auto data = reader->GetPolyDataOutput();
+  data->Modified();
+
   auto mesh = vtkSmartPointer<vtkPolyData>::New();
-  mesh->DeepCopy(reader->GetPolyDataOutput());
+  mesh->DeepCopy(data);
 
   return mesh;
 }
@@ -301,9 +307,10 @@ VolumeBounds EspinaCore_EXPORT ESPINA::PolyDataUtils::polyDataVolumeBounds(vtkSm
 {
   Bounds result;
 
-  if (data && data->GetNumberOfCells() > 0)
+  if (data && (data->GetNumberOfCells() > 0 || data->GetNumberOfPoints() > 0))
   {
     Nm bounds[6];
+    data->ComputeBounds();
     data->GetBounds(bounds);
 
     result = Bounds(bounds);

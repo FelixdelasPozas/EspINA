@@ -106,6 +106,34 @@ void ToolGroup::activate(bool value)
 }
 
 //-----------------------------------------------------------------------------
+void ToolGroup::setShortcut(const QKeySequence& shortcut)
+{
+  if(!shortcuts().contains(shortcut))
+  {
+    QAction::setShortcut(shortcut);
+    setToolTip(toolTip());
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ToolGroup::setToolTip(const QString &tip)
+{
+  QString shortcutText;
+  for(auto cut: shortcuts())
+  {
+    auto singleShortcutText = tr(" (%1)").arg(cut.toString());
+    if(tip.contains(singleShortcutText)) singleShortcutText.clear();
+
+    shortcutText += singleShortcutText;
+  }
+
+  // do not add if already there.
+  if(!shortcutText.isEmpty() && tip.endsWith(shortcutText)) shortcutText.clear();
+
+  QAction::setToolTip(tip + shortcutText);
+}
+
+//-----------------------------------------------------------------------------
 void ESPINA::populateToolBar(QToolBar *bar, ToolGroup::GroupedTools tools)
 {
   for(auto list: tools)

@@ -406,11 +406,11 @@ void ESPINA::GUI::View::updateSceneState(const NmVector3     &crosshair,
       auto itemBounds  = output->bounds();
       auto itemSpacing = output->spacing();
 
-      for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
       {
-        resolution[i]   = std::min(resolution[i],   itemSpacing[i]);
-        bounds[2*i]     = std::min(bounds[2*i]    , itemBounds[2*i]);
-        bounds[(2*i)+1] = std::max(bounds[(2*i)+1], itemBounds[(2*i)+1]);
+        resolution[j]   = std::min(resolution[j],   itemSpacing[j]);
+        bounds[2*j]     = std::min(bounds[2*j]    , itemBounds[2*j]);
+        bounds[(2*j)+1] = std::max(bounds[(2*j)+1], itemBounds[(2*j)+1]);
       }
     }
 

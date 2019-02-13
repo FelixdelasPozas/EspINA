@@ -46,6 +46,9 @@ namespace ESPINA
         virtual ColorEngine::Composition supportedComposition() const
         { return ColorEngine::Color; }
 
+        virtual ColorEngineSPtr clone()
+        { return std::make_shared<NumberColorEngine>(); }
+
       private:
         LUTMap m_LUT;
       };

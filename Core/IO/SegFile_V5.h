@@ -59,9 +59,10 @@ namespace ESPINA
              * \param[in] handler, error handler smart pointer.
              */
             Loader(QuaZip &zip,
-                   CoreFactorySPtr factory = CoreFactorySPtr(),
+                   CoreFactorySPtr   factory  = CoreFactorySPtr(),
                    ProgressReporter *reporter = nullptr,
-                   ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+                   ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                   const LoadOptions options  = LoadOptions());
 
             /** \brief Process the data and returns an analysis.
              *
@@ -184,6 +185,7 @@ namespace ESPINA
             CoreFactorySPtr         m_factory;        /** object factory.                     */
             ProgressReporter       *m_reporter;       /** progress reporter.                  */
             ErrorHandlerSPtr        m_handler;        /** error handler.                      */
+            const LoadOptions       m_options;        /** loading options.                    */
             AnalysisSPtr            m_analysis;       /** analysis object.                    */
             TemporalStorageSPtr     m_storage;        /** storage for files.                  */
             DataFactorySPtr         m_dataFactory;    /** data factory.                       */
@@ -203,10 +205,11 @@ namespace ESPINA
          */
         SegFile_V5();
 
-        virtual AnalysisSPtr load(QuaZip&          zip,
-                                  CoreFactorySPtr  factory   = CoreFactorySPtr(),
+        virtual AnalysisSPtr load(QuaZip&           zip,
+                                  CoreFactorySPtr   factory  = CoreFactorySPtr(),
                                   ProgressReporter *reporter = nullptr,
-                                  ErrorHandlerSPtr handler   = ErrorHandlerSPtr());
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                  const LoadOptions options  = LoadOptions());
 
         virtual void save(AnalysisPtr      analysis,
                           QuaZip&          zip,

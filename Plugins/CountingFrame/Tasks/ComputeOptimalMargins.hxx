@@ -138,17 +138,17 @@ namespace ESPINA
       auto edgesExtension = retrieveOrCreateSegmentationExtension<Extensions::EdgeDistance>(segmentation, m_factory);
       edgesExtension->edgeDistance(dist2Margin);
 
-      auto bounds = segmentation->output()->bounds();
-      auto spacing = segmentation->output()->spacing();
+      auto segBounds = segmentation->output()->bounds();
+      auto segSpacing = segmentation->output()->spacing();
 
       for (int i = 0; i < 3; i++)
       {
         Nm shift = i < 2 ? 0.5 : -0.5;
-        Nm length = bounds.lenght(toAxis(i));
+        Nm length = segBounds.lenght(toAxis(i));
 
         if (dist2Margin[2 * i] < DELTA[i])
         {
-          auto value = (vtkMath::Round(std::max(length, m_inclusion[i]) / spacing[i] - shift) + shift) * spacing[i];
+          auto value = (vtkMath::Round(std::max(length, m_inclusion[i]) / segSpacing[i] - shift) + shift) * segSpacing[i];
 
           if(value != m_inclusion[i])
           {

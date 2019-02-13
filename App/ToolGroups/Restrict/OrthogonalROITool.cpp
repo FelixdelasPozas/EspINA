@@ -35,51 +35,54 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 
-using namespace ESPINA;
-
-/** \class ModifyOrthogonalRegion
- * \brief QUndoCommand for orthogonal ROI modifications.
- *
- */
-class ModifyOrthogonalRegion
-: public QUndoCommand
+namespace ESPINA
 {
-  public:
-    /** \brief ModifyOrthogonalRegion class constructor.
-     * \param[in] roi ROI being modified.
-     * \param[in] bounds new bounds.
-     *
-     */
-    ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
-    : m_roi {roi}
-    , m_swap{bounds}
-    {}
+  /** \class ModifyOrthogonalRegion
+   * \brief QUndoCommand for orthogonal ROI modifications.
+   *
+   */
+  class ModifyOrthogonalRegion
+  : public QUndoCommand
+  {
+    public:
+      /** \brief ModifyOrthogonalRegion class constructor.
+       * \param[in] roi ROI being modified.
+       * \param[in] bounds new bounds.
+       *
+       */
+      ModifyOrthogonalRegion(ROISPtr roi, const Bounds &bounds)
+      : m_roi {roi}
+      , m_swap{bounds}
+      {}
 
-    virtual void redo()
-    { swapBounds(); }
+      virtual void redo()
+      { swapBounds(); }
 
-    virtual void undo()
-    { swapBounds(); }
+      virtual void undo()
+      { swapBounds(); }
 
-  private:
-    /** \brief Swaps the old and new bounds.
-     *
-     */
-    void swapBounds()
-    {
-      Bounds tmp = m_roi->bounds();
-      m_roi->resize(m_swap);
-      m_swap = tmp;
-    }
+    private:
+      /** \brief Swaps the old and new bounds.
+       *
+       */
+      void swapBounds()
+      {
+        Bounds tmp = m_roi->bounds();
+        m_roi->resize(m_swap);
+        m_swap = tmp;
+      }
 
-  private:
-    ROISPtr m_roi;  /** ROI being modified. */
-    Bounds  m_swap; /** old/new bounds      */
-};
+    private:
+      ROISPtr m_roi;  /** ROI being modified. */
+      Bounds  m_swap; /** old/new bounds      */
+  };
+}
 
+using namespace ESPINA;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
@@ -347,14 +350,12 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
   bool validSelection = false;
   Selector::SelectionItem selectedChannel;
 
-  for(auto channel: channels)
+  auto it = std::find_if(channels.constBegin(), channels.constEnd(), [this](const ESPINA::Selector::SelectionItem &item){ return (item.second == getActiveChannel()); });
+
+  if(it != channels.constEnd())
   {
-    if(channel.second == getActiveChannel())
-    {
-      validSelection  = true;
-      selectedChannel = channel;
-      break;
-    }
+    validSelection = true;
+    selectedChannel = (*it);
   }
 
   if(invalidSettings())
@@ -391,11 +392,15 @@ void OrthogonalROITool::updateBounds(Bounds bounds)
 {
   Q_ASSERT(m_roi);
 
-  auto undoStack = getUndoStack();
+  {
+    WaitingCursor cursor;
 
-  undoStack->beginMacro(tr("Resize ROI"));
-  undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
-  undoStack->endMacro();
+    auto undoStack = getUndoStack();
+
+    undoStack->beginMacro(tr("Resize ROI."));
+    undoStack->push(new ModifyOrthogonalRegion(m_roi, bounds));
+    undoStack->endMacro();
+  }
 
   emit roiModified(m_roi);
 }

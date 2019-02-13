@@ -42,6 +42,7 @@
 // Qt
 #include <QInputDialog>
 #include <QPainter>
+#include <QIcon>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -117,7 +118,7 @@ class CF::Panel::CFModel
     { return m_manager->countingFrames().size(); }
 
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const
-    { return 3; }
+    { return 4; }
 
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
@@ -188,6 +189,8 @@ QVariant CF::Panel::CFModel::headerData(int section, Qt::Orientation orientation
       case 1:
         return tr("Type");
       case 2:
+        return tr("Lock");
+      case 3:
         return tr("Stack");
     }
   }
@@ -198,36 +201,63 @@ QVariant CF::Panel::CFModel::headerData(int section, Qt::Orientation orientation
 //------------------------------------------------------------------------
 QVariant CF::Panel::CFModel::data(const QModelIndex& index, int role) const
 {
-  auto cf = countingFrame(index);
-  int  c  = index.column();
+  auto cf  = countingFrame(index);
+  int  col = index.column();
 
-  if (0 == c)
+  switch(col)
   {
-    if (Qt::DisplayRole == role || Qt::EditRole == role)
-    {
-      return cf->id();
-    }
-    else
-    {
-      if (Qt::CheckStateRole == role)
+    case 0:
+      if (Qt::DisplayRole == role || Qt::EditRole == role)
       {
-        return cf->isVisible() ? Qt::Checked : Qt::Unchecked;
+        return cf->id();
       }
-    }
-  }
-  else
-  {
-    if (1 == c && Qt::DisplayRole == role)
-    {
-      return cf->typeName();
-    }
-    else
-    {
-      if (2 == c && Qt::DisplayRole == role)
+      else
+      {
+        if (Qt::CheckStateRole == role)
+        {
+          return cf->isVisible() ? Qt::Checked : Qt::Unchecked;
+        }
+      }
+      break;
+    case 1:
+      if (Qt::DisplayRole == role)
+      {
+        return cf->typeName();
+      }
+      break;
+    case 2:
+      if(Qt::DecorationRole == role)
+      {
+        switch(cf->isEditable())
+        {
+          case true:
+            return QIcon(":/unlock.svg");
+            break;
+          default:
+            return QIcon(":/lock.svg");
+            break;
+        }
+      }
+      break;
+    case 3:
+      if (Qt::DisplayRole == role)
       {
         return cf->extension()->extendedItem()->name();
       }
-    }
+      if(Qt::DecorationRole == role)
+      {
+        auto hue = cf->extension()->extendedItem()->hue();
+        if(hue != -1)
+        {
+          QPixmap pixmap(32,32);
+          pixmap.fill(QColor::fromHsv(hue, 255,255));
+
+          return QIcon(pixmap);
+        }
+      }
+      break;
+    default:
+      break;
   }
 
   return QVariant();
@@ -307,6 +337,9 @@ CF::Panel::Panel(CountingFrameManager *manager, Support::Context &context, QWidg
 
   connect(m_gui->deleteCF, SIGNAL(clicked()),
           this,     SLOT(deleteActiveCountingFrame()));
+
+  connect(m_gui->lockCF, SIGNAL(clicked(bool)),
+          this,     SLOT(changeEditableState()));
 
   connect(m_gui->countingFrames, SIGNAL(clicked(QModelIndex)),
           this,           SLOT(updateUI(QModelIndex)));
@@ -420,24 +453,8 @@ void CF::Panel::applyCategoryConstraint()
 {
   if(!m_activeCF) return;
 
-  if (m_gui->useCategoryConstraint->isChecked())
-  {
-    auto categoryIndex = m_gui->categorySelector->currentModelIndex();
-    if (categoryIndex.isValid())
-    {
-      auto item = itemAdapter(categoryIndex);
-      Q_ASSERT(isCategory(item));
-
-      auto category = toCategoryAdapterPtr(item);
-
-      m_activeCF->setCategoryConstraint(category->classificationName());
-    }
-  }
-  else
-  {
-    m_activeCF->setCategoryConstraint("");
-  }
-
+  auto constraint = getSelectedCategory();
+  m_activeCF->setCategoryConstraint(constraint);
   m_activeCF->apply();
 }
 
@@ -453,11 +470,13 @@ void CF::Panel::enableCategoryConstraints(bool enable)
 void CF::Panel::updateUI(QModelIndex index)
 {
   bool validCF = !m_countingFrames.isEmpty() && index.isValid();
+  bool canBeEdited = true;
 
   if (validCF)
   {
     CountingFrame *cf;
     cf = m_cfModel->countingFrame(index);
+    canBeEdited = cf->isEditable();
     Q_ASSERT(cf);
 
     showInfo(cf);
@@ -482,18 +501,19 @@ void CF::Panel::updateUI(QModelIndex index)
 
   m_gui->countingFrames->setEnabled(validCF);
 
-  m_gui->leftMargin  ->setEnabled(validCF);
-  m_gui->topMargin   ->setEnabled(validCF);
-  m_gui->frontMargin ->setEnabled(validCF);
-  m_gui->rightMargin ->setEnabled(validCF);
-  m_gui->bottomMargin->setEnabled(validCF);
-  m_gui->backMargin  ->setEnabled(validCF);
+  m_gui->leftMargin  ->setEnabled(validCF && canBeEdited);
+  m_gui->topMargin   ->setEnabled(validCF && canBeEdited);
+  m_gui->frontMargin ->setEnabled(validCF && canBeEdited);
+  m_gui->rightMargin ->setEnabled(validCF && canBeEdited);
+  m_gui->bottomMargin->setEnabled(validCF && canBeEdited);
+  m_gui->backMargin  ->setEnabled(validCF && canBeEdited);
 
   m_gui->countingFrameDescription->setEnabled(validCF);
 
-  m_gui->useCategoryConstraint->setEnabled(validCF);
-  m_gui->categorySelector     ->setEnabled(m_gui->useCategoryConstraint->isChecked());
+  m_gui->useCategoryConstraint->setEnabled(validCF && canBeEdited);
+  m_gui->categorySelector     ->setEnabled(m_gui->useCategoryConstraint->isChecked() && canBeEdited);
 
+  m_gui->lockCF  ->setEnabled(validCF);
   m_gui->deleteCF->setEnabled(validCF);
   m_gui->resetCF ->setEnabled(validCF);
   m_gui->exportCF->setEnabled(validCF);
@@ -508,8 +528,8 @@ void CF::Panel::createCountingFrame()
 
   if (cfSelector.exec())
   {
-    CFType type        = cfSelector.type();
-    QString constraint = cfSelector.categoryConstraint();
+    const auto type       = cfSelector.type();
+    const auto constraint = cfSelector.categoryConstraint();
 
     auto channel = cfSelector.stack();
     Q_ASSERT(channel);
@@ -525,7 +545,7 @@ void CF::Panel::createCountingFrame()
 
     WaitingCursor cursor;
     auto CFextension = retrieveOrCreateStackExtension<CountingFrameExtension>(channel, getContext().factory());
-    CFextension->createCountingFrame(type, inclusion, exclusion, constraint, m_manager->defaultCountingFrameId(constraint));
+    CFextension->createCountingFrame(type, inclusion, exclusion, constraint, m_manager->defaultCountingFrameId(constraint), true);
   }
 }
 
@@ -785,15 +805,13 @@ void CF::Panel::onMarginsComputed()
   PendingCF                 pendingCF;
   ComputeOptimalMarginsSPtr optimalMargins;
 
-  for(auto cf : m_pendingCFs)
+  auto equalOp = [&task](const PendingCF cf) { return cf.Task.get() == task; };
+  auto it = std::find_if(m_pendingCFs.constBegin(), m_pendingCFs.constEnd(), equalOp);
+  if(it != m_pendingCFs.constEnd())
   {
-    if (cf.Task.get() == task)
-    {
-      pendingCF      = cf;
-      optimalMargins = cf.Task;
-      m_pendingCFs.removeOne(cf);
-      break;
-    }
+    pendingCF = *it;
+    optimalMargins = (*it).Task;
+    m_pendingCFs.removeOne(*it);
   }
 
   Q_ASSERT(pendingCF.Task);
@@ -817,6 +835,7 @@ void CF::Panel::onMarginsComputed()
     else
     {
       pendingCF.CF->setMargins(newInclusion, newExclusion);
+
       message = tr("The inclusion margins have been modified.\n\n");
     }
 
@@ -934,7 +953,7 @@ void CF::Panel::exportCountingFramesData()
 }
 
 //------------------------------------------------------------------------
-void ESPINA::CF::Panel::exportAsText(const QString& fileName) const
+void CF::Panel::exportAsText(const QString& fileName) const
 {
   QFile file{fileName};
   if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
@@ -970,7 +989,7 @@ void ESPINA::CF::Panel::exportAsText(const QString& fileName) const
 }
 
 //------------------------------------------------------------------------
-void ESPINA::CF::Panel::exportAsCSV(const QString& fileName) const
+void CF::Panel::exportAsCSV(const QString& fileName) const
 {
   QFile file{fileName};
   if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
@@ -1049,7 +1068,7 @@ void ESPINA::CF::Panel::exportAsCSV(const QString& fileName) const
 }
 
 //------------------------------------------------------------------------
-void ESPINA::CF::Panel::exportAsXLS(const QString& fileName) const
+void CF::Panel::exportAsXLS(const QString& fileName) const
 {
   workbook wb;
 
@@ -1119,6 +1138,56 @@ void ESPINA::CF::Panel::exportAsXLS(const QString& fileName) const
 
     throw EspinaException(what, details);
   }
+}
+
+//------------------------------------------------------------------------
+void CF::Panel::changeEditableState()
+{
+  if (!m_activeCF) return;
+
+  auto value = !m_activeCF->isEditable();
+
+  m_activeCF->setEditable(value);
+
+  updateTable();
+
+  int row = m_manager->countingFrames().indexOf(m_activeCF);
+  auto index = m_gui->countingFrames->model()->index(row,0);
+
+  updateUI(index);
+
+  if(value)
+  {
+    m_gui->lockCF->setIcon(QIcon(":/unlock.svg"));
+    m_gui->lockCF->setToolTip(tr("Current CF properties can be manually edited."));
+  }
+  else
+  {
+    m_gui->lockCF->setIcon(QIcon(":/lock.svg"));
+    m_gui->lockCF->setToolTip(tr("Current CF properties can't be manually edited."));
+  }
+}
+
+//------------------------------------------------------------------------
+const QString CF::Panel::getSelectedCategory() const
+{
+  QString categoryName;
+
+  if (m_gui->useCategoryConstraint->isChecked())
+  {
+    auto categoryIndex = m_gui->categorySelector->currentModelIndex();
+    if (categoryIndex.isValid())
+    {
+      auto item = itemAdapter(categoryIndex);
+      Q_ASSERT(isCategory(item));
+
+      auto category = toCategoryAdapterPtr(item);
+
+      categoryName = category->classificationName();
+    }
+  }
+
+  return categoryName;
 }
 
 //------------------------------------------------------------------------

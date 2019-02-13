@@ -38,12 +38,9 @@ bool RepresentationState::hasPendingChanges() const
 {
   QMutexLocker lock(&m_mutex);
 
-  for (auto pair : m_properties)
-  {
-    if (pair.second) return true;
-  }
+  auto hasChanged = std::any_of(m_properties.constBegin(), m_properties.constEnd(), [](const RepresentationState::Pair &pair) { return pair.second; });
 
-  return false;
+  return hasChanged;
 }
 
 //----------------------------------------------------------------------------

@@ -22,6 +22,7 @@
 
 // ESPINA
 #include <App/EspinaErrorHandler.h>
+#include <Core/Factory/AnalysisReader.h>
 #include <Support/Widgets/ProgressTool.h>
 
 namespace ESPINA
@@ -78,18 +79,26 @@ namespace ESPINA
 
     /** \brief Load requested files
      * \param[in] files to load.
+     * \param[in] options Loading options.
      *
      */
-    void load(const QStringList &files);
+    void load(const QStringList &files, const IO::LoadOptions options = IO::LoadOptions());
 
   signals:
-    void analysisLoaded(AnalysisSPtr analysis);
+    void analysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options);
 
   private slots:
     /** \brief Launches the load task.
      *
      */
     void onTriggered();
+
+  private:
+    /** \brief Helper method that returns true if the given filename is the current autosave file.
+     * \param[in] fileName Absolute file path.
+     *
+     */
+    const bool isAutoSaveFile(const QString &fileName);
 
   private:
     EspinaErrorHandlerSPtr m_errorHandler;  /** application error handler                                                    */

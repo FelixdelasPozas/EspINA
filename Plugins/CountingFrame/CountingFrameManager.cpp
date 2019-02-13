@@ -39,8 +39,8 @@ using namespace ESPINA;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-CountingFrameManager::CountingFrameManager(Support::Context& context)
-: m_context(context)
+CountingFrameManager::CountingFrameManager()
+: m_context{nullptr}
 {
 }
 
@@ -80,20 +80,23 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
 //-----------------------------------------------------------------------------
 void CountingFrameManager::onCountingFrameApplied(CountingFrame *cf)
 {
-  auto segmentations = m_context.model()->segmentations();
-
-  ViewItemAdapterList updated;
-  auto constraint = cf->categoryConstraint();
-
-  for(auto segmentation: segmentations)
+  if(m_context)
   {
-    if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
-    {
-      updated << segmentation.get();
-    }
-  }
+    auto segmentations = m_context->model()->segmentations();
 
-  m_context.viewState().invalidateRepresentationColors(updated);
+    ViewItemAdapterList updated;
+    auto constraint = cf->categoryConstraint();
+
+    for(auto segmentation: segmentations)
+    {
+      if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+      {
+        updated << segmentation.get();
+      }
+    }
+
+    m_context->viewState().invalidateRepresentationColors(updated);
+  }
 }
 
 //-----------------------------------------------------------------------------

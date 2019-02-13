@@ -80,6 +80,12 @@ void MarchingCubesMesh::updateMesh()
     if(!volume->isValid()) return;
 
     image = vtkImage(volume, volume->bounds());
+    if(!image)
+    {
+      qWarning() << "MarchingCubesMesh::updateMesh() -> invalid image for marching cubes.";
+      return;
+    }
+
     volumeTime = volume->lastModified();
   }
 
@@ -103,19 +109,20 @@ void MarchingCubesMesh::updateMesh()
   padding->UpdateWholeExtent();
 
   auto marchingCubes = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
-
-  marchingCubes->ReleaseDataFlagOn();
+  marchingCubes->ReleaseDataFlagOff();
   marchingCubes->SetNumberOfContours(1);
   marchingCubes->GenerateValues(1, SEG_VOXEL_VALUE, SEG_VOXEL_VALUE);
   marchingCubes->ComputeScalarsOff();
   marchingCubes->ComputeNormalsOff();
   marchingCubes->ComputeGradientsOff();
   marchingCubes->SetInputData(padding->GetOutput());
-  marchingCubes->Update();
+  marchingCubes->UpdateWholeExtent();
 
-  QMutexLocker lock(&m_lock);
+  {
+    QMutexLocker lock(&m_lock);
 
-  m_lastVolumeModification = volumeTime;
+    m_lastVolumeModification = volumeTime;
+  }
 
   setMesh(marchingCubes->GetOutput(), false);
 }

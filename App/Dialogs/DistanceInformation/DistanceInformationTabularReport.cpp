@@ -284,8 +284,6 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
           distItem->setData(tr("Error"), Qt::DisplayRole);
           distItem->setData(Qt::red, Qt::TextColorRole);
           distItem->setToolTip(tr("Error occurred when computing this distance."));
-          auto font = distItem->font();
-          font.setBold(true);
           distItem->setFont(font);
         }
         else

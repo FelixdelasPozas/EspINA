@@ -746,7 +746,7 @@ void ChannelProxy::setActiveChannel(ChannelAdapterPtr channel)
 {
   if (m_activeChannel != channel)
   {
-    QList<ChannelAdapterPtr> channels;
+    ChannelAdapterList channels;
 
     if(m_activeChannel != nullptr)
     {

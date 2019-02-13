@@ -55,7 +55,7 @@ int pipeline_update_filter_with_edited_region_filter_as_input(int argc, char** a
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "DummyChannelReader" << "SGS" << "Dilate";

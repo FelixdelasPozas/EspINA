@@ -28,6 +28,7 @@
 #include <ToolGroups/Restrict/RestrictToolGroup.h>
 #include <ToolGroups/Restrict/OrthogonalROITool.h>
 #include <GUI/Selectors/PixelSelector.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Widgets/CategorySelector.h>
 #include <GUI/Widgets/PixelValueSelector.h>
@@ -53,6 +54,8 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI::Widgets;
+using namespace ESPINA::GUI::Widgets::Styles;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
 
@@ -69,9 +72,10 @@ const QString APPLY_CLOSE     = "Apply close";
 const QString CLOSE_RADIUS    = "Close radius";
 const QString BEST_VALUE      = "Best value";
 const QString CATEGORY        = "Category selected";
+const QString USE_BEST_PIXEL  = "Use best pixel selector";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SeedGrowSegmentationFilterFactory::providedFilters() const
+const FilterTypeList SeedGrowSegmentationFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -106,10 +110,9 @@ FilterSPtr SeedGrowSegmentationFilterFactory::createFilter(InputSList          i
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings* settings,
-                                                   FilterRefinerFactory        &filterRefiners,
+                                                   FilterRefinerFactory         &filterRefiners,
                                                    Support::Context             &context)
 : ProgressTool("1-GreyLevelSegmentation", ":/espina/grey_level_segmentation.svg", tr("Grey Level Segmentation"), context)
-, m_context         (context)
 , m_categorySelector{new CategorySelector(context.model())}
 , m_seedThreshold   {new SeedThreshold()}
 , m_useBestPixel    {Styles::createToolButton(":espina/best_pixel_selector.svg", tr("Apply on best pixel"))}
@@ -124,7 +127,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(SeedGrowSegmentationSettings*
   setCheckable(true);
   setExclusive(true);
 
-  m_context.factory()->registerFilterFactory(m_sgsFactory);
+  getFactory()->registerFilterFactory(m_sgsFactory);
 
   auto sgsRefiner = std::make_shared<SeedGrowSegmentationRefiner>();
 
@@ -155,7 +158,7 @@ SeedGrowSegmentationTool::~SeedGrowSegmentationTool()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::abortOperation()
 {
-  deactivateEventHandler();
+  if(isChecked()) deactivateEventHandler();
 }
 
 //-----------------------------------------------------------------------------
@@ -291,23 +294,36 @@ void SeedGrowSegmentationTool::initCloseWidgets()
   m_close->setMaximum(10);
   m_close->setToolTip(tr("Close algorithm radius."));
 
+  connect(m_close, SIGNAL(valueChanged(int)),
+          this,    SLOT(onRadiusValueChanged(int)));
+
   addSettingsWidget(m_applyClose);
   addSettingsWidget(m_close);
+
+  connect(m_settings,   SIGNAL(applyCloseChanged(bool)),
+          m_applyClose, SLOT(setChecked(bool)));
+
+  connect(m_settings, SIGNAL(closeRadiusChanged(int)),
+          m_close,    SLOT(setValue(int)));
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::onRadiusValueChanged(int value)
+{
+  if(value != m_settings->closeRadius()) m_settings->setCloseRadius(value);
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 {
-  if (selectedItems.size() != 1) return;
+  // check if any selection is a channel, and then select the primary one.
+  auto isValidChannelOp = [](const Selector::SelectionItem &item) { return item.first && item.second && isChannel(item.second) && item.first->numberOfVoxels() == 1; };
+  auto it = std::find_if(selectedItems.constBegin(), selectedItems.constEnd(), isValidChannelOp);
+  if(it == selectedItems.constEnd()) return;
 
-  auto element = selectedItems.first();
-
-  Q_ASSERT(element.first->numberOfVoxels() == 1); // with one pixel
-
+  auto element   = (*it);
   auto seedPoint = centroid(element.first->bounds());
-
-  Q_ASSERT(isChannel(element.second));
-  auto channel = inputChannel();
+  auto channel   = inputChannel();
 
   if (!channel) return;
 
@@ -325,7 +341,8 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   }
   seedBounds.setUpperInclusion(true);
 
-  auto currentROI = m_context.roiProvider()->currentROI();
+  ROISPtr currentROI;
+  if(getContext().roiProvider()) currentROI = getContext().roiProvider()->currentROI();
 
   if (!currentROI && m_roi->applyROI())
   {
@@ -357,7 +374,7 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
   if (validSeed)
   {
     struct Data data;
-    data.Filter = m_context.factory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
+    data.Filter = getFactory()->createFilter<SeedGrowSegmentationFilter>(channel, SeedGrowSegmentationFilterFactory::SGS_FILTER);
     data.Category = m_categorySelector->selectedCategory();
 
     data.Filter->setSeed(seed);
@@ -384,9 +401,9 @@ void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 
     Task::submit(data.Filter);
 
-    if (currentROI == m_context.roiProvider()->currentROI())
+    if (currentROI == getContext().roiProvider()->currentROI())
     {
-      m_context.roiProvider()->clear();
+      getContext().roiProvider()->clear();
     }
   }
   else
@@ -405,7 +422,8 @@ void SeedGrowSegmentationTool::createSegmentation()
 
   if (!filter->isAborted())
   {
-    auto data = m_tasks[filter];
+    auto data  = m_tasks[filter];
+    auto model = getModel();
 
     if (filter->numberOfOutputs() != 1)
     {
@@ -413,17 +431,22 @@ void SeedGrowSegmentationTool::createSegmentation()
       throw EspinaException(message, message);
     }
 
-    auto segmentation = m_context.factory()->createSegmentation(data.Filter, 0);
+    auto segmentation = getFactory()->createSegmentation(data.Filter, 0);
     segmentation->setCategory(data.Category);
+    segmentation->setNumber(firstUnusedSegmentationNumber(getModel()));
 
     SampleAdapterSList samples;
     samples << QueryAdapter::sample(inputChannel());
     Q_ASSERT(samples.size() == 1);
 
-    auto undoStack = m_context.undoStack();
-    undoStack->beginMacro(tr("Add Segmentation"));
-    undoStack->push(new AddSegmentations(segmentation, samples, m_context.model()));
-    undoStack->endMacro();
+    {
+      WaitingCursor cursor;
+
+      auto undoStack = getUndoStack();
+      undoStack->beginMacro(tr("Add segmentation '%1'.").arg(segmentation->data().toString()));
+      undoStack->push(new AddSegmentations(segmentation, samples, model));
+      undoStack->endMacro();
+    }
 
     auto sgsFilter = std::dynamic_pointer_cast<SeedGrowSegmentationFilter>(data.Filter);
     if(sgsFilter->isTouchingROI())
@@ -489,12 +512,18 @@ void SeedGrowSegmentationTool::restoreSettings(std::shared_ptr<QSettings> settin
   m_settings->setApplyCategoryROI(applyROI);
 
   auto applyClose = settings->value(APPLY_CLOSE, false).toBool();
-  m_settings->setApplyClose(applyClose);
+  if(applyClose != m_applyClose->isChecked()) m_applyClose->setChecked(applyClose);
 
-  auto radius = settings->value(CLOSE_RADIUS, 0).toInt();
-  m_settings->setCloseRadius(radius);
+  auto radius = settings->value(CLOSE_RADIUS, 1).toInt();
+  m_close->setValue(radius);
 
-  m_settings->setBestPixelValue(settings->value(BEST_VALUE, 0).toInt());
+  auto value = settings->value(BEST_VALUE, 0).toInt();
+  m_settings->setBestPixelValue(value);
+  m_colorSelector->setValue(value);
+
+  auto useBest = settings->value(USE_BEST_PIXEL, true).toBool();
+  if(useBest != m_useBestPixel->isChecked()) m_useBestPixel->setChecked(useBest);
+
   m_categorySelector->setCurrentIndex(settings->value(CATEGORY, 0).toInt());
 }
 
@@ -503,14 +532,15 @@ void SeedGrowSegmentationTool::saveSettings(std::shared_ptr<QSettings> settings)
 {
   settings->setValue(UPPER_THRESHOLD, m_seedThreshold->upperThreshold());
   settings->setValue(LOWER_THRESHOLD, m_seedThreshold->lowerThreshold());
-  settings->setValue(XSIZE, m_settings->xSize());
-  settings->setValue(YSIZE, m_settings->ySize());
-  settings->setValue(ZSIZE, m_settings->zSize());
-  settings->setValue(APPLY_ROI, m_settings->applyCategoryROI());
-  settings->setValue(APPLY_CLOSE, m_settings->applyClose());
-  settings->setValue(CLOSE_RADIUS, m_settings->closeRadius());
-  settings->setValue(BEST_VALUE, m_settings->bestPixelValue());
-  settings->setValue(CATEGORY, m_categorySelector->currentIndex());
+  settings->setValue(XSIZE,           m_settings->xSize());
+  settings->setValue(YSIZE,           m_settings->ySize());
+  settings->setValue(ZSIZE,           m_settings->zSize());
+  settings->setValue(APPLY_ROI,       m_settings->applyCategoryROI());
+  settings->setValue(APPLY_CLOSE,     m_settings->applyClose());
+  settings->setValue(CLOSE_RADIUS,    m_settings->closeRadius());
+  settings->setValue(BEST_VALUE,      m_settings->bestPixelValue());
+  settings->setValue(CATEGORY,        m_categorySelector->currentIndex());
+  settings->setValue(USE_BEST_PIXEL,  m_useBestPixel->isChecked());
 }
 
 //-----------------------------------------------------------------------------

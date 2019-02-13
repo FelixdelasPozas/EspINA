@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -93,6 +93,9 @@ void Analysis::add(SampleSPtr sample)
   m_content->add(sample);
   m_relations->add(sample);
 
+  m_itemPointers.insert(sample, sample.get());
+  m_itemUUids.insert(sample, sample->uuid());
+
   sample->setAnalysis(this);
 }
 
@@ -130,6 +133,9 @@ void Analysis::add(ChannelSPtr channel)
 
   m_relations->add(channel);
 
+  m_itemPointers.insert(channel, channel.get());
+  m_itemUUids.insert(channel, channel->uuid());
+
   channel->setAnalysis(this);
 }
 
@@ -165,6 +171,9 @@ void Analysis::add(SegmentationSPtr segmentation)
 
   m_relations->add(segmentation);
 
+  m_itemPointers.insert(segmentation, segmentation.get());
+  m_itemUUids.insert(segmentation, segmentation->uuid());
+
   segmentation->setAnalysis(this);
 }
 
@@ -193,6 +202,8 @@ void Analysis::remove(SampleSPtr sample)
 
   m_content->remove(sample);
   m_relations->remove(sample);
+  m_itemPointers.remove(sample);
+  m_itemUUids.remove(sample);
 }
 
 //------------------------------------------------------------------------
@@ -221,6 +232,8 @@ void Analysis::remove(ChannelSPtr channel)
 
   m_content->remove(channel);
   m_relations->remove(channel);
+  m_itemPointers.remove(channel);
+  m_itemUUids.remove(channel);
 
   removeIfIsolated(channel->filter());
 }
@@ -251,6 +264,8 @@ void Analysis::remove(SegmentationSPtr segmentation)
   m_content->remove(segmentation);
   m_relations->remove(segmentation);
   m_connections.removeSegmentation(segmentation);
+  m_itemPointers.remove(segmentation);
+  m_itemUUids.remove(segmentation);
 
   removeIfIsolated(segmentation->filter());
 }
@@ -400,6 +415,34 @@ FilterSList Analysis::downStreamPipeline(FilterSPtr filter)
 }
 
 //------------------------------------------------------------------------
+FilterSList Analysis::upStreamPipeline(FilterSPtr filter)
+{
+  FilterSList inFilters;
+  FilterSList outFilters;
+
+  inFilters  << filter;
+  outFilters << filter;
+
+  while (!inFilters.isEmpty())
+  {
+    auto ancestor = inFilters.takeFirst();
+
+    for(auto edge : m_content->inEdges(ancestor))
+    {
+      auto predecessor = std::dynamic_pointer_cast<Filter>(edge.target);
+
+      if (predecessor)
+      {
+        inFilters  << predecessor;
+        outFilters << predecessor;
+      }
+    }
+  }
+
+  return outFilters;
+}
+
+//------------------------------------------------------------------------
 void Analysis::addFilterContentRelation(FilterSPtr filter, ViewItem* item)
 {
   ViewItemSPtr succesor;
@@ -461,12 +504,10 @@ bool Analysis::findRelation(PersistentSPtr    ancestor,
                             PersistentSPtr    succesor,
                             const RelationName& relation)
 {
-  for(auto edge : m_relations->outEdges(ancestor, relation))
-  {
-    if (edge.relationship == relation.toStdString() && edge.target == succesor) return true;
-  }
+  const auto edges = m_relations->outEdges(ancestor, relation);
 
-  return false;
+  auto booleanOp = [relation, succesor](const DirectedGraph::Edge &edge) {return (edge.relationship == relation.toStdString() && edge.target == succesor); };
+  return std::any_of(edges.constBegin(), edges.constEnd(), booleanOp);
 }
 
 //------------------------------------------------------------------------
@@ -480,8 +521,12 @@ void Analysis::addConnection(const PersistentSPtr segmentation1, const Persisten
     throw Core::Utils::EspinaException(message, details);
   }
 
-  m_relations->addRelation(segmentation1, segmentation2, Connection::CONNECTS);
-  m_relations->addRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  // the user is allowed to add multiple connections between the same segmentations, only add the relation once.
+  if(m_connections.connections(segmentation1, segmentation2).size() < 2)
+  {
+    m_relations->addRelation(segmentation1, segmentation2, Connection::CONNECTS);
+    m_relations->addRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -495,8 +540,13 @@ void Analysis::removeConnection(const PersistentSPtr segmentation1, const Persis
     throw Core::Utils::EspinaException(message, details);
   }
 
-  m_relations->removeRelation(segmentation1, segmentation2, Connection::CONNECTS);
-  m_relations->removeRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  // the user is allowed to add multiple connections between the same segmentations, only remove the relation when
+  // there are no more connection points.
+  if(m_connections.connections(segmentation1, segmentation2).isEmpty())
+  {
+    m_relations->removeRelation(segmentation1, segmentation2, Connection::CONNECTS);
+    m_relations->removeRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -546,22 +596,13 @@ Core::Connections Analysis::connections(const PersistentSPtr segmentation) const
 {
   Core::Connections result;
 
-  auto getSegmentationSPtr = [this] (const QString &uuid)
-  {
-    for(auto seg: this->m_segmentations)
-    {
-      if(uuid == seg->uuid()) return seg;
-    }
-    Q_ASSERT(false);
-    return m_segmentations.first(); // so the lambda has a consistent return type.
-  };
-
   for(auto connection: m_connections.connections(segmentation))
   {
     Core::Connection coreConnection;
     coreConnection.segmentation1 = segmentation;
-    coreConnection.segmentation2 = getSegmentationSPtr(connection.segmentation2);
+    coreConnection.segmentation2 = m_itemUUids.key(connection.segmentation2);
     coreConnection.point         = connection.point;
+    Q_ASSERT(coreConnection.segmentation2);
 
     result << coreConnection;
   }
@@ -579,4 +620,21 @@ bool Analysis::saveConnections() const
 bool Analysis::loadConnections()
 {
   return m_connections.load();
+}
+
+//------------------------------------------------------------------------
+Core::Connections ESPINA::Analysis::connections(const PersistentPtr segmentation) const
+{
+  auto segSPtr = m_itemPointers.key(segmentation);
+  Q_ASSERT(segSPtr);
+  return connections(segSPtr);
+}
+
+//------------------------------------------------------------------------
+PersistentSPtr ESPINA::Analysis::smartPointer(PersistentPtr item)
+{
+  auto itemSPtr = m_itemPointers.key(item);
+  Q_ASSERT(itemSPtr);
+
+  return itemSPtr;
 }

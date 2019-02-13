@@ -47,8 +47,9 @@ int io_analysis_seg_file_io( int argc, char** argv )
   class DummyFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     { FilterTypeList list; list << "DummyFilter"; return list; }
+
     virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const
     { return  std::make_shared<DummyFilter>(); }
   } dummyFactory;

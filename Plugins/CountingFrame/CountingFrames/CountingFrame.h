@@ -42,15 +42,14 @@
 
 namespace ESPINA
 {
-  class CoreFactory;
   class RenderView;
 
   namespace CF
   {
-    enum CFType
+    enum class CFType
     {
-      ADAPTIVE,
-      ORTOGONAL
+      ADAPTIVE = 0,
+      ORTOGONAL = 1
     };
 
     class vtkCountingFrameCommand;
@@ -274,6 +273,17 @@ namespace ESPINA
        */
       vtkSmartPointer<vtkPolyData> innerFramePolyData() const;
 
+      /** \brief Sets the CF as editable/non-editable. setMargins() won't modify the margins if the CF is non-editable.
+       * \param[in] value True to set editable and false otherwise.
+       *
+       */
+      void setEditable(const bool value);
+
+      /** \brief Returns true if the CF is editable and false otherwise.
+       *
+       */
+      const bool isEditable() const;
+
     signals:
       void modified(CountingFrame *);
 
@@ -287,14 +297,14 @@ namespace ESPINA
        * \param[in] inclusion inclusion margins in each of the axis.
        * \param[in] exclusion exclusion margins in each of the axis.
        * \param[in] scheduler application task scheduler.
-       * \param[in] factory   model factory
+       * \param[in] factory   stereological inclusion factory.
        *
        */
-      explicit CountingFrame(CountingFrameExtension *extension,
-                             Nm                      inclusion[3],
-                             Nm                      exclusion[3],
-                             SchedulerSPtr           scheduler,
-                             CoreFactory            *factory);
+      explicit CountingFrame(CountingFrameExtension                *extension,
+                             Nm                                     inclusion[3],
+                             Nm                                     exclusion[3],
+                             SchedulerSPtr                          scheduler,
+                             Core::SegmentationExtensionFactorySPtr factory);
 
       /** \brief Updates the counting frame inclusion/exclusion values of all the constrained segmentations and
        * recomputes the widgets geometry.
@@ -341,8 +351,8 @@ namespace ESPINA
       void onCountingFrameApplied();
 
     protected:
-      SchedulerSPtr                m_scheduler;           /** task scheduler.                                 */
-      CoreFactory                 *m_factory;             /** Model factory for extension creation.           */
+      SchedulerSPtr                          m_scheduler; /** task scheduler.                                 */
+      Core::SegmentationExtensionFactorySPtr m_factory;   /** factory for stereological inclusion extension.  */
 
       mutable QReadWriteLock       m_countingFrameMutex;  /** lock for m_countingFrame.                       */
       vtkSmartPointer<vtkPolyData> m_countingFrame;       /** counting frame limits.                          */
@@ -381,6 +391,8 @@ namespace ESPINA
 
       QList<vtkCountingFrameSliceWidget *> m_widgets2D;   /** list of 2D widgets of this counting frame. */
       QList<vtkCountingFrame3DWidget    *> m_widgets3D;   /** list of 3D widgets of this counting frame. */
+
+      bool m_editable;                                    /** true if the CF margins can be modified and false otherwise. */
     };
 
     /** operator< for counting frames to use with std::sort

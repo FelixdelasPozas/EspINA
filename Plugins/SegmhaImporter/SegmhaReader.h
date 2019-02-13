@@ -23,6 +23,7 @@
 
 #include "SegmhaImporterPlugin_Export.h"
 
+// ESPINA
 #include <Core/Factory/AnalysisReader.h>
 
 namespace ESPINA
@@ -35,15 +36,16 @@ namespace ESPINA
   : public IO::AnalysisReader
   {
     public:
-      virtual QString type() const
+      virtual const QString type() const
       { return "SegmhaReader"; }
 
-      virtual ExtensionList supportedFileExtensions() const;
+      virtual const ExtensionList supportedFileExtensions() const;
 
-      virtual AnalysisSPtr read(const QFileInfo& file,
-                                CoreFactorySPtr  factory,
+      virtual AnalysisSPtr read(const QFileInfo&      file,
+                                CoreFactorySPtr       factory,
                                 IO::ProgressReporter *reporter = nullptr,
-                                ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+                                ErrorHandlerSPtr      handler = ErrorHandlerSPtr(),
+                                const IO::LoadOptions options = IO::LoadOptions());
 
     private:
       /** \struct SegmentationObject

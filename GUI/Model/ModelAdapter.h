@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -427,38 +427,38 @@ namespace ESPINA
        * \param[in] channels list of smart pointers of the channel adapters to remove.
        *
        */
-      void remove(ChannelAdapterSList channels);
+      void remove(const ChannelAdapterSList &channels);
 
       /** \brief Removes a segmentation from the model.
        * \param[in] segmentation smart pointer of the segmentation adapter to remove.
        *
        */
-      void remove(SegmentationAdapterSPtr segmentation);
+      void remove(const SegmentationAdapterSPtr segmentation);
 
       /** \brief Removes a list of segmentations from the model.
        * \param[in] segmentations list of smart pointers of the segmentation adapters to remove.
        *
        */
-      void remove(SegmentationAdapterSList segmentations);
+      void remove(const SegmentationAdapterSList &segmentations);
 
       void changeSpacing(ChannelAdapterSPtr channel, const NmVector3 &spacing);
 
       /** \brief Returns the list of sample adapters in the model.
        *
        */
-      SampleAdapterSList samples() const
+      const SampleAdapterSList &samples() const
       { return m_samples; }
 
       /** \brief Returns the list of channel adapters in the model.
        *
        */
-      ChannelAdapterSList channels() const
+      const ChannelAdapterSList &channels() const
       { return m_channels; }
 
       /** \brief Returns the list of segmentation adapters in the model.
        *
        */
-      SegmentationAdapterSList segmentations() const
+      const SegmentationAdapterSList &segmentations() const
       { return m_segmentations; }
 
       /** \brief Sets the category of a segmentation.
@@ -467,7 +467,7 @@ namespace ESPINA
        *
        */
       void setSegmentationCategory(SegmentationAdapterSPtr segmentation,
-                                   CategoryAdapterSPtr     category);
+                                   const CategoryAdapterSPtr     category);
 
 
 
@@ -477,8 +477,8 @@ namespace ESPINA
        * \param[in] relation text string that specifies the relation.
        *
        */
-      void deleteRelation(ItemAdapterSPtr     ancestor,
-                          ItemAdapterSPtr     successor,
+      void deleteRelation(const ItemAdapterSPtr     ancestor,
+                          const ItemAdapterSPtr     successor,
                           const RelationName &relation);
 
       /** \brief Deletes a relation from the model.
@@ -508,6 +508,18 @@ namespace ESPINA
        *
        */
       RelationList relations(ItemAdapterPtr item, RelationType type, const RelationName& filter = QString());
+
+      /** \brief Helper method that returns true if able to change the input of the root filter of the segmentation
+       * given to the new given stack. Returns false on failure.
+       * \param[in] segmentation Segmentation adapter.
+       * \param[in] stack Channel adapter to change the segmentation.
+       *
+       */
+      bool changeSegmentationStack(SegmentationAdapterPtr segmentation, ChannelAdapterPtr stack);
+
+      //---------------------------------------------------------------------------
+      /************************** Connections API ********************************/
+      //---------------------------------------------------------------------------
 
       /** \brief Adds the given connection to the model.
        * \param[in] connection connection object.
@@ -676,8 +688,6 @@ namespace ESPINA
 
       void queueAddConnectionCommand(const Connection &connection);
 
-      void queueRemoveConnectionCommand(const Connection &connection);
-
       void queueAddCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
 
       void queueUpdateCommand(ItemAdapterSPtr item, BatchCommandSPtr command);
@@ -798,7 +808,7 @@ namespace ESPINA
           /** \brief Executes the stored expression.
            *
            */
-          virtual void execute()
+          virtual void execute() override
           { m_lambda();}
 
         private:

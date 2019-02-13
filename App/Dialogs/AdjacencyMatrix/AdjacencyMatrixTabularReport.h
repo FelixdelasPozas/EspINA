@@ -41,7 +41,6 @@ namespace ESPINA
       Q_OBJECT
     protected:
       class Entry;
-      class InformationProxy;
 
     public:
       /** \brief AdjacencyMatrixTabularReport class constructor.
@@ -69,7 +68,7 @@ namespace ESPINA
       /** \brief Saves the tabular report information to disk.
        *
        */
-      virtual void exportInformation();
+      virtual void exportInformation() override;
 
     private:
       /** \brief Create and entry to show the adjacency matrix.
@@ -78,10 +77,6 @@ namespace ESPINA
        *
        */
       void createEntry(const SegmentationAdapterList segmentations, const ModelAdapterSPtr model);
-
-    private:
-      const SegmentationAdapterList m_segmentations; /** input segmentations. */
-
   };
 
 

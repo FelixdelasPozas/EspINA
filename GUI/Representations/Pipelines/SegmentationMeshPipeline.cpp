@@ -73,7 +73,7 @@ RepresentationPipeline::ActorList SegmentationMeshPipeline::createActors(ConstVi
     mapper->ReleaseDataFlagOn();
     mapper->ImmediateModeRenderingOff();
     mapper->ScalarVisibilityOff();
-    mapper->SetInputData(readLockMesh(segmentation->output())->mesh());
+    mapper->SetInputData(readLockMesh(segmentation->output(), DataUpdatePolicy::Ignore)->mesh());
     mapper->Update();
 
     auto actor = vtkSmartPointer<vtkActor>::New();
@@ -97,7 +97,17 @@ void SegmentationMeshPipeline::updateColors(ActorList& actors,
   {
     auto segmentation = segmentationPtr(item);
 
-    auto color = s_highlighter.color(m_colorEngine->color(segmentation), item->isSelected());
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
+
+    color = s_highlighter.color(color, item->isSelected());
 
     auto actor = dynamic_cast<vtkActor *>(actors.first().Get());
 

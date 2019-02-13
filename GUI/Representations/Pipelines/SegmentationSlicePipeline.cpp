@@ -81,7 +81,7 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
 
   if (isVisible(state) && hasVolumetricData(segmentation->output()))
   {
-    Bounds sliceBounds = readLockVolume(segmentation->output())->bounds();
+    Bounds sliceBounds = readLockVolume(segmentation->output(), DataUpdatePolicy::Ignore)->bounds();
 
     Nm reslicePoint = crosshairPosition(m_plane, state);
 
@@ -90,18 +90,26 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
       sliceBounds.setUpperInclusion(toAxis(planeIndex), true);
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
-      auto slice = vtkImage(readLockVolume(segmentation->output()), sliceBounds);
+      auto slice = vtkImage(readLockVolume(segmentation->output(), DataUpdatePolicy::Ignore), sliceBounds);
 
       addPadding(slice, planeIndex);
 
       int extent[6];
       slice->GetExtent(extent);
 
-      auto color       = m_colorEngine->color(segmentation);
+      QColor color;
+      if(segmentation->colorEngine())
+      {
+        color = segmentation->colorEngine()->color(segmentation);
+      }
+      else
+      {
+        color = m_colorEngine->color(segmentation);
+      }
+
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputData(slice);
       mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
-      mapToColors->SetUpdateExtent(extent);
       mapToColors->SetNumberOfThreads(1);
       mapToColors->UpdateInformation();
       mapToColors->UpdateWholeExtent();
@@ -109,7 +117,6 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
       auto actor = vtkSmartPointer<vtkImageActor>::New();
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-      actor->GetMapper()->SetUpdateExtent(extent);
       actor->GetMapper()->SetNumberOfThreads(1);
       actor->GetMapper()->UpdateInformation();
       actor->GetMapper()->UpdateWholeExtent();
@@ -139,7 +146,16 @@ void SegmentationSlicePipeline::updateColors(ActorList                 &actors,
     auto segmentation = segmentationPtr(item);
 
     auto actor = vtkImageActor::SafeDownCast(actors.first().Get());
-    auto color = m_colorEngine->color(segmentation);
+
+    QColor color;
+    if(segmentation->colorEngine())
+    {
+      color = segmentation->colorEngine()->color(segmentation);
+    }
+    else
+    {
+      color = m_colorEngine->color(segmentation);
+    }
 
     actor->SetOpacity(opacity(state) * color.alphaF());
 

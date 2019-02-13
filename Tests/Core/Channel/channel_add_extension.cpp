@@ -45,9 +45,9 @@ int channel_add_extension(int argc, char** argv )
     explicit DummyExtension() 
     : Core::StackExtension(InfoCache()), Initialized{false}, ValidChannel{false} {}
 
-    virtual InformationKeyList availableInformation() const { return InformationKeyList(); }
+    virtual const InformationKeyList availableInformation() const { return InformationKeyList(); }
     virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }
-    virtual TypeList dependencies() const {return TypeList(); }
+    virtual const TypeList dependencies() const {return TypeList(); }
     virtual bool invalidateOnChange() const {return false;}
     virtual Snapshot snapshot() const {return Snapshot();}
     virtual State state() const {return State();}

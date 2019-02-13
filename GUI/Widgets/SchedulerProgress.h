@@ -88,6 +88,14 @@ namespace ESPINA
        */
       void onProgressAborted();
 
+      /** \brief Aborts all running tasks.
+       *
+       * Aborting a task will remove it from the scheduler progress
+       * but the task may remain executing until task abort is handled.
+       *
+       */
+      void abortAllTasks();
+
     private:
       /** \brief Updates the values of the task progress notification widget.
        *

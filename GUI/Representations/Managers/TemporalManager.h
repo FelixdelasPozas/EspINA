@@ -130,7 +130,7 @@ namespace ESPINA
             virtual void setPlane(Plane plane) = 0;
 
             /** \brief Sets the depth of the representations in relation to the current scene crosshair.
-             * \param[in] depth distace from the current crosshair where the representations should be shown.
+             * \param[in] depth distance from the current crosshair where the representations should be shown.
              *
              */
             virtual void setRepresentationDepth(Nm depth) = 0;

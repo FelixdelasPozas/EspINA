@@ -32,8 +32,9 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CFStackExtensionFactory::CFStackExtensionFactory(CoreFactory *factory, CountingFrameManager* manager, SchedulerSPtr scheduler)
-: StackExtensionFactory{factory}
+CFStackExtensionFactory::CFStackExtensionFactory(Core::SegmentationExtensionFactorySPtr factory, CountingFrameManager* manager, SchedulerSPtr scheduler)
+: StackExtensionFactory{nullptr}
+, m_factory            {factory}
 , m_manager            {manager}
 , m_scheduler          {scheduler}
 {
@@ -66,8 +67,8 @@ StackExtension::TypeList CFStackExtensionFactory::providedExtensions() const
 }
 
 //-----------------------------------------------------------------------------
-CFSegmentationExtensionFactory::CFSegmentationExtensionFactory(CoreFactory *factory)
-: SegmentationExtensionFactory{factory}
+CFSegmentationExtensionFactory::CFSegmentationExtensionFactory()
+: SegmentationExtensionFactory{nullptr}
 {
 }
 

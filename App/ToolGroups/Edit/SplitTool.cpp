@@ -25,6 +25,7 @@
 #include <Core/Utils/EspinaException.h>
 #include <Filters/SplitFilter.h>
 #include <Filters/Utils/Stencil.h>
+#include <GUI/Model/Utils/ModelUtils.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
@@ -55,6 +56,7 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Filters::Utils;
 using namespace ESPINA::GUI::Representations::Managers;
 using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::View::Widgets;
 using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
@@ -64,7 +66,7 @@ const Filter::Type SplitFilterFactory::SPLIT_FILTER    = "SplitFilter";
 const Filter::Type SplitFilterFactory::SPLIT_FILTER_V4 = "EditorToolBar::SplitFilter";
 
 //-----------------------------------------------------------------------------
-FilterTypeList SplitFilterFactory::providedFilters() const
+const FilterTypeList SplitFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
 
@@ -104,7 +106,6 @@ SplitTool::SplitTool(Support::Context &context)
 , m_handler{std::make_shared<PlanarSplitEventHandler>()}
 , m_splitPlane{nullptr}
 {
-
   registerFilterFactory(context, std::make_shared<SplitFilterFactory>());
 
   setCheckable(true);
@@ -152,12 +153,15 @@ SplitTool::~SplitTool()
 //-----------------------------------------------------------------------------
 void SplitTool::initSplitWidgets()
 {
-  m_apply = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("Apply current state"));
+  m_apply = GUI::Widgets::Styles::createToolButton(":/espina/apply.svg", tr("A cutting plane must be defined in 2D or 3D widgets before it can to applied."));
 
   connect(m_apply, SIGNAL(clicked(bool)),
           this,  SLOT(applyCurrentState()));
 
   addSettingsWidget(m_apply);
+
+  // not enabled until a valid cutting plane has been defined.
+  m_apply->setEnabled(false);
 }
 
 //------------------------------------------------------------------------
@@ -227,6 +231,7 @@ void SplitTool::applyCurrentState()
 
   auto stencil = Stencil::fromPlane(m_splitPlane, bounds);
   filter->setStencil(stencil);
+  filter->setStencilPlane(m_splitPlane);
 
   Data data(filter, getModel()->smartPointer(selectedSeg));
   m_executingTasks.insert(filter.get(), data);
@@ -299,6 +304,7 @@ void SplitTool::onSplittingPlaneDefined(PlanarSplitWidgetPtr widget)
   auto valid = widget->planeIsValid();
 
   m_apply->setEnabled(valid);
+  m_apply->setToolTip(tr("Cut segmentation using the defined cutting plane."));
 
   if(valid)
   {
@@ -324,8 +330,6 @@ void SplitTool::onSelectionChanged()
 //------------------------------------------------------------------------
 void SplitTool::createSegmentations()
 {
-  WaitingCursor cursor;
-
   auto filter = dynamic_cast<FilterPtr>(sender());
   Q_ASSERT(m_executingTasks.keys().contains(filter));
 
@@ -333,8 +337,10 @@ void SplitTool::createSegmentations()
   {
     if (filter->numberOfOutputs() == 2)
     {
-      auto sample = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
+      auto sample   = QueryAdapter::samples(m_executingTasks.value(filter).segmentation);
       auto category = m_executingTasks.value(filter).segmentation->category();
+      auto model    = getModel();
+      auto number   = firstUnusedSegmentationNumber(model);
 
       SegmentationAdapterList  segmentations;
       SegmentationAdapterSList segmentationsList;
@@ -343,20 +349,75 @@ void SplitTool::createSegmentations()
       {
         auto segmentation  = getFactory()->createSegmentation(m_executingTasks[filter].filter, i);
         segmentation->setCategory(category);
+        segmentation->setNumber(number++);
 
         segmentationsList << segmentation;
         segmentations << segmentation.get();
       }
 
-      auto undoStack = getUndoStack();
-      undoStack->beginMacro("Split Segmentation");
-      undoStack->push(new RemoveSegmentations(m_executingTasks[filter].segmentation.get(), getModel()));
-      undoStack->push(new AddSegmentations(segmentationsList, sample, getModel()));
-      undoStack->endMacro();
+      auto undoStack        = getUndoStack();
+      auto segmentationSPtr = m_executingTasks[filter].segmentation;
+      auto segmentation     = segmentationSPtr.get();
+      auto newSegmentation1 = segmentationsList.first()->data().toString();
+      auto newSegmentation2 = segmentationsList.last()->data().toString();
+
+      auto connections = getModel()->connections(m_executingTasks[filter].segmentation);
+      if(!connections.isEmpty())
+      {
+        auto splitFilter = dynamic_cast<SplitFilter *>(filter);
+        Q_ASSERT(splitFilter);
+        auto segmentationName = segmentation->data().toString();
+
+        if(hasVolumetricData(segmentation->output()))
+        {
+          auto stencil = splitFilter->stencil();
+          auto spacing = getSelection()->activeChannel()->output()->spacing();
+
+          for(auto &connection: connections)
+          {
+            if(stencil->IsInside(connection.point[0]/spacing[0], connection.point[1]/spacing[1], connection.point[2]/spacing[2]))
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.first();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.first();
+            }
+            else
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.last();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.last();
+            }
+          }
+        }
+        else
+        {
+          auto plane = splitFilter->plane();
+
+          for(auto &connection: connections)
+          {
+            double point[3]{connection.point[0], connection.point[1], connection.point[2]};
+            if(plane->Evaluate(plane->GetNormal(), plane->GetOrigin(), point) > 0)
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.first();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.first();
+            }
+            else
+            {
+              if(connection.item1->data().toString() == segmentationName) connection.item1 = segmentationsList.last();
+              if(connection.item2->data().toString() == segmentationName) connection.item2 = segmentationsList.last();
+            }
+          }
+        }
+      }
+
+      {
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Split segmentation '%1' into '%2' and '%3'.").arg(segmentation->data().toString()).arg(newSegmentation1).arg(newSegmentation2));
+        undoStack->push(new RemoveSegmentations(segmentation, model));
+        undoStack->push(new AddSegmentations(segmentationsList, sample, model, connections));
+        undoStack->endMacro();
+      }
 
       deactivateEventHandler();
-
-      m_executingTasks[filter].segmentation->setBeingModified(false);
 
       getSelection()->clear();
       getSelection()->set(toViewItemList(segmentations[1]));
@@ -366,9 +427,9 @@ void SplitTool::createSegmentations()
       auto msg = tr("Operation has NO effect. The defined plane does not split the selected segmentation into 2 segmentations.");
       
       DefaultDialogs::InformationMessage(msg);
-
-      return;
     }
+
+    m_executingTasks[filter].segmentation->setBeingModified(false);
   }
 
   m_executingTasks.remove(filter);
@@ -377,13 +438,14 @@ void SplitTool::createSegmentations()
 //------------------------------------------------------------------------
 bool SplitTool::acceptsNInputs(int n) const
 {
-  return n == 1;
+  return (n == 1);
 }
 
 //------------------------------------------------------------------------
 bool SplitTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return EditTool::acceptsVolumetricSegmentations(segmentations) && segmentations.size() == 1;
+  return (segmentations.size() == 1) &&
+         (EditTool::acceptsVolumetricSegmentations(segmentations) || EditTool::acceptsSkeletonSegmentations(segmentations));
 }
 
 //------------------------------------------------------------------------
@@ -398,7 +460,7 @@ void SplitTool::abortTasks()
 
     data.segmentation->setBeingModified(false);
 
-    if(!data.filter->thread()->wait(500))
+    if(data.filter->thread() && !data.filter->thread()->wait(500))
     {
       data.filter->thread()->terminate();
     }

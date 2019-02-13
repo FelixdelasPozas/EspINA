@@ -66,12 +66,6 @@ namespace ESPINA
        *
        */
       bool checkAnalysisValue() const;
-
-    private slots:
-      /** \brief Updates the UI when the state of the 'use default streaming settings' checkbox changes state.
-       *
-       */
-      void onSettingsUseStateChanged(int state);
   };
 
 } // namespace ESPINA

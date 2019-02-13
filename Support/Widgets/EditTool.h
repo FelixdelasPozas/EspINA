@@ -66,7 +66,13 @@ namespace ESPINA
            * \param[in] segmentations list of segmentations.
            *
            */
-          bool acceptsVolumetricSegmentations(SegmentationAdapterList segmentations);
+          const bool acceptsVolumetricSegmentations(const SegmentationAdapterList &segmentations) const;
+
+          /** \brief Returns true if the list of given segmentation have all skeleton data and false otherwise.
+           * \param[in] segmentations list of segmentations.
+           *
+           */
+          const bool acceptsSkeletonSegmentations(const SegmentationAdapterList &segmentations) const;
 
           /** \brief Marks the given segmentation as being currently modified.
            * \param[in] segmentation segmentation to mark.

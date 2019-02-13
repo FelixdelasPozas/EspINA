@@ -38,18 +38,6 @@ FullscreenTool::FullscreenTool(Support::Context &context, EspinaMainWindow &wind
 }
 
 //--------------------------------------------------------------------
-void FullscreenTool::saveSettings(std::shared_ptr<QSettings> settings)
-{
-  saveCheckedState(settings);
-}
-
-//--------------------------------------------------------------------
-void FullscreenTool::restoreSettings(std::shared_ptr<QSettings> settings)
-{
-  restoreCheckedState(settings);
-}
-
-//--------------------------------------------------------------------
 void FullscreenTool::onToggled(bool value)
 {
   if ((m_window.windowState() & Qt::WindowFullScreen))

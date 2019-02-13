@@ -106,6 +106,21 @@ namespace ESPINA
            */
           QColor maximumColor() const;
 
+          /** \brief Sets the color range to the full HUE range.
+           *
+           */
+          void setRangeToFullHUERange();
+
+          /** \brief Sets the color range to the lower half of the HUE range. Equivalent to truncated to 179.
+           *
+           */
+          void setRangeToHalfHUERange();
+
+          /** \brief Sets the range to hue from 0 to value.
+           *
+           */
+          void setRangeToTruncatedHUERange(const int value);
+
         signals:
           void valueRangeChanged();
           void colorRangeChanged();
@@ -125,7 +140,7 @@ namespace ESPINA
                                       const QColor &minColor,
                                       const QColor &maxColor) const = 0;
 
-        private:
+        protected:
           QColor m_minColor; /** color of the minimum range value. */
           QColor m_maxColor; /** color of the maximum range value. */
           double m_minValue; /** minimum value of the color range. */

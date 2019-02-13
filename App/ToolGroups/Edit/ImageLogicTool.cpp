@@ -19,15 +19,19 @@
 
 // ESPINA
 #include "ImageLogicTool.h"
-#include <Undo/RemoveSegmentations.h>
-#include <Undo/AddSegmentations.h>
-#include <GUI/Model/Utils/QueryAdapter.h>
 #include "EditToolGroup.h"
+#include <GUI/Model/Utils/QueryAdapter.h>
+#include <GUI/Model/Utils/ModelUtils.h>
+#include <GUI/Widgets/Styles.h>
+#include <Undo/AddSegmentations.h>
+#include <Undo/RemoveSegmentations.h>
 
 // Qt
 #include <QThread>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::Support::Widgets;
 
 //------------------------------------------------------------------------
@@ -55,13 +59,13 @@ void ImageLogicTool::setOperation(ImageLogicFilter::Operation operation)
 //------------------------------------------------------------------------
 bool ImageLogicTool::acceptsNInputs(int n) const
 {
-  return n > 1;
+  return (n > 1);
 }
 
 //------------------------------------------------------------------------
 bool ImageLogicTool::acceptsSelection(SegmentationAdapterList segmentations)
 {
-  return EditTool::acceptsVolumetricSegmentations(segmentations);
+  return (EditTool::acceptsVolumetricSegmentations(segmentations) || EditTool::acceptsSkeletonSegmentations(segmentations));
 }
 
 //------------------------------------------------------------------------
@@ -72,13 +76,14 @@ void ImageLogicTool::applyFilter()
   Q_ASSERT(segmentations.size() > 1);
 
   auto type        = EditionFilterFactory::ADDITION_FILTER;
-  auto description = tr("Segmentation addition");
+  auto description = tr("Segmentation addition.");
   auto remove      = true;
+  int  hue         = segmentations.first()->category()->color().hue();
 
   if (ImageLogicFilter::Operation::SUBTRACTION == m_operation)
   {
     type        = EditionFilterFactory::SUBTRACTION_FILTER;
-    description = tr("Segmentation subtraction");
+    description = tr("Segmentation subtraction.");
     remove      = m_removeOnSubtract;
   }
 
@@ -97,6 +102,7 @@ void ImageLogicTool::applyFilter()
   auto filter = getFactory()->createFilter<ImageLogicFilter>(inputs, type);
   filter->setOperation(m_operation);
   filter->setDescription(description);
+  filter->setNewSkeletonStrokesHue(hue);
 
   TaskContext taskContext;
 
@@ -130,17 +136,22 @@ void ImageLogicTool::onTaskFinished()
     auto segmentation = getFactory()->createSegmentation(taskContext.Task, 0);
 
     segmentation->setCategory(taskContext.Segmentations.first()->category());
+    segmentation->setNumber(firstUnusedSegmentationNumber(getModel()));
 
     auto samples = QueryAdapter::samples(taskContext.Segmentations.first());
 
-    undoStack->beginMacro(filter->description());
-    undoStack->push(new AddSegmentations(segmentation, samples, getModel()));
-
     SegmentationAdapterList segmentationList;
+    QString opSegmentations;
 
     for(auto item: taskContext.Segmentations)
     {
       item->setBeingModified(false);
+
+      if(item != taskContext.Segmentations.first())
+      {
+        opSegmentations += (item == taskContext.Segmentations.last() ? " and ": ", ");
+      }
+      opSegmentations += "'" + item->data().toString() + "'";
 
       if(!taskContext.Remove && (item != taskContext.Segmentations.first()))
       {
@@ -150,8 +161,20 @@ void ImageLogicTool::onTaskFinished()
       segmentationList << item;
     }
 
-    undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
-    undoStack->endMacro();
+    auto macroText = tr("Add segmentation '%1' from the %2 of %3.").arg(segmentation->data().toString())
+                     .arg(taskContext.Operation == ImageLogicFilter::Operation::SUBTRACTION ? "subtraction" : "addition")
+                     .arg(opSegmentations);
+
+    auto connections = operationConnections(segmentation, segmentationList, m_operation);
+
+    {
+      WaitingCursor cursor;
+
+      undoStack->beginMacro(macroText);
+      undoStack->push(new AddSegmentations(segmentation, samples, getModel(), connections));
+      undoStack->push(new RemoveSegmentations(segmentationList, getModel()));
+      undoStack->endMacro();
+    }
 
     getSelection()->clear();
     getSelection()->set(toViewItemList(segmentation.get()));
@@ -160,7 +183,7 @@ void ImageLogicTool::onTaskFinished()
   {
     for(auto item: m_executingTasks[filter].Segmentations)
     {
-      markAsBeingModified(item, false);
+      item->setBeingModified(false);
     }
   }
 
@@ -189,4 +212,64 @@ void ImageLogicTool::abortTasks()
   }
 
   m_executingTasks.clear();
+}
+
+//------------------------------------------------------------------------
+const ConnectionList ImageLogicTool::operationConnections(const SegmentationAdapterSPtr segmentation, const SegmentationAdapterList& segmentations, const ImageLogicFilter::Operation operation) const
+{
+  ConnectionList result;
+  auto it = segmentations.begin();
+  ++it;
+  std::function<void(const SegmentationAdapterPtr)> connectionOperation;
+
+  // TODO
+  switch(operation)
+  {
+    case ImageLogicFilter::Operation::ADDITION:
+      connectionOperation = [&result, segmentation, this](const SegmentationAdapterPtr otherSeg)
+      {
+        const auto connections = getModel()->connections(getModel()->smartPointer(otherSeg));
+        for(auto connection: connections)
+        {
+          if(connection.item1.get() == otherSeg) connection.item1 = segmentation;
+          if(connection.item2.get() == otherSeg) connection.item2 = segmentation;
+
+          if(!result.contains(connection)) result << connection;
+        }
+      };
+      break;
+    case ImageLogicFilter::Operation::SUBTRACTION:
+      {
+        auto first = segmentations.first();
+        const auto connections = getModel()->connections(getModel()->smartPointer(first));
+        for(auto connection: connections)
+        {
+          if(connection.item1.get() == first) connection.item1 = segmentation;
+          if(connection.item2.get() == first) connection.item2 = segmentation;
+
+          result << connection;
+        }
+
+        connectionOperation = [&result, segmentation, this](const SegmentationAdapterPtr otherSeg)
+        {
+          const auto connections = getModel()->connections(getModel()->smartPointer(otherSeg));
+          for(auto connection: connections)
+          {
+            if(connection.item1.get() == otherSeg) connection.item1 = segmentation;
+            if(connection.item2.get() == otherSeg) connection.item2 = segmentation;
+
+            if(result.contains(connection)) result.removeAll(connection);
+          }
+        };
+      }
+      break;
+    case ImageLogicFilter::Operation::NOSIGN:
+    default:
+      Q_ASSERT(false); // error
+      break;
+  }
+
+  std::for_each(segmentations.begin(), segmentations.end(), connectionOperation);
+
+  return result;
 }

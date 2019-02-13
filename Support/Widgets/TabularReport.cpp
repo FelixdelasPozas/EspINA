@@ -189,7 +189,7 @@ void TabularReport::reset()
 
   QAbstractItemView::reset();
 
-  if (m_model)
+  if (m_model && !m_model->isEmpty())
   {
     rowsInserted(m_model->segmentationRoot(), 0, model()->rowCount(m_model->segmentationRoot())-1);
 

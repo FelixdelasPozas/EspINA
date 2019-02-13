@@ -45,7 +45,7 @@ SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList SegmentationNotes::availableInformation() const
+const SegmentationExtension::InformationKeyList SegmentationNotes::availableInformation() const
 {
   InformationKeyList keys;
 
@@ -55,7 +55,7 @@ SegmentationExtension::InformationKeyList SegmentationNotes::availableInformatio
 }
 
 //------------------------------------------------------------------------
-QString SegmentationNotes::toolTipText() const
+const QString SegmentationNotes::toolTipText() const
 {
   const QString WS  = "&nbsp;"; // White space
   const QString TAB = WS+WS+WS;

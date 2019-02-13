@@ -50,7 +50,7 @@ int pipeline_single_filter_raw_fetch_behaviour_partial_data_valid_update( int ar
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "DummyChannelReader" << "SGS";

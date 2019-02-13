@@ -47,7 +47,7 @@ namespace ESPINA
      * \param[in] filename file name.
      *
      */
-    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT readPolyDataFromFile(QString fileName);
+    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT readPolyDataFromFile(const QString &fileName);
 
     /** \brief Scales the polydata given the ration in each coordinate.
      * \param[inout] polydata polydata smart pointer.

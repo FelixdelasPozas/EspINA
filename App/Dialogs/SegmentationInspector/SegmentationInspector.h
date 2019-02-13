@@ -55,8 +55,8 @@ namespace ESPINA
        * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
        * \param[in] context ESPINA context
        */
-      SegmentationInspector(SegmentationAdapterList         segmentations,
-                            Support::Context               &context);
+      SegmentationInspector(SegmentationAdapterList segmentations,
+                            Support::Context       &context);
 
       /** \brief SegmentationInspector class destructor.
        *
@@ -68,25 +68,25 @@ namespace ESPINA
        * \param[in] segmentation segmentation adapter raw pointer.
        *
        */
-      virtual void addSegmentation(SegmentationAdapterPtr segmentation);
+      void addSegmentation(SegmentationAdapterPtr segmentation);
 
       /** \brief Removes a segmentation from the dialog and disconnects signals.
        * \param[in] segmentation segmentation adapter raw pointer.
        *
        */
-      virtual void removeSegmentation(SegmentationAdapterPtr segmentation);
+      void removeSegmentation(SegmentationAdapterPtr segmentation);
 
       /** \brief Adds a channel to the dialog.
        * \param[in] channel channel adapter raw pointer.
        *
        */
-      virtual void addChannel(ChannelAdapterPtr channel);
+      void addChannel(ChannelAdapterPtr channel);
 
       /** \brief Removes a channel from the dialog.
        * \param[in] channel channel adapter raw pointer.
        *
        */
-      virtual void removeChannel(ChannelAdapterPtr channel);
+      void removeChannel(ChannelAdapterPtr channel);
 
       /** \brief Implments drag enter events in the dialog.
        * \param[in] event drag enter event raw pointer.
@@ -114,8 +114,10 @@ namespace ESPINA
 
     signals:
       void inspectorClosed(SegmentationInspector *inspector);
-
       void segmentationsUpdated();
+      void connectionAdded(Connection connection);
+      void connectionRemoved(Connection connection);
+      void aboutToBeReset();
 
     protected:
       virtual void showEvent(QShowEvent *event) override;
@@ -128,6 +130,18 @@ namespace ESPINA
        *
        */
       void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
+
+      /** \brief Emits a connection added signal if the given connection belongs to any shown segmentation.
+       * \param[in] connection Connection object.
+       *
+       */
+      void onConnectionAdded(Connection connection);
+
+      /** \brief Emits a connection removed signal if the given connection belongs to any shown segmentation.
+       * \param[in] connection Connection object.
+       *
+       */
+      void onConnectionRemoved(Connection connection);
 
     private:
       /** \brief Helper method to connect the QObject signals to its respective slots.
@@ -175,6 +189,11 @@ namespace ESPINA
        *
        */
       QHBoxLayout *createReportLayout();
+
+      /** \brief Helper method to emit the connections to the connection managers.
+       *
+       */
+      void emitConnectionSignals();
 
     private:
       SegmentationAdapterList m_segmentations;        /** list of segmentations in the view.                     */

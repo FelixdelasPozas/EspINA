@@ -47,7 +47,16 @@ namespace ESPINA
         /** \brief ColorBar class destructor.
          *
          */
-        ~ColorBar();
+        ~ColorBar()
+        {};
+
+        /** \brief Generates and returns a QImage of the given range with the given width and height.
+         * \param[in] range ColorRange object.
+         * \param[in] width Resulting pixmap width.
+         * \param[in] height Resulting pixmap height.
+         *
+         */
+        static QImage rangeImage(const Utils::ColorRange *, int width, int height);
 
       protected:
         void paintEvent(QPaintEvent *event) override;

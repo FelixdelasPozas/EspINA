@@ -235,14 +235,10 @@ void ROIWidget::updateCurrentSlice()
   if (hasSlice)
   {
     m_contour->SetInputData(image);
-    m_contour->SetUpdateExtent(image->GetExtent());
     m_contour->UpdateWholeExtent();
-    m_contour->Update();
 
     m_mapper->SetInputConnection(m_contour->GetOutputPort());
-    m_mapper->SetUpdateExtent(image->GetExtent());
     m_mapper->UpdateWholeExtent();
-    m_mapper->Update();
   }
 
   m_actor->SetVisibility(hasSlice && m_active);

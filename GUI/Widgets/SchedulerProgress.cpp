@@ -31,6 +31,8 @@
 #include <QProgressBar>
 #include <QLabel>
 #include <QScrollBar>
+#include <QDebug>
+#include <QWidget>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -56,6 +58,7 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
   setMaximumWidth(m_width+15);
 
   m_notification->setLayout(new QVBoxLayout(m_notification));
+  m_notification->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
   m_notification->setMinimumWidth(m_width);
   m_notification->setMaximumWidth(m_width);
 
@@ -77,6 +80,8 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
           this, SLOT(onTaskRemoved(TaskSPtr)), Qt::QueuedConnection);
   connect(m_showTasks, SIGNAL(toggled(bool)),
           this, SLOT(showTaskProgress(bool)));
+  connect(m_stopTasks, SIGNAL(pressed()),
+          this, SLOT(abortAllTasks()));
 }
 
 //------------------------------------------------------------------------
@@ -155,9 +160,10 @@ void SchedulerProgress::showTaskProgress(bool visible)
   if (visible && !m_tasks.isEmpty())
   {
     m_notificationArea->show();
-    updateNotificationWidget();
     m_showTasks->setIcon(QIcon(":/espina/down.svg"));
-  } else
+    updateNotificationWidget();
+  }
+  else
   {
     m_notificationArea->hide();
     m_showTasks->setIcon(QIcon(":/espina/up.svg"));
@@ -174,7 +180,7 @@ void SchedulerProgress::updateProgress()
 
   if(hasTasks)
   {
-    for(TaskProgressSPtr task : m_tasks)
+    for(auto task : m_tasks.keys())
     {
       total += task->progress();
     }
@@ -204,12 +210,20 @@ void SchedulerProgress::updateNotificationWidget()
 {
   m_notification->adjustSize();
 
-  auto wHeight = m_notification->height();
+  auto size = m_notification->size();
 
-  if (wHeight <= m_notificationArea->height())
+  if(!size.isValid())
   {
-    m_notificationArea->setMaximumHeight(wHeight);
-    m_notificationArea->setMinimumHeight(wHeight);
+    m_notificationArea->hide();
+    m_showTasks->setChecked(false);
+    m_showTasks->setIcon(QIcon(":/espina/up.svg"));
+    return;
+  }
+
+  if (size.height() <= m_notificationArea->height())
+  {
+    m_notificationArea->setMaximumHeight(size.height());
+    m_notificationArea->setMinimumHeight(size.height());
     m_notificationArea->verticalScrollBar()->hide();
   }
   else
@@ -224,4 +238,15 @@ void SchedulerProgress::updateNotificationWidget()
   int yShift = -m_notificationArea->height();
 
   m_notificationArea->move(mapToGlobal(m_showTasks->pos()+QPoint(xShift, yShift)));
+}
+
+//------------------------------------------------------------------------
+void SchedulerProgress::abortAllTasks()
+{
+  QMutexLocker lock(&m_mutex);
+
+  for(auto widget: m_tasks.values())
+  {
+    widget->onCancel();
+  }
 }

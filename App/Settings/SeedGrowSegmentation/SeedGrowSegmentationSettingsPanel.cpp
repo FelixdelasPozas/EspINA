@@ -83,15 +83,8 @@ void SeedGrowSegmentationsSettingsPanel::acceptChanges()
   }
 
   m_settings->setApplyCategoryROI(m_applyCategoryROI->isChecked());
-
-  if (m_applyClosing->isChecked())
-  {
-    m_settings->setCloseRadius(m_closing->value());
-  }
-  else
-  {
-    m_settings->setCloseRadius(0);
-  }
+  m_settings->setApplyClose(m_applyClosing->isChecked());
+  m_settings->setCloseRadius(m_closing->value());
 }
 
 //------------------------------------------------------------------------
@@ -112,7 +105,7 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
   returnValue |= (m_applyCategoryROI->isChecked() != m_settings->applyCategoryROI());
   returnValue |= (m_pixelSelector->value()        != m_settings->bestPixelValue());
   returnValue |= (m_applyClosing->isChecked()     != m_settings->applyClose());
-  returnValue |= (m_applyClosing->isChecked() ? (m_closing->value() != m_settings->closeRadius()) : returnValue);
+  returnValue |= (m_closing->value()              != m_settings->closeRadius());
 
   return returnValue;
 }

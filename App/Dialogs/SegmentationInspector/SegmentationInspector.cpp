@@ -27,6 +27,7 @@
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/View/ViewState.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Representations/Managers/ConnectionsManager.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <Support/Representations/RepresentationUtils.h>
 #include <Support/Settings/Settings.h>
@@ -71,10 +72,7 @@ SegmentationInspector::SegmentationInspector(SegmentationAdapterList        segm
 
   connectSignals();
 
-  for(auto segmentation : segmentations)
-  {
-    addSegmentation(segmentation);
-  }
+  std::for_each(segmentations.constBegin(), segmentations.constEnd(), [this](const SegmentationAdapterPtr segmentation) { addSegmentation(segmentation); });
 
   initView3D(context.availableRepresentations());
 
@@ -104,6 +102,11 @@ void SegmentationInspector::addSegmentation(SegmentationAdapterPtr segmentation)
   {
     m_segmentations << segmentation;
     
+    for(auto connection: getModel()->connections(getModel()->smartPointer(segmentation)))
+    {
+      emit connectionAdded(connection);
+    }
+
     auto frame = getViewState().createFrame();
     m_segmentationSources.addSource(toViewItemList(segmentation), frame);
 
@@ -130,16 +133,17 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
 {
   if (!m_segmentations.contains(segmentation)) return;
 
+  for(auto connection: getModel()->connections(getModel()->smartPointer(segmentation)))
+  {
+    emit connectionRemoved(connection);
+  }
+
   auto frame = getViewState().createFrame();
   m_segmentationSources.removeSource(toViewItemList(segmentation), frame);
 
   m_segmentations.removeOne(segmentation);
 
-  if (m_segmentations.size() == 0)
-  {
-    close();
-    return;
-  }
+  if (m_segmentations.isEmpty()) return;
 
   auto channels = QueryAdapter::channels(segmentation);
 
@@ -153,24 +157,23 @@ void SegmentationInspector::removeSegmentation(SegmentationAdapterPtr segmentati
     {
       // if there aren't any other segmentations that uses
       // this channel. we must remove it
-      auto channelToBeChecked = channels.first();
+      auto stackToBeChecked = channels.first();
 
       bool stillUsed = false;
-      for(auto remainingSegmenation : m_segmentations)
+      int i = 0;
+
+      while(i < m_segmentations.size() && !stillUsed)
       {
-        auto remainingChannels = QueryAdapter::channels(remainingSegmenation);
-        for (auto remainingChannel : remainingChannels)
-        {
-          if (remainingChannel == channelToBeChecked)
-          {
-            stillUsed = true;
-          }
-        }
+        auto remainingSegmentation = m_segmentations.at(i);
+        auto remainingStacks = QueryAdapter::channels(remainingSegmentation);
+        auto equalOp = [stackToBeChecked](const ChannelAdapterSPtr stack) { return (stack.get() == stackToBeChecked.get()); };
+
+        stillUsed = std::any_of(remainingStacks.constBegin(), remainingStacks.constEnd(), equalOp);
       }
 
       if (!stillUsed)
       {
-        removeChannel(channelToBeChecked.get());
+        removeChannel(stackToBeChecked.get());
       }
     }
   }
@@ -255,6 +258,8 @@ void SegmentationInspector::updateWindowTitle()
 void SegmentationInspector::showEvent(QShowEvent *event)
 {
   QWidget::showEvent(event);
+
+  emitConnectionSignals();
 
   m_tabularReport.updateSelection(getSelectedSegmentations());
 }
@@ -420,9 +425,15 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
     {
       m_view.addRepresentationManager(manager);
 
+      if(manager->name() == "DisplayConnections")
+      {
+        auto conManager = std::dynamic_pointer_cast<ConnectionsManager>(manager);
+        if(conManager) conManager->setConnectionsObject(this);
+      }
+
       for(auto pool: manager->pools())
       {
-        if (isChannelRepresentation(representation))
+        if (isStackRepresentation(representation))
         {
           pool->setPipelineSources(&m_channelSources);
         }
@@ -442,7 +453,7 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 
   for(auto repSwitch: switches)
   {
-    for (auto action : repSwitch->actions())
+    for(auto action: repSwitch->actions())
     {
       m_toolbar->addAction(action);
     }
@@ -452,9 +463,6 @@ void SegmentationInspector::initView3D(RepresentationFactorySList representation
 //------------------------------------------------------------------------
 void SegmentationInspector::initReport()
 {
-  SegmentationExtension::KeyList tags;
-  tags << tr("Name") << tr("Category");
-
   m_tabularReport.setFilter(m_segmentations);
   m_tabularReport.setModel(getModel());
   m_tabularReport.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -493,8 +501,32 @@ void SegmentationInspector::saveGeometryState()
 //------------------------------------------------------------------------
 void SegmentationInspector::connectSignals()
 {
-  connect(getContext().model().get(), SIGNAL(segmentationsAboutToBeRemoved(ViewItemAdapterSList)),
-          this,                       SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
+  connect(getModel().get(), SIGNAL(segmentationsAboutToBeRemoved(ViewItemAdapterSList)),
+          this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
+
+  connect(getModel().get(), SIGNAL(connectionAdded(Connection)),
+          this,             SLOT(onConnectionAdded(Connection)));
+
+  connect(getModel().get(), SIGNAL(connectionRemoved(Connection)),
+          this,             SLOT(onConnectionRemoved(Connection)));
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::onConnectionAdded(Connection connection)
+{
+  if(m_segmentations.contains(connection.item1.get()) || m_segmentations.contains(connection.item2.get()))
+  {
+    emit connectionAdded(connection);
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::onConnectionRemoved(Connection connection)
+{
+  if(m_segmentations.contains(connection.item1.get()) || m_segmentations.contains(connection.item2.get()))
+  {
+    emit connectionRemoved(connection);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -509,16 +541,33 @@ void SegmentationInspector::onSegmentationsRemoved(ViewItemAdapterSList segmenta
     {
       removeSegmentation(segPtr);
 
-      if(m_segmentations.isEmpty()) return; // Wait for the close event
+      if(m_segmentations.isEmpty())
+      {
+        close();
+        return;
+      }
     }
   }
 
   if(m_segmentations.size() != segmentationsNum)
   {
-    m_view.refresh();
+    emit segmentationsUpdated();
 
     updateWindowTitle();
 
-    emit segmentationsUpdated();
+    m_view.refresh();
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::emitConnectionSignals()
+{
+  for(auto segmentation: m_segmentations)
+  {
+    auto segSPtr = getModel()->smartPointer(segmentation);
+    for(auto connection: getModel()->connections(segSPtr))
+    {
+      emit connectionAdded(connection);
+    }
   }
 }

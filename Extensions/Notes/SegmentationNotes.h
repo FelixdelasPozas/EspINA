@@ -71,7 +71,7 @@ namespace ESPINA
       virtual Snapshot snapshot() const override
       { return Snapshot(); }
 
-      virtual TypeList dependencies() const override
+      virtual const TypeList dependencies() const override
       { return TypeList(); }
 
       virtual bool validCategory(const QString& classification) const
@@ -80,9 +80,9 @@ namespace ESPINA
       virtual bool validData(const OutputSPtr output) const
       { return true; }
 
-      virtual InformationKeyList availableInformation() const override;
+      virtual const InformationKeyList availableInformation() const override;
 
-      virtual QString toolTipText() const override;
+      virtual const QString toolTipText() const override;
 
       /** \brief Sets the notes.
        *

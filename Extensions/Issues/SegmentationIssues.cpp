@@ -1,29 +1,21 @@
 /*
-    Copyright (c) 2015, Jorge Peña Pastor <jpena@cesvima.upm.es>
-    All rights reserved.
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-        * Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
-        * Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
-        * Neither the name of the <organization> nor the
-        names of its contributors may be used to endorse or promote products
-        derived from this software without specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
-    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL Jorge Peña Pastor <jpena@cesvima.upm.es> BE LIABLE FOR ANY
-    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-    ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * <one line to give the program's name and a brief idea of what it does.>
+ * Copyright (C) 2015  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
 // ESPINA
 #include "SegmentationIssues.h"
@@ -47,7 +39,7 @@ SegmentationIssues::SegmentationIssues(const InfoCache& infoCache)
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InformationKeyList SegmentationIssues::availableInformation() const
+const SegmentationExtension::InformationKeyList SegmentationIssues::availableInformation() const
 {
   InformationKeyList keys;
 
@@ -57,20 +49,18 @@ SegmentationExtension::InformationKeyList SegmentationIssues::availableInformati
 }
 
 //------------------------------------------------------------------------
-QString SegmentationIssues::toolTipText() const
+const QString SegmentationIssues::toolTipText() const
 {
-  const QString WS  = "&nbsp;"; // White space
-  const QString TAB = WS+WS+WS;
-
   QString toolTip;
 
-  for (auto issue : m_issues)
+  auto operation = [&toolTip](const IssueSPtr issue)
   {
     auto report = QString("<b>%1</b><br>(%2)").arg(issue->description())
-                                             .arg(issue->suggestion());
+                                              .arg(issue->suggestion());
 
     toolTip += createTable(severityIcon(issue->severity()), report);
-  }
+  };
+  std::for_each(m_issues.constBegin(), m_issues.constEnd(), operation);
 
   return toolTip;
 }
@@ -87,13 +77,8 @@ Issue::Severity SegmentationIssues::highestSeverity() const
 {
   Issue::Severity highest = Issue::Severity::NONE;
 
-  for (auto issue : m_issues)
-  {
-    if (issue->severity() > highest)
-    {
-      highest = issue->severity();
-    }
-  }
+  auto operation = [&highest](const IssueSPtr issue) { if(issue->severity() > highest) highest = issue->severity(); };
+  std::for_each(m_issues.constBegin(), m_issues.constEnd(), operation);
 
   return highest;
 }
@@ -103,8 +88,8 @@ QString SegmentationIssues::severityIcon(const Issue::Severity severity, bool sl
 {
   QString icon(":/espina/warning%1%2.svg");
 
-  auto critical = severity == Issue::Severity::CRITICAL?"_critical":"";
-  auto size     = slim? "_slim":"";
+  auto critical = severity == Issue::Severity::CRITICAL ? "_critical" : "";
+  auto size     = slim ? "_slim" : "";
 
   return icon.arg(critical, size);
 }
@@ -118,11 +103,11 @@ QVariant SegmentationIssues::cacheFail(const InformationKey& key) const
   }
   else if (key == WARNING)
   {
-    return std::count_if(m_issues.begin(), m_issues.end(), [](IssueSPtr issue){return issue->severity() == Issue::Severity::WARNING;});
+    return std::count_if(m_issues.constBegin(), m_issues.constEnd(), [](IssueSPtr issue){return issue->severity() == Issue::Severity::WARNING;});
   }
   else if (key == CRITICAL)
   {
-    return std::count_if(m_issues.begin(), m_issues.end(), [](IssueSPtr issue){return issue->severity() == Issue::Severity::CRITICAL;});
+    return std::count_if(m_issues.constBegin(), m_issues.constEnd(), [](IssueSPtr issue){return issue->severity() == Issue::Severity::CRITICAL;});
   }
 
   return QVariant();

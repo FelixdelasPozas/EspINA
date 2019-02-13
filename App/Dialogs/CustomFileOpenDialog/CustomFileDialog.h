@@ -22,6 +22,9 @@
 #ifndef GUI_DIALOGS_CUSTOMFILEDIALOG_H_
 #define GUI_DIALOGS_CUSTOMFILEDIALOG_H_
 
+// ESPINA
+#include <Core/Factory/AnalysisReader.h>
+
 // Qt
 #include <QFileDialog>
 #include <QMap>
@@ -64,7 +67,7 @@ namespace ESPINA
       /** \brief Returns the values of the options in the panel options.
        *
        */
-      QMap<QString, QVariant> options() const;
+      const IO::LoadOptions options() const;
 
     protected:
       virtual void resizeEvent(QResizeEvent *event) override;

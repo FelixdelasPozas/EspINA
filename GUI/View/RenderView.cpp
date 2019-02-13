@@ -32,7 +32,7 @@
 #include <GUI/Representations/Frame.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
-#include <GUI/Dialogs/ImageResolutionDialog.h>
+#include <GUI/Dialogs/ImageResolutionDialog/ImageResolutionDialog.h>
 
 // VTK
 #include <vtkMath.h>
@@ -90,6 +90,8 @@ RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
 RenderView::~RenderView()
 {
   disconnect();
+
+  shutdownAndRemoveManagers();
 
   delete m_view;
 }
@@ -416,14 +418,15 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
 //-----------------------------------------------------------------------------
 Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
-  // NOTE: segmentations must have higher priority than stacks.
   Selector::Selection pickedItems;
+
+  // NOTE: segmentations must have higher priority than stacks.
   if(flags.testFlag(Selector::SEGMENTATION))
   {
     pickedItems = pickImplementation(Selector::SEGMENTATION, x, y, multiselection);
-  }
 
-  if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+    if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+  }
 
   if(flags.testFlag(Selector::CHANNEL) || flags.testFlag(Selector::SAMPLE))
   {
@@ -511,6 +514,9 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototy
 
       manager->hide(frame);
 
+      m_inactiveManagers.insert(prototypes, manager);
+      m_temporalManagers.remove(prototypes);
+
       //NOTE: managers should be removed from m_temporalManagers after processing render
       //      request of so they can hide its representations
     }
@@ -524,11 +530,11 @@ void RenderView::onWidgetsRemoved(TemporalPrototypesSPtr                 prototy
 //-----------------------------------------------------------------------------
 void RenderView::onRenderRequest()
 {
-//  auto senderObj = dynamic_cast<RepresentationManager *>(sender());
+  // auto senderObj = dynamic_cast<RepresentationManager *>(sender());
   auto managers = pendingManagers();
   auto frame = latestReadyFrame(managers);
 
-//   qDebug() << viewName() << "onRenderRequest---------------------------" << (senderObj ? senderObj->name() : "none") << "frame" << frame->time << "last frame" << m_latestFrame->time;
+  // qDebug() << viewName() << "onRenderRequest---------------------------" << (senderObj ? senderObj->name() : "none") << "frame" << frame->time << "last frame" << m_latestFrame->time;
   if (isValid(frame) && m_latestFrame->time < frame->time)
   {
     renderFrame(frame, managers);
@@ -545,13 +551,13 @@ void RenderView::onRenderRequest()
   }
 
   m_view->update();
-//   qDebug() << "------------------------------------------";
+  // qDebug() << "------------------------------------------";
 }
 
 //-----------------------------------------------------------------------------
 void RenderView::renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers)
 {
-//   qDebug() << "display" << frame->time;
+  // qDebug() << "display" << frame->time;
   display(managers, frame->time);
 
   deleteInactiveWidgetManagers();
@@ -718,19 +724,14 @@ RepresentationManager::ManagerFlags RenderView::managerFlags() const
 //-----------------------------------------------------------------------------
 void RenderView::deleteInactiveWidgetManagers()
 {
-  auto factories = m_temporalManagers.keys();
-
-  for (auto factory : factories)
+  for (auto factory : m_inactiveManagers.keys())
   {
-    if (!m_temporalManagers[factory]->isActive())
-    {
-      auto manager = m_temporalManagers[factory];
+    auto manager = m_inactiveManagers[factory];
 
-      removeRepresentationManager(manager);
-
-      m_temporalManagers.remove(factory);
-    }
+    removeRepresentationManager(manager);
   }
+
+  m_inactiveManagers.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -795,4 +796,34 @@ void RenderView::keyPressEvent(QKeyEvent* event)
 void RenderView::keyReleaseEvent(QKeyEvent* event)
 {
   if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::resizeEvent(QResizeEvent *event)
+{
+  QWidget::resizeEvent(event);
+
+  emit viewResized(size());
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::shutdownAndRemoveManagers()
+{
+  for(auto manager: m_managers)
+  {
+    manager->shutdown();
+  }
+  m_managers.clear();
+
+  for(auto manager: m_temporalManagers)
+  {
+    manager->shutdown();
+  }
+  m_temporalManagers.clear();
+
+  for(auto manager: m_inactiveManagers)
+  {
+    manager->shutdown();
+  }
+  m_inactiveManagers.clear();
 }

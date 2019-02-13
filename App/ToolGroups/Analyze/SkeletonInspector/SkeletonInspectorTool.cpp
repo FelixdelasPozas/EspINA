@@ -23,8 +23,11 @@
 #include <App/Dialogs/SkeletonInspector/SkeletonInspector.h>
 #include <App/ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.h>
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+
 
 using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //--------------------------------------------------------------------
 SkeletonInspectorTool::SkeletonInspectorTool(Support::Context& context)
@@ -38,6 +41,18 @@ SkeletonInspectorTool::SkeletonInspectorTool(Support::Context& context)
 //--------------------------------------------------------------------
 void SkeletonInspectorTool::onPressed(bool unused)
 {
+  auto segmentations = getSelection()->segmentations();
+  if(segmentations.size() != 1) return;
+
+  if(segmentations.first()->isBeingModified())
+  {
+    auto title   = tr("Skeleton Inspector");
+    auto message = tr("Cannot inspect '%1' because is being edited by another tool.").arg(segmentations.first()->data().toString());
+    DefaultDialogs::InformationMessage(message, title);
+
+    return;
+  }
+
   auto dialog = new SkeletonInspector(getContext());
   dialog->setAttribute(Qt::WA_DeleteOnClose, true);
   dialog->exec();
@@ -46,11 +61,19 @@ void SkeletonInspectorTool::onPressed(bool unused)
 //--------------------------------------------------------------------
 void SkeletonInspectorTool::onSelectionChanged(SegmentationAdapterList selectedSegs)
 {
-  auto enabled = selectedSegs.size() == 1 && hasSkeletonData(selectedSegs.first()->output());
+  auto enabled = (selectedSegs.size() == 1) && hasSkeletonData(selectedSegs.first()->output());
 
   if(enabled)
   {
-    setToolTip(tr("Inspect %1").arg(selectedSegs.first()->data().toString()));
+    if(selectedSegs.first()->isBeingModified())
+    {
+      setToolTip(tr("Cannot inspect '%1' because is being edited by another tool.").arg(selectedSegs.first()->data().toString()));
+      enabled = false;
+    }
+    else
+    {
+      setToolTip(tr("Inspect '%1'").arg(selectedSegs.first()->data().toString()));
+    }
   }
   else
   {

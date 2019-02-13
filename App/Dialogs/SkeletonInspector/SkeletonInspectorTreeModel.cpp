@@ -20,6 +20,8 @@
  */
 
 // ESPINA
+#include <Core/Utils/ListUtils.hxx>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/CategoryAdapter.h>
 #include <Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h>
@@ -28,18 +30,36 @@
 #include <vtkActor.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
+//--------------------------------------------------------------------
+SkeletonInspectorTreeModel::SkeletonInspectorTreeModel(const SegmentationAdapterSPtr segmentation,
+                                                       ModelAdapterSPtr              model,
+                                                       QList<struct StrokeInfo>     &strokes,
+                                                       QObject                      *parent)
+: QAbstractItemModel {parent}
+, m_StrokesTree      {nullptr}
+, m_ConnectTree      {nullptr}
+, m_segmentation     {segmentation}
+, m_model            {model}
+, m_strokes          (strokes)
+, m_useRandomColoring{false}
+, m_connectionLevel  {0}
+{
+  computeStrokesTree();
+
+  computeConnectionDistances(2);
+}
 
 //--------------------------------------------------------------------
-SkeletonInspectorTreeModel::SkeletonInspectorTreeModel(const SegmentationAdapterSPtr   segmentation,
-                                                       const SegmentationAdapterList  &segmentations,
-                                                       const QList<struct StrokeInfo> &strokes,
-                                                       QObject                        *parent)
-: QAbstractItemModel{parent}
-, m_segmentation    {segmentation}
-, m_connections     (segmentations)
-, m_strokes         (strokes)
+SkeletonInspectorTreeModel::~SkeletonInspectorTreeModel()
 {
-}
+  if(m_StrokesTree) delete m_StrokesTree;
+  if(m_ConnectTree) delete m_ConnectTree;
+
+  m_definition.clear();
+};
 
 //--------------------------------------------------------------------
 QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) const
@@ -55,24 +75,28 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
           if(index.row() == 0)
           {
             double length = 0;
-            for(auto stroke: m_strokes) if(stroke.used) length += stroke.length;
+            auto strokeSumLengthOp = [&length](const StrokeInfo &stroke) { if(stroke.used) length += stroke.length; };
+            std::for_each(m_strokes.constBegin(), m_strokes.constEnd(), strokeSumLengthOp);
+
             return tr("%1 (%2 nm)").arg(m_segmentation->data().toString()).arg(length);
           }
           else
           {
-            return tr("Connections");
+            return tr("Connections at distance %1").arg(m_connectionLevel);
           }
         }
         else
         {
-          if(index.parent().row() == 0)
+          auto node = dataNode(index);
+          if(node->type == TreeNode::Type::SEGMENTATION)
           {
-            auto stroke = m_strokes.at(index.row());
-            return tr("%1 (%2 nm)").arg(stroke.name).arg(stroke.length);
+            auto segmentation = node->connection();
+            return segmentation->data().toString();
           }
           else
           {
-            return m_connections.at(index.row())->data(role);
+            auto stroke = node->stroke();
+            return stroke->name;
           }
         }
       }
@@ -95,16 +119,20 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
         }
         else
         {
-          if(index.parent().row() == 0)
+          auto node = dataNode(index);
+          if(node->type == TreeNode::Type::SEGMENTATION)
           {
-            QPixmap icon(3, 16);
-            icon.fill(QColor::fromHsv(m_strokes.at(index.row()).hue, 255, 255));
-
-            return icon;
+            auto segmentation = node->connection();
+            return segmentation->data(role);
           }
           else
           {
-            return m_connections.at(index.row())->data(role);
+            auto stroke = node->stroke();
+            QPixmap icon(3, 16);
+            auto hue = m_useRandomColoring ? stroke->randomHue : stroke->hue;
+            icon.fill(QColor::fromHsv(hue, 255, 255));
+
+            return icon;
           }
         }
       }
@@ -125,14 +153,16 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
         }
         else
         {
-          if(index.parent().row() == 0)
+          auto node = dataNode(index);
+          if(node->type == TreeNode::Type::SEGMENTATION)
           {
-            auto stroke = m_strokes.at(index.row());
-            return tr("%1 (%2 nm)").arg(stroke.name).arg(stroke.length);
+            auto segmentation = node->connection();
+            return segmentation->data(role);
           }
           else
           {
-            return m_connections.at(index.row())->data(role);
+            auto stroke = node->stroke();
+            return tr("%1 (%2 nm)").arg(stroke->name).arg(stroke->length);
           }
         }
       }
@@ -141,38 +171,36 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
       {
         if(!index.parent().isValid())
         {
-          int count = 0;
-          if(index.row() == 0)
+          switch(index.row())
           {
-            for(auto stroke: m_strokes)
-            {
-              if(stroke.actor->GetVisibility()) ++count;
-            }
-
-            if(count == m_strokes.size()) return Qt::Checked;
-          }
-          else
-          {
-            for(auto segmentation: m_connections)
-            {
-              if(segmentation->isVisible()) ++count;
-            }
-
-            if(count == m_connections.size()) return Qt::Checked;
+            case 0:
+              {
+                auto strokeIsVisible = [](const struct StrokeInfo &stroke) { if(stroke.actors.first()->GetVisibility()) return true; else return false; };
+                auto count = std::count_if(m_strokes.constBegin(), m_strokes.constEnd(), strokeIsVisible);
+                if(count == 0) return Qt::Unchecked;
+              }
+              break;
+            case 1:
+            default:
+              return (getVisibility(m_ConnectTree) ? Qt::Checked : Qt::Unchecked);
+              break;
           }
 
-          if(count == 0) return Qt::Unchecked;
-          return Qt::PartiallyChecked;
+          return Qt::Checked;
         }
         else
         {
-          if(index.parent().row() == 0)
+          auto node = dataNode(index);
+          if(node->type == TreeNode::Type::SEGMENTATION)
           {
-            return (m_strokes.at(index.row()).actor->GetVisibility() ? Qt::Checked : Qt::Unchecked);
+            auto segmentation = node->connection();
+            return segmentation->data(role);
           }
           else
           {
-            return m_connections.at(index.row())->data(role);
+            auto stroke = node->stroke();
+            if(stroke->actors.first()->GetVisibility()) return Qt::Checked;
+            return Qt::Unchecked;
           }
         }
       }
@@ -187,10 +215,7 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
 //--------------------------------------------------------------------
 Qt::ItemFlags SkeletonInspectorTreeModel::flags(const QModelIndex& index) const
 {
-  if(!index.isValid() || (index.parent().isValid() && index.parent().internalPointer() != nullptr))
-  {
-    return Qt::ItemFlags();
-  }
+  if(!index.isValid()) return Qt::ItemFlags();
 
   return (Qt::ItemIsSelectable|Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 }
@@ -208,21 +233,20 @@ QModelIndex SkeletonInspectorTreeModel::index(int row, int column, const QModelI
 
   if(!parent.isValid())
   {
-    return createIndex(row, column, nullptr);
+    switch(row)
+    {
+      case 0:
+        return createIndex(0, 0, m_StrokesTree);
+        break;
+      default:
+        return createIndex(1, 0, m_ConnectTree);
+        break;
+    }
   }
   else
   {
-    if(parent.internalPointer() != nullptr) return QModelIndex();
-
-    if(parent.row() == 0)
-    {
-      auto ptr = const_cast<struct StrokeInfo *>(&m_strokes.at(row));
-      return createIndex(row, column, reinterpret_cast<void *>(ptr));
-    }
-    else
-    {
-      return createIndex(row, column, m_connections.at(row));
-    }
+    auto node = dataNode(parent);
+    return createIndex(row, column, node->children.at(row));
   }
 
   return QModelIndex();
@@ -231,15 +255,31 @@ QModelIndex SkeletonInspectorTreeModel::index(int row, int column, const QModelI
 //--------------------------------------------------------------------
 QModelIndex SkeletonInspectorTreeModel::parent(const QModelIndex& index) const
 {
-  if (!index.isValid() || index.internalPointer() == nullptr) return QModelIndex();
+  if (!index.isValid()) return QModelIndex();
 
-  if(reinterpret_cast<struct StrokeInfo*>(index.internalPointer()) == &m_strokes.at(index.row()))
+  auto node = dataNode(index);
+  if(!node->parent)
   {
-    return createIndex(0,0,nullptr);
+    Q_ASSERT(node->type == TreeNode::Type::ROOT);
+    return QModelIndex();
   }
-  else
+
+  if(node->parent->type == TreeNode::Type::ROOT)
   {
-    return createIndex(1,0,nullptr);
+    if(node->type == TreeNode::Type::STROKE)
+    {
+      return createIndex(0,0, m_StrokesTree);
+    }
+    else
+    {
+      return createIndex(1,0, m_ConnectTree);
+    }
+  }
+
+  auto grandParent = node->parent->parent;
+  if(grandParent)
+  {
+    return createIndex(grandParent->children.indexOf(node->parent), 0, node->parent);
   }
 
   return QModelIndex();
@@ -248,21 +288,10 @@ QModelIndex SkeletonInspectorTreeModel::parent(const QModelIndex& index) const
 //--------------------------------------------------------------------
 int SkeletonInspectorTreeModel::rowCount(const QModelIndex& parent) const
 {
-  if (parent.isValid())
+  if(parent.isValid())
   {
-    if(parent.internalPointer() != nullptr) return 0;
-
-    switch(parent.row())
-    {
-      case 0:
-        return m_strokes.size();
-        break;
-      case 1:
-        return m_connections.size();
-        break;
-      default:
-        break;
-    }
+    auto node = dataNode(parent);
+    return node->children.size();
   }
 
   return 2; // root->rowCount();
@@ -271,9 +300,13 @@ int SkeletonInspectorTreeModel::rowCount(const QModelIndex& parent) const
 //--------------------------------------------------------------------
 int SkeletonInspectorTreeModel::columnCount(const QModelIndex& parent) const
 {
-  if(parent.internalPointer() != nullptr) return 0;
+  if(parent.isValid())
+  {
+    auto node = dataNode(parent);
+    return (node->children.isEmpty() ? 0 : 1);
+  }
 
-  return 1;
+  return 1; // root->columnCount();
 }
 
 //--------------------------------------------------------------------
@@ -283,51 +316,255 @@ bool SkeletonInspectorTreeModel::setData(const QModelIndex& modelIndex, const QV
 
   auto state = value.toBool();
 
-  ViewItemAdapterList toInvalidate;
+  SegmentationAdapterList modified;
 
   if(!modelIndex.parent().isValid())
   {
+    emit layoutAboutToBeChanged();
     switch(modelIndex.row())
     {
       case 0:
-        for(auto stroke: m_strokes)
-        {
-          stroke.actor->SetVisibility(state == true);
-          auto newIndex = index(m_strokes.indexOf(stroke),0, modelIndex);
-          emit dataChanged(newIndex, newIndex);
-        }
-        toInvalidate << m_segmentation.get();
+        modified << setVisibility(m_StrokesTree, state);
         break;
       default:
-        for(auto connection: m_connections)
-        {
-          connection->setData(value, role);
-          auto newIndex = index(m_connections.indexOf(connection),0, modelIndex);
-          emit dataChanged(newIndex, newIndex);
-          toInvalidate << connection;
-        }
+        modified << setVisibility(m_ConnectTree, state);
         break;
     }
-    emit dataChanged(modelIndex, modelIndex);
+    emit layoutChanged();
   }
   else
   {
-    switch(modelIndex.parent().row())
+    auto node = dataNode(modelIndex);
+
+    if(node->type == TreeNode::Type::SEGMENTATION)
     {
-      case 0:
-        m_strokes.at(modelIndex.row()).actor->SetVisibility(state == true);
-        toInvalidate << m_segmentation.get();
-        break;
-      default:
-        m_connections.at(modelIndex.row())->setData(value, role);
-        toInvalidate << m_connections.at(modelIndex.row());
-        break;
+      auto segmentation = node->connection();
+      segmentation->setData(value, role);
+      modified << segmentation;
+
+      auto connectionsIndex = createIndex(1,0,m_ConnectTree);
+      emit dataChanged(connectionsIndex, connectionsIndex);
+    }
+    else
+    {
+      auto stroke = node->stroke();
+      for(auto actor: stroke->actors) actor->SetVisibility(state);
+      modified << m_segmentation.get();
     }
     emit dataChanged(modelIndex, modelIndex);
-    emit dataChanged(modelIndex.parent(), modelIndex.parent());
+  }
+
+  ViewItemAdapterList toInvalidate;
+  for(auto segmentation: modified)
+  {
+    if(toInvalidate.contains(segmentation)) continue;
+
+    toInvalidate << segmentation;
   }
 
   emit invalidate(toInvalidate);
 
   return true;
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspectorTreeModel::computeConnectionDistances(int distance)
+{
+  emit beginResetModel();
+
+  if(m_ConnectTree)
+  {
+    delete m_ConnectTree;
+  }
+
+  m_connectionLevel = distance;
+
+  SegmentationAdapterList shown;
+  shown << m_segmentation.get();
+
+  std::function<void(TreeNode*,int)> fillNode = [this, &fillNode, &shown](TreeNode *node, const unsigned int distance)
+  {
+    if(distance == 0) return;
+
+    auto segmentation = node->connection();
+    auto segSPtr = this->m_model->smartPointer(segmentation);
+    auto connectSegs = connections(segmentation);
+
+    for(auto connection: connectSegs)
+    {
+      auto newNode = new TreeNode();
+      newNode->type = TreeNode::Type::SEGMENTATION;
+      newNode->data = connection.get();
+      newNode->parent = node;
+      if(!shown.contains(connection.get()))
+      {
+        shown << connection.get();
+        fillNode(newNode, distance - 1);
+      }
+
+      node->children << newNode;
+    }
+  };
+
+  m_ConnectTree = new TreeNode();
+  m_ConnectTree->type = TreeNode::Type::ROOT;
+  m_ConnectTree->data = m_segmentation.get();
+  fillNode(m_ConnectTree, distance);
+
+  shown.removeOne(m_segmentation.get());
+  emit segmentationsShown(shown);
+
+  reset();
+
+  emit endResetModel();
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspectorTreeModel::computeStrokesTree()
+{
+  m_StrokesTree = new TreeNode();
+  m_StrokesTree->type = TreeNode::Type::ROOT;
+
+  m_definition = toSkeletonDefinition(readLockSkeleton(m_segmentation->output())->skeleton());
+
+  PathList pathList;
+  for(auto stroke: m_strokes) pathList << stroke.path;
+  auto hierarchy  = pathHierarchy(pathList, m_definition.edges, m_definition.strokes);
+
+  int i = 0;
+  std::function<TreeNode *(PathHierarchyNode *)> fillNode = [&fillNode, this, &i](PathHierarchyNode *node)
+  {
+    auto tNode = new TreeNode();
+    tNode->type = TreeNode::Type::STROKE;
+
+    for(auto &stroke: this->m_strokes)
+    {
+      if(stroke.path == node->path) tNode->data = &stroke;
+    }
+
+    for(auto child: node->children)
+    {
+      auto otherTNode = fillNode(child);
+      otherTNode->parent = tNode;
+      tNode->children << otherTNode;
+    }
+
+    return tNode;
+  };
+
+  for(auto node: hierarchy)
+  {
+    auto otherNode = fillNode(node);
+    otherNode->parent = m_StrokesTree;
+    m_StrokesTree->children << otherNode;
+  }
+}
+
+//--------------------------------------------------------------------
+SegmentationAdapterSList SkeletonInspectorTreeModel::connections(const SegmentationAdapterPtr segmentation) const
+{
+  SegmentationAdapterSList result;
+
+  if(segmentation)
+  {
+    auto segSPtr = m_model->smartPointer(segmentation);
+    for(auto connection: m_model->connections(segSPtr))
+    {
+      result << ((connection.item1 == segSPtr) ? connection.item2 : connection.item1);
+    }
+  }
+
+  return result;
+}
+
+//--------------------------------------------------------------------
+const SegmentationAdapterList SkeletonInspectorTreeModel::setVisibility(TreeNode *node, bool visible)
+{
+  QSet<SegmentationAdapterPtr> result;
+
+  switch(node->type)
+  {
+    case TreeNode::Type::SEGMENTATION:
+      {
+        auto seg = node->connection();
+        seg->setData(visible ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
+        result << seg;
+      }
+      break;
+    case TreeNode::Type::STROKE:
+      {
+        auto stroke = node->stroke();
+        for(auto actor: stroke->actors) actor->SetVisibility(visible);
+        result << m_segmentation.get();
+      }
+      break;
+    default:
+    case TreeNode::Type::ROOT:
+      break;
+  }
+
+  for(auto child: node->children)
+  {
+    result += setVisibility(child, visible).toSet();
+  }
+
+  return result.toList();
+}
+
+//--------------------------------------------------------------------
+const bool SkeletonInspectorTreeModel::getVisibility(TreeNode *node) const
+{
+  bool result = true;
+
+  switch(node->type)
+  {
+    case TreeNode::Type::SEGMENTATION:
+      {
+        auto segmentation = node->connection();
+        if(segmentation != m_segmentation.get()) result &= segmentation->isVisible();
+      }
+      break;
+    case TreeNode::Type::STROKE:
+      result &= node->stroke()->actors.first()->GetVisibility();
+      break;
+    case TreeNode::Type::ROOT:
+      break;
+  }
+
+  if(!result) return result;
+
+  for(auto child: node->children)
+  {
+    result &= getVisibility(child);
+    if(!result) return result;
+  }
+
+  return result;
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspectorTreeModel::setRandomTreeColoring(const bool enabled)
+{
+  if(m_useRandomColoring != enabled)
+  {
+    emit layoutAboutToBeChanged();
+    m_useRandomColoring = enabled;
+    emit layoutChanged();
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspectorTreeModel::onSelectionChanged(SegmentationAdapterList segmentations)
+{
+  ViewItemAdapterList toInvalidate;
+
+  auto segSelected = segmentations.contains(m_segmentation.get());
+  for(auto &stroke: m_strokes)
+  {
+    stroke.selected = segSelected;
+  }
+
+  toInvalidate << m_segmentation.get();
+
+  emit invalidate(toInvalidate);
 }

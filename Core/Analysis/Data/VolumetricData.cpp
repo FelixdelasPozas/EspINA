@@ -51,5 +51,5 @@ Output::WriteLockData<DefaultVolumetricData> ESPINA::writeLockVolume(OutputSPtr 
 //----------------------------------------------------------------------------
 bool ESPINA::hasVolumetricData(OutputSPtr output)
 {
-  return output->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return output->hasData(DefaultVolumetricData::TYPE);
 }

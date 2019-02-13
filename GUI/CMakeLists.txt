@@ -12,13 +12,16 @@ qt4_wrap_cpp(GUI_MOC
   ColorEngines/CategoryColorEngine.h
   ColorEngines/ColorEngine.h
   ColorEngines/MultiColorEngine.h
-  Dialogs/ImageResolutionDialog.h
+  Dialogs/ImageResolutionDialog/ImageResolutionDialog.h
+  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.h
+  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.h
   Model/ItemAdapter.h
   Model/ModelAdapter.h
   Model/ViewItemAdapter.h
   Model/Proxies/ChannelProxy.h
   Model/Proxies/ClassificationProxy.h
   Model/Proxies/InformationProxy.h
+  Model/Proxies/LocationProxy.h
   Model/ViewItemAdapter.h
   Model/Utils/DBVH.h
   Representations/ModelSources.h
@@ -87,8 +90,10 @@ qt4_wrap_cpp(GUI_MOC
   )
 
 qt4_wrap_ui (GUI_UI
-  Dialogs/CategorySelectorDialog.ui
-  Dialogs/ImageResolutionDialog.ui
+  Dialogs/CategorySelectorDialog/CategorySelectorDialog.ui
+  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.ui
+  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.ui
+  Dialogs/ImageResolutionDialog/ImageResolutionDialog.ui
   Widgets/InformationSelector.ui
   Widgets/NoteEditor.ui
   Widgets/TagSelector.ui
@@ -100,6 +105,7 @@ set (GUI_SOURCES
   ${GUI_MOC}
   ${GUI_UI}
   ColorEngines/CategoryColorEngine.cpp
+  ColorEngines/ConnectionsColorEngine.cpp
   ColorEngines/IntensitySelectionHighlighter.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp
@@ -107,9 +113,11 @@ set (GUI_SOURCES
   ColorEngines/SelectionHighlighter.cpp
   ColorEngines/TransparencySelectionHighlighter.cpp
   ColorEngines/UserColorEngine.cpp
-  Dialogs/CategorySelectorDialog.cpp
   Dialogs/DefaultDialogs.cpp
-  Dialogs/ImageResolutionDialog.cpp
+  Dialogs/CategorySelectorDialog/CategorySelectorDialog.cpp
+  Dialogs/ColorEngineRangeDefinitionDialog/ColorEngineRangeDefinitionDialog.cpp
+  Dialogs/ColorEngineRangeLimitsDialog/ColorEngineRangeLimitsDialog.cpp
+  Dialogs/ImageResolutionDialog/ImageResolutionDialog.cpp
   Extension/Visualization/VisualizationState.cpp
   Model/CategoryAdapter.cpp
   Model/ChannelAdapter.cpp
@@ -118,6 +126,7 @@ set (GUI_SOURCES
   Model/Proxies/ChannelProxy.cpp
   Model/Proxies/ClassificationProxy.cpp
   Model/Proxies/InformationProxy.cpp
+  Model/Proxies/LocationProxy.cpp
   Model/SampleAdapter.cpp
   Model/SegmentationAdapter.cpp
   Model/Utils/DBVH.cpp
@@ -143,6 +152,7 @@ set (GUI_SOURCES
   Representations/Settings/SegmentationContourPoolSettings.cpp
   Representations/Settings/SegmentationMeshPoolSettings.cpp
   Representations/Settings/SegmentationSkeletonPoolSettings.cpp
+  Representations/Settings/ConnectionPoolSettings.cpp
   Representations/Pools/BufferedRepresentationPool.cpp
   Representations/Managers/ConnectionsManager.cpp
   Representations/Managers/CrosshairManager.cpp 

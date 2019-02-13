@@ -133,8 +133,8 @@ namespace ESPINA
       template <typename T>
       bool lessThan(T left, T right)
       {
-        auto lstring = left->data().toString();
-        auto rstring = right->data().toString();
+        auto lstring = left->data(Qt::DisplayRole).toString();
+        auto rstring = right->data(Qt::DisplayRole).toString();
         auto lparts = lstring.split(' ');
         auto rparts = rstring.split(' ');
 

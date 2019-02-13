@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) 2017 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
+ Copyright (C) 2018 Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -42,10 +42,9 @@ namespace ESPINA
     {
       public:
         /** \brief SkeletonInformationFactory class constructor.
-         * \param[in] factory core factory pointer.
          *
          */
-        explicit SkeletonInformationFactory(CoreFactory *factory);
+        explicit SkeletonInformationFactory();
 
         /** \brief SkeletonInformationFactory class virtual destructor.
          *

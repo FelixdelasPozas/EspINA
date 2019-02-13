@@ -74,7 +74,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
   if (isVisible(state) && hasVolumetricData(channel->output()))
   {
     auto reslicePoint  = crosshairPosition(m_plane, state);
-    Bounds sliceBounds = readLockVolume(channel->output())->bounds();
+    Bounds sliceBounds = item->bounds();
 
     if (sliceBounds[2*planeIndex] <= reslicePoint && reslicePoint < sliceBounds[2*planeIndex+1])
     {
@@ -82,7 +82,7 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
       sliceBounds[2*planeIndex] = sliceBounds[2*planeIndex+1] = reslicePoint;
 
       // solid slice
-      auto slice = vtkImage(readLockVolume(channel->output()), sliceBounds);
+      auto slice = vtkImage(readLockVolume(channel->output(), DataUpdatePolicy::Ignore), sliceBounds);
       int extent[6];
       slice->GetExtent(extent);
 
@@ -92,7 +92,6 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
       shiftScaleFilter->SetShift(static_cast<int>(brightness(state)*255));
       shiftScaleFilter->SetScale(contrast(state));
       shiftScaleFilter->SetClampOverflow(true);
-      shiftScaleFilter->SetUpdateExtent(extent);
       shiftScaleFilter->SetOutputScalarType(slice->GetScalarType());
       shiftScaleFilter->UpdateWholeExtent();
 
@@ -110,7 +109,6 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
 
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputConnection(shiftScaleFilter->GetOutputPort());
-      mapToColors->SetUpdateExtent(extent);
       mapToColors->SetLookupTable(lut);
       mapToColors->SetNumberOfThreads(1);
       mapToColors->UpdateWholeExtent();
@@ -119,10 +117,9 @@ RepresentationPipeline::ActorList ChannelSlicePipeline::createActors(ConstViewIt
       actor->SetInterpolate(false);
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-      actor->GetMapper()->SetUpdateExtent(extent);
-      actor->SetDisplayExtent(extent);
       actor->GetMapper()->SetNumberOfThreads(1);
       actor->GetMapper()->UpdateWholeExtent();
+      actor->SetDisplayExtent(extent);
       actor->SetOpacity(opacity(state));
       actor->Update();
 

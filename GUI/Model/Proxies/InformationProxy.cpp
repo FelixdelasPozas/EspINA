@@ -207,17 +207,22 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
     return progress;
   }
 
-  if (role == Qt::BackgroundRole)
+  if(role == Qt::ForegroundRole || role == Qt::BackgroundRole)
   {
-    if (!m_pendingInformation.contains(segmentation)
-      ||!m_pendingInformation[segmentation]->hasFinished())
+    if(proxyIndex.column() == 0) return QAbstractProxyModel::data(proxyIndex, role);
+
+    if (!m_pendingInformation.contains(segmentation) || !m_pendingInformation[segmentation]->hasFinished())
     {
-      return Qt::lightGray;
+      return role == Qt::ForegroundRole ? Qt::black : Qt::lightGray;
     }
-    else
+
+    auto info = data(proxyIndex, Qt::DisplayRole);
+    if(info.canConvert(QVariant::String) && (info.toString().contains("Fail", Qt::CaseInsensitive) || info.toString().contains("Error", Qt::CaseInsensitive)))
     {
-      return QAbstractProxyModel::data(proxyIndex, role);
+      return role == Qt::ForegroundRole ? Qt::white : Qt::red;
     }
+
+    return QAbstractProxyModel::data(proxyIndex, role);
   }
 
   if (role == Qt::DisplayRole && !m_keys.isEmpty())
@@ -397,8 +402,7 @@ void InformationProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParen
 //------------------------------------------------------------------------
 void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
-  Q_ASSERT(sourceTopLeft == sourceBottomRight);
-  if (sourceTopLeft.parent() == m_model->segmentationRoot())
+  if (sourceTopLeft.parent() == m_model->segmentationRoot() && (sourceTopLeft == sourceBottomRight))
   {
     auto item = itemAdapter(sourceTopLeft);
     auto segmentation = segmentationPtr(item);
@@ -410,8 +414,8 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
       beginRemoveRows(QModelIndex(), row, row);
       m_elements.removeAt(row);
       endRemoveRows();
-
-    } else if (!m_elements.contains(item) && acceptSegmentation(segmentation))
+    }
+    else if (!m_elements.contains(item) && acceptSegmentation(segmentation))
     {
       int row = m_elements.size();
 
@@ -419,7 +423,8 @@ void InformationProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
       m_elements << item;
       endInsertRows();
 
-    } else
+    }
+    else
     {
       emit dataChanged(mapFromSource(sourceTopLeft), mapFromSource(sourceBottomRight));
     }

@@ -60,14 +60,7 @@ namespace ESPINA
                                        ModelFactory          *factory,
                                        QUndoCommand*          parent = nullptr);
 
-      /** \brief Overrides QUndoCommand::redo().
-       *
-       */
       virtual void redo() override;
-
-      /** \brief Overrides QUndoCommand::undo().
-       *
-       */
       virtual void undo() override;
 
     private:

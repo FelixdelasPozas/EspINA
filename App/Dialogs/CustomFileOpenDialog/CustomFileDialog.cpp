@@ -22,6 +22,7 @@
 // ESPINA
 #include <Dialogs/CustomFileOpenDialog/CustomFileDialog.h>
 #include <Dialogs/CustomFileOpenDialog/OptionsPanel.h>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 
 // Qt
 #include <QGridLayout>
@@ -31,26 +32,28 @@
 #include <QPushButton>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::IO;
 
 //--------------------------------------------------------------------
 CustomFileDialog::CustomFileDialog(QWidget* parent, Qt::WindowFlags flags)
 : QFileDialog{parent, flags}
+, m_options{nullptr}
 {
-  modifyUI();
 }
 
 //--------------------------------------------------------------------
 CustomFileDialog::CustomFileDialog(QWidget* parent, const QString& caption, const QString& directory, const QString& filter)
 : QFileDialog{parent, caption, directory, filter}
+, m_options{nullptr}
 {
-  modifyUI();
 }
 
 //--------------------------------------------------------------------
 void CustomFileDialog::onOptionsToggled()
 {
   auto visible    = m_options->isVisible();
-  auto widgetSize = m_options->size().width();
+  auto widgetSize = m_options->sizeHint().width();
   auto spacing    = layout()->spacing();
 
   m_options->setVisible(!visible);
@@ -73,10 +76,11 @@ void CustomFileDialog::resizeEvent(QResizeEvent *event)
   QFileDialog::resizeEvent(event);
 
   m_size = size();
-  auto widgetSize = m_options->size().width();
-  auto spacing    = layout()->spacing();
-  if(m_options->isVisible())
+  auto spacing = layout()->spacing();
+
+  if(m_options && m_options->isVisible())
   {
+    auto widgetSize = m_options->sizeHint().width();
     m_size = QSize(m_size.width() - widgetSize - spacing, m_size.height());
   }
 }
@@ -84,17 +88,19 @@ void CustomFileDialog::resizeEvent(QResizeEvent *event)
 //--------------------------------------------------------------------
 void CustomFileDialog::showEvent(QShowEvent* event)
 {
+  modifyUI();
+
   QFileDialog::showEvent(event);
 
   m_size = size();
 }
 
 //--------------------------------------------------------------------
-QMap<QString, QVariant> CustomFileDialog::options() const
+const IO::LoadOptions CustomFileDialog::options() const
 {
-  QMap<QString, QVariant> options;
+  LoadOptions options;
 
-  options.insert(tr("Streaming"), QVariant::fromValue(m_options->streamingValue()));
+  options.insert(VolumetricStreamReader::STREAMING_OPTION, QVariant::fromValue(m_options->streamingValue()));
   options.insert(tr("Load Tool Settings"), QVariant::fromValue(m_options->toolSettingsValue()));
   options.insert(tr("Check analysis"), QVariant::fromValue(m_options->checkAnalysisValue()));
 

@@ -58,7 +58,7 @@ PositionMarksTool::~PositionMarksTool()
 //-----------------------------------------------------------------------------
 void PositionMarksTool::abortOperation()
 {
-  setChecked(false);
+  if(isChecked()) setChecked(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -73,11 +73,11 @@ void PositionMarksTool::saveSettings(std::shared_ptr<QSettings> settings)
 
       settings->beginGroup(view);
 
-      settings->setValue(PLANE, normalCoordinateIndex(data.plane));
-      settings->setValue(SLICE, data.slice);
-      settings->setValue(HEIGHT, data.heightLength);
-      settings->setValue(POSITION, data.cameraPosition.toString());
-      settings->setValue(UP_VECTOR, data.upVector.toString());
+      settings->setValue(PLANE,       normalCoordinateIndex(data.plane));
+      settings->setValue(SLICE,       data.slice);
+      settings->setValue(HEIGHT,      data.heightLength);
+      settings->setValue(POSITION,    data.cameraPosition.toString());
+      settings->setValue(UP_VECTOR,   data.upVector.toString());
       settings->setValue(FOCAL_POINT, data.focalPoint.toString());
 
       settings->endGroup();

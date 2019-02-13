@@ -23,7 +23,9 @@
 #include <Dialogs/SegmentationInspector/SegmentationInspector.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Widgets/Styles.h>
 #include <Undo/RemoveSegmentations.h>
 
 // Qt
@@ -32,6 +34,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 const QString SegmentationExplorer::Layout::SEGMENTATION_MESSAGE  = QObject::tr("Deleting %1.\nDo you want to also delete the segmentations that compose it?");
 const QString SegmentationExplorer::Layout::RECURSIVE_MESSAGE     = QObject::tr("Delete %1's segmentations. "
@@ -52,25 +55,37 @@ bool SegmentationFilterProxyModel::filterAcceptsRow(int source_row, const QModel
 
   auto rowIndex = sourceModel()->index(source_row, 0, source_parent);
 
+  if(!rowIndex.isValid()) return false;
+
   if (!acceptRows)
   {
     auto item = itemAdapter(rowIndex);
-    if (isSegmentation(item))
+    if (item && isSegmentation(item))
     {
       auto segmentation = segmentationPtr(item);
-      auto extensions   = segmentation->readOnlyExtensions();
-
-      if (extensions->hasExtension(SegmentationTags::TYPE))
+      if(segmentation)
       {
-        auto tagExtension = retrieveExtension<SegmentationTags>(extensions);
+        auto extensions = segmentation->readOnlyExtensions();
 
-        QStringList tags = tagExtension->tags();
-
-        int i = 0;
-        while (!acceptRows && i < tags.size())
+        if (extensions->hasExtension(SegmentationTags::TYPE))
         {
-          acceptRows = tags[i].contains(filterRegExp());
-          ++i;
+          auto tagExtension = retrieveExtension<SegmentationTags>(extensions);
+
+          QStringList tags = tagExtension->tags();
+
+          int i = 0;
+          while (!acceptRows && i < tags.size())
+          {
+            acceptRows = tags[i].contains(filterRegExp());
+            ++i;
+          }
+        }
+
+        if(!acceptRows && extensions->hasExtension(SegmentationNotes::TYPE))
+        {
+          auto notesExtension = retrieveExtension<SegmentationNotes>(extensions);
+
+          acceptRows = notesExtension->notes().contains(filterRegExp());
         }
       }
     }
@@ -91,15 +106,8 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
                                      Support::Context               &context)
 : WithContext      (context)
 , m_view           (view)
+, m_active         {false}
 {
-  connect(context.model().get(), SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
-          this,                  SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
-}
-
-//------------------------------------------------------------------------
-SegmentationExplorer::Layout::~Layout()
-{
-  reset();
 }
 
 //------------------------------------------------------------------------
@@ -108,8 +116,11 @@ void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList s
   if(!segmentations.empty())
   {
     auto undoStack = getUndoStack();
+    auto names     = segmentationListNames(segmentations);
 
-    undoStack->beginMacro(tr("Delete Segmentations"));
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("Delete segmentation%1 %2.").arg(segmentations.size() > 1 ? "s":"").arg(names));
     undoStack->push(new RemoveSegmentations(segmentations, getModel()));
     undoStack->endMacro();
   }
@@ -143,17 +154,22 @@ QModelIndexList SegmentationExplorer::Layout::indices(const QModelIndex& index, 
 {
   QModelIndexList res;
 
-  Q_ASSERT(model() == index.model());
-
-  for(int r = 0; r < model()->rowCount(index); r++)
+  if(model() != index.model())
   {
-    auto child = index.child(r, 0);
-
-    res << child;
-
-    if (recursive)
+    qWarning() << "SegmentationExplorer::Layout::indices() -> Invalid QModelIndex model.";
+  }
+  else
+  {
+    for(int r = 0; r < model()->rowCount(index); r++)
     {
-      res << indices(child, recursive);
+      auto child = index.child(r, 0);
+
+      res << child;
+
+      if (recursive)
+      {
+        res << indices(child, recursive);
+      }
     }
   }
 
@@ -169,61 +185,16 @@ void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspect
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::Layout::rowsAboutToBeRemoved(const QModelIndex parent, int start, int end)
-{
-  if (getModel()->segmentationRoot() == parent)
-  {
-    for(int row = start; row <= end; row++)
-    {
-      auto child = parent.child(row, 0);
-      auto item = itemAdapter(child);
-      if (isSegmentation(item))
-      {
-        auto segKey = toKey(segmentationPtr(item));
-
-        for(auto key : m_inspectors.keys())
-        {
-          if (key.contains(segKey))
-          {
-            auto inspector = m_inspectors[key];
-            if (key == segKey)
-            {
-              m_inspectors.remove(key);
-              inspector->close();
-            }
-            else
-            {
-              QString newKey(key);
-
-              m_inspectors.remove(key);
-              m_inspectors.insert(newKey.remove(segKey), inspector);
-
-              inspector->removeSegmentation(segmentationPtr(item));
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-//------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentations)
+QString SegmentationExplorer::Layout::toKey(const SegmentationAdapterList segmentations)
 {
   QStringList pointers;
-  QString result;
 
-  for(auto seg : segmentations)
-  {
-    pointers += QString().number(reinterpret_cast<unsigned long long>(seg));
-  }
+  auto getPointerStrings = [&pointers](const SegmentationAdapterPtr seg) { pointers << QString().number(reinterpret_cast<unsigned long long>(seg)); };
+  std::for_each(segmentations.begin(), segmentations.end(), getPointerStrings);
 
-  pointers.sort(); // O(n log n).
+  pointers.sort();
 
-  for(auto pointer: pointers)
-  {
-    result += pointer + QString("|");
-  }
+  auto result = pointers.join("|");
 
   return result;
 }
@@ -233,13 +204,13 @@ void SegmentationExplorer::Layout::reset()
 {
   for(auto key: m_inspectors.keys())
   {
-    m_inspectors[key]->close();
-    m_inspectors.remove(key);
+    auto dialog = m_inspectors[key];
+    if(dialog) dialog->close();
   }
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
+QString SegmentationExplorer::Layout::toKey(const SegmentationAdapterPtr segmentation)
 {
   return QString("%1|").arg(reinterpret_cast<unsigned long long>(segmentation));
 }
@@ -255,4 +226,12 @@ void SegmentationExplorer::Layout::onInspectorUpdated()
     m_inspectors.remove(iKey);
     m_inspectors.insert(toKey(inspector->segmentations()), inspector);
   }
+}
+
+//------------------------------------------------------------------------
+ItemAdapterPtr SegmentationExplorer::Layout::item(const QModelIndex &index) const
+{
+  if(!index.isValid() || !isActive()) return nullptr;
+
+  return itemAdapter(index);
 }

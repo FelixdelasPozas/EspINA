@@ -33,11 +33,8 @@ OptionsPanel::OptionsPanel(QWidget* parent, Qt::WindowFlags flags)
   // default options values.
   m_usePreviousSettings->setChecked(true);
   m_useStackStreaming->setChecked(false);
-  m_useStackStreaming->setEnabled(false);
   m_toolSettings->setChecked(true);
   m_checkAnalysis->setChecked(true);
-
-  connect(m_usePreviousSettings, SIGNAL(stateChanged(int)), this, SLOT(onSettingsUseStateChanged(int)));
 }
 
 //--------------------------------------------------------------------
@@ -58,10 +55,4 @@ bool ESPINA::OptionsPanel::toolSettingsValue() const
 bool OptionsPanel::checkAnalysisValue() const
 {
   return m_checkAnalysis->isChecked();
-}
-
-//--------------------------------------------------------------------
-void OptionsPanel::onSettingsUseStateChanged(int state)
-{
-  m_useStackStreaming->setEnabled(state != Qt::Checked);
 }

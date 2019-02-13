@@ -30,7 +30,6 @@
 #include <Extensions/Issues/SegmentationIssues.h>
 
 // Qt
-#include <QDebug>
 #include <QLayout>
 #include <QLabel>
 #include <QPixmap>
@@ -73,7 +72,7 @@ SegmentationProperties::SegmentationProperties(FilterRefinerFactory &filterRefin
 //----------------------------------------------------------------------------
 SegmentationProperties::~SegmentationProperties()
 {
-  reset();
+  hideInformation();
 }
 
 //----------------------------------------------------------------------------
@@ -390,7 +389,12 @@ void SegmentationProperties::showConnections()
     auto layout = m_gui->connectionsGroup->layout();
     for(auto connection: connections)
     {
-      auto text = tr("<b>%1</b> at point <a href=""%2"">%2</a>").arg(connection.item2->data().toString()).arg(connection.point.toString());
+      const auto color   = connection.item2->category() ? connection.item2->category()->color().name() : "black";
+      const auto name    = connection.item2->data().toString();
+      const auto pointer = QString::number(reinterpret_cast<unsigned long long>(connection.item2.get()));
+      const auto text    = tr("<b><a href=\"A%1\" style=\"color: %2;\">%3</a></b> at point <a href=\"B%4\">%4</a>")
+                              .arg(pointer).arg(color).arg(name).arg(connection.point.toString());
+
       auto label = new QLabel{text};
       label->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
       label->setOpenExternalLinks(false);
@@ -424,7 +428,31 @@ void SegmentationProperties::clearConnections()
 //--------------------------------------------------------------------
 void SegmentationProperties::onLinkActivated(const QString &link)
 {
-  NmVector3 point{link};
+  const auto linkText = link.mid(1);
 
-  getViewState().focusViewOn(point);
+  if(link.startsWith("A"))
+  {
+    // segmentation link
+    bool ok{false};
+    unsigned long long ptrDir = linkText.toULongLong(&ok);
+    if(ok)
+    {
+      auto seg = reinterpret_cast<SegmentationAdapter *>(ptrDir);
+      if(seg)
+      {
+        SegmentationAdapterList list;
+        list << seg;
+        getSelection()->set(list);
+
+        getViewState().focusViewOn(centroid(seg->bounds()));
+      }
+    }
+  }
+  else
+  {
+    // connection point link
+    NmVector3 point{linkText};
+
+    getViewState().focusViewOn(point);
+  }
 }

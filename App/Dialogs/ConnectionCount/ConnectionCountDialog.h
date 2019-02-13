@@ -66,8 +66,19 @@ namespace ESPINA
        */
       void onItemDoubleClicked(QListWidgetItem *item);
 
-      /** \brief Modifies the lists with the insertion of the newly added segmentations.
-       * \param[in] segmentations added segmentations list.
+      /** \brief Selects the clicked segmentation on the application when the user clicks on an item.
+       * \param[in] item activated item.
+       *
+       */
+      void onItemClicked(QListWidgetItem *item);
+
+      /** \brief Opens the 'change connection criteria' dialog and processes the result.
+       *
+       */
+      void onChangeButtonPressed();
+
+      /** \brief Connects to the newly added segmentation if its a dendrite or axon and updates the list.
+       * \param[in] segmentations Segmentations added to the model.
        *
        */
       void onSegmentationsAdded(ViewItemAdapterSList segmentations);
@@ -77,29 +88,52 @@ namespace ESPINA
        */
       void updateList();
 
+      /** \brief Updates the selection on the dialog when the application selection changes.
+       * \param[in] segmentations Selected segmentations.
+       *
+       */
+      void onSelectionChanged(SegmentationAdapterList segmentations);
+
     private:
       /** \brief Helper method to connect the signals to the slots.
        *
        */
       void connectSignals();
 
-      /** \brief Helper method to add a segmentation to the lists.
-       * \param[in] segmentation SegmentationAdapter raw pointer.
+      /** \brief Helper method to add synapse segmentations to the lists.
        *
        */
-      void addSegmentationToLists(const SegmentationAdapterSPtr segmentation);
-
-      /** \brief Returns the row of the segmentation in the list or -1 if not in the list widget.
-       * \param[in] list QListWidget object.
-       * \param[in] segmentation segmentation adapter object.
-       *
-       */
-      int segmentationIndexInList(QListWidget *list, const SegmentationAdapterPtr segmentation);
+      void addSegmentationsToLists();
 
       /** \brief Helper method to update the label widgets with the segmentations count.
        *
        */
       void updateLabels();
+
+      /** \brief Set the invalid synapses group visible if there are erroneously connected synapses. If there is none
+       * the group will be invisible.
+       *
+       */
+      void updateInvalidVisibility();
+
+      /** \brief Loads the dialog configuration.
+       *
+       */
+      void restoreSettings();
+
+      /** \brief Saves the dialog configuration.
+       *
+       */
+      void saveSettings();
+
+      /** \brief Helper method to update the criteria label.
+       *
+       */
+      void updateCriteriaLabel();
+
+    private:
+      QStringList m_criteria; /** connection criteria is the list of categories it connects. */
+
   };
 
 } // namespace ESPINA

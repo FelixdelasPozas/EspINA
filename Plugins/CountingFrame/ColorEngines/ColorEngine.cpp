@@ -33,7 +33,7 @@ using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 ColorEngine::ColorEngine()
-: GUI::ColorEngines::ColorEngine{"CountingFrameColorEngine", tr("Counting Frame")}
+: GUI::ColorEngines::ColorEngine{"CountingFrameColorEngine", tr("Color by Counting Frame inclusion/exclusion.")}
 , m_exclusionOpacity            {0.5}
 {
   m_excludedLUT = LUTSPtr::New();
@@ -102,7 +102,7 @@ LUTSPtr ColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
 
 
 //-----------------------------------------------------------------------------
-double ColorEngine::exlcusionOpacity() const
+double ColorEngine::exclusionOpacity() const
 {
   return m_exclusionOpacity;
 }

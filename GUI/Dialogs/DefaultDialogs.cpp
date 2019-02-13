@@ -172,7 +172,7 @@ QStringList DefaultDialogs::SaveFiles(const QString&          title,
   fileDialog.setDefaultSuffix(suffix);
   fileDialog.setFileMode(QFileDialog::AnyFile);
   fileDialog.selectFile(suggestion);
-  fileDialog.setFilter(filters);
+  fileDialog.setNameFilter(filters);
   fileDialog.setDirectory((path.isEmpty() ? QDir::homePath() : path));
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, true);
@@ -188,7 +188,7 @@ QStringList DefaultDialogs::SaveFiles(const QString&          title,
     fileNames = fileDialog.selectedFiles();
 
     QRegExp regExp("\\*\\.[a-zA-Z0-9]+"); // file extension *.XXX
-    regExp.indexIn(fileDialog.selectedFilter());
+    regExp.indexIn(fileDialog.selectedNameFilter());
 
     auto extension = regExp.cap().remove("*");
 

@@ -136,6 +136,19 @@ namespace ESPINA
    *
    */
   unsigned int EspinaCore_EXPORT firstUnusedSegmentationNumber(const AnalysisSPtr analysis);
+
+  /** \brief Returns the axon connection of the given synapse or nullptr if the synapse is not yet connected to an axon.
+   * \param[in] synapse Synapse category segmentation raw pointer.
+   *
+   */
+  SegmentationSPtr EspinaCore_EXPORT axonOf(const SegmentationPtr synapse);
+
+  /** \brief Returns the dendrite connection of the given synapse or nullptr if the synapse is not yet connected to a dendrite.
+   * \param[in] synapse Synapse category segmentation raw pointer.
+   *
+   */
+  SegmentationSPtr EspinaCore_EXPORT dendriteOf(const SegmentationPtr synapse);
+
 }
 
 

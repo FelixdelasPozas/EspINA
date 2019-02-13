@@ -30,7 +30,7 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Support/Readers/ChannelReader.h>
+#include <Core/Readers/ChannelReader.h>
 
 // Qt
 #include <QApplication>
@@ -64,7 +64,7 @@ using Label2VolumeFilter    = itk::LabelMapToLabelImageFilter<LabelMap, itkVolum
 static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
 
 //---------------------------------------------------------------------------
-IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
+const IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 {
   ExtensionList supportedExtensions;
 
@@ -77,10 +77,11 @@ IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 }
 
 //---------------------------------------------------------------------------
-AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
-                                CoreFactorySPtr factory,
-                                ProgressReporter *reporter,
-                                ErrorHandlerSPtr handler)
+AnalysisSPtr SegmhaReader::read(const QFileInfo&      file,
+                                CoreFactorySPtr       factory,
+                                ProgressReporter     *reporter,
+                                ErrorHandlerSPtr      handler,
+                                const IO::LoadOptions options)
 {
   auto classification = std::make_shared<Classification>();
 
@@ -99,7 +100,7 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
   QFileInfo channelFile = localFile.absoluteFilePath().replace(".segmha", ".mhd");
   ChannelReader channelReader;
 
-  auto analysis = channelReader.read(channelFile, factory, nullptr, handler);
+  auto analysis = channelReader.read(channelFile, factory, nullptr, handler, options);
 
   LabelMapReader::Pointer labelMapReader = LabelMapReader::New();
 
@@ -148,8 +149,11 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
 
   analysis->setClassification(classification);
 
+  const QString utfFilename = localFile.absoluteFilePath().toUtf8();
+  const QString asciiFilename = utfFilename.toAscii();
+
   // Read the original image, whose pixels are indeed labelmap object ids
-  labelMapReader->SetFileName(localFile.absoluteFilePath().toUtf8().data());
+  labelMapReader->SetFileName(utfFilename.toStdString());
   labelMapReader->SetUseStreaming(false);
   labelMapReader->SetNumberOfThreads(1);
   labelMapReader->SetImageIO(itk::MetaImageIO::New());
@@ -217,15 +221,15 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file,
 
       auto output = std::make_shared<Output>(sourceFilter.get(), id, ToNmVector3<itkVolumeType>(spacing));
 
-      auto bounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
-      auto spacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
+      auto segBounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
+      auto segSpacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
 
-      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
+      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(segBounds, segSpacing);
       volume->draw(segmentationVolume);
 
       output->setData(volume);
       output->setData(std::make_shared<MarchingCubesMesh>(output.get()));
-      output->setSpacing(spacing);
+      output->setSpacing(segSpacing);
 
       sourceFilter->addOutput(id, output);
 

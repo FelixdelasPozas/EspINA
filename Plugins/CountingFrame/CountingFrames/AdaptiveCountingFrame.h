@@ -45,14 +45,14 @@ namespace ESPINA
          * \param[in] inclusion inclusion margins.
          * \param[in] exclusion exclusion margins.
          * \param[in] scheduler task scheduler.
-         * \param[in] factory core object factory.
+         * \param[in] factory stereological inclusion factory.
          *
          */
         static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
                                           Nm inclusion[3],
                                           Nm exclusion[3],
                                           SchedulerSPtr scheduler,
-                                          CoreFactory *factory)
+                                          Core::SegmentationExtensionFactorySPtr factory)
         { return new AdaptiveCountingFrame(extension, inclusion, exclusion, scheduler, factory); }
 
         /** \brief AdaptiveCountingFrame class virtual destructor.
@@ -61,7 +61,7 @@ namespace ESPINA
         virtual ~AdaptiveCountingFrame();
 
         virtual CFType cfType() const
-        { return CF::ADAPTIVE; }
+        { return CFType::ADAPTIVE; }
 
         virtual QString typeName() const { return ADAPTIVE_CF; }
 
@@ -73,14 +73,14 @@ namespace ESPINA
          * \param[in] inclusion inclusion margins.
          * \param[in] exclusion exclusion margins.
          * \param[in] scheduler task scheduler.
-         * \param[in] factory core object factory.
+         * \param[in] factory stereological inclusion factory.
          *
          */
         explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
                                        Nm inclusion[3],
                                        Nm exclusion[3],
                                        SchedulerSPtr scheduler,
-                                       CoreFactory *factory);
+                                       Core::SegmentationExtensionFactorySPtr factory);
 
       protected:
         /** \brief Returns the left inclusion margin.

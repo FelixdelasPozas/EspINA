@@ -17,13 +17,14 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #ifndef ESPINA_SEGMHA_IMPORTER_H
 #define ESPINA_SEGMHA_IMPORTER_H
 
 #include "SegmhaImporterPlugin_Export.h"
 
 // ESPINA
-#include <Support/Plugin.h>
+#include <Core/Plugin.h>
 #include "SegmhaReader.h"
 
 // Qt
@@ -42,7 +43,7 @@ namespace ESPINA
       static const Filter::Type SEGMHA_FILTER;    /** segmha filter signature. */
       static const Filter::Type SEGMHA_FILTER_V4; /** segmha filter old signature. */
 
-      virtual FilterTypeList providedFilters() const;
+      virtual const FilterTypeList providedFilters() const;
 
       virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
     private:
@@ -54,10 +55,10 @@ namespace ESPINA
    *
    */
   class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
-  : public Support::Plugin
+  : public Core::CorePlugin
   {
       Q_OBJECT
-      Q_INTERFACES(ESPINA::Support::Plugin)
+      Q_INTERFACES(ESPINA::Core::CorePlugin)
 
     public:
       /** \brief Class SegmhaImporterPlugin class constructor.
@@ -68,13 +69,28 @@ namespace ESPINA
       /** \brief Class SegmhaImporterPlugin class virtual destructor.
        *
        */
-      virtual ~SegmhaImporterPlugin();
+      virtual ~SegmhaImporterPlugin()
+      {};
 
-      virtual void init(Support::Context &context);
+      virtual const QString name() const
+      { return tr("SEGMHA Reader"); }
+
+      virtual const QString description() const
+      { return tr("Reader of old EspINA 1.x SEGMHA files."); }
+
+      virtual const QString organization() const
+      { return tr("Universidad Politécnica de Madrid."); }
+
+      virtual const QString maintainer() const
+      { return tr("felix.delaspozas@ctb.upm.es"); }
 
       virtual FilterFactorySList filterFactories() const;
 
       virtual AnalysisReaderSList analysisReaders() const;
+
+    private:
+      FilterFactorySPtr  m_factory;
+      AnalysisReaderSPtr m_reader;
   };
 } // namespace ESPINA
 

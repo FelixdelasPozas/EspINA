@@ -43,7 +43,7 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
                                              Nm inclusion[3],
                                              Nm exclusion[3],
                                              SchedulerSPtr scheduler,
-                                             CoreFactory *factory)
+                                             Core::SegmentationExtensionFactorySPtr factory)
 : CountingFrame{channelExt, inclusion, exclusion, scheduler, factory}
 , m_channel    {channelExt->extendedItem()}
 {

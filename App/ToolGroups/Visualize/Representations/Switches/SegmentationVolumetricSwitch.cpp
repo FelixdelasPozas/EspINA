@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2017  Felix de las Pozas Alvarez
+ Copyright (C) 2017  Felix de las Pozas Alvarez <fpozas@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -106,6 +106,7 @@ void SegmentationVolumetricSwitch::restoreSettings(std::shared_ptr<QSettings> se
 void SegmentationVolumetricSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
   saveCheckedState(settings);
+
   settings->setValue(VOLUMETRIC_GPU_ENABLED_KEY, m_gpuOptionButton->isChecked());
 }
 

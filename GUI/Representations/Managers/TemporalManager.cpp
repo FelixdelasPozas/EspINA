@@ -82,13 +82,13 @@ TemporalManager::~TemporalManager()
 {
   if(m_representation)
   {
+    m_representation->uninitialize();
+
     if(m_view)
     {
       disconnect(&(m_view->state()), SIGNAL(afterFrameChanged(GUI::Representations::FrameCSPtr)),
                  this,               SLOT(emitRenderRequest(GUI::Representations::FrameCSPtr)));
     }
-
-    m_representation->uninitialize();
   }
 }
 

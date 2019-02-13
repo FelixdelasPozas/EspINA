@@ -21,13 +21,16 @@
 // ESPINA
 #include "DefaultContextualMenu.h"
 #include <App/Utils/TagUtils.h>
+#include <App/Dialogs/ColorEngineSelector/ColorEngineSelector.h>
 #include <Core/Utils/SupportedFormats.h>
+#include <Core/Utils/ListUtils.hxx>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Widgets/NoteEditor.h>
 #include <GUI/Widgets/Styles.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/ChangeSegmentationNotes.h>
-#include <Undo/ChangeCategoryCommand.h>
 #include <Undo/RenameSegmentationsCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
@@ -39,8 +42,6 @@
 #include <itkMergeLabelMapFilter.h>
 
 // Qt
-#include <QWidgetAction>
-#include <QTreeView>
 #include <QHeaderView>
 #include <QStringList>
 #include <QStringListModel>
@@ -55,33 +56,29 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::Model::Utils;
 using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
                                              Support::Context       &context,
                                              QWidget                *parent)
-: ContextualMenu  (parent)
-, WithContext     (context)
-, m_classification{nullptr}
-, m_segmentations {selection}
+: ContextualMenu {parent}
+, WithContext    (context)
+, m_segmentations{selection}
 {
-  createChangeCategoryMenu();
   createNoteEntry();
   createTagsEntry();
   createRenameEntry();
   createGroupRenameEntry();
   createExportEntry();
   createDeleteEntry();
+  createColorEntry();
 }
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::~DefaultContextualMenu()
 {
-  if (m_classification)
-  {
-    delete m_classification;
-  }
 }
 
 //------------------------------------------------------------------------
@@ -101,7 +98,7 @@ void DefaultContextualMenu::addNote()
 
     NoteEditor editor(segmentation->data().toString(), previousNotes);
 
-    if (editor.exec())
+    if (QDialog::Accepted == editor.exec())
     {
       commands << new ChangeSegmentationNotes(segmentation, editor.text(), getContext().factory().get());
     }
@@ -110,8 +107,11 @@ void DefaultContextualMenu::addNote()
   if (!commands.isEmpty())
   {
     auto undoStack = getUndoStack();
+    auto names     = segmentationListNames(m_segmentations);
 
-    undoStack->beginMacro(tr("Add Notes"));
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("Add notes to %1.").arg(names));
     for (auto command : commands)
     {
       undoStack->push(command);
@@ -121,48 +121,23 @@ void DefaultContextualMenu::addNote()
 }
 
 //------------------------------------------------------------------------
-void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index)
-{
-   this->hide();
-
-   ItemAdapterPtr categoryItem = itemAdapter(index);
-   Q_ASSERT(isCategory(categoryItem));
-   CategoryAdapterPtr categoryAdapter = toCategoryAdapterPtr(categoryItem);
-
-   auto undoStack = getUndoStack();
-   undoStack->beginMacro(tr("Change Category"));
-   {
-     undoStack->push(new ChangeCategoryCommand(m_segmentations, categoryAdapter, getContext()));
-   }
-   undoStack->endMacro();
-
-   emit changeCategory(categoryAdapter);
-}
-
-//------------------------------------------------------------------------
 void DefaultContextualMenu::manageTags()
 {
   manageTagsDialog(m_segmentations, getUndoStack(), getContext().factory().get());
 }
 
 //------------------------------------------------------------------------
-void DefaultContextualMenu::resetRootItem()
-{
-  m_classification->setRootIndex(getModel()->classificationRoot());
-}
-
-//------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentation()
 {
-  auto renameTitle = tr("Rename Segmentation");
-
   QMap<SegmentationAdapterPtr, QString> renames;
+  QString names;
 
   for (auto segmentation : m_segmentations)
   {
     bool result = false;
-    QString oldName = segmentation->data().toString();
-    QString newName = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), oldName, renameTitle, QLineEdit::Normal, oldName, &result);
+    auto oldName = segmentation->data().toString();
+    auto newName = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), oldName, tr("Rename segmentation"), QLineEdit::Normal, oldName, &result);
+    QString prefix = (segmentation == m_segmentations.first() ? "":(segmentation == m_segmentations.last() ? " and ":", "));
 
     if(!result) continue;
 
@@ -174,7 +149,7 @@ void DefaultContextualMenu::renameSegmentation()
 
     if (exists)
     {
-      auto title   = tr("Alias duplicated");
+      auto title   = tr("Name duplicated");
       auto msg     = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
       auto buttons = QMessageBox::Abort|QMessageBox::Discard;
 
@@ -188,14 +163,17 @@ void DefaultContextualMenu::renameSegmentation()
       if(oldName != newName)
       {
         renames[segmentation] = newName;
+        names += tr("%1'%2' to '%3'").arg(prefix).arg(oldName).arg(newName);
       }
     }
   }
 
   if (renames.size() != 0)
   {
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(renameTitle);
+    undoStack->beginMacro(tr("Rename segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
     undoStack->push(new RenameSegmentationsCommand(renames));
     undoStack->endMacro();
   }
@@ -204,8 +182,7 @@ void DefaultContextualMenu::renameSegmentation()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentationGroup()
 {
-  auto renameTitle = tr("Rename Segmentations Group");
-
+  QString names;
   QMap<SegmentationAdapterPtr, QString> renames;
   auto hint = m_segmentations.first()->data().toString();
 
@@ -225,9 +202,10 @@ void DefaultContextualMenu::renameSegmentationGroup()
 
   for (auto segmentation : m_segmentations)
   {
-    QString oldName = segmentation->data().toString();
-    auto numIndex = regExpr.indexIn(oldName);
-    auto newName = prefix + " " + oldName.mid(numIndex, oldName.length()-numIndex);
+    QString oldName  = segmentation->data().toString();
+    auto numIndex    = regExpr.indexIn(oldName);
+    auto newName     = prefix + " " + oldName.mid(numIndex, oldName.length()-numIndex);
+    auto namesPrefix = (segmentation == m_segmentations.first() ? "":(segmentation == m_segmentations.last() ? " and ":", "));
 
     bool exists = false;
     for (auto existinSegmentation : getModel()->segmentations())
@@ -249,13 +227,16 @@ void DefaultContextualMenu::renameSegmentationGroup()
     else
     {
       renames.insert(segmentation, newName);
+      names += tr("%1'%2' to '%3'").arg(namesPrefix).arg(segmentation->data().toString()).arg(newName);
     }
   }
 
   if (renames.size() != 0)
   {
+    WaitingCursor cursor;
+
     auto undoStack = getUndoStack();
-    undoStack->beginMacro(renameTitle);
+    undoStack->beginMacro(tr("Rename segmentations group: %1.").arg(names));
     undoStack->push(new RenameSegmentationsCommand(renames));
     undoStack->endMacro();
   }
@@ -403,12 +384,33 @@ void DefaultContextualMenu::deleteSelectedSementations()
 {
   this->hide();
 
-  auto undoStack = getUndoStack();
-  undoStack->beginMacro(tr("Delete Segmentations"));
-  undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
-  undoStack->endMacro();
+  if(!m_segmentations.isEmpty())
+  {
+    auto message  = QObject::tr("Do you really want to delete the selected segmentations?");
+    auto title    = QObject::tr("Delete Selected Items");
+    auto details  = QObject::tr("Selected to be deleted:");
 
-  emit deleteSegmentations();
+    for(int i = 0; i < m_segmentations.size(); ++i)
+    {
+      details.append(QString("\n - %1").arg(m_segmentations.at(i)->data().toString()));
+    }
+
+    if(QMessageBox::Ok == GUI::DefaultDialogs::UserQuestion(message, QMessageBox::Cancel|QMessageBox::Ok, title, details))
+    {
+      auto undoStack = getUndoStack();
+      auto names     = segmentationListNames(m_segmentations);
+
+      {
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Delete segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
+        undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
+        undoStack->endMacro();
+      }
+
+      emit deleteSegmentations();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -419,31 +421,6 @@ void DefaultContextualMenu::createNoteEntry()
   action->setIcon(QIcon(":/espina/note.svg"));
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(addNote()));
-}
-
-//------------------------------------------------------------------------
-void DefaultContextualMenu::createChangeCategoryMenu()
-{
-   auto changeCategoryMenu = new QMenu(tr("C&hange Category"));
-   auto categoryListAction = new QWidgetAction(changeCategoryMenu);
-
-   auto model = getModel();
-
-   m_classification = new QTreeView();
-   m_classification->header()->setVisible(false);
-   m_classification->setModel(model.get());
-   m_classification->setRootIndex(model->classificationRoot());
-   m_classification->expandAll();
-
-   connect(model.get(), SIGNAL(modelReset()),
-           this,        SLOT(resetRootItem()));
-
-   connect(m_classification, SIGNAL(clicked(QModelIndex)),
-           this, SLOT(changeSegmentationsCategory(QModelIndex)));
-
-   categoryListAction->setDefaultWidget(m_classification);
-   changeCategoryMenu->addAction(categoryListAction);
-   addMenu(changeCategoryMenu);
 }
 
 //------------------------------------------------------------------------
@@ -485,10 +462,51 @@ void DefaultContextualMenu::createExportEntry()
 }
 
 //------------------------------------------------------------------------
+void DefaultContextualMenu::changeSegmentationsColorEngine()
+{
+  this->hide();
+
+  auto colorEngine = std::dynamic_pointer_cast<GUI::ColorEngines::MultiColorEngine>(getContext().colorEngine());
+  if(colorEngine)
+  {
+    ColorEngineSelector dialog{colorEngine};
+    if(dialog.exec() == QDialog::Accepted)
+    {
+      auto segColorEngine = dialog.colorEngine();
+
+      for(auto segmentation: m_segmentations)
+      {
+        if(segColorEngine)
+        {
+          segmentation->setColorEngine(segColorEngine);
+        }
+        else
+        {
+          segmentation->clearColorEngine();
+        }
+
+        auto items = Core::Utils::toList<ViewItemAdapter>(m_segmentations);
+        getViewState().invalidateRepresentationColors(items);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
   auto action = addAction(tr("&Delete"));
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(deleteSelectedSementations()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createColorEntry()
+{
+  auto action = addAction(tr("&Custom coloring..."));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(changeSegmentationsColorEngine()));
+
 }

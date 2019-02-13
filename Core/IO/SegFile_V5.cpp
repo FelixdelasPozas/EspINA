@@ -35,6 +35,7 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Extensions/ReadOnlySegmentationExtension.h>
 #include <Core/Analysis/Extensions/ReadOnlyStackExtension.h>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include <Core/Analysis/Filters/ReadOnlyFilter.h>
 #include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Factory/CoreFactory.h>
@@ -84,26 +85,28 @@ QByteArray formatInfo()
 }
 
 //-----------------------------------------------------------------------------
-int segFileVersion(const QString &formatInfo)
+int segFileVersion(const QString &info)
 {
   const int EQUAL_LENGTH = 1;
-  auto start = formatInfo.indexOf(SEG_FILE_VERSION)
+  auto start = info.indexOf(SEG_FILE_VERSION)
              + SEG_FILE_VERSION.length()
              + EQUAL_LENGTH;
-  auto n     = formatInfo.indexOf("\n", start) - start;
+  auto n     = info.indexOf("\n", start) - start;
 
-  return formatInfo.mid(start, n).toInt();
+  return info.mid(start, n).toInt();
 }
 
 //-----------------------------------------------------------------------------
 SegFile_V5::Loader::Loader(QuaZip           &zip,
                            CoreFactorySPtr  factory,
                            ProgressReporter *reporter,
-                           ErrorHandlerSPtr  handler)
+                           ErrorHandlerSPtr  handler,
+                           const LoadOptions options)
 : m_zip            (zip)
 , m_factory        {factory}
 , m_reporter       {reporter}
 , m_handler        {handler}
+, m_options        {options}
 , m_analysis       {new Analysis()}
 , m_dataFactory    {new RawDataFactory()}
 , m_fixSourceInputs{false}
@@ -157,8 +160,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
     if (file == FORMAT_INFO_FILE)
     {
-      auto formatInfo = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-      if (segFileVersion(formatInfo) <= FIX_SOURCE_INPUTS_SEG_FILE_VERSION)
+      auto info = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+      if (segFileVersion(info) <= FIX_SOURCE_INPUTS_SEG_FILE_VERSION)
       {
         m_fixSourceInputs = true;
       }
@@ -322,8 +325,14 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
   auto roOutput = findOutput(roVertex);
 
   auto filter   = roOutput.first;
+  auto reader   = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
+  if(reader)
+  {
+    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
+                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+  }
   auto outputId = roOutput.second;
-  auto channel = m_factory->createChannel(filter, outputId);
+  auto channel  = m_factory->createChannel(filter, outputId);
 
   channel->setName(roVertex->name());
   channel->setUuid(roVertex->uuid());
@@ -719,12 +728,13 @@ SegFile_V5::SegFile_V5()
 }
 
 //-----------------------------------------------------------------------------
-AnalysisSPtr SegFile_V5::load(QuaZip&          zip,
-                              CoreFactorySPtr  factory,
+AnalysisSPtr SegFile_V5::load(QuaZip&           zip,
+                              CoreFactorySPtr   factory,
                               ProgressReporter *reporter,
-                              ErrorHandlerSPtr handler)
+                              ErrorHandlerSPtr  handler,
+                              const LoadOptions options)
 {
-  Loader loader(zip, factory, reporter, handler);
+  Loader loader(zip, factory, reporter, handler, options);
 
   return loader.load();
 }

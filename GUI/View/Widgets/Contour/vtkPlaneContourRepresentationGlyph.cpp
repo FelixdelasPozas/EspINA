@@ -181,19 +181,22 @@ void vtkPlaneContourRepresentationGlyph::SetRenderer(vtkRenderer *ren)
 int vtkPlaneContourRepresentationGlyph::ComputeInteractionState(int X, int Y, int vtkNotUsed(modified))
 {
   double pos[4], xyz[3];
-  this->FocalPoint->GetPoint(0, pos);
-  pos[3] = 1.0;
-  this->Renderer->SetWorldPoint(pos);
-  this->Renderer->WorldToDisplay();
-  this->Renderer->GetDisplayPoint(pos);
 
-  xyz[0] = static_cast<double>(X);
-  xyz[1] = static_cast<double>(Y);
-  xyz[2] = pos[2];
+  if(this->FocalPoint->GetNumberOfPoints() != 0)
+  {
+    this->FocalPoint->GetPoint(0, pos);
+    pos[3] = 1.0;
+    this->Renderer->SetWorldPoint(pos);
+    this->Renderer->WorldToDisplay();
+    this->Renderer->GetDisplayPoint(pos);
 
-  this->VisibilityOn();
+    xyz[0] = static_cast<double>(X);
+    xyz[1] = static_cast<double>(Y);
+    xyz[2] = pos[2];
+  }
+
   double tol2 = this->PixelTolerance * this->PixelTolerance;
-  if (vtkMath::Distance2BetweenPoints(xyz, pos) <= tol2)
+  if (this->FocalPoint->GetNumberOfPoints() != 0 && vtkMath::Distance2BetweenPoints(xyz, pos) <= tol2)
   {
     this->InteractionState = vtkPlaneContourRepresentationGlyph::Nearby;
   }

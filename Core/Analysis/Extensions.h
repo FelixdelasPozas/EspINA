@@ -100,7 +100,7 @@ namespace ESPINA
         }
 
       protected:
-        /** \brief Particular invalidate actions of the extention. To be implemented on the extension that needs it, default empty.
+        /** \brief Particular invalidate actions of the extension. To be implemented on the extension that needs it, default empty.
          *
          */
         virtual void invalidateImplementation()

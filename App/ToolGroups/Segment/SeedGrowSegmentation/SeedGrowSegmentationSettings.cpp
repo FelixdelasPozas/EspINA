@@ -38,16 +38,25 @@ const QString APPLY_ROI        = "Apply ROI";
 SeedGrowSegmentationSettings::SeedGrowSegmentationSettings()
 {
   ESPINA_SETTINGS(settings);
+  bool okX, okY, okZ, okRadius, okValue;
 
   settings.beginGroup(SGS_GROUP);
-  m_xSize            = settings.value(ROI_X_SIZE_KEY, 500).toLongLong();
-  m_ySize            = settings.value(ROI_Y_SIZE_KEY, 500).toLongLong();
-  m_zSize            = settings.value(ROI_Z_SIZE_KEY, 500).toLongLong();
+  m_xSize            = settings.value(ROI_X_SIZE_KEY, 500).toLongLong(&okX);
+  m_ySize            = settings.value(ROI_Y_SIZE_KEY, 500).toLongLong(&okY);
+  m_zSize            = settings.value(ROI_Z_SIZE_KEY, 500).toLongLong(&okZ);
   m_applyClose       = settings.value(APPLY_CLOSE, false).toBool();
-  m_radius           = settings.value(CLOSE_RADIUS, 0).toInt();
-  m_bestValue        = settings.value(BEST_PIXEL_VALUE, 0).toInt();
+  m_radius           = settings.value(CLOSE_RADIUS, 1).toInt(&okRadius);
+  m_bestValue        = settings.value(BEST_PIXEL_VALUE, 0).toInt(&okValue);
   m_applyCategoryROI = settings.value(APPLY_ROI, true).toBool();
   settings.endGroup();
+
+  blockSignals(true);
+  if(!okX)      setXSize(500);
+  if(!okY)      setYSize(500);
+  if(!okZ)      setZSize(500);
+  if(!okRadius) setCloseRadius(1);
+  if(!okValue)  setBestPixelValue(0);
+  blockSignals(false);
 }
 
 //------------------------------------------------------------------------
@@ -100,6 +109,8 @@ void SeedGrowSegmentationSettings::setCloseRadius(int value)
   m_radius = value;
 
   set<int>(CLOSE_RADIUS, value);
+
+  emit closeRadiusChanged(value);
 }
 
 //------------------------------------------------------------------------
@@ -108,4 +119,6 @@ void SeedGrowSegmentationSettings::setApplyClose(bool enable)
   m_applyClose = enable;
 
   set<bool>(APPLY_CLOSE, enable);
+
+  emit applyCloseChanged(enable);
 }

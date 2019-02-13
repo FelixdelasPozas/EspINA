@@ -41,6 +41,12 @@ namespace ESPINA
        */
       explicit SliceEditionPipeline(GUI::ColorEngines::ColorEngineSPtr colorEngine);
 
+      /** \brief SliceEditionPipeline class virtual destructor.
+       *
+       */
+      virtual ~SliceEditionPipeline()
+      {};
+
       virtual RepresentationState representationState(ConstViewItemAdapterPtr item, const RepresentationState &settings) override;
 
       virtual ActorList createActors(ConstViewItemAdapterPtr item, const RepresentationState &state) override;

@@ -49,6 +49,9 @@ namespace ESPINA
         virtual ColorEngine::Composition supportedComposition() const
         { return ColorEngine::Color; }
 
+        virtual ColorEngineSPtr clone()
+        { return std::make_shared<UserColorEngine>(); }
+
       private:
         /** \brief Returns the next unused color.
          *

@@ -168,6 +168,11 @@ namespace ESPINA
          */
         void changeUnitMode(bool useSlices);
 
+        /** \brief Toggles between editable/non-editable states for the CF.
+         *
+         */
+        void changeEditableState();
+
       private:
         /** \brief Exports the properties and descriptions of the CFs in the panel
          * to a text file.
@@ -190,17 +195,24 @@ namespace ESPINA
          */
         void exportAsXLS(const QString &fileName) const;
 
-        /** \brief
+        /** \brief Returns the model index of the given classification name in the Context model.
+         * \param[in] classificationName Category classification text string.
          *
          */
         QModelIndex findCategoryIndex(const QString &classificationName);
 
-        /** \brief
+        /** \brief Helper method that returns the classification name of the selected category in the constraint
+         * field, or an empty QString if none selected.
+         *
+         */
+        const QString getSelectedCategory() const;
+
+        /** \brief Updates the representations of all the segmentations in the model.
          *
          */
         void updateSegmentationRepresentations();
 
-        /** \brief
+        /** \brief Updates the stereological inclusion extensions of all the segmentations. Removes the extensions if no CFs present.
          *
          */
         void updateSegmentationExtensions();

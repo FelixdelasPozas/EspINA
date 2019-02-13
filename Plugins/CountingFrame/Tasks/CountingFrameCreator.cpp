@@ -28,17 +28,12 @@
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-CountingFrameCreator::CountingFrameCreator(Data data, SchedulerSPtr scheduler, CoreFactory *factory)
+CountingFrameCreator::CountingFrameCreator(Data data, SchedulerSPtr scheduler, Core::SegmentationExtensionFactorySPtr factory)
 : Task     {scheduler}
 , m_cf     {nullptr}
 , m_factory{factory}
 {
   m_data = data;
-}
-
-//------------------------------------------------------------------------
-CountingFrameCreator::~CountingFrameCreator()
-{
 }
 
 //------------------------------------------------------------------------
@@ -66,6 +61,9 @@ void CountingFrameCreator::run()
       Q_ASSERT(false);
       break;
   }
+
+  // NOTE: while tempting to add this variable to the New() methods it's better to left it here.
+  m_cf->setEditable(m_data.editable);
 
   reportProgress(100);
 }

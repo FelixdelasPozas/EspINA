@@ -71,17 +71,7 @@ void ModelFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr fac
 //------------------------------------------------------------------------
 void ModelFactory::registerAnalysisReader(AnalysisReaderSPtr reader)
 {
-  auto extensions = reader->supportedFileExtensions();
-
-  for(auto description : extensions.keys())
-  {
-    for(auto fileExtension : extensions[description])
-    {
-      m_readerExtensions[fileExtension] << reader;
-    }
-  }
-
-  m_readers << reader;
+  m_factory->registerAnalysisReader(reader);
 }
 
 //------------------------------------------------------------------------
@@ -99,33 +89,13 @@ SegmentationExtension::TypeList ModelFactory::availableSegmentationExtensions() 
 //------------------------------------------------------------------------
 SupportedFormats ModelFactory::supportedFileExtensions()
 {
-  SupportedFormats extensions;
-
-  QStringList supportedExtensions;
-
-  for(auto extension : m_readerExtensions.keys())
-  {
-    supportedExtensions << extension;
-  }
-
-  extensions.addFormat(QObject::tr("All Supported Files"), supportedExtensions);
-
-  for(auto loader : m_readers)
-  {
-    auto loaderExtensions = loader->supportedFileExtensions();
-    for (auto it = loaderExtensions.begin(); it != loaderExtensions.end(); ++it)
-    {
-      extensions.addFormat(it.key(), it.value());
-    }
-  }
-
-  return extensions;
+  return m_factory->supportedFileExtensions();
 }
 
 //------------------------------------------------------------------------
 AnalysisReaderSList ModelFactory::readers(const QFileInfo& file)
 {
-  return m_readerExtensions[file.suffix()];
+  return m_factory->readers(file);
 }
 
 //------------------------------------------------------------------------

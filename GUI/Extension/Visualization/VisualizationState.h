@@ -48,13 +48,13 @@ namespace ESPINA
       virtual Type type() const
       { return TYPE; }
 
-      virtual TypeList dependencies() const
+      virtual const TypeList dependencies() const
       { return TypeList(); }
 
       virtual bool validCategory(const QString& classificationName) const
       { return true; }
 
-      virtual InformationKeyList availableInformation() const;
+      virtual const InformationKeyList availableInformation() const;
 
       virtual QVariant information(const Key &tag) const;
 

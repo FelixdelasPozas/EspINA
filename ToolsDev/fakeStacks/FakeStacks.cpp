@@ -460,7 +460,7 @@ void FakeStacks::generateStacks(const QString &path)
 
     while(!iterator.IsAtEnd())
     {
-      auto index = iterator.GetIndex();
+      index = iterator.GetIndex();
       int value = static_cast<int>(255 * noise(index.GetElement(0),index.GetElement(1),index.GetElement(2))) % 255;
       iterator.Set(value);
 

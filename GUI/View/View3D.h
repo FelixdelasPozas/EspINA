@@ -73,6 +73,8 @@ namespace ESPINA
 
     virtual RenderView::CameraState cameraState() override;
 
+    virtual vtkRenderer *mainRenderer() const override;
+
   protected:
     virtual void resetImplementation() override;
 
@@ -113,8 +115,6 @@ namespace ESPINA
     virtual void addActor   (vtkProp *actor) override;
 
     virtual void removeActor(vtkProp *actor) override;
-
-    virtual vtkRenderer *mainRenderer() const override;
 
     virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
 

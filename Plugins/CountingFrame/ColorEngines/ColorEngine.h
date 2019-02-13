@@ -58,7 +58,10 @@ namespace ESPINA
          *
          *  Opactity range is [0, 1]
          */
-        double exlcusionOpacity() const;
+        double exclusionOpacity() const;
+
+        virtual GUI::ColorEngines::ColorEngineSPtr clone()
+        { return std::make_shared<ColorEngine>(); }
 
       public slots:
         /** \brief Sets the opacity for excluded segmentations

@@ -60,7 +60,6 @@ set (Support_SOURCES
   ${METADONA_UI}
   ${METADONA_SOURCES}
   Factory/FilterRefinerFactory.cpp
-  Readers/ChannelReader.cpp
   Representations/BasicRepresentationSwitch.cpp
   Representations/RepresentationSwitch.cpp
   Representations/Slice3DManager.cpp

@@ -40,11 +40,11 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrame::CountingFrame(CountingFrameExtension *extension,
-                             Nm                      inclusion[3],
-                             Nm                      exclusion[3],
-                             SchedulerSPtr           scheduler,
-                             CoreFactory            *factory)
+CountingFrame::CountingFrame(CountingFrameExtension                *extension,
+                             Nm                                     inclusion[3],
+                             Nm                                     exclusion[3],
+                             SchedulerSPtr                          scheduler,
+                             Core::SegmentationExtensionFactorySPtr factory)
 : INCLUSION_FACE   {255}
 , EXCLUSION_FACE   {0}
 , m_scheduler      {scheduler}
@@ -60,6 +60,7 @@ CountingFrame::CountingFrame(CountingFrameExtension *extension,
 , m_enable         {true}
 , m_highlight      {false}
 , m_applyTask      {nullptr}
+, m_editable       {true}
 {
   QWriteLocker lock(&m_marginsMutex);
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
@@ -105,13 +106,16 @@ void CountingFrame::deleteFromExtension()
 //-----------------------------------------------------------------------------
 void CountingFrame::setMargins(Nm inclusion[3], Nm exclusion[3])
 {
+  if(m_editable)
   {
-    QWriteLocker lock(&m_marginsMutex);
-    memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
-    memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
-  }
+    {
+      QWriteLocker lock(&m_marginsMutex);
+      memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
+      memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+    }
 
-  updateCountingFrame();
+    updateCountingFrame();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -257,6 +261,7 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
   widget->SetCurrentRenderer(view2D->mainRenderer());
   widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());
   widget->SetEnabled(true);
+  widget->setEditable(m_editable);
 
   m_widgets2D << widget;
 
@@ -422,7 +427,7 @@ vtkSmartPointer<vtkPolyData> CountingFrame::innerFramePolyData() const
   QReadLocker lock(&m_countingFrameMutex);
 
   auto polydata = vtkSmartPointer<vtkPolyData>::New();
-  polydata->DeepCopy(m_innerFrame);
+  if(m_innerFrame) polydata->DeepCopy(m_innerFrame);
 
   return polydata;
 }
@@ -450,6 +455,32 @@ const CountingFrame::Id& CF::CountingFrame::id() const
   QReadLocker lock(&m_countingFrameMutex);
 
   return m_id;
+}
+
+//-----------------------------------------------------------------------------
+void CF::CountingFrame::setEditable(const bool value)
+{
+  bool changed = false;
+
+  {
+    QWriteLocker lockState(&m_stateMutex);
+    if(m_editable != value)
+    {
+      m_editable = value;
+      changed = true;
+
+      for(auto widget: m_widgets2D) widget->setEditable(value);
+    }
+  }
+
+  if(changed) emit modified(this);
+}
+
+//-----------------------------------------------------------------------------
+const bool CF::CountingFrame::isEditable() const
+{
+  QWriteLocker lockState(&m_stateMutex);
+  return m_editable;
 }
 
 //-----------------------------------------------------------------------------
@@ -485,6 +516,8 @@ bool CF::lessThan(const CountingFrame *lhs, const CountingFrame *rhs)
 //-----------------------------------------------------------------------------
 void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
+  if(!m_cf->isEditable()) return;
+
   auto widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
 
   if (widget)

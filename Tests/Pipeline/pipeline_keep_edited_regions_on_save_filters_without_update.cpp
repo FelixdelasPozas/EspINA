@@ -55,7 +55,7 @@ int pipeline_keep_edited_regions_on_save_filters_without_update(int argc, char**
   class TestFilterFactory
   : public FilterFactory
   {
-    virtual FilterTypeList providedFilters() const
+    virtual const FilterTypeList providedFilters() const
     {
       FilterTypeList list;
       list << "DummyChannelReader" << "SGS" << "Dilate";

@@ -33,7 +33,6 @@
 
 namespace ESPINA
 {
-
   class SegmentationInspector;
 
   /** \class SegmentationFilterProxyModel
@@ -80,7 +79,8 @@ namespace ESPINA
       /** \brief Layout class virtual destructor.
        *
        */
-      virtual ~Layout();
+      virtual ~Layout()
+      {};
 
       /** \brief Creates specific GUI controls for the layout.
        *
@@ -97,8 +97,7 @@ namespace ESPINA
        * \param[in] index, const QModelIndex reference of the item.
        *
        */
-      virtual ItemAdapterPtr item(const QModelIndex &index) const
-      {return itemAdapter(index);}
+      virtual ItemAdapterPtr item(const QModelIndex &index) const;
 
       /** \brief Returns the QModelIndex associated to the ItemAdapter raw pointer passed as parameter in this layout.
        * \param[in] item, ItemAdapter raw pointer of the item.
@@ -143,18 +142,37 @@ namespace ESPINA
        * \param[in] segmentations, list of segmentation adapter raw pointers.
        *
        */
-      static SegmentationInspectorKey toKey(SegmentationAdapterList segmentations);
+      static SegmentationInspectorKey toKey(const SegmentationAdapterList segmentations);
 
       /** \brief Converts a segmentationAdapter to a unique string key.
        * \param[in] segmentation, segmentation adapter raw pointer.
        *
        */
-      static SegmentationInspectorKey toKey(SegmentationAdapterPtr segmentation);
+      static SegmentationInspectorKey toKey(const SegmentationAdapterPtr segmentation);
 
       /** \brief Resets the layout.
        *
        */
       virtual void reset();
+
+      /** \brief Sets the layout as active.
+       * \param[in] value True to set the layout as the active one and false otherwise.
+       *
+       */
+      virtual void setActive(const bool value)
+      { m_active = value; }
+
+      /** \brief Returns true if the layout is active and false otherwise.
+       *
+       */
+      inline const bool isActive() const
+      { return m_active; }
+
+    public slots:
+      /** \brief Updates the model and the layout specific controls.
+       *
+       */
+      virtual void updateSelection() = 0;
 
     protected:
       /** \brief Deletes the segmentations from the model.
@@ -181,19 +199,15 @@ namespace ESPINA
        */
       void releaseInspectorResources(SegmentationInspector *inspector);
 
-      /** \brief Closes the inspector dialogs of the segmentation and/or removes the segmentation from the opened inspectors.
-       *
-       */
-      void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
-
       /** \brief Updates the inspector key when it changes the segmentations being inspected.
        *
        */
       void onInspectorUpdated();
 
     protected:
-      CheckableTreeView                                      *m_view; /** view of the model. */
-      QMap<SegmentationInspectorKey, SegmentationInspector *> m_inspectors; /** map of segmentation inspectors. */
+      CheckableTreeView                                      *m_view;       /** view of the model.                                */
+      QMap<SegmentationInspectorKey, SegmentationInspector *> m_inspectors; /** map of segmentation inspectors.                   */
+      bool                                                    m_active;     /** true if is the active layout and false otherwise. */
   };
 
 } // namespace ESPINA

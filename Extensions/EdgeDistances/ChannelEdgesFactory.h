@@ -26,6 +26,7 @@
 
 // ESPINA
 #include <Core/Factory/ExtensionFactory.h>
+#include <Core/Types.h>
 
 namespace ESPINA
 {
@@ -41,7 +42,7 @@ namespace ESPINA
     {
       public:
         /** \brief ChannelEdgesFactory class constructor.
-         * \param[in] factory pointer to CoreFactory.
+         * \param[in] scheduler Task scheduler.
          *
          */
         explicit ChannelEdgesFactory(CoreFactory *factory);
@@ -56,6 +57,9 @@ namespace ESPINA
                                                          const State                           &state = State()) const;
 
         virtual Core::StackExtension::TypeList providedExtensions() const;
+
+      private:
+        SchedulerSPtr m_scheduler; /** task scheduler. */
     };
 
     using ChannelEdgesFactoryPtr  = ChannelEdgesFactory *;

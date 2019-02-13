@@ -19,5 +19,7 @@
     <file>trash-full.svg</file>
     <file>update-cr.svg</file>
     <file>Front.png</file>
+    <file>lock.svg</file>
+    <file>unlock.svg</file>
   </qresource>
 </RCC>

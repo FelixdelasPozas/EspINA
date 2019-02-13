@@ -146,12 +146,12 @@ namespace ESPINA
             signals:
               void started(Track, RenderView *);
               void updated(Track, RenderView *);
-              void cursorPosition(const QPoint &, RenderView *);
+              void cursorPosition(const QPoint, RenderView *);
               void cancelled(RenderView *);
               void stopped(RenderView *);
               void modifier(bool);
-              void mousePress(Qt::MouseButtons, const QPoint &, RenderView *);
-              void mouseRelease(Qt::MouseButtons, const QPoint &, RenderView *);
+              void mousePress(Qt::MouseButtons, const QPoint, RenderView *);
+              void mouseRelease(Qt::MouseButtons, const QPoint, RenderView *);
 
             protected:
               /** \brief Called when a stroke starts.
@@ -159,14 +159,14 @@ namespace ESPINA
                * \param[in] view view of the event.
                *
                */
-              void startTrack(const QPoint &pos, RenderView *view);
+              void startTrack(const QPoint pos, RenderView *view);
 
               /** \brief Called when a stroke is updated.
                * \param[in] pos track point 2D position.
                * \param[in] view view of the event.
                *
                */
-              void updateTrack(const QPoint &pos, RenderView *view);
+              void updateTrack(const QPoint pos, RenderView *view);
 
               /** \brief Interpolates p1 and p2 and generates extra points using the max distance.
                * \param[in] p1 point 3D coordinates.
@@ -174,14 +174,14 @@ namespace ESPINA
                * \param[in] view view of the event.
                *
                */
-              Track interpolate(const QPoint &p1, const QPoint &p2, RenderView *view);
+              Track interpolate(const QPoint p1, const QPoint p2, RenderView *view);
 
               /** \brief Returns the squared distance between the two given points.
                * \param[in] p1 point 3D coordinates.
                * \param[in] p2 point 3D coordinates.
                *
                */
-              Nm distance2(const NmVector3 &p1, const NmVector3 &p2);
+              Nm distance2(const NmVector3 p1, const NmVector3 p2);
 
               bool        m_tracking;           /** true if tracking and false otherwise.                      */
               bool        m_interpolation;      /** true if interpolation is being made.                       */
