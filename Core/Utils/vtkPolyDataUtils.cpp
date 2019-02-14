@@ -304,9 +304,10 @@ VolumeBounds EspinaCore_EXPORT ESPINA::PolyDataUtils::polyDataVolumeBounds(vtkSm
 {
   Bounds result;
 
-  if (data && data->GetNumberOfCells() > 0)
+  if (data && ((data->GetNumberOfCells() > 0) || (data->GetNumberOfPoints() > 0) || (data->GetNumberOfLines() > 0)))
   {
     Nm bounds[6];
+	data->ComputeBounds();
     data->GetBounds(bounds);
 
     result = Bounds(bounds);
