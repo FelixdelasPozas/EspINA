@@ -1,7 +1,5 @@
 ; ESPINA Mingw64 Distribution Inno Setup File
 ; 
-; WARNING: For internal use, not intended for public distribution of ESPINA
-;
 ; NOTES: Assumes that the user has compiled all the library dependencies, not 
 ; installed precompiled libraries.
 
@@ -22,6 +20,9 @@ CreateUninstallRegKey=yes
 Uninstallable=yes
 ChangesAssociations=yes
 CloseApplications=yes
+DisableFinishedPage=no
+DisableWelcomePage=no
+DisableReadyPage=no
 UninstallDisplayIcon={app}\espina.exe
 UninstallDisplayName=EspINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@
 SourceDir=@CMAKE_CURRENT_BINARY_DIR@\App
@@ -40,7 +41,6 @@ Name: "plugins"; Description: "ESPINA Plugins"; Types: full custom
 Name: "plugins\ASurface"; Description: "Apposition Surface Plugin"; Types: full custom
 Name: "plugins\CFrame"; Description: "Counting Frame Plugin"; Types: full custom
 Name: "plugins\Segmha"; Description: "SEGMHA Importer Plugin"; Types: full custom
-;Name: "plugins\AutoSeg"; Description: "AutoSegmenter Plugin"; Types: full custom
 
 [Dirs]
 Name: "{app}\plugins"
@@ -59,7 +59,6 @@ Source: "libEspinaUndo.dll"; DestDir: "{app}"; Components: program
 Source: "plugins\libAppositionSurfacePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\ASurface
 Source: "plugins\libCountingFramePlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\CFrame
 Source: "plugins\libSegmhaImporterPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\Segmha
-;Source: "plugins\libAutoSegmentPlugin.dll"; DestDir: "{app}\plugins"; Components: plugins\AutoSeg
 
 ; COMPILER FILES- TODO: Requires the detection of directory to fully automate the script
 Source: "D:\Desarrollo\Mingw64\bin\*.dll"; DestDir: "{app}"; Components: program
@@ -71,11 +70,10 @@ Source: "@VTK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: program
 Source: "@ITK_DIR@\bin\*.dll"; DestDir: "{app}"; Components: program
 
 ; QT FILES
-Source: "@QT_BINARY_DIR@\Qt*.dll"; DestDir: "{app}"; Components: program
-Source: "@QT_PLUGINS_DIR@\iconengines\*.dll"; DestDir: "{app}\iconengines\"; Components: program
-Source: "@QT_PLUGINS_DIR@\imageformats\*.dll"; DestDir: "{app}\imageformats\"; Components: program
-Source: "@QT_PLUGINS_DIR@\graphicssystems\*.dll"; DestDir: "{app}\graphicssystems\"; Components: program
-Source: "@QT_PLUGINS_DIR@\codecs\*.dll"; DestDir: "{app}\codecs\"; Components: program
+Source: "Qt*.dll"; DestDir: "{app}"; Components: program
+Source: "iconengines\*.dll"; DestDir: "{app}\iconengines\"; Components: program
+Source: "imageformats\*.dll"; DestDir: "{app}\imageformats\"; Components: program
+Source: "platforms\*.dll"; DestDir: "{app}\platforms\"; Components: program
 
 ; QUAZIP  (Comment if static lib)
 Source: "@QUAZIP_LIBRARIES@"; DestDir: "{app}"; Components: program
