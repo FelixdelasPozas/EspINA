@@ -123,7 +123,6 @@ void SLICRepresentation2D::uninitialize()
       if(m_textActor) m_view->removeActor(m_textActor);
       if(m_pointsActor) m_view->removeActor(m_pointsActor);
     }
-    m_view = nullptr;
     m_textActor = nullptr;
     m_actor = nullptr;
     m_mapper = nullptr;
@@ -132,6 +131,7 @@ void SLICRepresentation2D::uninitialize()
     m_pointsData = nullptr;
     m_pointsMapper = nullptr;
     m_pointsActor = nullptr;
+    m_view = nullptr;
   }
 }
 
@@ -146,10 +146,6 @@ void SLICRepresentation2D::show()
     m_view->addActor(m_textActor);
     m_view->addActor(m_actor);
     m_view->addActor(m_pointsActor);
-//    m_textActor->SetVisibility(true);
-//    m_textActor->Modified();
-//    m_actor->SetVisibility(true);
-//    m_actor->Modified();
   }
 }
 
@@ -164,10 +160,6 @@ void SLICRepresentation2D::hide()
     m_view->removeActor(m_textActor);
     m_view->removeActor(m_actor);
     m_view->removeActor(m_pointsActor);
-//    m_textActor->SetVisibility(false);
-//    m_textActor->Modified();
-//    m_actor->SetVisibility(false);
-//    m_actor->Modified();
   }
 }
 
@@ -293,9 +285,6 @@ void SLICRepresentation2D::buildVTKPipeline()
   m_data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   m_data->Modified();
 
-//  auto lut = hueRangeLUT();
-//  auto lut = hueNonConsecutiveLUT();
-//  auto lut = grayscaleLUT();
   auto lut = useColors?randomLUT():grayscaleLUT();
 
   m_mapper = vtkSmartPointer<vtkImageMapToColors>::New();
@@ -362,72 +351,6 @@ vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::grayscaleLUT() const
 }
 
 //--------------------------------------------------------------------
-vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::hueRangeLUT() const
-{
-  const double increment = 360./256.;
-
-  auto lut = vtkSmartPointer<vtkLookupTable>::New();
-  lut->Allocate();
-  lut->SetTableRange(0,255);
-  lut->SetNumberOfTableValues(256);
-
-  for(int i = 0; i < 256; ++i)
-  {
-    auto color = QColor::fromHsv(static_cast<int>(i * increment), 255,255,255);
-    lut->SetTableValue(i, color.redF(), color.greenF(), color.blue(), 1.0);
-  }
-
-  lut->Modified();
-
-  return lut;
-}
-
-//--------------------------------------------------------------------
-vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::hueNonConsecutiveLUT() const
-{
-  const double increment = 360./256.;
-  int range1 = 0;
-  int range2 = range1+64;
-  int range3 = range2+64;
-  int range4 = range3+64;
-
-  auto lut = vtkSmartPointer<vtkLookupTable>::New();
-  lut->Allocate();
-  lut->SetTableRange(0,255);
-  lut->SetNumberOfTableValues(256);
-
-  for(int i = 0; i < 256; i+=4)
-  {
-    auto color = QColor::fromHsv(static_cast<int>(increment * range1++), 255,255,255);
-    lut->SetTableValue(i, color.redF(), color.greenF(), color.blueF(), 1);
-    color = QColor::fromHsv(static_cast<int>(increment * range2++), 255,255,255);
-    lut->SetTableValue(i+1, color.redF(), color.greenF(), color.blueF(), 1);
-    color = QColor::fromHsv(static_cast<int>(increment * range3++), 255,255,255);
-    lut->SetTableValue(i+2, color.redF(), color.greenF(), color.blueF(), 1);
-    color = QColor::fromHsv(static_cast<int>(increment * range4++), 255,255,255);
-    lut->SetTableValue(i+3, color.redF(), color.greenF(), color.blueF(), 1);
-  }
-
-  lut->Modified();
-
-  return lut;
-}
-
-//--------------------------------------------------------------------
-void SLICRepresentation2D::setSLICComputationProgress(int value)
-{
-  if(m_view)
-  {
-    std::stringstream ss;
-    ss << "Computing...\nProgress: " << value << " %";
-    m_textActor->SetInput(ss.str().c_str());
-    m_textActor->Modified();
-
-    m_view->refresh();
-  }
-}
-
-//--------------------------------------------------------------------
 vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::randomLUT() const
 {
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -447,6 +370,20 @@ vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::randomLUT() const
   lut->Modified();
 
   return lut;
+}
+
+//--------------------------------------------------------------------
+void SLICRepresentation2D::setSLICComputationProgress(int value)
+{
+  if(m_view)
+  {
+    std::stringstream ss;
+    ss << "Computing...\nProgress: " << value << " %";
+    m_textActor->SetInput(ss.str().c_str());
+    m_textActor->Modified();
+
+    m_view->refresh();
+  }
 }
 
 //--------------------------------------------------------------------

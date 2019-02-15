@@ -75,7 +75,7 @@ namespace ESPINA
     signals:
       void spacingUpdated();
       void computeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
-      void abortSLIC();
+      void SLICAborted();
 
     private slots:
       /** \brief Manages the change of units from the UI.
@@ -170,13 +170,10 @@ namespace ESPINA
        */
       void onStreamingChanged(int state);
 
-      /** \brief Starts the SLIC task with the selected parameters
+      /** \brief Runs/aborts the SLIC computation.
+       *
        */
-      void onComputeSLIC();
-
-      /** \brief Stops the currently running SLIC task
-       */
-      void onAbortSLIC();
+      void onSLICActionButtonPressed();
 
       /** \brief Updates the main and slic tabs moving the view.
        * \param[in] index Current tab index.
@@ -254,6 +251,14 @@ namespace ESPINA
        *
        */
       NmVector3 currentSpacing() const;
+
+      /** \brief Starts the SLIC task with the selected parameters
+       */
+      void computeSLIC();
+
+      /** \brief Stops the currently running SLIC task
+       */
+      void abortSLIC();
 
     private:
       using BackgroundSelector = GUI::Widgets::PixelValueSelector;

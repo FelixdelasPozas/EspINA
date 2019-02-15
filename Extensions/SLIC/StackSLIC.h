@@ -42,11 +42,6 @@ namespace ESPINA
     : public ESPINA::Core::StackExtension
     {
         Q_OBJECT
-
-        static const QString VOXELS_FILE;
-        static const QString LABELS_FILE;
-        static const QString DATA_FILE;
-
       public:
         /** \brief StackSLIC class constructor.
          * \param[in] cache Extension cache data.
@@ -62,123 +57,134 @@ namespace ESPINA
         /** \brief Enum that defines the SLIC variant used.
          *
          */
-        typedef enum SLICVariant
+        enum class SLICVariant
         {
-          SLIC,
+          SLIC = 0,
           SLICO,
-          ASLIC
-        } SLICVariant;
+          ASLIC,
+          UNDEFINED
+        };
 
         static const Type TYPE;
-        virtual QString type() const
-        {
-          return TYPE;
-        }
-        virtual State state() const;
+        virtual QString type() const { return TYPE; }
+        virtual State state() const { return State(); }
         virtual Snapshot snapshot() const;
-        virtual bool invalidateOnChange() const
-        { return false; }
-        virtual void invalidate()
-        {};
-        virtual const QString toolTipText() const override
-        { return QObject::tr("SLIC Algorithm"); }
+        virtual bool invalidateOnChange() const { return false; }
+        virtual void invalidate()  {};
+        virtual const QString toolTipText() const override  { return QObject::tr("SLIC Algorithm"); }
+        virtual const InformationKeyList availableInformation() const { return InformationKeyList(); }
         virtual const TypeList dependencies() const
         {
           Extension::TypeList deps;
           deps << Extensions::ChannelEdges::TYPE;
           return deps;
         }
-        virtual const InformationKeyList availableInformation() const;
 
         /** \brief Returns the label of the supervoxel that
          * the selected voxel belongs to.
          * \param[in] coordinates of the chosen voxel.
          *
          */
-        unsigned long int getSupervoxel(itkVolumeType::IndexType position);
+        const unsigned long int getSupervoxel(const itkVolumeType::IndexType position) const;
+
         /** \brief Returns the mean color of the specified supervoxel.
          * \param[in] supervoxel label.
          *
          */
-        unsigned char getSupervoxelColor(unsigned int supervoxel);
+        const unsigned char getSupervoxelColor(const unsigned int supervoxel) const;
+
         /** \brief Returns the mean position of all voxels contained in
          * the specified supervoxel.
          * \param[in] supervoxel label.
          *
          */
-        itkVolumeType::IndexType getSupervoxelCenter(unsigned int supervoxel);
+        const itkVolumeType::IndexType getSupervoxelCenter(const unsigned int supervoxel) const;
+
         /** \brief Draws a grayscale slice based on the calculated mean color
          * values of supervoxels.
          * \param[in] slice to draw.
          * \param[out] ImageData to draw the slice on.
          *
          */
-        bool drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data);
+        bool drawSliceInImageData(const unsigned int slice, vtkSmartPointer<vtkImageData> data);
+
         /** \brief Returns a smart pointer to an ITK Image that spans the chosen Bounds
          * and contains the labels assigned to each voxel.
          * \param[in] Bounds of the region to obtain
          *
          */
-        itk::SmartPointer<itk::Image<unsigned int, 3>> getLabeledImageFromBounds(Bounds bounds);
+        itk::SmartPointer<itk::Image<unsigned int, 3>> getLabeledImageFromBounds(const Bounds bounds) const;
+
         /** \brief Draws the calculated supervoxel centers onto an ITK Image.
          * \param[in] slice to draw.
          * \param[out] ImageData to draw the centers on.
          *
          */
-        bool drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data);
+        bool drawVoxelCenters(const unsigned int slice, vtkSmartPointer<vtkPoints> data);
+
         /** \brief Returns true if SLIC has been computed for the current stack.
          *
          */
-        bool isComputed();
+        const bool isComputed() const;
+
         /** \brief Returns true if a SLIC computation is currently running.
          *
          */
-        bool isRunning();
+        const bool isRunning() const;
+
         /** \brief Returns the SLICVariant used on the last computation.
          *
          */
         StackSLIC::SLICVariant getVariant();
+
         /** \brief Returns the target supervoxel size used for the last computation
          * or the default value if SLIC hasn't been computed yet.
          *
          */
         unsigned char getSupervoxelSize();
+
         /** \brief Returns the color weight used for the last computation
          * or the default value if SLIC hasn't been computed yet.
          *
          */
         unsigned char getColorWeight();
+
         /** \brief Returns the maximum number of iterations used for the last computation
          * or the default value if SLIC hasn't been computed yet.
          *
          */
         unsigned int getIterations();
+
         /** \brief Returns the tolerance set for the last computation
          * or the default value if SLIC hasn't been computed yet.
          *
          */
         double getTolerance();
+
         /** \brief Returns the number of supervoxels calculated in the last computation
          * or 0 if SLIC hasn't been computed yet.
          *
          */
         unsigned int getSupervoxelCount();
+
         /** \brief Returns the spacing of the underlying stack.
          *
          */
         double getSliceSpacing();
+
         /** \brief Returns the uncompressed grayscale representation of a slice as
          * a byte array encapsulated in a unique pointer.
          *
          */
-        std::unique_ptr<char[]> getUncompressedSlice(int slice);
+        std::unique_ptr<char[]> getUncompressedSlice(const int slice) const;
+
         /** \brief Returns the uncompressed labeled representation of a slice as
          * a long long int array encapsulated in a unique pointer.
          *
          */
-        std::unique_ptr<long long[]> getUncompressedLabeledSlice(int slice);
+        std::unique_ptr<long long[]> getUncompressedLabeledSlice(const int slice) const;
 
-        typedef struct Label
+        struct Label
         {
           double norm_quotient;
           float m_s;
@@ -186,13 +192,12 @@ namespace ESPINA
           itkVolumeType::IndexType center;
           unsigned char color;
           unsigned char m_c;
-        } Label;
+        };
 
       protected:
-        virtual void onExtendedItemSet(Channel* item) {}
+        virtual void onExtendedItemSet(ChannelPtr stack);
 
-        virtual QVariant cacheFail(const InformationKey& tag) const
-        { return QVariant(); }
+        virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }
 
       public:
         typedef struct SuperVoxel
@@ -212,27 +217,14 @@ namespace ESPINA
         void progress(int);
 
       private:
+        static const QString VOXELS_FILE;
+        static const QString LABELS_FILE;
+        static const QString DATA_FILE;
+
         class SLICComputeTask;
 
-        typedef struct SLICResult
+        struct SLICResult
         {
-          private:
-            const int capacity = 10; /** Uncompressed slices cache capacity */
-            /** \brief struct holding the slice data and cache-related information.
-             *
-             */
-            typedef struct ResultCacheValue {
-                int z;
-                int accessTime;
-                QByteArray array;
-            } ResultCacheValue;
-            struct CacheCompare {
-                bool operator() (const ResultCacheValue& lhs, const ResultCacheValue& rhs) const {
-                    return lhs.accessTime < rhs.accessTime;
-                }
-            };
-            std::set<ResultCacheValue, CacheCompare> voxel_cache;
-          public:
             QList<SuperVoxel> supervoxels; /** List of calculated supervoxels. */
             //TODO: Replace usages of supervoxel_count with supervoxels.size() and test
             unsigned int supervoxel_count = 0; /** Number of calculated supervoxels. */
@@ -246,27 +238,27 @@ namespace ESPINA
             bool computed = false; /** If this result refers to a completed successful run. */
             bool modified = false; /** If this result contains results different than those loaded from the snapshot. */
             Bounds bounds; /** Bounds defining the region of the stack that has been computed. */
-            TemporalStorage temp_storage; /** Temporal storage for new results yet to be saved to a snapshot. */
-            /** \brief Returns a QByteArray that contains a compressed slice loaded from disk or cached.
-             * \param[in] slice to return.
-             *
-             */
-            QByteArray getSlice(int slice);
-            /** \brief Returns a QByteArray that contains a compressed slice loaded from disk.
-             * \param[in] slice to return.
-             *
-             */
-            QByteArray getSliceUncached(int slice) const;
+
             mutable QReadWriteLock m_dataMutex;
-            StackSLIC *stack_instance; /** Reference to the Extension instance that the results belong to. */
-        } SLICResult;
+
+            SLICResult(): supervoxel_count{0}, slice_count{0}, tolerance{0}, iterations{10}, m_s{10}, m_c{20}, variant{SLICVariant::SLIC}, computed{false}, modified{false} {};
+        };
 
         SchedulerSPtr m_scheduler; /** application scheduler. */
         CoreFactory  *m_factory;   /** core factory.          */
         std::shared_ptr<SLICComputeTask> m_task; /** Task instance that is currently running SLIC. */
         SLICResult result; /** struct holding the results of the last SLIC computation. */
-        QString snapshotName(const QString& file) const;
+
+        /** \brief Loads the results from disk.
+         *
+         */
         bool loadFromSnapshot();
+
+        /** \brief Returns a QByteArray that contains a compressed slice loaded from disk or cached.
+         * \param[in] slice to return.
+         *
+         */
+        const QByteArray getSlice(const int slice) const;
 
         friend SLICComputeTask;
     };
@@ -280,23 +272,13 @@ namespace ESPINA
          * \param[in] stack Stack pointer.
          * \param[in] scheduler Application task scheduler.
          * \param[in] factory Application object factory.
-         * \param[in] result Pointer to results.
-         * \param[in] parameter_m_s Distance between supervoxels.
-         * \param[in] parameter_m_c Color weight.
-         * \param[in] variant SLIC variant.
-         * \param[in] max_iterations Number of maximum iterations of the algorithm.
-         * \param[in] tolerance Tolerance value for an early exit.
+         * \param[in] result Referencer to results struct.
          *
          */
-        explicit SLICComputeTask(ChannelPtr stack,
+        explicit SLICComputeTask(ChannelPtr    stack,
                                  SchedulerSPtr scheduler,
-                                 CoreFactory *factory,
-                                 SLICResult *result,
-                                 unsigned int parameter_m_s,
-                                 unsigned int parameter_m_c,
-                                 SLICVariant variant,
-                                 unsigned int max_iterations,
-                                 double tolerance);
+                                 CoreFactory  *factory,
+                                 SLICResult   &result);
 
         /** \brief SLICComputeTask class virtual destructor.
          *
@@ -331,7 +313,7 @@ namespace ESPINA
          * \param[in] array containing the supervoxel label assigned to each voxel.
          *
          */
-        void saveResults(QList<Label> labels, unsigned int *voxels);
+        void saveResults(QList<Label> labels);
 
         /** \brief Compresses a slice and saves it to a QDataStream.
          * \param[out] QDataStream that will hold the compressed slice.
@@ -361,7 +343,7 @@ namespace ESPINA
         /** \brief Returns true if the coordinates are inside the computable area.
          *
          */
-        bool isInBounds(int x, int y, int z);
+        const bool isInBounds(const int x, const int y, const int z) const;
 
         //TODO: Check color_distance for nullptr and remove only_spatial?
         /** \brief Calculates the weighted distance between a voxel an a supervoxel.
@@ -400,7 +382,7 @@ namespace ESPINA
         /** \brief Connectivity algorithm that makes sure that all voxels are connected to their assigned supervoxel.
          *
          */
-        void ensureConnectivity();
+        void ensureConnectivity(QList<Label> &labels);
 
         /** \brief Ensures connectivity between a supervoxel and all its assigned voxels.
          * \param[in] label Label of the supervoxel.
@@ -410,17 +392,10 @@ namespace ESPINA
 
         ChannelPtr    m_stack;    /** stack to process.                                                  */
         CoreFactory  *m_factory;  /** core object factory needed to create edges extension if neccesary. */
-        SLICResult   *result;     /** Pointer to the result struct to write the computed results to.     */
-        unsigned int *voxels;     /** Array holding the assigned values of all voxels.                   */
-        QList<Label> *label_list; /** Pointer to the list of supervoxels.                                */
+        SLICResult   &result;     /** Pointer to the result struct to write the computed results to.     */
         NmVector3     spacing;    /** Current stack spacing.                                             */
         const Bounds  bounds;     /** Region to be computed.                                             */
-
-        unsigned char parameter_m_s;  /** Distance between supervoxels. Initial parameter.      */
-        unsigned char parameter_m_c;  /** Color weight parameter. Initial parameter.            */
-        SLICVariant   variant;        /** SLICVariant to use. Initial parameter.                */
-        unsigned int  max_iterations; /** Maximum number of iterations. Initial parameter.      */
-        double        tolerance;      /** Tolerance value for an early exit. Initial parameter. */
+        unsigned int *voxels;     /** Array holding the assigned values of all voxels.                   */
 
         int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
         unsigned long int n_voxels;
@@ -430,9 +405,9 @@ namespace ESPINA
          *
          */
         const double color_normalization_constant = 100.0/255.0;
-        double scan_size; /** Maximum distance to use when looking for candidate voxels. */
 
         mutable QMutex labelListMutex;
+
         QFutureWatcher<void> watcher;
 
         friend StackSLIC;

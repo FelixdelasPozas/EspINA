@@ -91,8 +91,6 @@ RenderView::~RenderView()
 {
   disconnect();
 
-  shutdownAndRemoveManagers();
-
   delete m_view;
 }
 

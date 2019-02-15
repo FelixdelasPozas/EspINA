@@ -200,6 +200,8 @@ View2D::~View2D()
   m_renderer->RemoveAllViewProps();
   m_thumbnail->RemoveAllViewProps();
 
+  shutdownAndRemoveManagers();
+
   m_state2D = nullptr;
 }
 

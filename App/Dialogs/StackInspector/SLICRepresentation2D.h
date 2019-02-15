@@ -40,7 +40,8 @@ class vtkGlyph3DMapper;
 
 namespace ESPINA
 {
-  namespace Extensions {
+  namespace Extensions
+  {
     class StackSLIC;
   }
   /** \class SLICRepresentation2D

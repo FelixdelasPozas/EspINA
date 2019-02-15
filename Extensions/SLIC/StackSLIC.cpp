@@ -18,30 +18,43 @@
  * 
  */
 
+// TODO /////////////////////////////////////////
+// Test other compression methods apart from RLE.
+// SLIC tested, more testing with SLICO and ASLIC.
+// Delete supervoxels without voxels (empty labels).
+// Use of itk regions instead of computing with Bounds(), some parts can crash due to bad rounding (getSuperVoxel?).
+// Use of slice regions from Edges? (check, this is done already?)
+// Compute SLIC of only a region of the stack, this changes save and load methods if we want to save results.
+// More code cleanups and commenting.
+// Additional pass for memory reduction, if(bounds(supervoxel_i).intersect(bounds(supervoxel_j) == false) both can have same color, using only unsigned char.
+////////////////////////////////////////////////
+
 //ESPINA
 #include <Extensions/SLIC/StackSLIC.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/BlockTimer.hxx>
 #include <Core/Utils/EspinaException.h>
-#include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <Core/Types.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
 
 //ITK
 #include <itkImage.hxx>
 #include <itkEuclideanDistanceMetric.hxx>
 #include <itkImageConstIteratorWithIndex.hxx>
 #include <itkImageRegion.hxx>
+#include <itkGradientMagnitudeImageFilter.h>
+
+// VTK
 #include <vtkUnsignedCharArray.h>
 #include <vtkImageData.h>
 #include <vtkPointData.h>
-#include "itkGradientMagnitudeImageFilter.h"
 
 // C++
 #include <limits>
-#include <math.h>
+#include <cmath>
 #include <memory>
 #include <functional>
 #include <queue>
@@ -60,19 +73,18 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 
 const StackExtension::Type StackSLIC::TYPE = "StackSLIC";
+
 const QString StackSLIC::VOXELS_FILE = "voxels_%1.slic";
 const QString StackSLIC::LABELS_FILE = "labels.slic";
-const QString StackSLIC::DATA_FILE = "data.slic";
+const QString StackSLIC::DATA_FILE   = "data.slic";
 
 //-----------------------------------------------------------------------------
 StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCache &cache)
 : StackExtension{cache}
-, m_scheduler{scheduler}
-, m_factory  {factory}
-, m_task     {nullptr}
+, m_scheduler   {scheduler}
+, m_factory     {factory}
+, m_task        {nullptr}
 {
-  qDebug() << "Constructor StackSLIC";
-  result.stack_instance = this;
 }
 
 //-----------------------------------------------------------------------------
@@ -80,67 +92,16 @@ StackSLIC::~StackSLIC()
 {
   if(m_task != nullptr)
   {
-      if(m_task->isRunning())
-        m_task->abort();
+      if(m_task->isRunning()) m_task->abort();
+      m_task->thread()->wait(-1);
+      m_task = nullptr;
   }
-}
-
-//-----------------------------------------------------------------------------
-State StackSLIC::state() const
-{
-  return State();
-}
-
-//-----------------------------------------------------------------------------
-Snapshot StackSLIC::snapshot() const
-{
-  if(!result.computed) return Snapshot();
-
-  QReadLocker lock(&result.m_dataMutex);
-
-  Snapshot snapshot;
-
-  QString voxelsName;
-  auto dataName = snapshotName(DATA_FILE);
-  auto labelsName = snapshotName(LABELS_FILE);
-  for(unsigned int i = 0; i < result.slice_count; i++)
-  {
-    voxelsName = snapshotName(QString(VOXELS_FILE).arg(i));
-    snapshot << SnapshotData(voxelsName, result.getSliceUncached(i));
-  }
-
-  QByteArray labelBuffer;
-  QDataStream labelStream(&labelBuffer, QIODevice::WriteOnly);
-  labelStream.setVersion(QDataStream::Qt_4_0);
-  labelStream << result.supervoxels;
-  snapshot << SnapshotData(labelsName, labelBuffer);
-
-  QByteArray dataBuffer;
-  QDataStream stream(&dataBuffer, QIODevice::WriteOnly);
-  stream.setVersion(QDataStream::Qt_4_0);
-
-  stream << result.supervoxel_count;
-  stream << result.slice_count;
-  stream << result.bounds[0] << result.bounds[1] << result.bounds[2];
-
-  stream << static_cast<int>(result.variant);
-  stream << result.m_s;
-  stream << result.m_c;
-  stream << result.iterations;
-  stream << result.tolerance;
-
-  snapshot << SnapshotData(dataName, dataBuffer);
-
-  return snapshot;
 }
 
 //-----------------------------------------------------------------------------
 bool StackSLIC::loadFromSnapshot()
 {
-  if(result.computed)
-    return true;
-
-  QWriteLocker lock(&result.m_dataMutex);
+  if(result.computed) return true;
 
   Snapshot snapshot;
 
@@ -150,13 +111,18 @@ bool StackSLIC::loadFromSnapshot()
   QFileInfo labelsFileInfo = m_extendedItem->storage()->absoluteFilePath(labelsName);
 
   if(!dataFileInfo.exists() || !labelsFileInfo.exists())
+  {
     return false;
+  }
 
   QFile labelsFile(labelsFileInfo.absoluteFilePath());
   QFile dataFile(dataFileInfo.absoluteFilePath());
   if(!labelsFile.open(QIODevice::ReadOnly) || !dataFile.open(QIODevice::ReadOnly))
+  {
     return false;
+  }
 
+  QWriteLocker lock(&result.m_dataMutex);
 
   QByteArray labelBuffer = labelsFile.readAll();
   QDataStream labelStream(&labelBuffer, QIODevice::ReadOnly);
@@ -170,34 +136,15 @@ bool StackSLIC::loadFromSnapshot()
 
   stream >> result.supervoxel_count;
   stream >> result.slice_count;
-  stream >> result.bounds[0] >> result.bounds[1] >> result.bounds[2];
+  stream >> result.bounds[0] >> result.bounds[1] >> result.bounds[2] >> result.bounds[3] >> result.bounds[4] >> result.bounds[5];
 
   int variant;
   stream >> variant;
-  result.variant = (StackSLIC::SLICVariant) variant;
+  result.variant = static_cast<StackSLIC::SLICVariant>(variant);
   stream >> result.m_s;
   stream >> result.m_c;
   stream >> result.iterations;
   stream >> result.tolerance;
-
-  /*result.voxels.clear();
-  QString voxelsName;
-  for(int i = 0; i<result.slice_count; i++) {
-    voxelsName = snapshotName(QString(VOXELS_FILE).arg(i));
-    QFileInfo voxelsFileInfo = m_extendedItem->storage()->absoluteFilePath(voxelsName);
-    if(!voxelsFileInfo.exists() ) {
-      result.voxels.clear();
-      result.supervoxels.clear();
-      return false;
-    }
-    QFile voxelsFile(voxelsFileInfo.absoluteFilePath());
-    if(!voxelsFile.open(QIODevice::ReadOnly)) {
-      result.voxels.clear();
-      result.supervoxels.clear();
-      return false;
-    }
-    result.voxels.append(voxelsFile.readAll());*
-  }*/
 
   result.modified = false;
   result.computed = true;
@@ -206,21 +153,23 @@ bool StackSLIC::loadFromSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-const StackExtension::InformationKeyList StackSLIC::availableInformation() const
-{
-  return InformationKeyList();
-}
-
-//-----------------------------------------------------------------------------
 void StackSLIC::onComputeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance)
 {
-  if(m_task != nullptr) return;
+  if(m_task && m_task->isRunning()) return;
 
-  m_task = std::make_shared<SLICComputeTask>(m_extendedItem, m_scheduler, m_factory, &result, parameter_m_s, parameter_m_c, variant, max_iterations, tolerance);
+  result.computed     = false;
+  result.m_s          = parameter_m_s;
+  result.m_c          = parameter_m_c;
+  result.variant      = variant;
+  result.iterations   = max_iterations;
+  result.tolerance    = tolerance;
+  result.modified     = false;
+  result.bounds       = m_extendedItem->output()->bounds();
+
+  m_task = std::make_shared<SLICComputeTask>(m_extendedItem, m_scheduler, m_factory, result);
 
   connect(m_task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
   connect(m_task.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
-  connect(this, SLOT(onAbortSLIC()), &m_task->watcher, SLOT(cancel()));
 
   Task::submit(m_task);
 }
@@ -232,7 +181,6 @@ void StackSLIC::onSLICComputed()
   {
     disconnect(m_task.get(), SIGNAL(finished()), this, SLOT(onSLICComputed()));
     disconnect(m_task.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
-    disconnect(this, SLOT(onAbortSLIC()), &m_task->watcher, SLOT(cancel()));
     m_task = nullptr;
   }
 
@@ -257,26 +205,19 @@ void StackSLIC::onAbortSLIC()
 }
 
 //-----------------------------------------------------------------------------
-StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, SLICResult *result, unsigned int parameter_m_s, unsigned int parameter_m_c, SLICVariant variant, unsigned int max_iterations, double tolerance)
+StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr scheduler, CoreFactory *factory, SLICResult &result)
 : Task{scheduler}
 , m_stack{stack}
 , m_factory{factory}
 , result(result)
-, voxels(nullptr)
-, label_list(nullptr)
 , spacing(stack->output()->spacing())
 , bounds(stack->bounds())
-, parameter_m_s(parameter_m_s)
-, parameter_m_c(parameter_m_c)
-, variant(variant)
-, max_iterations(max_iterations)
-, tolerance(tolerance)
+, voxels{nullptr}
 , n_voxels(0)
-, scan_size(0)
 {
 
   QString description = "Computing ";
-  switch(variant)
+  switch(result.variant)
   {
     case SLICVariant::ASLIC:
       description += "ASLIC";
@@ -292,6 +233,7 @@ StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr sche
       break;
   }
 
+  description += QString("of") + m_stack->name();
   setDescription(description);
 }
 
@@ -299,35 +241,28 @@ StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr sche
 void StackSLIC::SLICComputeTask::run()
 {
   BlockTimer<std::chrono::milliseconds> timer{"SLIC"};
-  emit progress(0);
+  reportProgress(0);
 
   //Square tolerance to avoid having to calculate roots later
-  if(tolerance>0) tolerance *= tolerance;
+  const auto tolerance = std::pow(result.tolerance, 2);
 
   //Initialize channel edges extension
   auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
   auto sliceRegion = edgesExtension->sliceRegion(0);
-
-  //const Bounds bounds = m_stack->bounds();
-  OutputSPtr output = m_stack->output();
-  spacing = output->spacing();
 
   //Calculate dimensions using voxels as unit
   max_x = bounds.lenght(Axis::X)/spacing[0];
   max_y = bounds.lenght(Axis::Y)/spacing[1];
   max_z = bounds.lenght(Axis::Z)/spacing[2];
 
-  //TODO: Set up minimums and maximums if ROI enabled
-  //max_x/y/z = min(ROI_max_x/y/z, max_x/y/z)
-  //min_x/y/z = max(ROI_min_x/y/z, min_x/y/z)
-
   //Calculate total number of voxels
   n_voxels = max_x*max_y*max_z;
 
   qDebug() << QString("Size: %1 %2 %3").arg(max_x).arg(max_y).arg(max_z);
-  qDebug() << QString("Spatial: %1 - Color: %2 - Iterations: %3 - Tolerance: %4").arg(parameter_m_s).arg(parameter_m_c).arg(max_iterations).arg(tolerance);
+  qDebug() << QString("Spatial: %1 - Color: %2 - Iterations: %3 - Tolerance: %4").arg(result.m_s).arg(result.m_c).arg(result.iterations).arg(tolerance);
 
   //Get ITK image from extended item
+  OutputSPtr output = m_stack->output();
   auto inputVolume = readLockVolume(output);
   if (!inputVolume->isValid())
   {
@@ -354,7 +289,6 @@ void StackSLIC::SLICComputeTask::run()
 
   //Find centers for the supervoxels
   QList<Label> labels;
-  label_list = &labels;
   if(!initSupervoxels(image.GetPointer(), labels, edgesExtension.get()))
     return;
   qDebug() << QString("Created %1 labels").arg(labels.size());
@@ -364,17 +298,18 @@ void StackSLIC::SLICComputeTask::run()
   std::memset(voxels, std::numeric_limits<unsigned int>::max(), n_voxels * sizeof(unsigned int));
 
   //Extract constants from the loops.
-  scan_size = 2. * parameter_m_s;
+  const auto scan_size = 2. * result.m_s;
 
-  const double iterationPercentage = 100.0 / max_iterations;
+  const double iterationPercentage = 100.0 / result.iterations;
 
   try
   {
-    for(unsigned int iteration = 0; iteration<max_iterations && !converged; iteration++)
+    for(unsigned int iteration = 0; iteration< result.iterations && !converged; iteration++)
     {
       if(!canExecute())
       {
         delete[] voxels;
+        voxels = nullptr;
         return;
       }
       qDebug() << QString("Starting iteration: %1 - %2s").arg(iteration+1).arg(timer.elapsed()/1000);
@@ -383,7 +318,7 @@ void StackSLIC::SLICComputeTask::run()
       if(newProgress != progressValue)
       {
         progressValue = newProgress;
-        emit progress(progressValue);
+        reportProgress(progressValue);
       }
 
       watcher.setFuture(QtConcurrent::map(labels, std::bind(&SLICComputeTask::computeLabel, this, std::placeholders::_1, edgesExtension, image, &labels)));
@@ -392,6 +327,7 @@ void StackSLIC::SLICComputeTask::run()
       if(!canExecute())
       {
         delete[] voxels;
+        voxels = nullptr;
         return;
       }
 
@@ -405,6 +341,7 @@ void StackSLIC::SLICComputeTask::run()
         if(!canExecute())
         {
           delete[] voxels;
+          voxels = nullptr;
           return;
         }
 
@@ -464,19 +401,22 @@ void StackSLIC::SLICComputeTask::run()
         }
 
         //Update weights with maximum observed results and reset them
-        switch(variant)
+        switch(result.variant)
         {
-          case ASLIC:
+          case SLICVariant::ASLIC:
             //Squared constants to prevent having to use expensive roots
-            label->norm_quotient = pow(label->m_c,2)/pow(label->m_s,2);
+            label->norm_quotient = std::pow(label->m_c,2)/pow(label->m_s,2);
             label->m_c = 1;
             label->m_s = 1.0;
             break;
-          case SLICO:
-            label->norm_quotient = pow(parameter_m_c,2)/pow(label->m_s,2);
+          case SLICVariant::SLICO:
+            label->norm_quotient = std::pow(result.m_c,2)/pow(label->m_s,2);
             label->m_s = 1.0;
             break;
-          case SLIC:
+          case SLICVariant::SLIC:
+            break;
+          default:
+            Q_ASSERT(false);
             break;
         }
 
@@ -494,31 +434,20 @@ void StackSLIC::SLICComputeTask::run()
   if(!canExecute())
   {
     delete[] voxels;
+    voxels = nullptr;
     return;
   }
 
   qDebug() << QString("Starting post-process connectivity algorithm: %1").arg(timer.elapsed()/1000);
-  ensureConnectivity();
+  ensureConnectivity(labels);
 
-  if(!canExecute())
-  {
-    delete[] voxels;
-    return;
-  }
+  saveResults(labels);
 
-  qDebug() << QString("Finished computing SLIC in %1s").arg(timer.elapsed()/1000);
+  delete [] voxels;
+  voxels = nullptr;
 
-  qDebug() << "Generating and compressing results";
-
-  //Compress and save results
-  saveResults(labels, voxels);
-  result->variant = variant;
-  result->m_s = parameter_m_s;
-  result->m_c = parameter_m_c;
-  result->iterations = max_iterations;
-  result->tolerance = (double) sqrt(tolerance);
-
-  if(voxels) delete[] voxels;
+  result.computed = true;
+  result.modified = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -528,7 +457,7 @@ void StackSLIC::SLICComputeTask::onAbort()
 }
 
 //-----------------------------------------------------------------------------
-unsigned long int StackSLIC::getSupervoxel(itkVolumeType::IndexType position)
+const unsigned long int StackSLIC::getSupervoxel(const itkVolumeType::IndexType position) const
 {
   //TODO: Check if x,y,z is in bounds
   if(!result.computed) return 0;
@@ -538,52 +467,34 @@ unsigned long int StackSLIC::getSupervoxel(itkVolumeType::IndexType position)
 }
 
 //-----------------------------------------------------------------------------
-unsigned char StackSLIC::getSupervoxelColor(unsigned int supervoxel)
+const unsigned char StackSLIC::getSupervoxelColor(const unsigned int supervoxel) const
 {
-  if(!result.computed)
-      return 0;
+  if(!result.computed) return 0;
 
   return result.supervoxels[supervoxel].color;
 }
 
 //-----------------------------------------------------------------------------
-itkVolumeType::IndexType StackSLIC::getSupervoxelCenter(unsigned int supervoxel)
+const itkVolumeType::IndexType StackSLIC::getSupervoxelCenter(const unsigned int supervoxel) const
 {
-  if(!result.computed)
-      return {0,0,0};
+  if(!result.computed) return {0,0,0};
 
   return result.supervoxels[supervoxel].center;
 }
 
 //-----------------------------------------------------------------------------
-bool StackSLIC::drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> data)
+bool StackSLIC::drawVoxelCenters(const unsigned int slice, vtkSmartPointer<vtkPoints> data)
 {
-  if(isRunning() && m_task->voxels != nullptr) {
-    auto spacing = m_extendedItem->output()->spacing();
-    data->Reset();
-    for(auto superVoxel: (*m_task->label_list))
-    {
-      if(superVoxel.center.GetElement(2) == slice)
-      {
-        data->InsertNextPoint(superVoxel.center.GetElement(0) * spacing[0],
-                              superVoxel.center.GetElement(1) * spacing[1],
-                              superVoxel.center.GetElement(2) * spacing[2]);
-      }
-    }
-    data->Modified();
-    return true;
-  }
-
-  loadFromSnapshot();
+  if(isRunning()) return false;
 
   QReadLocker lock(&result.m_dataMutex);
 
   if(!result.computed) return false;
 
+  data->Reset();
   auto spacing = m_extendedItem->output()->spacing();
 
-  data->Reset();
-  for(auto superVoxel: result.supervoxels)
+  auto testAndAddOp = [this, &spacing, &data, slice](const SuperVoxel &superVoxel)
   {
     if(superVoxel.center.GetElement(2) == slice)
     {
@@ -591,49 +502,17 @@ bool StackSLIC::drawVoxelCenters(unsigned int slice, vtkSmartPointer<vtkPoints> 
                             superVoxel.center.GetElement(1) * spacing[1],
                             superVoxel.center.GetElement(2) * spacing[2]);
     }
-  }
+  };
+  std::for_each(result.supervoxels.constBegin(), result.supervoxels.constEnd(), testAndAddOp);
   data->Modified();
 
   return true;
 }
 
 //-----------------------------------------------------------------------------
-bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImageData> data)
+bool StackSLIC::drawSliceInImageData(const unsigned int slice, vtkSmartPointer<vtkImageData> data)
 {
-  if(isRunning() && m_task->voxels != nullptr)
-  {
-    Bounds bounds = m_extendedItem->bounds();
-    OutputSPtr output = m_extendedItem->output();
-    NmVector3 spacing = output->spacing();
-    unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
-    unsigned int max_y = bounds.lenght(Axis::Y)/spacing[1];
-    unsigned int max_z = bounds.lenght(Axis::Z)/spacing[2];
-    if(slice < 0 || slice >= max_z) return false;
-
-    unsigned long long int pixel_count = max_x*max_y;
-
-    data->SetExtent(0, max_x-1, 0, max_y-1, slice, slice);
-    data->SetSpacing(spacing[0], spacing[1], spacing[2]);
-    data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-    auto buffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
-
-    unsigned int label;
-    unsigned char color;
-
-    for(unsigned int i = pixel_count * slice; i < pixel_count * (slice+1); i++) {
-      label = m_task->voxels[i];
-      if(label == std::numeric_limits<unsigned int>::max())
-        color = 0;
-      else
-        color = m_task->label_list->at(label).color;
-      *buffer = color;
-      ++buffer;
-    }
-
-    return true;
-  }
-
-  loadFromSnapshot();
+  if(isRunning()) return false;
 
   QReadLocker lock(&result.m_dataMutex);
 
@@ -657,20 +536,25 @@ bool StackSLIC::drawSliceInImageData(unsigned int slice, vtkSmartPointer<vtkImag
 }
 
 //-----------------------------------------------------------------------------
-itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBounds(Bounds bounds)
+itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBounds(const Bounds bounds) const
 {
   //Partial results shouldn't ever be useful outside of the preview
   //that is handled already in drawSliceInImageData()
   //Only returns something if SLIC has been computed
-  if(isRunning()) {
-    auto what    = QObject::tr("SLIC results called during computation");
+  if(isRunning())
+  {
+    auto message = QObject::tr("SLIC results called during computation");
     auto details = QObject::tr("StackSLIC::getLabeledImageFromBounds() -> Results are not available while SLIC computation is running.");
-    throw Utils::EspinaException(what, details);
+
+    throw Utils::EspinaException(message, details);
   }
-  if(!bounds.areValid() || !contains(m_extendedItem->output()->bounds(), bounds)) {
-    auto what    = QObject::tr("invalid bounds");
+
+  if(!bounds.areValid() || !contains(m_extendedItem->output()->bounds(), bounds))
+  {
+    auto message = QObject::tr("invalid bounds");
     auto details = QObject::tr("StackSLIC::getLabeledImageFromBounds() -> Requested area is outside the image bounds.");
-    throw Utils::EspinaException(what, details);
+
+    throw Utils::EspinaException(message, details);
   }
 
   //TODO: Use Core/Utils/SpatialUtils.hxx & Core/Analysis/Data/VolumetricDataUtils.hxx
@@ -679,18 +563,9 @@ itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBou
   auto spacing = m_extendedItem->output()->spacing();
   unsigned int max_x = bounds.lenght(Axis::X)/spacing[0];
 
-  /*ImageType::Pointer image = ImageType::New();
-  ImageType::RegionType region;
-  region.SetIndex(ImageType::IndexType{bounds[0], bounds[2], bounds[4]});
-  region.SetSize(ImageType::SizeType{bounds[1], bounds[3], bounds[5]});
-  image->SetRegions(region);
-  image->Allocate();*/
-
   auto image = create_itkImage<ImageType>(bounds, SEG_BG_VALUE, spacing);
+  auto data_offset = image->GetBufferPointer();
 
-  auto data = image->GetBufferPointer();
-
-  auto data_offset = data;
   QReadLocker lock(&result.m_dataMutex);
   for (int z = bounds[4]; z < bounds[4] + bounds[5]; z++)
   {
@@ -711,13 +586,13 @@ itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBou
 }
 
 //-----------------------------------------------------------------------------
-bool StackSLIC::isComputed()
+const bool StackSLIC::isComputed() const
 {
   return result.computed;
 }
 
 //-----------------------------------------------------------------------------
-bool StackSLIC::isRunning()
+const bool StackSLIC::isRunning() const
 {
   return m_task && m_task->isRunning();
 }
@@ -725,60 +600,43 @@ bool StackSLIC::isRunning()
 //-----------------------------------------------------------------------------
 StackSLIC::SLICVariant StackSLIC::getVariant()
 {
-  loadFromSnapshot();
-  return result.computed?result.variant:SLICVariant::SLIC;
+  return result.variant;
 }
 
 //-----------------------------------------------------------------------------
 unsigned char StackSLIC::getSupervoxelSize()
 {
-  loadFromSnapshot();
-  return result.computed?result.m_s:10;
+  return result.m_s;
 }
 
 //-----------------------------------------------------------------------------
 unsigned char StackSLIC::getColorWeight()
 {
-  loadFromSnapshot();
-  return result.computed?result.m_c:20;
+  return result.m_c;
 }
 
 //-----------------------------------------------------------------------------
 unsigned int StackSLIC::getIterations()
 {
-  loadFromSnapshot();
-  return result.computed?result.iterations:10;
+  return result.iterations;
 }
 
 //-----------------------------------------------------------------------------
 double StackSLIC::getTolerance()
 {
-  loadFromSnapshot();
-  return result.computed?result.tolerance:0.0;
+  return result.tolerance;
 }
 
 //-----------------------------------------------------------------------------
 unsigned int StackSLIC::getSupervoxelCount()
 {
-  loadFromSnapshot();
-  return result.computed?result.supervoxel_count:0;
+  return result.supervoxel_count;
 }
 
 //-----------------------------------------------------------------------------
 double StackSLIC::getSliceSpacing()
 {
-  return m_extendedItem->output()->spacing()[2];
-}
-
-//-----------------------------------------------------------------------------
-QString StackSLIC::snapshotName(const QString& file) const
-{
-  auto channelName = m_extendedItem->name();
-
-  return QString("%1/%2/%3_%4").arg(Path())
-                               .arg(type())
-                               .arg(channelName.remove(' ').replace('.','_'))
-                               .arg(file);
+  return m_extendedItem ? m_extendedItem->output()->spacing()[2] : -1;
 }
 
 //-----------------------------------------------------------------------------
@@ -803,7 +661,7 @@ QDataStream &operator<<(QDataStream &out, const StackSLIC::SuperVoxel &label)
 }
 
 //-----------------------------------------------------------------------------
-inline bool StackSLIC::SLICComputeTask::isInBounds(int x, int y, int z)
+inline const bool StackSLIC::SLICComputeTask::isInBounds(const int x, const int y, const int z) const
 {
   return !(x < min_x || y < min_y || z < min_z || x > max_x || y > max_y || z > max_z);
 }
@@ -816,16 +674,19 @@ void StackSLIC::SLICComputeTask::fitRegionToBounds(int region_position[], int re
     region_size[0] -= min_x - region_position[0]; //Substract from size by adding a negative value
     region_position[0] = min_x;
   }
+
   if(region_position[1] < min_y)
   {
     region_size[1] -= min_y - region_position[1];
     region_position[1] = min_y;
   }
+
   if(region_position[2] < min_z)
   {
     region_size[2] += min_z - region_position[2];
     region_position[2] = min_z;
   }
+
   if(region_position[0]+region_size[0] > max_x) region_size[0] = max_x-region_position[0];
   if(region_position[1]+region_size[1] > max_y) region_size[1] = max_y-region_position[1];
   if(region_position[2]+region_size[2] > max_z) region_size[2] = max_z-region_position[2];
@@ -839,38 +700,34 @@ void StackSLIC::SLICComputeTask::fitRegionToBounds(long long int region_position
     region_size[0] -= min_x - region_position[0]; //Substract from size by adding a negative value
     region_position[0] = min_x;
   }
+
   if(region_position[1] < min_y)
   {
     region_size[1] -= min_y - region_position[1];
     region_position[1] = min_y;
   }
+
   if(region_position[2] < min_z)
   {
     region_size[2] += min_z - region_position[2];
     region_position[2] = min_z;
   }
+
   if(region_position[0]+region_size[0] > max_x) region_size[0] = max_x-region_position[0];
   if(region_position[1]+region_size[1] > max_y) region_size[1] = max_y-region_position[1];
   if(region_position[2]+region_size[2] > max_z) region_size[2] = max_z-region_position[2];
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *voxels)
+void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
 {
-  Label *label;
+  QWriteLocker lock(&result.m_dataMutex);
 
-  QWriteLocker lock(&result->m_dataMutex);
+  result.slice_count = max_z;
+  result.supervoxel_count = labels.size();
+  result.supervoxels.clear();
 
-  result->slice_count = max_z;
-  result->supervoxel_count = labels.size();
-  result->supervoxels.clear();
-  //result->voxels.clear();
-
-  for(int label_index = 0; label_index < labels.size(); label_index++)
-  {
-    label=&labels[label_index];
-    result->supervoxels.append({label->center, label->color});
-  }
+  std::for_each(labels.constBegin(), labels.constEnd(), [this](const Label &label) { result.supervoxels.append({label.center, label.color});});
   labels.clear();
 
   for (int z = 0; z < max_z; z++)
@@ -881,21 +738,33 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels, unsigned int *
 
     compressSlice(stream, z);
 
-    auto fileName = QString(VOXELS_FILE).arg(z);
-    QFileInfo filePath(result->temp_storage.absoluteFilePath(fileName));
-    QFile file(filePath.absoluteFilePath());
-    file.write(data);
-    //result->voxels.append(data);
-  }
+    auto fileName =  m_factory->defaultStorage()->absoluteFilePath(QString(VOXELS_FILE).arg(z));
 
-  result->modified = true;
-  result->computed = true;
+    QFile file(fileName);
+    if(!file.open(QIODevice::WriteOnly|QIODevice::Truncate|QIODevice::Unbuffered))
+    {
+      qDebug() << "failed to create" << fileName;
+      continue;
+    }
+
+    if(data.size() != file.write(data))
+    {
+      qDebug() << "failed to save data of" << fileName;
+      continue;
+    }
+
+    file.flush();
+    file.close();
+  }
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::compressSlice(QDataStream &stream, unsigned int z) {
+void StackSLIC::SLICComputeTask::compressSlice(QDataStream &stream, unsigned int z)
+{
   //Compression algorithm goes here
-  unsigned int voxel_index = 0, current_label, same_label_count = 0;
+  unsigned long long voxel_index = 0;
+  unsigned int current_label;
+  unsigned char same_label_count = 0;
 
   for (int y = 0; y < max_y; y++)
   {
@@ -914,6 +783,14 @@ void StackSLIC::SLICComputeTask::compressSlice(QDataStream &stream, unsigned int
         }
         else
         {
+          if(same_label_count == std::numeric_limits<unsigned char>::max())
+          {
+            stream << current_label;
+            stream << same_label_count;
+
+            same_label_count = 0;
+          }
+
           same_label_count++;
         }
       }
@@ -991,15 +868,15 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
 
   GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
 
-  for(int z=parameter_m_s/2+min_z;z<max_z;z+=parameter_m_s/spacing[2])
+  for(int z=result.m_s/2+min_z;z<max_z;z+=result.m_s/spacing[2])
   {
     if(!canExecute()) return false;
 
     auto sliceRegion = edgesExtension->sliceRegion(static_cast<unsigned int>(z));
 
-    for(int y=parameter_m_s/2+min_y;y<max_y;y+=parameter_m_s/spacing[1])
+    for(int y = result.m_s / 2 + min_y; y < max_y; y += result.m_s / spacing[1])
     {
-      for(int x=parameter_m_s/2+min_x;x<max_x;x+=parameter_m_s/spacing[0])
+      for(int x = result.m_s / 2 + min_x; x < max_x; x += result.m_s / spacing[0])
       {
         if(!canExecute()) return false;
 
@@ -1047,7 +924,8 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
         {
           //qDebug() << QString("Center/Checking: %2 %3 %4 -> %5 %6 %7").arg(x).arg(y).arg(z).arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]);
           auto value = it.Get();
-          if(value < lowestGradient) {
+          if(value < lowestGradient)
+          {
             cur_index = it.GetIndex();
             lowestGradient = value;
             //qDebug() << QString("New value: %1 | Center/New: %2 %3 %4 -> %5 %6 %7")
@@ -1056,7 +934,7 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
           ++it;
         }
 
-        labels.append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, (unsigned int) labels.size(), cur_index, image->GetPixel(cur_index), 1 });
+        labels.append((Label) {std::pow(result.m_c,2) / std::pow(result.m_s,2), 1.0, (unsigned int) labels.size(), cur_index, image->GetPixel(cur_index), 1 });
       }
     }
   }
@@ -1065,7 +943,9 @@ bool StackSLIC::SLICComputeTask::initSupervoxels(itkVolumeType *image, QList<Lab
 
 //-----------------------------------------------------------------------------
 float StackSLIC::SLICComputeTask::calculateDistance(IndexType &voxel_index, IndexType &center_index,
-                                                   unsigned char voxel_color, unsigned char center_color, float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial)
+                                                   unsigned char voxel_color, unsigned char center_color,
+                                                   float norm_quotient, float *color_distance,
+                                                   float *spatial_distance, bool only_spatial)
 {
   union vec4f
   {
@@ -1115,9 +995,6 @@ float StackSLIC::SLICComputeTask::calculateDistance(IndexType &voxel_index, Inde
 void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels)
 {
   //TODO: Add progress tracking through signals
-
-  //if(!canExecute()) return;
-
   int region_position[3];
   int region_size[3];
   unsigned char center_color, voxel_color;
@@ -1130,7 +1007,7 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
   IndexType cur_index;
 
   //Find the region of voxels that are in range of this supervoxel
-  findCandidateRegion(label.center, scan_size, region_position, region_size);
+  findCandidateRegion(label.center, 2. * result.m_s, region_position, region_size);
 
   //Make sure that the region is inside the bounds of the image
   fitRegionToBounds(region_position, region_size);
@@ -1139,8 +1016,6 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
   //Iterate over the slices
   for(current_slice = region_position[2]; current_slice < region_position[2] + region_size[2]; current_slice++)
   {
-    //if(!canExecute()) return;
-
     //Get slice edges
     auto sliceRegion = edgesExtension->sliceRegion(current_slice);
     //Set region bounds around center for current slice
@@ -1166,19 +1041,21 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
 
     while(!it.IsAtEnd())
     {
-      //if(!canExecute()) return;
-
       cur_index = it.GetIndex();
       voxel_color = it.Get();
       distance = calculateDistance(cur_index, label.center, voxel_color, center_color, label.norm_quotient, &color_distance, &spatial_distance);
       voxel_index = cur_index[0]+cur_index[1]*max_x+cur_index[2]*max_x*max_y;
       label_old_index = voxels[voxel_index];
-      if(label_old_index == std::numeric_limits<unsigned int>::max() || label_old_index == label.index) {
+      if(label_old_index == std::numeric_limits<unsigned int>::max() || label_old_index == label.index)
+      {
         //If voxel is unassigned or assigned to the current label, assume it's an infinite distance away
         distance_old = std::numeric_limits<double>::max();
-      } else {
+      }
+      else
+      {
         label_old = &(*labels)[label_old_index];
-        if(label_old == nullptr) {
+        if(label_old == nullptr)
+        {
           qDebug() << QString("Null label_old: %1/%2 labels %3").arg(label_old_index).arg((*labels).size());
           label_old = &(*labels)[label_old_index];
           qDebug() << QString("Label: %1").arg((*labels)[label_old_index].index);
@@ -1186,25 +1063,31 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
         distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, nullptr, nullptr);
       }
 
-      if(distance < distance_old) {
+      if(distance < distance_old)
+      {
         QMutexLocker locker(&labelListMutex);
-        if(label_old_index != voxels[voxel_index]) {
+        if(label_old_index != voxels[voxel_index])
+        {
           label_old = &(*labels)[voxels[voxel_index]];
           distance_old = calculateDistance(cur_index, label_old->center, voxel_color, image->GetPixel(label_old->center), label_old->norm_quotient, nullptr, nullptr);
         }
-        if(distance < distance_old) {
+        if(distance < distance_old)
+        {
           voxels[voxel_index] = label.index;
           //Update maximum distances
-          switch(variant)
+          switch(result.variant)
           {
-            case ASLIC:
+            case SLICVariant::ASLIC:
               if(label.m_c < color_distance)
                 label.m_c = color_distance;
             //no break
-            case SLICO:
-            case SLIC:
+            case SLICVariant::SLICO:
+            case SLICVariant::SLIC:
               if(label.m_s < spatial_distance)
                 label.m_s = spatial_distance;
+              break;
+            default:
+              Q_ASSERT(false);
               break;
           }
         }
@@ -1216,23 +1099,26 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, std::shared_ptr<Chan
 
   //if(!canExecute()) return;
 
-  switch(variant)
+  switch(result.variant)
   {
-    case ASLIC:
+    case SLICVariant::ASLIC:
       //Update max. distances calculating their roots as we were
       //using squared distances for the simplified equations
       label.m_c = std::sqrt(label.m_c);
     //no break
-    case SLICO:
-    case SLIC:
+    case SLICVariant::SLICO:
+    case SLICVariant::SLIC:
       label.m_s = std::sqrt(label.m_s);
       break;
+    default:
+      Q_ASSERT(false);
+      break;
   }
-
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::createSupervoxel(IndexType cur_index, ChannelEdges *edgesExtension, itkVolumeType *image, QList<Label> *labels) {
+void StackSLIC::SLICComputeTask::createSupervoxel(IndexType cur_index, ChannelEdges *edgesExtension, itkVolumeType *image, QList<Label> *labels)
+{
   using GradientType = itk::Image<float,3>;
   using GradientFilterType = itk::GradientMagnitudeImageFilter<itkVolumeType, GradientType>;
   //using GradientFilterType = itk::GradientMagnitudeRecursiveGaussianImageFilter<itkVolumeType, GradientType>;
@@ -1282,7 +1168,8 @@ void StackSLIC::SLICComputeTask::createSupervoxel(IndexType cur_index, ChannelEd
   {
     //qDebug() << QString("Center/Checking: %2 %3 %4 -> %5 %6 %7").arg(x).arg(y).arg(z).arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]);
     auto value = it.Get();
-    if(value < lowestGradient) {
+    if(value < lowestGradient)
+    {
       cur_index = it.GetIndex();
       lowestGradient = value;
       //qDebug() << QString("New value: %1 | Center/New: %2 %3 %4 -> %5 %6 %7")
@@ -1290,30 +1177,25 @@ void StackSLIC::SLICComputeTask::createSupervoxel(IndexType cur_index, ChannelEd
     }
     ++it;
   }
+
   {
     QMutexLocker locker(&labelListMutex);
-    labels->append((Label) {pow(parameter_m_c,2) / pow(parameter_m_s,2), 1.0, (unsigned int) labels->size(), cur_index, image->GetPixel(cur_index), 1 });
+    labels->append((Label) {std::pow(result.m_c,2) / std::pow(result.m_s,2), 1.0, (unsigned int) labels->size(), cur_index, image->GetPixel(cur_index), 1 });
   }
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::ensureConnectivity()
+void StackSLIC::SLICComputeTask::ensureConnectivity(QList<Label> &labels)
 {
-  //watcher.setFuture(QtConcurrent::map(*label_list, std::bind(&SLICComputeTask::labelConnectivity, this, std::placeholders::_1)));
-  //watcher.waitForFinished();
-  int size = (*label_list).size();
-  for(int label_index=0;label_index<size;label_index++)
-  {
-    labelConnectivity((*label_list)[label_index]);
-  }
+  std::for_each(labels.begin(), labels.end(), [this](Label &label) { labelConnectivity(label); });
 }
 
 //-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
 {
   const int slice_area = max_x * max_y;
-  int distance = label.m_s;
-  int range = distance*2+1;
+  const int distance = label.m_s;
+  const int range = distance*2+1;
   IndexType center = label.center;
   IndexType current = center;
   IndexType contiguous[6];//[26];
@@ -1334,12 +1216,12 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
     //qDebug() << QString("Label %1 - Center not inside supervoxel!").arg(label.index);
   //}
 
-  if(offsetRegion > size)
-    qDebug() << QString("Error calculating offset!\n");
+  if(offsetRegion > size) qDebug() << QString("Error calculating offset!\n");
+
   visited[offsetRegion] = true;
 
-  while(!search_queue.empty()) {
-
+  while(!search_queue.empty())
+  {
     current = search_queue.front();
     search_queue.pop();
     offsetImage = current[0] + current[1]*max_x + current[2]*slice_area;
@@ -1351,24 +1233,32 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
     contiguous[4] = {current[0], current[1], current[2]+1};
     contiguous[5] = {current[0], current[1], current[2]-1};
 
-    for(IndexType next : contiguous) {
-      if(isInBounds(next[0], next[1], next[2])) {
+    for(IndexType next : contiguous)
+    {
+      if(isInBounds(next[0], next[1], next[2]))
+      {
         //Skip voxels outside the valid subregion
         if(next[0] < region[0] || next[0] >= region[0] + length[0] ||
             next[1] < region[1] || next[1] >= region[1] + length[1] ||
             next[2] < region[2] || next[2] >= region[2] + length[2])
+        {
           continue;
+        }
+
         offsetRegion = next[0] - region[0] + (next[1]-region[1]) * length[0] + (next[2] - region[2])*length[0]*length[1];
-        if(offsetRegion > size)
-            qDebug() << QString("Error calculating offset!");
-        if(!visited[offsetRegion]) {
+
+        if(offsetRegion > size) qDebug() << QString("Error calculating offset!");
+
+        if(!visited[offsetRegion])
+        {
           offsetImage = next[0] + next[1]*max_x + next[2]*slice_area;
           //If this is an irregular supervoxel (center isn't inside) do a breadth first
           //search for the closest voxel belonging to the supervoxel
           if(!centerFound) {
             //If a voxel with this label is found, restart the search from that voxel
             //keeping the visited list to avoid double-checking previous voxels
-            if(voxels[offsetImage] == label.index) {
+            if(voxels[offsetImage] == label.index)
+            {
               std::queue<IndexType> empty;
               std::swap(search_queue, empty);
               centerFound = true;
@@ -1377,8 +1267,10 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
               break;
             }
             search_queue.push(next);
-          } else if(voxels[offsetImage] == label.index) {
-            search_queue.push(next);
+          }
+          else
+          {
+            if(voxels[offsetImage] == label.index) search_queue.push(next);
           }
           visited[offsetRegion] = true;
         }
@@ -1388,7 +1280,8 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
 
   //TODO: If centerFound is false at this point the supervoxel has no voxels,
   //decide what to do. Possibly remove the label entirely.
-  if(!centerFound) {
+  if(!centerFound)
+  {
     qDebug() << QString("Label %1 - Center not found!").arg(label.index);
     return;
   }
@@ -1396,7 +1289,8 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
   int region_xy_len = length[0] * length[1];
   std::vector<unsigned int> adjacent_labels;
   int unconnected_count = 0;
-  for(int i = 0; i < size; i++) {
+  for(int i = 0; i < size; i++)
+  {
     if(visited[i])
       continue;
     int z = i / (region_xy_len);
@@ -1404,34 +1298,41 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
     int y = r / length[0];
     int x = r - y * length[0];
     offsetImage = (x+region[0]) + (y+region[1])*max_x + (z+region[2])*slice_area;
-    if(voxels[offsetImage] == label.index) {
+    if(voxels[offsetImage] == label.index)
+    {
       int adjacentOffset;
-      if (x < max_x-1) {
+      if (x < max_x-1)
+      {
         adjacentOffset = offsetImage + 1;
         if(adjacentOffset >= 0 && adjacentOffset < static_cast<int>(n_voxels) && voxels[adjacentOffset] != label.index)
           adjacent_labels.push_back(voxels[adjacentOffset]);
       }
-      if (x > 0) {
+      if (x > 0)
+      {
         adjacentOffset = offsetImage - 1;
         if(adjacentOffset >= 0 && adjacentOffset < static_cast<int>(n_voxels) && voxels[adjacentOffset] != label.index)
           adjacent_labels.push_back(voxels[adjacentOffset]);
       }
-      if (y < max_y-1) {
+      if (y < max_y-1)
+      {
         adjacentOffset = offsetImage + max_x;
         if(adjacentOffset >= 0 && adjacentOffset < static_cast<int>(n_voxels) && voxels[adjacentOffset] != label.index)
           adjacent_labels.push_back(voxels[adjacentOffset]);
       }
-      if (y > 0) {
+      if (y > 0)
+      {
         adjacentOffset = offsetImage - max_x;
         if(adjacentOffset >= 0 && adjacentOffset < static_cast<int>(n_voxels) && voxels[adjacentOffset] != label.index)
           adjacent_labels.push_back(voxels[adjacentOffset]);
       }
-      if (z < max_z-1) {
+      if (z < max_z-1)
+      {
         adjacentOffset = offsetImage + max_y;
         if(adjacentOffset >= 0 && adjacentOffset < static_cast<int>(n_voxels) && voxels[adjacentOffset] != label.index)
           adjacent_labels.push_back(voxels[adjacentOffset]);
       }
-      if (z > 0) {
+      if (z > 0)
+      {
         adjacentOffset = offsetImage - max_y;
         if(adjacentOffset >= 0 && adjacentOffset < static_cast<int>(n_voxels) && voxels[adjacentOffset] != label.index)
           adjacent_labels.push_back(voxels[adjacentOffset]);
@@ -1441,37 +1342,43 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
       int max_occurrences = 0;
       int occurrences = 1;
       unsigned int l = adjacent_labels.size() > 0?adjacent_labels[0]:label.index;
-      for(unsigned int j = 0; j < adjacent_labels.size()-1; j++) {
-        if(adjacent_labels[j] == adjacent_labels[j+1]) {
-          occurrences ++;
-          if(occurrences > max_occurrences) {
+      for (unsigned int j = 0; j < adjacent_labels.size() - 1; j++)
+      {
+        if (adjacent_labels[j] == adjacent_labels[j + 1])
+        {
+          occurrences++;
+          if (occurrences > max_occurrences)
+          {
             max_occurrences = occurrences;
             l = adjacent_labels[j];
           }
-        } else
+        }
+        else
+        {
           occurrences = 1;
+        }
       }
       //TODO: Add critical section for multithreaded writes to voxels[]
       if(l==label.index)
+      {
         qDebug() << QString("Label %1 - Can't find new supervoxel for: %2 %3 %4\n").arg(label.index).arg(x).arg(y).arg(z);
+      }
       voxels[offsetImage] = l;
       unconnected_count++;
     }
   }
 
-  if(unconnected_count>0)
-    qDebug() << QString("Label %1 - %2 unconnected voxels").arg(label.index).arg(unconnected_count);
+//  if(unconnected_count>0)
+//    qDebug() << QString("Label %1 - %2 unconnected voxels").arg(label.index).arg(unconnected_count);
 }
 
 //-----------------------------------------------------------------------------
-std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(int slice) {
-  auto compressed = result.getSlice(slice);
+std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(const int slice) const
+{
+  auto compressed = getSlice(slice);
 
   QDataStream stream(&compressed, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
-
-  unsigned int label;
-  unsigned short voxel_count;
 
   Bounds bounds = m_extendedItem->bounds();
   OutputSPtr output = m_extendedItem->output();
@@ -1484,11 +1391,15 @@ std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(int slice) {
   std::unique_ptr<char[]> buffer(new char[pixel_count]);
   auto buffer_ptr = buffer.get();
 
+  unsigned int label;
+  unsigned char voxel_count;
+
   while(pixel < pixel_count)
   {
     stream >> label;
     stream >> voxel_count;
-    for(int i = 0; i < voxel_count; i++)
+
+    for(unsigned int i = 0; i < voxel_count; i++)
     {
       *buffer_ptr++ = label == std::numeric_limits<unsigned int>::max() ? 0 : result.supervoxels[label].color;
     }
@@ -1499,14 +1410,12 @@ std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(int slice) {
 }
 
 //-----------------------------------------------------------------------------
-std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(int slice) {
-  auto compressed = result.getSlice(slice);
+std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(const int slice) const
+{
+  auto compressed = getSlice(slice);
 
   QDataStream stream(&compressed, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
-
-  unsigned int label;
-  unsigned short voxel_count;
 
   Bounds bounds = m_extendedItem->bounds();
   OutputSPtr output = m_extendedItem->output();
@@ -1518,6 +1427,9 @@ std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(int slice) {
 
   std::unique_ptr<long long[]> buffer(new long long[pixel_count]);
   auto buffer_ptr = buffer.get();
+
+  unsigned int label;
+  unsigned char voxel_count;
 
   while(pixel < pixel_count)
   {
@@ -1534,60 +1446,91 @@ std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(int slice) {
 }
 
 //-----------------------------------------------------------------------------
-QByteArray StackSLIC::SLICResult::getSlice(int slice) {
+const QByteArray StackSLIC::getSlice(const int slice) const
+{
+  if(!result.computed)
+  {
+    auto message = QObject::tr("SLIC not computed");
+    auto details = QObject::tr("SLICResult::getSlice() -> ") + message;
 
-  if(!computed) {
-    //TODO: Throw Exception? Callers already check if computed
-    return nullptr;
+    throw EspinaException(message, details);
   }
 
-  int time = 0;
+  QReadLocker lock(&result.m_dataMutex);
 
-  //TODO: Move cache to getUncompressedLabeledSlice()
-  /*for(auto &cached : cache.voxel_cache)
-    if(cached.z == slice) {
-      QWriteLocker lock(&m_dataMutex);
-      cache.voxel_cache.erase(cached);
-      cache.voxel_cache.insert(ResultCache::ResultCacheValue{cached.z, time, cached.array});
-      return cached.array;
-    }*/
-
-  ResultCacheValue entry;
-  entry.z = slice;
-  entry.accessTime = time;
-  entry.array = getSliceUncached(slice);
-  /*QWriteLocker lock(&m_dataMutex);
-  if(cache.voxel_cache.size() > cache.capacity) {
-    cache.voxel_cache.erase(cache.voxel_cache.begin());
-  }
-  cache.voxel_cache.insert(entry);*/
-
-  return entry.array;
-}
-
-//-----------------------------------------------------------------------------
-QByteArray StackSLIC::SLICResult::getSliceUncached(int slice) const {
-  QReadLocker lock(&m_dataMutex);
   QFileInfo filePath;
-
-  auto fileName = QString(VOXELS_FILE).arg(slice);
-  if(modified) {
-    filePath = temp_storage.absoluteFilePath(fileName);
-  } else {
-    filePath = stack_instance->m_extendedItem->storage()->absoluteFilePath(fileName);
+  if(result.modified)
+  {
+    filePath = m_factory->defaultStorage()->absoluteFilePath(QString(VOXELS_FILE).arg(slice));
+  }
+  else
+  {
+    filePath = m_extendedItem->storage()->absoluteFilePath(snapshotName(VOXELS_FILE).arg(slice));
   }
 
-  if(!filePath.exists() ) {
-    auto what    = QObject::tr("Slice file not found");
-    auto details = QObject::tr("StackSLIC::getSliceUncached() -> The path to the slice file doesn't exist.");
-    throw Utils::EspinaException(what, details);
+  if (!filePath.exists())
+  {
+    qDebug() << filePath.absoluteFilePath();
+    auto message = QObject::tr("Slice file not found");
+    auto details = QObject::tr("SLICResult::getSlice() -> The path to the slice file doesn't exist.");
+
+    throw Utils::EspinaException(message, details);
   }
+
   QFile file(filePath.absoluteFilePath());
-  if(!file.open(QIODevice::ReadOnly)) {
-    auto what    = QObject::tr("Slice file couldn't be read");
-    auto details = QObject::tr("StackSLIC::getSliceUncached() -> The slice file couldn't be read.");
-    throw Utils::EspinaException(what, details);
+  if (!file.open(QIODevice::ReadOnly))
+  {
+    auto message = QObject::tr("Slice file couldn't be read");
+    auto details = QObject::tr("SLICResult::getSlice() -> The slice file couldn't be read.");
+
+    throw Utils::EspinaException(message, details);
   }
 
   return file.readAll();
+}
+
+//--------------------------------------------------------------------
+void StackSLIC::onExtendedItemSet(ChannelPtr stack)
+{
+  loadFromSnapshot();
+}
+
+//--------------------------------------------------------------------
+Snapshot ESPINA::Extensions::StackSLIC::snapshot() const
+{
+  Snapshot snapshot;
+
+  QReadLocker lock(&result.m_dataMutex);
+
+  if(result.computed)
+  {
+    for(unsigned int i = 0; i < result.slice_count; ++i)
+    {
+      snapshot << SnapshotData(snapshotName(VOXELS_FILE).arg(i), getSlice(i));
+    }
+
+    QByteArray labelBuffer;
+    QDataStream labelStream(&labelBuffer, QIODevice::WriteOnly);
+    labelStream.setVersion(QDataStream::Qt_4_0);
+    labelStream << result.supervoxels;
+    snapshot << SnapshotData(snapshotName(LABELS_FILE), labelBuffer);
+
+    QByteArray dataBuffer;
+    QDataStream stream(&dataBuffer, QIODevice::WriteOnly);
+    stream.setVersion(QDataStream::Qt_4_0);
+
+    stream << result.supervoxel_count;
+    stream << result.slice_count;
+    stream << result.bounds[0] << result.bounds[1] << result.bounds[2] << result.bounds[3] << result.bounds[4] << result.bounds[5];
+
+    stream << static_cast<int>(result.variant);
+    stream << result.m_s;
+    stream << result.m_c;
+    stream << result.iterations;
+    stream << result.tolerance;
+
+    snapshot << SnapshotData(snapshotName(DATA_FILE), dataBuffer);
+  }
+
+  return snapshot;
 }

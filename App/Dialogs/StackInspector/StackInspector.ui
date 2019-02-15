@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>792</width>
-    <height>734</height>
+    <height>743</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -980,7 +980,7 @@
                 <item>
                  <widget class="QCheckBox" name="slicPreviewColorsCheck">
                   <property name="text">
-                   <string>Use colors</string>
+                   <string>Use random colors</string>
                   </property>
                  </widget>
                 </item>
@@ -1146,22 +1146,9 @@
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_21">
                <item>
-                <widget class="QPushButton" name="slicRunButton">
+                <widget class="QPushButton" name="slicActionButton">
                  <property name="text">
-                  <string>Run</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QPushButton" name="slicAbortButton">
-                 <property name="enabled">
-                  <bool>false</bool>
-                 </property>
-                 <property name="text">
-                  <string>Abort</string>
-                 </property>
-                 <property name="checkable">
-                  <bool>false</bool>
+                  <string>Compute</string>
                  </property>
                 </widget>
                </item>
