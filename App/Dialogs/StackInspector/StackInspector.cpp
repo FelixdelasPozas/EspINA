@@ -172,13 +172,21 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 
   slicPreviewSVCountLabel->setText(QString("%1").arg(slicExtension->getSupervoxelCount()));
   if(slicExtension->isRunning())
+  {
     slicPreviewStatusLabel->setText("Computing...");
-  else if (slicExtension->isComputed())
-    slicPreviewStatusLabel->setText("Computed");
-  else
-    slicPreviewStatusLabel->setText("Not computed");
-  if(slicExtension->isRunning()) {
     slicProgressBar->setEnabled(true);
+  }
+  else
+  {
+    slicProgressBar->setEnabled(false);
+    if (slicExtension->isComputed())
+    {
+      slicPreviewStatusLabel->setText("Computed");
+    }
+    else
+    {
+      slicPreviewStatusLabel->setText("Not computed");
+    }
   }
 
   spatialDistanceBox->setValue((int) slicExtension->getSupervoxelSize());
@@ -186,7 +194,8 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
   maxIterationsBox->setValue((int) slicExtension->getIterations());
   toleranceBox->setValue((double) slicExtension->getTolerance());
 
-  switch(slicExtension->getVariant()) {
+  switch(slicExtension->getVariant())
+  {
     case StackSLIC::SLICVariant::SLICO:
       slicoRadio->setChecked(true);
       break;
@@ -208,11 +217,6 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 
   connect(tabWidget, SIGNAL(currentChanged(int)),
           this,      SLOT(onCurrentTabChanged(int)));
-}
-
-//------------------------------------------------------------------------
-StackInspector::~StackInspector()
-{
 }
 
 //------------------------------------------------------------------------
@@ -484,8 +488,6 @@ void StackInspector::onChangesRejected()
 void StackInspector::closeEvent(QCloseEvent *event)
 {
   onChangesRejected();
-
-  m_viewState.removeTemporalRepresentations(m_slicRepresentation);
 
   QDialog::closeEvent(event);
 }

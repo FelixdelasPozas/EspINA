@@ -226,10 +226,6 @@ namespace ESPINA
         struct SLICResult
         {
             QList<SuperVoxel> supervoxels; /** List of calculated supervoxels. */
-            //TODO: Replace usages of supervoxel_count with supervoxels.size() and test
-            unsigned int supervoxel_count = 0; /** Number of calculated supervoxels. */
-            //QList<QByteArray> voxels;
-            unsigned int slice_count = 0; /** Number of slices in the stack. */
             double tolerance; /** Tolerance defined when SLIC was computed. */
             unsigned int iterations; /** Maximum iterations defined when SLIC was computed. */
             unsigned char m_s; /** Average supervoxel dimension defined when SLIC was computed. */
@@ -237,11 +233,11 @@ namespace ESPINA
             SLICVariant variant; /** SLICVariant used when SLIC was computed. */
             bool computed = false; /** If this result refers to a completed successful run. */
             bool modified = false; /** If this result contains results different than those loaded from the snapshot. */
-            Bounds bounds; /** Bounds defining the region of the stack that has been computed. */
+            itkVolumeType::RegionType region; /** region to compute. */
 
             mutable QReadWriteLock m_dataMutex;
 
-            SLICResult(): supervoxel_count{0}, slice_count{0}, tolerance{0}, iterations{10}, m_s{10}, m_c{20}, variant{SLICVariant::SLIC}, computed{false}, modified{false} {};
+            SLICResult(): tolerance{0}, iterations{10}, m_s{10}, m_c{20}, variant{SLICVariant::SLIC}, computed{false}, modified{false} {};
         };
 
         SchedulerSPtr m_scheduler; /** application scheduler. */
@@ -294,20 +290,6 @@ namespace ESPINA
         virtual void run();
         virtual void onAbort();
 
-        /** \brief Modifies a custom-defined region to fit the image and ROI.
-         * \param[in] int array with x,y,z position values.
-         * \param[in] int array with x,y,z axis aligned sizes.
-         *
-         */
-        void fitRegionToBounds(int region_position[], int region_size[]);
-
-        /** \brief Modifies a custom-defined region to fit the image and ROI.
-         * \param[in] long long int array with x,y,z position values.
-         * \param[in] long long int array with x,y,z axis aligned sizes.
-         *
-         */
-        void fitRegionToBounds(long long int region_position[], long long int region_size[]);
-
         /** \brief Saves the computed results to the result struct.
          * \param[in] List containing supervoxels information.
          * \param[in] array containing the supervoxel label assigned to each voxel.
@@ -320,17 +302,16 @@ namespace ESPINA
          * \param[in] slice to compress.
          *
          */
-        void compressSlice(QDataStream &stream, unsigned int z);
+        void compressSlice(QDataStream &stream, long int z);
 
         /** \brief Returns the custom-defined region of voxels that are candidates to belong to the
          * given supervoxel.
          * \param[in] supervoxel position.
          * \param[in] radius of influence assigned to the supervoxel.
-         * \param[in] int array with x,y,z position values.
-         * \param[in] int array with x,y,z axis aligned sizes.
+         * \param[out] region Computed region.
          *
          */
-        void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, int region_position[], int region_size[]);
+        void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, ImageRegion &region) const;
 
         /** \brief Distributes evenly spaced empty supervoxels trying not to place them on edges.
          * \param[in] image to populate with supervoxels.
@@ -340,10 +321,7 @@ namespace ESPINA
          */
         bool initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension);
 
-        /** \brief Returns true if the coordinates are inside the computable area.
-         *
-         */
-        const bool isInBounds(const int x, const int y, const int z) const;
+        unsigned long long int offsetOfIndex(const IndexType &index);
 
         //TODO: Check color_distance for nullptr and remove only_spatial?
         /** \brief Calculates the weighted distance between a voxel an a supervoxel.
@@ -394,17 +372,9 @@ namespace ESPINA
         CoreFactory  *m_factory;  /** core object factory needed to create edges extension if neccesary. */
         SLICResult   &result;     /** Pointer to the result struct to write the computed results to.     */
         NmVector3     spacing;    /** Current stack spacing.                                             */
-        const Bounds  bounds;     /** Region to be computed.                                             */
         unsigned int *voxels;     /** Array holding the assigned values of all voxels.                   */
 
-        int max_x = 0, max_y = 0, max_z = 0, min_x = 0, min_y = 0, min_z = 0;
-        unsigned long int n_voxels;
-
-        /** Used to avoid dividing when switching from grayscale space (0-255)
-         *  to CIELab intensity (0-100)
-         *
-         */
-        const double color_normalization_constant = 100.0/255.0;
+        const double color_normalization_constant = 100.0/255.0; /** Used to avoid dividing when switching from grayscale space (0-255) to CIELab intensity (0-100) */
 
         mutable QMutex labelListMutex;
 

@@ -63,7 +63,8 @@ namespace ESPINA
       /** \brief StackInspector class destructor.
        *
        */
-      virtual ~StackInspector();
+      virtual ~StackInspector()
+      {}
 
       /** \brief Manages dialog close event.
        * Re-implemented from base class because we need to reset stack
