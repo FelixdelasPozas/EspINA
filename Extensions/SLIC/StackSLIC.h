@@ -357,15 +357,6 @@ namespace ESPINA
          */
         void recalculateCenter(Label &label, itkVolumeType::Pointer image, const double tolerance);
 
-        /** \brief Creates the supervoxel with the given parameters.
-         * \param[in] cur_index Supervoxel index number.
-         * \param[in] edgesExtension Channel edges extension of the stack.
-         * \param[in] image Stack image.
-         * \param[in] labels List of labels.
-         *
-         */
-        void createSupervoxel(IndexType cur_index, ChannelEdges *edgesExtension, itkVolumeType *image, QList<Label> *labels);
-
         /** \brief Ensures connectivity between a supervoxel and all its assigned voxels.
          * \param[in] label Label of the supervoxel.
          *

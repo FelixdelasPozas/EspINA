@@ -25,7 +25,6 @@
 // More code cleanups and commenting.
 // Additional pass for memory reduction, if(bounds(supervoxel_i).intersect(bounds(supervoxel_j) == false) both can have same color, using only unsigned char.
 // Use of neighborhood iterators in some cases? (adjacent for connectivity?)
-// More parallelism: compute supervoxel centers and adjacency computations.
 // Add previous stack blur to smooth values.
 ////////////////////////////////////////////////
 
@@ -41,10 +40,10 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 
 //ITK
-#include <itkImage.hxx>
-#include <itkEuclideanDistanceMetric.hxx>
-#include <itkImageConstIteratorWithIndex.hxx>
-#include <itkImageRegion.hxx>
+#include <itkImage.h>
+#include <itkEuclideanDistanceMetric.h>
+#include <itkImageConstIteratorWithIndex.h>
+#include <itkImageRegion.h>
 #include <itkGradientMagnitudeImageFilter.h>
 
 // VTK
@@ -348,6 +347,10 @@ void StackSLIC::SLICComputeTask::run()
     voxels = nullptr;
     return;
   }
+
+  qDebug() << "Recalculating centers.";
+  watcher.setFuture(QtConcurrent::map(labels, std::bind(&SLICComputeTask::recalculateCenter, this, std::placeholders::_1, image, TOLERANCE)));
+  watcher.waitForFinished();
 
   saveResults(labels);
 
@@ -952,68 +955,6 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, ChannelEdgesSPtr edg
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::createSupervoxel(IndexType cur_index, ChannelEdges *edgesExtension, itkVolumeType *image, QList<Label> *labels)
-{
-  using GradientType = itk::Image<float,3>;
-  using GradientFilterType = itk::GradientMagnitudeImageFilter<itkVolumeType, GradientType>;
-  using GradientRegionIterator = itk::ImageRegionConstIteratorWithIndex<GradientType>;
-
-  ImageRegion region;
-
-  auto sliceRegion = edgesExtension->sliceRegion(cur_index[2]);
-
-  //Don't create supervoxel centers outside of the calculated edges
-  if(!sliceRegion.IsInside(cur_index)) return;
-
-  //Check lowest gradient voxel in a 3x3x3 area around voxel
-  region.SetIndex(0, cur_index[0]-2);
-  region.SetIndex(1, cur_index[1]-2);
-  region.SetIndex(2, cur_index[2]-2);
-  region.SetSize(0, 5);
-  region.SetSize(1, 5);
-  region.SetSize(2, 5);
-  region.Crop(result.region);
-
-  //Calculate gradient in area
-  GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
-  image->SetRequestedRegion(region);
-  gradientFilter->SetInput(image);
-  gradientFilter->GetOutput()->SetRequestedRegion(region);
-  gradientFilter->Update();
-
-  //Loop gradient image and find lowest gradient
-  region.SetIndex(0, cur_index[0]-1);
-  region.SetIndex(1, cur_index[1]-1);
-  region.SetIndex(2, cur_index[2]-1);
-  region.SetSize(0, 3);
-  region.SetSize(1, 3);
-  region.SetSize(2, 3);
-  region.Crop(result.region);
-
-  GradientRegionIterator it(gradientFilter->GetOutput(), region);
-  it.GoToBegin();
-  float lowestGradient = std::numeric_limits<float>::max();
-  while(!it.IsAtEnd())
-  {
-    //qDebug() << QString("Center/Checking: %2 %3 %4 -> %5 %6 %7").arg(x).arg(y).arg(z).arg(it.GetIndex()[0]).arg(it.GetIndex()[1]).arg(it.GetIndex()[2]);
-    auto value = it.Get();
-    if(value < lowestGradient)
-    {
-      cur_index = it.GetIndex();
-      lowestGradient = value;
-      //qDebug() << QString("New value: %1 | Center/New: %2 %3 %4 -> %5 %6 %7")
-      //                   .arg(value).arg(x).arg(y).arg(z).arg(cur_index[0]).arg(cur_index[1]).arg(cur_index[2]);
-    }
-    ++it;
-  }
-
-  {
-    QMutexLocker locker(&labelListMutex);
-    labels->append((Label) {std::pow(result.m_c,2) / std::pow(result.m_s,2), 1.0, (unsigned int) labels->size(), cur_index, image->GetPixel(cur_index), 1 });
-  }
-}
-
-//-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::recalculateCenter(Label& label, itkVolumeType::Pointer image, const double tolerance)
 {
   //Recalculate centers, check convergence
@@ -1121,17 +1062,23 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
   std::queue<IndexType> search_queue;
 
   search_queue.push(current);
-  offsetRegion = (current[0] - subRegion.GetIndex(0)) +
-                ((current[1] - subRegion.GetIndex(1)) * subRegion.GetSize(0)) +
-                ((current[2] - subRegion.GetIndex(2)) * subRegion.GetSize(0)*subRegion.GetSize(1));
+
+  auto offsetOfRegionIndex = [&subRegion](const IndexType &index)
+  {
+    auto result = (index[0] - subRegion.GetIndex(0)) +
+                 ((index[1] - subRegion.GetIndex(1)) * subRegion.GetSize(0)) +
+                 ((index[2] - subRegion.GetIndex(2)) * subRegion.GetSize(0)*subRegion.GetSize(1));
+
+    Q_ASSERT(result < subRegion.GetNumberOfPixels());
+
+    return result;
+  };
+
+  offsetRegion = offsetOfRegionIndex(current);
   offsetImage = offsetOfIndex(current);
+
   //Edge case where a supervoxel is too irregular and the center doesn't land inside its volume
   bool centerFound = voxels[offsetImage] == label.index;
-  //if(!centerFound) {
-    //qDebug() << QString("Label %1 - Center not inside supervoxel!").arg(label.index);
-  //}
-
-  if(offsetRegion > size) qDebug() << QString("Error calculating offset!\n");
 
   visited[offsetRegion] = true;
 
@@ -1148,18 +1095,14 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
     contiguous[4] = {current[0], current[1], current[2]+1};
     contiguous[5] = {current[0], current[1], current[2]-1};
 
-    for(IndexType next : contiguous)
+    for(const IndexType &next : contiguous)
     {
       if(result.region.IsInside(next))
       {
         //Skip voxels outside the valid subregion
         if(!subRegion.IsInside(next)) continue;
 
-        offsetRegion = (next[0]-subRegion.GetIndex(0)) +
-                      ((next[1]-subRegion.GetIndex(1)) * subRegion.GetSize(0)) +
-                      ((next[2]-subRegion.GetIndex(2)) * subRegion.GetSize(0) * subRegion.GetSize(1));
-
-        if(offsetRegion > size) qDebug() << QString("Error calculating offset!");
+        offsetRegion = offsetOfRegionIndex(next);
 
         if(!visited[offsetRegion])
         {
@@ -1196,11 +1139,7 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
   //TODO: If centerFound is false at this point the supervoxel has no voxels.
   // Deleting the label will require to decrease the label indexes bigger in the
   // voxels data and labels data. So we'll leave them.
-  if(!centerFound)
-  {
-    qDebug() << QString("Label %1 - Center not found!").arg(label.index);
-    return;
-  }
+  if(!centerFound) return;
 
   int region_xy_len = subRegion.GetSize(0) * subRegion.GetSize(1);
 
@@ -1213,11 +1152,11 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
     QList<unsigned int> adjacent_labels;
     if(visited[i]) continue;
 
-    long int z = i / (region_xy_len);
-    int r = i - z * region_xy_len;
-    long int y = r / subRegion.GetSize(0);
-    long int x = r - y * subRegion.GetSize(0);
-    IndexType index{x+subRegion.GetIndex(0), y+subRegion.GetIndex(1), z+subRegion.GetIndex(2)};
+    const long int z = i / (region_xy_len);
+    const int r = i - z * region_xy_len;
+    const long int y = r / subRegion.GetSize(0);
+    const long int x = r - y * subRegion.GetSize(0);
+    const IndexType index{x+subRegion.GetIndex(0), y+subRegion.GetIndex(1), z+subRegion.GetIndex(2)};
     if(!result.region.IsInside(index) || !subRegion.IsInside(index)) continue;
     offsetImage = offsetOfIndex(index);
     if(voxels[offsetImage] == label.index)
@@ -1267,10 +1206,8 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
         }
       }
 
-      if(l == label.index)
-      {
-        qDebug() << QString("Label %1 - Can't find new supervoxel for: %2 %3 %4\n").arg(label.index).arg(x).arg(y).arg(z);
-      }
+      // If can't find a new supervoxel for the voxel.
+      if(l == label.index) continue;
 
       QWriteLocker lock(&result.m_dataMutex);
       voxels[offsetImage] = l;
