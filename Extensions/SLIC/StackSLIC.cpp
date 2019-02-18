@@ -124,13 +124,18 @@ bool StackSLIC::loadFromSnapshot()
   QWriteLocker lock(&result.m_dataMutex);
 
   QByteArray labelBuffer = labelsFile.readAll();
-  QDataStream labelStream(&labelBuffer, QIODevice::ReadOnly);
+  auto labelData = qUncompress(labelBuffer);
+  labelBuffer.clear();
+  QDataStream labelStream(&labelData, QIODevice::ReadOnly);
   labelStream.setVersion(QDataStream::Qt_4_0);
   result.supervoxels.clear();
   labelStream >> result.supervoxels;
-  QByteArray data = dataFile.readAll();
 
-  QDataStream stream(&data, QIODevice::ReadOnly);
+  QByteArray data = dataFile.readAll();
+  auto opData = qUncompress(data);
+  data.clear();
+
+  QDataStream stream(&opData, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
   long long x,y,z;
@@ -597,7 +602,10 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
       continue;
     }
 
-    if(data.size() != file.write(data))
+    auto compressedData = qCompress(data, 9);
+    data.clear();
+
+    if(compressedData.size() != file.write(compressedData))
     {
       qDebug() << "failed to save data of" << fileName;
       continue;
@@ -1218,9 +1226,11 @@ void StackSLIC::SLICComputeTask::labelConnectivity(Label &label)
 //-----------------------------------------------------------------------------
 std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(const int slice) const
 {
-  auto compressed = getSlice(slice);
+  auto data = getSlice(slice);
+  auto RLEdata = qUncompress(data);
+  data.clear();
 
-  QDataStream stream(&compressed, QIODevice::ReadOnly);
+  QDataStream stream(&RLEdata, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
   unsigned long long int pixel_count = result.region.GetSize(0)*result.region.GetSize(1);
@@ -1250,9 +1260,11 @@ std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(const int slice) const
 //-----------------------------------------------------------------------------
 std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(const int slice) const
 {
-  auto compressed = getSlice(slice);
+  auto data = getSlice(slice);
+  auto RLEdata = qUncompress(data);
+  data.clear();
 
-  QDataStream stream(&compressed, QIODevice::ReadOnly);
+  QDataStream stream(&RLEdata, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
   unsigned long long int pixel_count = result.region.GetSize(0)*result.region.GetSize(1);
@@ -1346,7 +1358,8 @@ Snapshot ESPINA::Extensions::StackSLIC::snapshot() const
     QDataStream labelStream(&labelBuffer, QIODevice::WriteOnly);
     labelStream.setVersion(QDataStream::Qt_4_0);
     labelStream << result.supervoxels;
-    snapshot << SnapshotData(snapshotName(LABELS_FILE), labelBuffer);
+    snapshot << SnapshotData(snapshotName(LABELS_FILE), qCompress(labelBuffer,9));
+    labelBuffer.clear();
 
     QByteArray dataBuffer;
     QDataStream stream(&dataBuffer, QIODevice::WriteOnly);
@@ -1361,7 +1374,8 @@ Snapshot ESPINA::Extensions::StackSLIC::snapshot() const
     stream << result.iterations;
     stream << result.tolerance;
 
-    snapshot << SnapshotData(snapshotName(DATA_FILE), dataBuffer);
+    snapshot << SnapshotData(snapshotName(DATA_FILE), qCompress(dataBuffer, 9));
+    dataBuffer.clear(); // not really needed, end of scope.
   }
 
   return snapshot;

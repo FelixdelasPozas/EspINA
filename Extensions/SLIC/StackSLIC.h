@@ -251,8 +251,9 @@ namespace ESPINA
          */
         bool loadFromSnapshot();
 
-        /** \brief Returns a QByteArray that contains a compressed slice loaded from disk or cached.
-         * \param[in] slice to return.
+        /** \brief Returns a QByteArray that contains a compressed slice loaded from disk or cached. The data returned needs to
+         *  be decompressed first with qUncompress.
+         * \param[in] slice Slice number.
          *
          */
         const QByteArray getSlice(const int slice) const;
