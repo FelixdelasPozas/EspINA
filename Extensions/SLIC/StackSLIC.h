@@ -234,10 +234,11 @@ namespace ESPINA
             bool computed = false; /** If this result refers to a completed successful run. */
             bool modified = false; /** If this result contains results different than those loaded from the snapshot. */
             itkVolumeType::RegionType region; /** region to compute. */
+            bool converged; /** true if converged, false otherwise. */
 
             mutable QReadWriteLock m_dataMutex;
 
-            SLICResult(): tolerance{0}, iterations{10}, m_s{10}, m_c{20}, variant{SLICVariant::SLIC}, computed{false}, modified{false} {};
+            SLICResult(): tolerance{0}, iterations{10}, m_s{10}, m_c{20}, variant{SLICVariant::SLIC}, computed{false}, modified{false}, converged{false} {};
         };
 
         SchedulerSPtr m_scheduler; /** application scheduler. */
@@ -340,13 +341,21 @@ namespace ESPINA
                                 float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial = false);
 
         /** \brief Finds the surrounding voxels that belong to the given supervoxel.
-         * \param[in,out] label to update.
-         * \param[in] pointer to the edges extension.
-         * \param[in] pointer to the image.
-         * \param[in] list of all supervoxels.
+         * \param[in,out] label Label to update.
+         * \param[in] edgesExtension pointer to the edges extension.
+         * \param[in] image pointer to the image.
+         * \param[in] labels List of all supervoxels.
          *
          */
-        void computeLabel(Label &label, std::shared_ptr<ChannelEdges> edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels);
+        void computeLabel(Label &label, ChannelEdgesSPtr edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels);
+
+        /** \brief Recomputes the label center looking at the current label voxel positions.
+         * \param[in,out] label to update.
+         * \param[in] image Pointer to stack image.
+         * \param[in] tolerance Tolerance value.
+         *
+         */
+        void recalculateCenter(Label &label, itkVolumeType::Pointer image, const double tolerance);
 
         /** \brief Creates the supervoxel with the given parameters.
          * \param[in] cur_index Supervoxel index number.
@@ -356,11 +365,6 @@ namespace ESPINA
          *
          */
         void createSupervoxel(IndexType cur_index, ChannelEdges *edgesExtension, itkVolumeType *image, QList<Label> *labels);
-
-        /** \brief Connectivity algorithm that makes sure that all voxels are connected to their assigned supervoxel.
-         *
-         */
-        void ensureConnectivity(QList<Label> &labels);
 
         /** \brief Ensures connectivity between a supervoxel and all its assigned voxels.
          * \param[in] label Label of the supervoxel.
