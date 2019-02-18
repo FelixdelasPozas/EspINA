@@ -203,6 +203,16 @@ namespace ESPINA
        */
       void initPropertiesTab();
 
+      /** \brief Helper method to initialize the edges tab.
+       *
+       */
+      void initEdgesTab();
+
+      /** \brief Helper method to initialize the SLIC tab.
+       *
+       */
+      void initSLICTab();
+
       /** \brief Helper method to initialize the view in properties tab.
        *
        */
@@ -254,10 +264,12 @@ namespace ESPINA
       NmVector3 currentSpacing() const;
 
       /** \brief Starts the SLIC task with the selected parameters
+       *
        */
       void computeSLIC();
 
       /** \brief Stops the currently running SLIC task
+       *
        */
       void abortSLIC();
 
@@ -284,8 +296,7 @@ namespace ESPINA
       double    m_brightness; /** stack brightness. */
       double    m_contrast;   /** stack contrast.   */
 
-      // slic representation manager
-      ESPINA::GUI::Representations::Managers::TemporalPrototypesSPtr m_slicRepresentation;
+      ESPINA::GUI::Representations::Managers::TemporalPrototypesSPtr m_slicRepresentation; /** SLIC representation manager. */
   };
 
 } // namespace ESPINA

@@ -88,135 +88,36 @@ typedef itk::ChangeInformationImageFilter<itkVolumeType> ChangeImageInformationF
 StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &context)
 : QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 , WithContext(context)
-, m_spacingModified   {false}
-, m_edgesModified     {false}
-, m_pixelSelector     {new PixelValueSelector(this)}
-, m_stack           {channel}
-, m_sources           {m_viewState}
-, m_view              {new View2D(m_viewState, Plane::XY)}
+, m_spacingModified{false}
+, m_edgesModified  {false}
+, m_pixelSelector  {new PixelValueSelector(this)}
+, m_stack          {channel}
+, m_sources        {m_viewState}
+, m_view           {new View2D(m_viewState, Plane::XY)}
 {
   setupUi(this);
 
   setWindowTitle(tr("Stack Inspector - %1").arg(channel->data().toString()));
 
+  initSliceView();
+
   /// PROPERTIES TAB
-  connect(okCancelBox, SIGNAL(accepted()),
-          this,        SLOT(onChangesAccepted()));
-
-  connect(okCancelBox, SIGNAL(rejected()),
-          this,        SLOT(onChangesRejected()));
-
-  connect(unitsBox, SIGNAL(currentIndexChanged(int)),
-          this,     SLOT(unitsChanged()));
-
-  connect(dataStreaming, SIGNAL(stateChanged(int)),
-          this,          SLOT(onStreamingChanged(int)));
-
   initPropertiesTab();
 
   /// EDGES TAB
-  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(channel, context.factory());
-
-  initPixelValueSelector();
-
-  m_useDistanceToEdges = !edgesExtension->useDistanceToBounds();
-
-  radioStackEdges->setChecked(!m_useDistanceToEdges);
-  radioImageEdges->setChecked(m_useDistanceToEdges);
-  colorLabel->setEnabled(m_useDistanceToEdges);
-  m_pixelSelector->setEnabled(m_useDistanceToEdges);
-  thresholdBox->setEnabled(m_useDistanceToEdges);
-  thresholdLabel->setEnabled(m_useDistanceToEdges);
-  computeOptimal->setChecked(false);
-
-  connect(computeOptimal, SIGNAL(stateChanged(int)), this, SLOT(onOptimalStateChanged(int)));
-
-  connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
-  connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
-
-  m_backgroundColor = (edgesExtension == nullptr) ? 0 : edgesExtension->backgroundColor();
-  m_threshold = (edgesExtension == nullptr) ? 50 : edgesExtension->threshold();
-  m_pixelSelector->setValue(m_backgroundColor);
-  thresholdBox->setValue(m_threshold);
-
-  connect(m_pixelSelector, SIGNAL(newValue(int)), this, SLOT(changeEdgeDetectorBgColor(int)));
-  connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeDetectorThreshold(int)));
-
-  if (edgesExtension)
-  {
-    changeEdgeDetectorBgColor(m_backgroundColor);
-  }
-
-
-  //// TODO: Create extension on demand
-  //auto extensions = channel->readonleyextension();
-  //if(extension->hasExtension(StackSLIC::TYPE))
-  ////
+  initEdgesTab();
 
   /// SLIC TAB
-  //TODO: Load opacity/useColors from extension
-  int opacity = 30;
-  bool useColors = true;
-  slicPreviewColorsCheck->setChecked(useColors);
-  slicPreviewOpacitySlider->setValue(opacity);
-  auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(channel, context.factory());
-
-  connect(slicActionButton, SIGNAL(released()), this, SLOT(onSLICActionButtonPressed()));
-  connect(this, SIGNAL(computeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
-  connect(this, SIGNAL(SLICAborted()), slicExtension.get(), SLOT(onAbortSLIC()));
-  connect(slicExtension.get(), SIGNAL(computeFinished()), this, SLOT(onSLICComputed()));
-
-  auto representation2d = std::make_shared<SLICRepresentation2D>(slicExtension, opacity/100.0, useColors);
-  connect(representation2d.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)), this, SLOT(onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
-  m_slicRepresentation = std::make_shared<TemporalPrototypes>(representation2d, TemporalRepresentation3DSPtr(), "SLIC Representation");
-
-  slicPreviewSVCountLabel->setText(QString("%1").arg(slicExtension->getSupervoxelCount()));
-  if(slicExtension->isRunning())
-  {
-    slicPreviewStatusLabel->setText("Computing...");
-    slicProgressBar->setEnabled(true);
-  }
-  else
-  {
-    slicProgressBar->setEnabled(false);
-    if (slicExtension->isComputed())
-    {
-      slicPreviewStatusLabel->setText("Computed");
-    }
-    else
-    {
-      slicPreviewStatusLabel->setText("Not computed");
-    }
-  }
-
-  spatialDistanceBox->setValue((int) slicExtension->getSupervoxelSize());
-  colorDistanceBox->setValue((int) slicExtension->getColorWeight());
-  maxIterationsBox->setValue((int) slicExtension->getIterations());
-  toleranceBox->setValue((double) slicExtension->getTolerance());
-
-  switch(slicExtension->getVariant())
-  {
-    case StackSLIC::SLICVariant::SLICO:
-      slicoRadio->setChecked(true);
-      break;
-    case StackSLIC::SLICVariant::ASLIC:
-      aslicRadio->setChecked(true);
-      break;
-    default:
-      slicRadio->setChecked(true);
-      break;
-  }
-
-  connect(slicExtension.get(), SIGNAL(progress(int)), slicProgressBar, SLOT(setValue(int)));
+  initSLICTab();
 
   tabWidget->setCurrentIndex(0);
+
+  connect(tabWidget, SIGNAL(currentChanged(int)),
+          this,      SLOT(onCurrentTabChanged(int)));
 
 #if USE_METADONA
   tabWidget->addTab(new MetadataViewer(channel.get(), getScheduler(), this), tr("Metadata"));
 #endif // USE_METADONA
-
-  connect(tabWidget, SIGNAL(currentChanged(int)),
-          this,      SLOT(onCurrentTabChanged(int)));
 }
 
 //------------------------------------------------------------------------
@@ -606,7 +507,17 @@ void StackInspector::applyEdgesChanges()
 //------------------------------------------------------------------------
 void StackInspector::initPropertiesTab()
 {
-  initSliceView();
+  connect(okCancelBox, SIGNAL(accepted()),
+          this,        SLOT(onChangesAccepted()));
+
+  connect(okCancelBox, SIGNAL(rejected()),
+          this,        SLOT(onChangesRejected()));
+
+  connect(unitsBox, SIGNAL(currentIndexChanged(int)),
+          this,     SLOT(unitsChanged()));
+
+  connect(dataStreaming, SIGNAL(stateChanged(int)),
+          this,          SLOT(onStreamingChanged(int)));
 
   initSpacingSettings();
 
@@ -766,9 +677,11 @@ void StackInspector::initColorSettings()
 //------------------------------------------------------------------------
 void StackInspector::updateStackPreview()
 {
-  // TODO: Make a copy of the stack and update only the preview, not
-  //       the stack itself
-  m_stack->output()->setSpacing(currentSpacing());
+  const auto spacing = currentSpacing();
+  if(m_stack->output()->spacing() != spacing)
+  {
+    m_stack->output()->setSpacing(spacing);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -824,8 +737,6 @@ void StackInspector::onCurrentTabChanged(int index)
 //------------------------------------------------------------------------
 void StackInspector::onSLICComputed()
 {
-  qDebug() << "called finished computing SLIC";
-
   slicActionButton->setText("Compute");
   slicProgressBar->setValue(0);
   slicProgressBar->setEnabled(false);
@@ -916,20 +827,23 @@ void StackInspector::computeSLIC()
   slicProgressBar->setEnabled(true);
   slicPreviewStatusLabel->setText("Computing...");
 
-  auto variant = Extensions::StackSLIC::SLICVariant::SLIC;
-  char spatial_distance = 10;
-  char color_distance = 20;
-  int iterations = 10;
-  double tolerance = 0;
   //Get parameters and start task
+  auto variant = StackSLIC::SLICVariant::SLIC;
   if(slicoRadio->isChecked())
-    variant = Extensions::StackSLIC::SLICVariant::SLICO;
-  else if(aslicRadio->isChecked())
-    variant = Extensions::StackSLIC::SLICVariant::ASLIC;
-  spatial_distance = spatialDistanceBox->value();
-  color_distance = colorDistanceBox->value();
-  iterations = maxIterationsBox->value();
-  tolerance = toleranceBox->value();
+  {
+    variant = StackSLIC::SLICVariant::SLICO;
+  }
+  else
+  {
+    if(aslicRadio->isChecked())
+    {
+      variant = StackSLIC::SLICVariant::ASLIC;
+    }
+  }
+  auto spatial_distance = spatialDistanceBox->value();
+  auto color_distance   = colorDistanceBox->value();
+  auto iterations       = maxIterationsBox->value();
+  auto tolerance        = toleranceBox->value();
 
   emit computeSLIC(spatial_distance, color_distance, variant, iterations, tolerance);
 }
@@ -959,5 +873,99 @@ void StackInspector::onSLICActionButtonPressed()
     {
       abortSLIC();
     }
+  }
+}
+
+//------------------------------------------------------------------------
+void StackInspector::initEdgesTab()
+{
+  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, getFactory());
+
+  initPixelValueSelector();
+
+  m_useDistanceToEdges = !edgesExtension->useDistanceToBounds();
+
+  radioStackEdges->setChecked(!m_useDistanceToEdges);
+  radioImageEdges->setChecked(m_useDistanceToEdges);
+  colorLabel->setEnabled(m_useDistanceToEdges);
+  m_pixelSelector->setEnabled(m_useDistanceToEdges);
+  thresholdBox->setEnabled(m_useDistanceToEdges);
+  thresholdLabel->setEnabled(m_useDistanceToEdges);
+  computeOptimal->setChecked(false);
+
+  connect(computeOptimal, SIGNAL(stateChanged(int)), this, SLOT(onOptimalStateChanged(int)));
+
+  connect(radioStackEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
+  connect(radioImageEdges, SIGNAL(toggled(bool)), this, SLOT(radioEdgesChanged(bool)));
+
+  m_backgroundColor = (edgesExtension == nullptr) ? 0 : edgesExtension->backgroundColor();
+  m_threshold = (edgesExtension == nullptr) ? 50 : edgesExtension->threshold();
+  m_pixelSelector->setValue(m_backgroundColor);
+  thresholdBox->setValue(m_threshold);
+
+  connect(m_pixelSelector, SIGNAL(newValue(int)), this, SLOT(changeEdgeDetectorBgColor(int)));
+  connect(thresholdBox, SIGNAL(valueChanged(int)), this, SLOT(changeEdgeDetectorThreshold(int)));
+
+  if (edgesExtension)
+  {
+    changeEdgeDetectorBgColor(m_backgroundColor);
+  }
+}
+
+//------------------------------------------------------------------------
+void StackInspector::initSLICTab()
+{
+  //TODO: Load opacity/useColors from extension
+  int opacity = 30;
+  bool useColors = true;
+  slicPreviewColorsCheck->setChecked(useColors);
+  slicPreviewOpacitySlider->setValue(opacity);
+  auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
+
+  connect(slicActionButton, SIGNAL(released()), this, SLOT(onSLICActionButtonPressed()));
+  connect(this, SIGNAL(computeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
+  connect(this, SIGNAL(SLICAborted()), slicExtension.get(), SLOT(onAbortSLIC()));
+  connect(slicExtension.get(), SIGNAL(computeFinished()), this, SLOT(onSLICComputed()));
+  connect(slicExtension.get(), SIGNAL(progress(int)), slicProgressBar, SLOT(setValue(int)));
+
+  auto representation2d = std::make_shared<SLICRepresentation2D>(slicExtension, opacity/100.0, useColors);
+  connect(representation2d.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)), this, SLOT(onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
+  m_slicRepresentation = std::make_shared<TemporalPrototypes>(representation2d, TemporalRepresentation3DSPtr(), "SLIC Representation");
+
+  slicPreviewSVCountLabel->setText(QString("%1").arg(slicExtension->getSupervoxelCount()));
+  if(slicExtension->isRunning())
+  {
+    slicPreviewStatusLabel->setText("Computing...");
+    slicProgressBar->setEnabled(true);
+  }
+  else
+  {
+    slicProgressBar->setEnabled(false);
+    if (slicExtension->isComputed())
+    {
+      slicPreviewStatusLabel->setText("Computed");
+    }
+    else
+    {
+      slicPreviewStatusLabel->setText("Not computed");
+    }
+  }
+
+  spatialDistanceBox->setValue(static_cast<int>(slicExtension->getSupervoxelSize()));
+  colorDistanceBox->setValue(static_cast<int>(slicExtension->getColorWeight()));
+  maxIterationsBox->setValue(static_cast<int>(slicExtension->getIterations()));
+  toleranceBox->setValue(slicExtension->getTolerance());
+
+  switch(slicExtension->getVariant())
+  {
+    case StackSLIC::SLICVariant::SLICO:
+      slicoRadio->setChecked(true);
+      break;
+    case StackSLIC::SLICVariant::ASLIC:
+      aslicRadio->setChecked(true);
+      break;
+    default:
+      slicRadio->setChecked(true);
+      break;
   }
 }
