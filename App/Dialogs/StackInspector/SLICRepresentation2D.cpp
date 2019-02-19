@@ -262,6 +262,8 @@ void SLICRepresentation2D::buildVTKPipeline()
   m_textActor->GetTextProperty()->SetJustificationToCentered();
   m_textActor->GetTextProperty()->SetVerticalJustificationToCentered();
   m_textActor->GetTextProperty()->SetFontSize(24);
+  m_textActor->GetTextProperty()->SetShadow(true);
+  m_textActor->GetTextProperty()->SetShadowOffset(2,-2);
   m_textActor->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
 
   std::stringstream ss;

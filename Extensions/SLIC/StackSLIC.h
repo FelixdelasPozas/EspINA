@@ -186,12 +186,19 @@ namespace ESPINA
 
         struct Label
         {
-          double norm_quotient;
-          float m_s;
-          unsigned int index;
+          double                   norm_quotient;
+          float                    m_s;
+          unsigned int             index;
           itkVolumeType::IndexType center;
-          unsigned char color;
-          unsigned char m_c;
+          unsigned char            color;
+          unsigned char            m_c;
+
+          /** \brief Label constructor.
+           *
+           */
+          Label(double norm, float s, unsigned int i, itkVolumeType::IndexType cen, unsigned char col, unsigned char c)
+          : norm_quotient{norm}, m_s{s}, index{i}, center(cen), color{col}, m_c{c}
+          {};
         };
 
       protected:
@@ -200,11 +207,12 @@ namespace ESPINA
         virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }
 
       public:
-        typedef struct SuperVoxel
+        struct SuperVoxel
         {
           itkVolumeType::IndexType center;
           unsigned char color;
-        } SuperVoxel;
+          bool valid;
+        };
 
       protected slots:
         void onComputeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
@@ -225,26 +233,25 @@ namespace ESPINA
 
         struct SLICResult
         {
-            QList<SuperVoxel> supervoxels; /** List of calculated supervoxels. */
-            double tolerance; /** Tolerance defined when SLIC was computed. */
-            unsigned int iterations; /** Maximum iterations defined when SLIC was computed. */
-            unsigned char m_s; /** Average supervoxel dimension defined when SLIC was computed. */
-            unsigned char m_c; /** Color weight defined when SLIC was computed. */
-            SLICVariant variant; /** SLICVariant used when SLIC was computed. */
-            bool computed = false; /** If this result refers to a completed successful run. */
-            bool modified = false; /** If this result contains results different than those loaded from the snapshot. */
-            itkVolumeType::RegionType region; /** region to compute. */
-            bool converged; /** true if converged, false otherwise. */
-
-            mutable QReadWriteLock m_dataMutex;
+            QList<SuperVoxel>         supervoxels; /** List of calculated supervoxels.                                                */
+            double                    tolerance;   /** Tolerance defined when SLIC was computed.                                      */
+            unsigned int              iterations;  /** Maximum iterations defined when SLIC was computed.                             */
+            unsigned char             m_s;         /** Average supervoxel dimension defined when SLIC was computed.                   */
+            unsigned char             m_c;         /** Color weight defined when SLIC was computed.                                   */
+            SLICVariant               variant;     /** SLICVariant used when SLIC was computed.                                       */
+            bool                      computed;    /** If this result refers to a completed successful run.                           */
+            bool                      modified;    /** If this result contains results different than those loaded from the snapshot. */
+            itkVolumeType::RegionType region;      /** region to compute.                                                             */
+            bool                      converged;   /** true if converged, false otherwise.                                            */
+            mutable QReadWriteLock    dataMutex;   /** data protection mutex.                                                         */
 
             SLICResult(): tolerance{0}, iterations{10}, m_s{10}, m_c{20}, variant{SLICVariant::SLIC}, computed{false}, modified{false}, converged{false} {};
         };
 
-        SchedulerSPtr m_scheduler; /** application scheduler. */
-        CoreFactory  *m_factory;   /** core factory.          */
-        std::shared_ptr<SLICComputeTask> m_task; /** Task instance that is currently running SLIC. */
-        SLICResult result; /** struct holding the results of the last SLIC computation. */
+        SchedulerSPtr                    m_scheduler; /** application scheduler.                                   */
+        CoreFactory                     *m_factory;   /** core factory.                                            */
+        std::shared_ptr<SLICComputeTask> m_task;      /** Task instance that is currently running SLIC.            */
+        SLICResult                       m_result;    /** struct holding the results of the last SLIC computation. */
 
         /** \brief Loads the results from disk.
          *
@@ -310,18 +317,19 @@ namespace ESPINA
          * given supervoxel.
          * \param[in] supervoxel position.
          * \param[in] radius of influence assigned to the supervoxel.
+         * \param[in] spacing Spacing of the stack image.
          * \param[out] region Computed region.
          *
          */
-        void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, ImageRegion &region) const;
+        void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, const NmVector3 &spacing, ImageRegion &region) const;
 
         /** \brief Distributes evenly spaced empty supervoxels trying not to place them on edges.
          * \param[in] image to populate with supervoxels.
          * \param[out] list that will hold the created supervoxels.
-         * \param[in] pointer to the edges extension.
+         * \param[in] edgesExtension Pointer to the edges extension.
          *
          */
-        bool initSupervoxels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension);
+        bool initLabels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension);
 
         unsigned long long int offsetOfIndex(const IndexType &index);
 
@@ -339,7 +347,8 @@ namespace ESPINA
          */
         float calculateDistance(IndexType &voxel_index, IndexType &center_index,
                                 unsigned char voxel_color, unsigned char center_color,
-                                float norm_quotient, float *color_distance, float *spatial_distance, bool only_spatial = false);
+                                float norm_quotient, float *color_distance, float *spatial_distance,
+                                const NmVector3 &spacing, bool only_spatial = false);
 
         /** \brief Finds the surrounding voxels that belong to the given supervoxel.
          * \param[in,out] label Label to update.
@@ -348,7 +357,7 @@ namespace ESPINA
          * \param[in] labels List of all supervoxels.
          *
          */
-        void computeLabel(Label &label, ChannelEdgesSPtr edgesExtension, itkVolumeType::Pointer image, QList<Label> *labels);
+        void computeLabel(Label &label, ChannelEdgesSPtr edgesExtension, itkVolumeType *image, QList<Label> *labels);
 
         /** \brief Recomputes the label center looking at the current label voxel positions.
          * \param[in,out] label to update.
@@ -356,19 +365,19 @@ namespace ESPINA
          * \param[in] tolerance Tolerance value.
          *
          */
-        void recalculateCenter(Label &label, itkVolumeType::Pointer image, const double tolerance);
+        void recalculateCenter(Label &label, itkVolumeType *image, const double tolerance);
 
         /** \brief Ensures connectivity between a supervoxel and all its assigned voxels.
          * \param[in] label Label of the supervoxel.
+         * \param[in] image Stack image.
          *
          */
-        void labelConnectivity(Label &label);
+        void labelConnectivity(Label &label, itkVolumeType *image);
 
-        ChannelPtr    m_stack;    /** stack to process.                                                  */
-        CoreFactory  *m_factory;  /** core object factory needed to create edges extension if neccesary. */
-        SLICResult   &result;     /** Pointer to the result struct to write the computed results to.     */
-        NmVector3     spacing;    /** Current stack spacing.                                             */
-        unsigned int *voxels;     /** Array holding the assigned values of all voxels.                   */
+        ChannelPtr                      m_stack;    /** stack to process.                                                  */
+        CoreFactory                    *m_factory;  /** core object factory needed to create edges extension if neccesary. */
+        SLICResult                     &result;     /** Pointer to the result struct to write the computed results to.     */
+        std::unique_ptr<unsigned int[]> voxels;     /** Array holding the assigned values of all voxels.                   */
 
         const double color_normalization_constant = 100.0/255.0; /** Used to avoid dividing when switching from grayscale space (0-255) to CIELab intensity (0-100) */
 
