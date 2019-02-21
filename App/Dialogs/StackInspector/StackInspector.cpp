@@ -118,6 +118,9 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 #if USE_METADONA
   tabWidget->addTab(new MetadataViewer(channel.get(), getScheduler(), this), tr("Metadata"));
 #endif // USE_METADONA
+
+  // Disable SLIC momentarily.
+  //this->tabWidget->setTabEnabled(2,false);
 }
 
 //------------------------------------------------------------------------
@@ -759,6 +762,7 @@ void StackInspector::onSLICRepresentationCloned(GUI::Representations::Managers::
   auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
 
   connect(slicExtension.get(), SIGNAL(progress(int)), clone.get(), SLOT(setSLICComputationProgress(int)));
+  connect(slicExtension.get(), SIGNAL(computeAborted()), clone.get(), SLOT(setSLICComputationAborted()));
   connect(slicPreviewOpacitySlider, SIGNAL(valueChanged(int)), clone.get(), SLOT(opacityChanged(int)));
   connect(slicPreviewColorsCheck, SIGNAL(stateChanged(int)), clone.get(), SLOT(colorModeCheckChanged(int)));
 }
@@ -927,6 +931,7 @@ void StackInspector::initSLICTab()
   connect(this, SIGNAL(SLICAborted()), slicExtension.get(), SLOT(onAbortSLIC()));
   connect(slicExtension.get(), SIGNAL(computeFinished()), this, SLOT(onSLICComputed()));
   connect(slicExtension.get(), SIGNAL(progress(int)), slicProgressBar, SLOT(setValue(int)));
+  connect(slicExtension.get(), SIGNAL(computeAborted()), this, SLOT(onSLICComputationAborted()));
 
   auto representation2d = std::make_shared<SLICRepresentation2D>(slicExtension, opacity/100.0, useColors);
   connect(representation2d.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)), this, SLOT(onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
@@ -937,9 +942,12 @@ void StackInspector::initSLICTab()
   {
     slicPreviewStatusLabel->setText("Computing...");
     slicProgressBar->setEnabled(true);
+    slicProgressBar->setValue(slicExtension->taskProgress());
+    slicActionButton->setText("Abort");
   }
   else
   {
+    slicActionButton->setText("Compute");
     slicProgressBar->setEnabled(false);
     if (slicExtension->isComputed())
     {
@@ -967,5 +975,21 @@ void StackInspector::initSLICTab()
     default:
       slicRadio->setChecked(true);
       break;
+  }
+}
+
+//--------------------------------------------------------------------
+void StackInspector::onSLICComputationAborted()
+{
+  auto slicExtension = qobject_cast<StackSLIC *>(sender());
+
+  if(slicExtension)
+  {
+    auto errors = slicExtension->errors();
+    if(!errors.isEmpty())
+    {
+      auto error = errors.first();
+      DefaultDialogs::ErrorMessage(errors.first(), tr("SLIC"));
+    }
   }
 }

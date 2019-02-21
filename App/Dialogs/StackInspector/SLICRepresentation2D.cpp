@@ -88,12 +88,6 @@ SLICRepresentation2D::~SLICRepresentation2D()
 }
 
 //--------------------------------------------------------------------
-void SLICRepresentation2D::setSLICExtension(std::shared_ptr<Extensions::StackSLIC> extension)
-{
-  m_extension = extension;
-}
-
-//--------------------------------------------------------------------
 void SLICRepresentation2D::initialize(RenderView* view)
 {
   if(m_view || !isView2D(view)) return;
@@ -267,7 +261,14 @@ void SLICRepresentation2D::buildVTKPipeline()
   m_textActor->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
 
   std::stringstream ss;
-  ss << "SLIC not computed!\nRun it first.";
+  if(!m_extension->isRunning())
+  {
+    ss << "SLIC not computed!\nRun it first.";
+  }
+  else
+  {
+    ss << "Computing...\nProgress: " << m_extension->taskProgress() << " %";
+  }
   m_textActor->SetInput(ss.str().c_str());
 
   m_textActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
@@ -350,6 +351,20 @@ vtkSmartPointer<vtkLookupTable> SLICRepresentation2D::grayscaleLUT() const
   lut->Build();
 
   return lut;
+}
+
+//--------------------------------------------------------------------
+void SLICRepresentation2D::setSLICComputationAborted()
+{
+  if(m_view)
+  {
+    std::stringstream ss;
+    ss << "SLIC not computed!\nRun it first.";
+    m_textActor->SetInput(ss.str().c_str());
+    m_textActor->Modified();
+
+    m_view->refresh();
+  }
 }
 
 //--------------------------------------------------------------------

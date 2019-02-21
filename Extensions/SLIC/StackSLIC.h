@@ -184,6 +184,16 @@ namespace ESPINA
          */
         std::unique_ptr<long long[]> getUncompressedLabeledSlice(const int slice) const;
 
+        /** \brief Returns the current progress of the computation task, if any.
+         *
+         */
+        const int taskProgress() const;
+
+        /** \brief Returns the task error messages.
+         *
+         */
+        const QStringList errors() const;
+
         struct Label
         {
           double                   norm_quotient;
@@ -192,12 +202,13 @@ namespace ESPINA
           itkVolumeType::IndexType center;
           unsigned char            color;
           unsigned char            m_c;
+          bool                     valid;
 
           /** \brief Label constructor.
            *
            */
-          Label(double norm, float s, unsigned int i, itkVolumeType::IndexType cen, unsigned char col, unsigned char c)
-          : norm_quotient{norm}, m_s{s}, index{i}, center(cen), color{col}, m_c{c}
+          Label(double norm, float s, unsigned int i, itkVolumeType::IndexType cen, unsigned char col, unsigned char c, bool isValid)
+          : norm_quotient{norm}, m_s{s}, index{i}, center(cen), color{col}, m_c{c}, valid{isValid}
           {};
         };
 
@@ -295,6 +306,7 @@ namespace ESPINA
         using IndexType      = itkVolumeType::IndexType;
         using RegionIterator = itk::ImageRegionConstIteratorWithIndex<itkVolumeType>;
         using ImageRegion    = itk::ImageRegion<3>;
+        using ImageType      = itk::Image<unsigned int, 3>;
 
         virtual void run();
         virtual void onAbort();
@@ -311,17 +323,16 @@ namespace ESPINA
          * \param[in] slice to compress.
          *
          */
-        void compressSlice(QDataStream &stream, long int z);
+        void compressSlice(QDataStream &stream, const long int z);
 
         /** \brief Returns the custom-defined region of voxels that are candidates to belong to the
          * given supervoxel.
          * \param[in] supervoxel position.
          * \param[in] radius of influence assigned to the supervoxel.
-         * \param[in] spacing Spacing of the stack image.
          * \param[out] region Computed region.
          *
          */
-        void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, const NmVector3 &spacing, ImageRegion &region) const;
+        void findCandidateRegion(itkVolumeType::IndexType &center, double scan_size, ImageRegion &region) const;
 
         /** \brief Distributes evenly spaced empty supervoxels trying not to place them on edges.
          * \param[in] image to populate with supervoxels.
@@ -331,7 +342,11 @@ namespace ESPINA
          */
         bool initLabels(itkVolumeType *image, QList<Label> &labels, ChannelEdges *edgesExtension);
 
-        unsigned long long int offsetOfIndex(const IndexType &index);
+        /** \brief Returns the offset in memory or file of the given image index.
+         * \param[in] index Voxel index struct.
+         *
+         */
+        const unsigned long long int offsetOfIndex(const IndexType &index);
 
         //TODO: Check color_distance for nullptr and remove only_spatial?
         /** \brief Calculates the weighted distance between a voxel an a supervoxel.
@@ -345,10 +360,10 @@ namespace ESPINA
          * \param[in] wether color distance should be calculated.
          *
          */
-        float calculateDistance(IndexType &voxel_index, IndexType &center_index,
-                                unsigned char voxel_color, unsigned char center_color,
-                                float norm_quotient, float *color_distance, float *spatial_distance,
-                                const NmVector3 &spacing, bool only_spatial = false);
+        float calculateDistance(const IndexType &voxel_index, const IndexType &center_index,
+                                const unsigned char voxel_color, const unsigned char center_color,
+                                const float norm_quotient, float *color_distance, float *spatial_distance,
+                                bool only_spatial = false);
 
         /** \brief Finds the surrounding voxels that belong to the given supervoxel.
          * \param[in,out] label Label to update.
@@ -357,7 +372,7 @@ namespace ESPINA
          * \param[in] labels List of all supervoxels.
          *
          */
-        void computeLabel(Label &label, ChannelEdgesSPtr edgesExtension, itkVolumeType *image, QList<Label> *labels);
+        void computeLabel(Label &label, ChannelEdgesSPtr edgesExtension, itkVolumeType *image, QList<Label> &labels);
 
         /** \brief Recomputes the label center looking at the current label voxel positions.
          * \param[in,out] label to update.
@@ -367,17 +382,16 @@ namespace ESPINA
          */
         void recalculateCenter(Label &label, itkVolumeType *image, const double tolerance);
 
-        /** \brief Ensures connectivity between a supervoxel and all its assigned voxels.
-         * \param[in] label Label of the supervoxel.
-         * \param[in] image Stack image.
-         *
-         */
-        void labelConnectivity(Label &label, itkVolumeType *image);
+        virtual bool hasErrors() const override
+        { return !m_errorMessage.isEmpty(); };
 
-        ChannelPtr                      m_stack;    /** stack to process.                                                  */
-        CoreFactory                    *m_factory;  /** core object factory needed to create edges extension if neccesary. */
-        SLICResult                     &result;     /** Pointer to the result struct to write the computed results to.     */
-        std::unique_ptr<unsigned int[]> voxels;     /** Array holding the assigned values of all voxels.                   */
+        virtual const QStringList errors() const override;
+
+        ChannelPtr                       m_stack;        /** stack to process.                                                  */
+        CoreFactory                     *m_factory;      /** core object factory needed to create edges extension if neccesary. */
+        SLICResult                      &result;         /** Pointer to the result struct to write the computed results to.     */
+        std::unique_ptr<unsigned int[]>  voxels;         /** voxel volume storage.                                              */
+        QString                          m_errorMessage; /** error message or empty on success.                                 */
 
         const double color_normalization_constant = 100.0/255.0; /** Used to avoid dividing when switching from grayscale space (0-255) to CIELab intensity (0-100) */
 

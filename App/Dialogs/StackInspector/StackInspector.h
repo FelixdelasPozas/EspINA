@@ -192,6 +192,11 @@ namespace ESPINA
        */
       void onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone);
 
+      /** \brief Shows the errors of SLIC computation if any.
+       *
+       */
+      void onSLICComputationAborted();
+
     private:
       /** \brief Helper method to update views after changes to the stack.
        *

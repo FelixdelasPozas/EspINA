@@ -54,11 +54,15 @@ namespace ESPINA
       Q_OBJECT
     public:
       /** \brief SLICRepresentation2D class constructor.
+       * \param[in] extension SLIC extension object.
        *
        */
       explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension);
 
       /** \brief SLICRepresentation2D class constructor with extra parameters.
+       * \param[in] extension SLIC extension object.
+       * \param[in] opacity Opacity value of the representation in [0,1]
+       * \param[in] useColors True to use random coloring and false to use supervoxel colors.
        *
        */
       explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension, float opacity, bool useColors);
@@ -67,13 +71,6 @@ namespace ESPINA
        *
        */
       virtual ~SLICRepresentation2D();
-
-      /** \brief Sets the SLIC data to use.
-       *
-       * TODO
-       *
-       */
-      void setSLICExtension(std::shared_ptr<Extensions::StackSLIC> extension);
 
       virtual void initialize(RenderView *view);
 
@@ -99,16 +96,24 @@ namespace ESPINA
 
     public slots:
       /** \brief Modifies the text onscreen when the SLIC is being computed.
+       * \param[in] value Current task progress.
        *
        */
       void setSLICComputationProgress(int value);
 
+      /** \brief Modifies the text onscreen when the SLIC computation is aborted.
+       *
+       */
+      void setSLICComputationAborted();
+
       /** \brief Changes overlaid actor opacity.
+       * \param[in] value Opacity value in [0,100].
        *
        */
       void opacityChanged(int value);
 
       /** \brief Changes how the supervoxels are colored in the preview.
+       * \param[in] value UI checkbox value.
        *
        */
       void colorModeCheckChanged(int value);
