@@ -474,8 +474,8 @@ namespace ESPINA
     const unsigned long zEnd      = zStart+region.GetSize(2);
     const unsigned long yStart    = region.GetIndex(1);
     const unsigned long yEnd      = yStart+region.GetSize(1);
-    const unsigned long copySize  = region.GetSize(0)*componentsNum;
-    const unsigned long copyStart = region.GetIndex(0)*componentsNum;
+    const unsigned long copySize  = region.GetSize(0)*componentsNum*sizeof(typename T::PixelType);
+    const unsigned long copyStart = region.GetIndex(0)*componentsNum*sizeof(typename T::PixelType);
 
     for(unsigned long z = zStart; z < zEnd; ++z)
     {
@@ -574,7 +574,8 @@ namespace ESPINA
     const auto sourceRegion  = equivalentRegion<T>(source, bounds);
 
     const auto componentsNum = source->GetNumberOfComponentsPerPixel();
-    const auto copySize      = sourceRegion.GetSize(0)*componentsNum;
+    const auto pixelSize     = sizeof(typename T::PixelType);
+    const auto copySize      = sourceRegion.GetSize(0)*componentsNum*pixelSize;
 
     const unsigned long sourceZJump = sourceLargest.GetSize(0)*sourceLargest.GetSize(1)*componentsNum;
     const unsigned long sourceYJump = sourceLargest.GetSize(0)*componentsNum;

@@ -82,8 +82,11 @@ vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(const Q
     throw EspinaException(what, details);
   }
 
+  auto data = reader->GetPolyDataOutput();
+  data->Modified();
+
   auto mesh = vtkSmartPointer<vtkPolyData>::New();
-  mesh->DeepCopy(reader->GetPolyDataOutput());
+  mesh->DeepCopy(data);
 
   return mesh;
 }

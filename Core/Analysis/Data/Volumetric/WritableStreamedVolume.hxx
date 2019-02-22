@@ -93,6 +93,8 @@ namespace ESPINA
         virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                           const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
+        virtual void fill(const typename T::PixelType &value) = 0;
+
         virtual void write(const typename T::Pointer &image) = 0;
     };
 
@@ -124,6 +126,7 @@ namespace ESPINA
         virtual ~WritableStreamedVolume()
         {}
 
+        virtual void fill(const typename T::PixelType &value) override;
         virtual void write(const typename T::Pointer &image) override;
     };
 
@@ -157,6 +160,7 @@ namespace ESPINA
         virtual ~WritableStreamedVectorVolume()
         {}
 
+        virtual void fill(const typename T::PixelType &value) override;
         virtual void write(const typename T::Pointer &image) override;
     };
 
@@ -640,6 +644,54 @@ namespace ESPINA
 
     //------------------------------------------------------------------------
     template<class T>
+    inline void WritableStreamedVolume<T>::fill(const typename T::PixelType &value)
+    {
+      QWriteLocker lock(&this->m_lock);
+
+      unsigned long dataSize = sizeof(typename T::InternalPixelType);
+      const auto size        = this->m_region.GetNumberOfPixels();
+
+      auto dataFileName = this->m_fileName.path() + QDir::separator() + this->m_fileName.completeBaseName() + ".raw";
+      QFile file{dataFileName};
+      if(!file.open(QIODevice::WriteOnly|QIODevice::Unbuffered|QIODevice::Truncate))
+      {
+        auto message = QObject::tr("Couldn't open raw file '%1'. Reason: %2.").arg(dataFileName).arg(file.errorString());
+        auto details = QObject::tr("WritableStreamedVolume::fill(&value) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      if(!file.seek(0))
+      {
+        auto message = QObject::tr("Unable to seek to pos 0, total file size is %2. File: %3").arg(file.size()).arg(dataFileName);
+        auto details = QObject::tr("WritableStreamedVolume::fill(&value) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      for(unsigned long i = 0; i < size; ++i)
+      {
+        if(dataSize != file.write(reinterpret_cast<const char *>(&value), dataSize))
+        {
+          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(i*dataSize).arg(file.size()).arg(dataFileName);
+          auto details = QObject::tr("WritableStreamedVolume::fill(&value) -> ") + message;
+
+          throw Core::Utils::EspinaException(message, details);
+        }
+      }
+
+      if(!file.flush() || (file.error() != QFile::NoError))
+      {
+        auto message = QObject::tr("Error finishing write operation in file: %1").arg(dataFileName);
+        auto details = QObject::tr("WritableStreamedVolume::fill(&value) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+      file.close();
+    }
+
+    //------------------------------------------------------------------------
+    template<class T>
     inline void WritableStreamedVolume<T>::write(const typename T::Pointer &image)
     {
       QWriteLocker lock(&this->m_lock);
@@ -725,7 +777,7 @@ namespace ESPINA
 
       if(!file.flush() || (file.error() != QFile::NoError))
       {
-        auto message = QObject::tr("Error finishing write operation in file: %3").arg(dataFileName);
+        auto message = QObject::tr("Error finishing write operation in file: %1").arg(dataFileName);
         auto details = QObject::tr("WritableStreamedVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);
@@ -749,6 +801,54 @@ namespace ESPINA
                                                                   const unsigned int             length)
     : WritableStreamedFileBase<T>(fileName, region, spacing, length)
     {}
+
+    //------------------------------------------------------------------------
+    template<class T>
+    inline void WritableStreamedVectorVolume<T>::fill(const typename T::PixelType &value)
+    {
+      QWriteLocker lock(&this->m_lock);
+
+      unsigned long dataSize = sizeof(typename T::InternalPixelType) * this->m_vectorLength;
+      auto size              = this->m_region.GetNumberOfPixels();
+
+      auto dataFileName = this->m_fileName.path() + QDir::separator() + this->m_fileName.completeBaseName() + ".raw";
+      QFile file{dataFileName};
+      if(!file.open(QIODevice::ReadWrite))
+      {
+        auto message = QObject::tr("Couldn't open raw file '%1'. Reason: %2.").arg(dataFileName).arg(file.errorString());
+        auto details = QObject::tr("WritableStreamedVectorVolume::fill(&value) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      if(!file.seek(0))
+      {
+        auto message = QObject::tr("Unable to seek to pos 0, total file size is %1. File: %2").arg(file.size()).arg(dataFileName);
+        auto details = QObject::tr("WritableStreamedVectorVolume::fill(&value) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      for(unsigned long long i = 0; i < size; ++i)
+      {
+        if(dataSize != file.write(reinterpret_cast<const char *>(value.GetDataPointer()), dataSize))
+        {
+          auto message = QObject::tr("Unable to write in pos %1, total file size is %2. File: %3").arg(i*dataSize).arg(file.size()).arg(dataFileName);
+          auto details = QObject::tr("WritableStreamedVectorVolume::fill(&value) -> ") + message;
+
+          throw Core::Utils::EspinaException(message, details);
+        }
+      }
+
+      if(!file.flush() || (file.error() != QFile::NoError))
+      {
+        auto message = QObject::tr("Error finishing write operation in file: %1").arg(dataFileName);
+        auto details = QObject::tr("WritableStreamedVectorVolume::fill(&value) -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+      file.close();
+    }
 
     //------------------------------------------------------------------------
     template<class T>
@@ -798,8 +898,8 @@ namespace ESPINA
 
       // slow due to not knowing beforehand the dimensions of the image.
       unsigned long dataSize = sizeof(typename T::InternalPixelType) * this->m_vectorLength;
-      auto size          = this->m_region.GetSize();
-      auto it            = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
+      const auto size        = this->m_region.GetSize();
+      auto it                = itk::ImageRegionConstIteratorWithIndex<T>(image, region);
 
       it.GoToBegin();
 
@@ -838,7 +938,7 @@ namespace ESPINA
 
       if(!file.flush() || (file.error() != QFile::NoError))
       {
-        auto message = QObject::tr("Error finishing write operation in file: %3").arg(this->m_fileName.absoluteFilePath());
+        auto message = QObject::tr("Error finishing write operation in file: %1").arg(this->m_fileName.absoluteFilePath());
         auto details = QObject::tr("WritableStreamedVectorVolume::write() -> ") + message;
 
         throw Core::Utils::EspinaException(message, details);

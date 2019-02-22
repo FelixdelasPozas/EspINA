@@ -29,6 +29,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/CustomFileOpenDialog/CustomFileDialog.h
   Dialogs/CustomFileOpenDialog/OptionsPanel.h
   Dialogs/StackInspector/StackInspector.h
+  Dialogs/StackInspector/SLICRepresentation2D.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
   Dialogs/DistanceInformation/DistanceInformationTabularReport.h
@@ -165,6 +166,7 @@ set (ESPINA_SOURCES
   Dialogs/CustomFileOpenDialog/CustomFileDialog.cpp
   Dialogs/CustomFileOpenDialog/OptionsPanel.cpp
   Dialogs/StackInspector/StackInspector.cpp
+  Dialogs/StackInspector/SLICRepresentation2D.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
