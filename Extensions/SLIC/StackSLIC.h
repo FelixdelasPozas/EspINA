@@ -85,7 +85,7 @@ namespace ESPINA
          * \param[in] coordinates of the chosen voxel.
          *
          */
-        const unsigned long int getSupervoxel(const itkVolumeType::IndexType position) const;
+        const unsigned int getSupervoxel(const itkVolumeType::IndexType position) const;
 
         /** \brief Returns the mean color of the specified supervoxel.
          * \param[in] supervoxel label.
@@ -108,12 +108,17 @@ namespace ESPINA
          */
         bool drawSliceInImageData(const unsigned int slice, vtkSmartPointer<vtkImageData> data);
 
-        /** \brief Returns a smart pointer to an ITK Image that spans the chosen Bounds
-         * and contains the labels assigned to each voxel.
+        /** \brief Returns a smart pointer to an ITK Image that spans the chosen Bounds colored with label values.
          * \param[in] Bounds of the region to obtain
          *
          */
-        itk::SmartPointer<itk::Image<unsigned int, 3>> getLabeledImageFromBounds(const Bounds bounds) const;
+        itk::Image<unsigned int, 3>::Pointer getLabeledImageFromBounds(const Bounds bounds) const;
+
+        /** \brief Returns a smart pointer to an ITK image that spans the chose Bounds colored with label colors.
+         * \param[in] Bounds of the region to obtain
+         *
+         */
+        itkVolumeType::Pointer getImageFromBounds(const Bounds bounds) const;
 
         /** \brief Draws the calculated supervoxel centers onto an ITK Image.
          * \param[in] slice to draw.
@@ -172,17 +177,15 @@ namespace ESPINA
          */
         double getSliceSpacing();
 
-        /** \brief Returns the uncompressed grayscale representation of a slice as
-         * a byte array encapsulated in a unique pointer.
+        /** \brief Returns the uncompressed grayscale representation of a slice as an itk::Image
          *
          */
-        std::unique_ptr<char[]> getUncompressedSlice(const int slice) const;
+        itkVolumeType::Pointer getUncompressedSlice(const int slice) const;
 
-        /** \brief Returns the uncompressed labeled representation of a slice as
-         * a long long int array encapsulated in a unique pointer.
+        /** \brief Returns the uncompressed labeled representation of a slice as an itk::Image
          *
          */
-        std::unique_ptr<long long[]> getUncompressedLabeledSlice(const int slice) const;
+        itk::Image<unsigned int, 3>::Pointer getUncompressedLabeledSlice(const int slice) const;
 
         /** \brief Returns the current progress of the computation task, if any.
          *
@@ -226,8 +229,26 @@ namespace ESPINA
         };
 
       protected slots:
-        void onComputeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c, Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations, double tolerance);
+        /** \brief Starts the SLIC computation with the given parameters.
+         * \param[in] parameter_m_s Spacing between voxels, in voxel units.
+         * \param[in] parameter_m_c Voxel color.
+         * \param[in] variant SLIC algorithm variant.
+         * \param[in] max_iterations SLIC algoritm max iterations.
+         * \param[in] tolerance Tolerance value for supervoxel convergence.
+         *
+         */
+        void onComputeSLIC(unsigned char parameter_m_s, unsigned char parameter_m_c,
+                           Extensions::StackSLIC::SLICVariant variant, unsigned int max_iterations,
+                           double tolerance);
+
+        /** \brief Called when the computation task has finished or has been aborted.
+         *
+         */
         void onSLICComputed();
+
+        /** \brief Aborts the SLIC computation.
+         *
+         */
         void onAbortSLIC();
 
       signals:
@@ -236,6 +257,10 @@ namespace ESPINA
         void progress(int);
 
       private:
+        using IndexType   = itkVolumeType::IndexType;
+        using ImageRegion = itk::ImageRegion<3>;
+        using ImageType   = itk::Image<unsigned int, 3>;
+
         static const QString VOXELS_FILE;
         static const QString LABELS_FILE;
         static const QString DATA_FILE;
@@ -303,11 +328,6 @@ namespace ESPINA
         {};
 
       private:
-        using IndexType      = itkVolumeType::IndexType;
-        using RegionIterator = itk::ImageRegionConstIteratorWithIndex<itkVolumeType>;
-        using ImageRegion    = itk::ImageRegion<3>;
-        using ImageType      = itk::Image<unsigned int, 3>;
-
         virtual void run();
         virtual void onAbort();
 
@@ -318,12 +338,13 @@ namespace ESPINA
          */
         void saveResults(QList<Label> labels);
 
-        /** \brief Compresses a slice and saves it to a QDataStream.
+        /** \brief Compresses a slice and saves it to a QDataStream in RLE format prepending slice position and size.
          * \param[out] QDataStream that will hold the compressed slice.
          * \param[in] slice to compress.
+         * \param[in] region Image region to compress.
          *
          */
-        void compressSlice(QDataStream &stream, const long int z);
+        void compressSliceRLE(QDataStream &stream, const long int z, const ImageRegion &region);
 
         /** \brief Returns the custom-defined region of voxels that are candidates to belong to the
          * given supervoxel.

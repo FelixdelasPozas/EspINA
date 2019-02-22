@@ -153,13 +153,14 @@ void StackSLIC::onComputeSLIC(unsigned char m_s, unsigned char m_c, Extensions::
 {
   if(m_task && m_task->isRunning()) return;
 
-  m_result.computed     = false;
-  m_result.m_s          = m_s;
-  m_result.m_c          = m_c;
-  m_result.variant      = variant;
-  m_result.iterations   = max_iterations;
-  m_result.tolerance    = tolerance;
-  m_result.modified     = false;
+  m_result.computed   = false;
+  m_result.m_s        = m_s;
+  m_result.m_c        = m_c;
+  m_result.variant    = variant;
+  m_result.iterations = max_iterations;
+  m_result.tolerance  = tolerance;
+  m_result.modified   = false;
+  m_result.region     = equivalentRegion<itkVolumeType>(m_extendedItem->position(), m_extendedItem->output()->spacing(), m_extendedItem->bounds());
 
   m_task = std::make_shared<SLICComputeTask>(m_extendedItem, m_scheduler, m_factory, m_result);
 
@@ -268,8 +269,6 @@ void StackSLIC::SLICComputeTask::run()
 
   auto image = inputVolume->itkImage();
 
-  result.region = image->GetLargestPossibleRegion();
-
   result.converged = false;
 
   //Find centers for the supervoxels
@@ -296,6 +295,15 @@ void StackSLIC::SLICComputeTask::run()
     }
 
     m_errorMessage = tr("Not enough memory. Processing the stack '%1' requires a total of %2 %3 of memory.").arg(m_stack->name()).arg(QString::number(totalSize, 'f', 1)).arg(UNITS.at(unit));
+    abort();
+    return;
+  }
+
+  const unsigned long SUPERVOXEL_SIZE = 2 * result.m_s;
+  if(SUPERVOXEL_SIZE > result.region.GetSize(0) || SUPERVOXEL_SIZE > result.region.GetSize(1) || SUPERVOXEL_SIZE > result.region.GetSize(2))
+  {
+    m_errorMessage = tr("Region to compute is too small for given supervoxel spacing. Increase the region or reduce supervoxel distance.");
+    voxels = nullptr;
     abort();
     return;
   }
@@ -334,14 +342,13 @@ void StackSLIC::SLICComputeTask::run()
   }
   catch(const EspinaException &e)
   {
-    std::cerr << "Exception " << e.what() << std::endl;
-    std::cerr << "Details " << e.details() << std::endl;
-    exit(1);
+    m_errorMessage = tr("Error computing SLIC: %1. Details: %2.").arg(e.what()).arg(e.details());
+    abort();
   }
   catch(const std::exception &e)
   {
-    std::cerr << "std::exception " << e.what() << std::endl << std::flush;
-    exit(1);
+    m_errorMessage = tr("Error computing SLIC: %1.").arg(e.what());
+    abort();
   }
 
   if(canExecute())
@@ -365,13 +372,12 @@ void StackSLIC::SLICComputeTask::onAbort()
 }
 
 //-----------------------------------------------------------------------------
-const unsigned long int StackSLIC::getSupervoxel(const itkVolumeType::IndexType position) const
+const unsigned int StackSLIC::getSupervoxel(const itkVolumeType::IndexType position) const
 {
   if(!m_result.computed || !m_result.region.IsInside(position)) return 0;
 
-  auto slice = getUncompressedSlice(position[2]).get();
-  auto pos = position[0]-m_result.region.GetIndex(0) + (position[1]-m_result.region.GetIndex(1))*m_result.region.GetSize(0);
-  return slice[pos];
+  auto slice = getUncompressedLabeledSlice(position.GetElement(2));
+  return slice->GetPixel(position);
 }
 
 //-----------------------------------------------------------------------------
@@ -426,31 +432,24 @@ bool StackSLIC::drawSliceInImageData(const unsigned int slice, vtkSmartPointer<v
 
   if(!m_result.computed) return false;
 
-  itkVolumeType::IndexType index{m_result.region.GetIndex(0), m_result.region.GetIndex(1), slice};
-  if(!m_result.region.IsInside(index)) return false;
-
-  OutputSPtr output = m_extendedItem->output();
-  NmVector3 spacing = output->spacing();
-  const long int max_x = m_result.region.GetSize(0);
-  const long int max_y = m_result.region.GetSize(1);
-  unsigned long long int pixel_count = max_x*max_y;
-
-  data->SetExtent(m_result.region.GetIndex(0), m_result.region.GetIndex(0) + max_x-1, m_result.region.GetIndex(1), m_result.region.GetIndex(1) + max_y-1, slice, slice);
-  data->SetSpacing(spacing[0], spacing[1], spacing[2]);
+  auto sliceImage  = getUncompressedSlice(slice);
+  auto sliceRegion = sliceImage->GetLargestPossibleRegion();
+  data->SetExtent(sliceRegion.GetIndex(0), sliceRegion.GetIndex(0) + static_cast<long int>(sliceRegion.GetSize(0)) - 1,
+                  sliceRegion.GetIndex(1), sliceRegion.GetIndex(1) + static_cast<long int>(sliceRegion.GetSize(1)) - 1,
+                  sliceRegion.GetIndex(2), sliceRegion.GetIndex(2) + static_cast<long int>(sliceRegion.GetSize(2)) - 1);
+  data->SetSpacing(sliceImage->GetSpacing().GetElement(0), sliceImage->GetSpacing().GetElement(1), sliceImage->GetSpacing().GetElement(2));
   data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
-  auto buffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
 
-  std::memcpy(buffer, getUncompressedSlice(slice).get(), pixel_count);
+  auto databuffer = reinterpret_cast<unsigned char *>(data->GetScalarPointer());
+
+  std::memcpy(databuffer, sliceImage->GetBufferPointer(), sliceRegion.GetSize(0)*sliceRegion.GetSize(1));
 
   return true;
 }
 
 //-----------------------------------------------------------------------------
-itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBounds(const Bounds bounds) const
+itk::Image<unsigned int, 3>::Pointer StackSLIC::getLabeledImageFromBounds(const Bounds bounds) const
 {
-  //Partial results shouldn't ever be useful outside of the preview
-  //that is handled already in drawSliceInImageData()
-  //Only returns something if SLIC has been computed
   if(isRunning())
   {
     auto message = QObject::tr("SLIC results called during computation");
@@ -467,26 +466,93 @@ itk::SmartPointer<itk::Image<unsigned int, 3>> StackSLIC::getLabeledImageFromBou
     throw Utils::EspinaException(message, details);
   }
 
-  using ImageType = itk::Image<unsigned int, 3>;
+  if(!m_result.computed)
+  {
+    auto message = QObject::tr("No SLIC data to retrieve!");
+    auto details = QObject::tr("StackSLIC::getLabeledImageFromBounds() -> There is no SLIC data.");
 
-  auto spacing = m_extendedItem->output()->spacing();
+    throw Utils::EspinaException(message, details);
+  }
+
+  const auto spacing = m_extendedItem->output()->spacing();
   auto image = create_itkImage<ImageType>(bounds, SEG_BG_VALUE, spacing);
-  auto data_offset = image->GetBufferPointer();
   auto region = image->GetLargestPossibleRegion();
+
+  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_extendedItem, m_factory);
 
   QReadLocker lock(&m_result.dataMutex);
   for (int z = region.GetIndex(2); z < region.GetIndex(2) + static_cast<long int>(region.GetSize(2)); ++z)
   {
-    auto s = getUncompressedLabeledSlice(z);
-    for (int y = region.GetIndex(1); y < region.GetIndex(1) + static_cast<long int>(region.GetSize(1)); ++y)
-    {
-      auto slice_buffer = s.get();
-      slice_buffer += y * region.GetSize(0);
-      for (int x = region.GetIndex(0); x < region.GetIndex(0) + static_cast<long int>(region.GetSize(0)); ++x)
-      {
-        *(data_offset++) = *(slice_buffer++);
-      }
-    }
+    auto requestedSliceRegion = region;
+    requestedSliceRegion.SetIndex(2, z);
+    requestedSliceRegion.SetSize(2, 1);
+    requestedSliceRegion.Crop(edgesExtension->sliceRegion(z));
+
+    auto sliceImage = getUncompressedLabeledSlice(z);
+    auto requestedBounds = equivalentBounds<ImageType>(image, requestedSliceRegion);
+    auto sliceImageBounds = equivalentBounds<ImageType>(sliceImage, sliceImage->GetLargestPossibleRegion());
+
+    if(!intersect(requestedBounds, sliceImageBounds)) continue;
+
+    auto intersectionBounds = intersection(requestedBounds, sliceImageBounds);
+
+    copy_image<ImageType>(sliceImage, image, intersectionBounds);
+  }
+
+  image->Modified();
+  return image;
+}
+
+//-----------------------------------------------------------------------------
+itkVolumeType::Pointer StackSLIC::getImageFromBounds(const Bounds bounds) const
+{
+  if(isRunning())
+  {
+    auto message = QObject::tr("SLIC results called during computation");
+    auto details = QObject::tr("StackSLIC::getImageFromBounds() -> Results are not available while SLIC computation is running.");
+
+    throw Utils::EspinaException(message, details);
+  }
+
+  if(!bounds.areValid() || !contains(m_extendedItem->output()->bounds(), bounds))
+  {
+    auto message = QObject::tr("invalid bounds");
+    auto details = QObject::tr("StackSLIC::getImageFromBounds() -> Requested area is outside the image bounds.");
+
+    throw Utils::EspinaException(message, details);
+  }
+
+  if(!m_result.computed)
+  {
+    auto message = QObject::tr("No SLIC data to retrieve!");
+    auto details = QObject::tr("StackSLIC::getImageFromBounds() -> There is no SLIC data.");
+
+    throw Utils::EspinaException(message, details);
+  }
+
+  const auto spacing = m_extendedItem->output()->spacing();
+  auto image = create_itkImage<itkVolumeType>(bounds, SEG_BG_VALUE, spacing);
+  auto region = image->GetLargestPossibleRegion();
+
+  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_extendedItem, m_factory);
+
+  QReadLocker lock(&m_result.dataMutex);
+  for (int z = region.GetIndex(2); z < region.GetIndex(2) + static_cast<long int>(region.GetSize(2)); ++z)
+  {
+    auto requestedSliceRegion = region;
+    requestedSliceRegion.SetIndex(2, z);
+    requestedSliceRegion.SetSize(2, 1);
+    requestedSliceRegion.Crop(edgesExtension->sliceRegion(z));
+
+    auto sliceImage = getUncompressedSlice(z);
+    auto requestedBounds = equivalentBounds<itkVolumeType>(image, requestedSliceRegion);
+    auto sliceImageBounds = equivalentBounds<itkVolumeType>(sliceImage, sliceImage->GetLargestPossibleRegion());
+
+    if(!intersect(requestedBounds, sliceImageBounds)) continue;
+
+    auto intersectionBounds = intersection(requestedBounds, sliceImageBounds);
+
+    copy_image<itkVolumeType>(sliceImage, image, intersectionBounds);
   }
 
   image->Modified();
@@ -573,6 +639,7 @@ QDataStream &operator<<(QDataStream &out, const StackSLIC::SuperVoxel &label)
 void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
 {
   QWriteLocker lock(&result.dataMutex);
+  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
 
   for (auto z = result.region.GetIndex(2); z < result.region.GetIndex(2) + static_cast<long int>(result.region.GetSize(2)); ++z)
   {
@@ -580,7 +647,12 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
     QDataStream stream(&data, QIODevice::WriteOnly);
     stream.setVersion(QDataStream::Qt_4_0);
 
-    compressSlice(stream, z);
+    auto region = result.region;
+    region.SetIndex(2, z);
+    region.SetSize(2,1);
+    region.Crop(edgesExtension->sliceRegion(z));
+
+    compressSliceRLE(stream, z, region);
 
     auto fileName =  m_factory->defaultStorage()->absoluteFilePath(QString(VOXELS_FILE).arg(z));
 
@@ -606,26 +678,30 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::compressSlice(QDataStream &stream, const long int z)
+void StackSLIC::SLICComputeTask::compressSliceRLE(QDataStream &stream, const long int z, const ImageRegion &region)
 {
-  //Compression algorithm goes here
-  unsigned long long voxel_index = 0;
   unsigned int current_label;
   unsigned char same_label_count = 0;
+  const unsigned int voxelLimit = result.supervoxels.size();
 
-  voxel_index = offsetOfIndex(IndexType{result.region.GetIndex(0), result.region.GetIndex(1), z});
+  stream << static_cast<long long>(region.GetIndex(0));
+  stream << static_cast<long long>(region.GetIndex(1));
+  stream << static_cast<unsigned long long>(region.GetSize(0));
+  stream << static_cast<unsigned long long>(region.GetSize(1));
 
-  for(auto y = result.region.GetIndex(1); y < result.region.GetIndex(1) + static_cast<long int>(result.region.GetSize(1)); ++y)
+  for(auto y = region.GetIndex(1); y < region.GetIndex(1) + static_cast<long int>(region.GetSize(1)); ++y)
   {
-    for(auto x = result.region.GetIndex(0); x < result.region.GetIndex(0) + static_cast<long int>(result.region.GetSize(0)); ++x)
+    for(auto x = region.GetIndex(0); x < region.GetIndex(0) + static_cast<long int>(region.GetSize(0)); ++x)
     {
+      auto voxel_index = offsetOfIndex(IndexType{x,y,z});
       auto voxelValue = voxels[voxel_index];
 
-      if (x != result.region.GetIndex(0))
+      if(voxelValue >= voxelLimit) voxelValue = 0;
+
+      if (x != region.GetIndex(0))
       {
         if (voxelValue != current_label)
         {
-          //Write RLE
           stream << current_label;
           stream << same_label_count;
           current_label = voxelValue;
@@ -853,7 +929,7 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, ChannelEdgesSPtr edg
     //was too high/low
     if(!region.Crop(sliceRegion)) continue;
 
-    RegionIterator it(image, region);
+    itk::ImageRegionIteratorWithIndex<itkVolumeType> it(image, region);
     it.GoToBegin();
 
     while(!it.IsAtEnd())
@@ -1024,7 +1100,7 @@ void StackSLIC::SLICComputeTask::recalculateCenter(Label& label, itkVolumeType *
 }
 
 //-----------------------------------------------------------------------------
-std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(const int slice) const
+itkVolumeType::Pointer StackSLIC::getUncompressedSlice(const int slice) const
 {
   auto data = getSlice(slice);
   auto RLEdata = qUncompress(data);
@@ -1033,32 +1109,56 @@ std::unique_ptr<char[]> StackSLIC::getUncompressedSlice(const int slice) const
   QDataStream stream(&RLEdata, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
-  unsigned long long int pixel_count = m_result.region.GetSize(0)*m_result.region.GetSize(1);
-  unsigned long long int pixel = 0;
+  long long x, y;
+  unsigned long long length_x, length_y;
 
-  std::unique_ptr<char[]> buffer(new char[pixel_count]);
-  auto buffer_ptr = buffer.get();
+  stream >> x;
+  stream >> y;
+  stream >> length_x;
+  stream >> length_y;
+
+  itkVolumeType::RegionType region;
+  region.SetIndex(0, x);
+  region.SetIndex(1, y);
+  region.SetIndex(2, slice);
+  region.SetSize(0, length_x);
+  region.SetSize(1, length_y);
+  region.SetSize(2, 1);
+
+  auto spacing = m_extendedItem->output()->spacing();
+  auto origin  = m_extendedItem->position();
+  auto bounds  = equivalentBounds<itkVolumeType>(origin, spacing, region);
+
+  auto sliceImage = create_itkImage<itkVolumeType>(bounds, SEG_BG_VALUE, spacing, origin);
+  auto buffer = sliceImage->GetBufferPointer();
 
   unsigned int label;
   unsigned char voxel_count;
+  const unsigned int voxelLimit = m_result.supervoxels.size();
 
-  while(pixel < pixel_count)
+  unsigned long long int pixel = 0;
+
+  while(pixel < length_x*length_y)
   {
     stream >> label;
     stream >> voxel_count;
 
-    for(unsigned int i = 0; i < voxel_count; i++)
+    Q_ASSERT(label < voxelLimit);
+
+    for(int i = 0; i < voxel_count; ++i)
     {
-      *buffer_ptr++ = label == std::numeric_limits<unsigned int>::max() ? 0 : m_result.supervoxels[label].color;
+      *buffer++ = m_result.supervoxels[label].color;
     }
     pixel += voxel_count;
   }
 
-  return buffer;
+  sliceImage->Modified();
+
+  return sliceImage;
 }
 
 //-----------------------------------------------------------------------------
-std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(const int slice) const
+itk::Image<unsigned int, 3>::Pointer StackSLIC::getUncompressedLabeledSlice(const int slice) const
 {
   auto data = getSlice(slice);
   auto RLEdata = qUncompress(data);
@@ -1067,27 +1167,48 @@ std::unique_ptr<long long[]> StackSLIC::getUncompressedLabeledSlice(const int sl
   QDataStream stream(&RLEdata, QIODevice::ReadOnly);
   stream.setVersion(QDataStream::Qt_4_0);
 
-  unsigned long long int pixel_count = m_result.region.GetSize(0)*m_result.region.GetSize(1);
-  unsigned long long int pixel = 0;
+  long long x, y;
+  unsigned long long length_x, length_y;
 
-  std::unique_ptr<long long[]> buffer(new long long[pixel_count]);
-  auto buffer_ptr = buffer.get();
+  stream >> x;
+  stream >> y;
+  stream >> length_x;
+  stream >> length_y;
+
+  itkVolumeType::RegionType region;
+  region.SetIndex(0, x);
+  region.SetIndex(1, y);
+  region.SetIndex(2, slice);
+  region.SetSize(0, length_x);
+  region.SetSize(1, length_y);
+  region.SetSize(2, 1);
+
+  auto spacing = m_extendedItem->output()->spacing();
+  auto origin  = m_extendedItem->position();
+  auto bounds  = equivalentBounds<ImageType>(origin, spacing, region);
+
+  auto sliceImage = create_itkImage<ImageType>(bounds, SEG_BG_VALUE, spacing, origin);
+  auto buffer = sliceImage->GetBufferPointer();
 
   unsigned int label;
   unsigned char voxel_count;
 
-  while(pixel < pixel_count)
+  unsigned long long int pixel = 0;
+
+  while(pixel < length_x*length_y)
   {
     stream >> label;
     stream >> voxel_count;
-    for(int i = 0; i < voxel_count; i++)
+    for(int i = 0; i < voxel_count; ++i)
     {
-      *buffer_ptr++ = label;
+      *buffer++ = label;
     }
     pixel += voxel_count;
   }
 
-  return buffer;
+  sliceImage->Modified();
+
+  return sliceImage;
 }
 
 //-----------------------------------------------------------------------------
@@ -1184,11 +1305,9 @@ Snapshot ESPINA::Extensions::StackSLIC::snapshot() const
 //--------------------------------------------------------------------
 inline const unsigned long long int StackSLIC::SLICComputeTask::offsetOfIndex(const IndexType &index)
 {
-  auto &region = result.region;
-
-  return  (index.GetElement(0) - region.GetIndex(0)) +
-         ((index.GetElement(1) - region.GetIndex(1)) * region.GetSize(0)) +
-         ((index.GetElement(2) - region.GetIndex(2)) * region.GetSize(0)*region.GetSize(1));
+  return  (index.GetElement(0) - result.region.GetIndex(0)) +
+         ((index.GetElement(1) - result.region.GetIndex(1)) * result.region.GetSize(0)) +
+         ((index.GetElement(2) - result.region.GetIndex(2)) * result.region.GetSize(0)*result.region.GetSize(1));
 }
 
 //--------------------------------------------------------------------
@@ -1213,5 +1332,5 @@ const QStringList StackSLIC::SLICComputeTask::errors() const
 //--------------------------------------------------------------------
 const QStringList StackSLIC::errors() const
 {
-  return (m_task && m_task->hasErrors() ? m_task->errors() : QStringList());
+  return ((m_task && m_task->hasErrors()) ? m_task->errors() : QStringList());
 };
