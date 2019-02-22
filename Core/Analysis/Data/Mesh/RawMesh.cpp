@@ -95,8 +95,6 @@ void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify)
       m_bounds = VolumeBounds(Bounds(), m_bounds.spacing(), m_bounds.origin());
     }
 
-    if(!m_bounds.areValid()) qDebug() << "has mesh" << hasMesh << "given mesh" << (mesh != nullptr) << "bounds" << m_bounds.toString() << mesh->GetNumberOfCells() << mesh->GetNumberOfPoints();
-
     // only add as an edited region if there was a previous mesh.
     if (hasMesh)
     {
