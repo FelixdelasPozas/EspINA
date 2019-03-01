@@ -74,6 +74,13 @@ namespace ESPINA
            */
           void addValues(itkVolumeType::Pointer image, const itkVolumeType::RegionType &region);
 
+          /** \brief Helper method that adds the values of the given buffer to the histogram.
+           * \param[in] buffer Unsigned char buffer.
+           * \param[in] length Number of values to read from the buffer.
+           *
+           */
+          void addValues(unsigned char *buffer, const unsigned long length);
+
           /** \brief Adds a value to the histogram.
            * \param[in] value Value to add.
            *
@@ -94,16 +101,16 @@ namespace ESPINA
           /** \brief Returns the probability of the given value. Valid only after update();
            * \param[in] value Unsigned char value.
            */
-          inline float probability(const unsigned char value) const
+          inline const double probability(const unsigned char value) const
           {
-            return m_values[value]/m_count;
+            return m_values[value]/static_cast<double>(m_count);
           }
 
           /** \brief Returns the number of voxels with the given value.
            * \param[in] value Unsigned char value.
            *
            */
-          inline unsigned long long values(const unsigned char value) const
+          inline const unsigned long long values(const unsigned char value) const
           {
             return m_values[value];
           }
@@ -111,7 +118,7 @@ namespace ESPINA
           /** \brief Returns the minor value. Valid only after update().
            *
            */
-          inline unsigned char minorValue() const
+          inline const unsigned char minorValue() const
           {
             return m_minor;
           }
@@ -119,7 +126,7 @@ namespace ESPINA
           /** \brief Returns the major value. Valid only after update().
            *
            */
-          inline unsigned char majorValue() const
+          inline const unsigned char majorValue() const
           {
             return m_major;
           }
@@ -127,7 +134,7 @@ namespace ESPINA
           /** \brief Returns the mode value. Valid only after update().
            *
            */
-          inline unsigned char modeValue() const
+          inline const unsigned char modeValue() const
           {
             return m_mode;
           }
@@ -135,7 +142,7 @@ namespace ESPINA
           /** \brief Returns the median value. Valid only after update().
            *
            */
-          inline unsigned char medianValue() const
+          inline const unsigned char medianValue() const
           {
             return m_median;
           }
@@ -146,7 +153,7 @@ namespace ESPINA
           void reset();
 
           /** \brief Returns the threshold value from the median value that contains "percent" of the values.
-           * \param[in] percent Value in [0-1].
+           * \param[in] percent Value in (0-1].
            *
            */
           const unsigned char threshold(const float percent) const;

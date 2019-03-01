@@ -76,7 +76,13 @@ namespace ESPINA
       : QApplication{argc, argv}
       {};
 
-      virtual bool notify(QObject *receiver, QEvent *e) override
+      /** \brief EspinaApplication class virtual destructor.
+       *
+       */
+      virtual ~EspinaApplication()
+      {};
+
+      virtual bool notify(QObject *receiver, QEvent *e) override final
       {
         try
         {

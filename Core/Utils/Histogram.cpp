@@ -136,6 +136,9 @@ const unsigned char Histogram::threshold(const float percent) const
     return 0;
   }
 
+  // invalid parameter
+  if(percent <= 0 || percent > 1) return 0;
+
   unsigned char value = 0;
   for(unsigned int i = 1; i < 256; ++i)
   {
@@ -194,4 +197,16 @@ QDebug operator <<(QDebug stream, const ESPINA::Core::Utils::Histogram& histogra
   }
 
   return stream;
+}
+
+//--------------------------------------------------------------------
+void Histogram::addValues(unsigned char* buffer, const unsigned long length)
+{
+  if(buffer && length > 0)
+  {
+    for(unsigned long i = 0; i < length; ++i)
+    {
+      addValue(buffer[i]);
+    }
+  }
 }
