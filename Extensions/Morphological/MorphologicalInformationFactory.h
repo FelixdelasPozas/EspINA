@@ -42,10 +42,9 @@ namespace ESPINA
     {
       public:
         /** \brief MorphologicalInformationFactory class constructor.
-         * \param[in] factory core factory pointer.
          *
          */
-        explicit MorphologicalInformationFactory(CoreFactory *factory);
+        explicit MorphologicalInformationFactory();
 
         /** \brief MorphologicalInformationFactory class virtual destructor.
          *

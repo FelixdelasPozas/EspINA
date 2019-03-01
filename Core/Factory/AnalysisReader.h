@@ -33,40 +33,49 @@ namespace ESPINA
   {
     class ProgressReporter;
 
+    using LoadOptions   = QMap<const QString, QVariant>;
+
+    /** \class AnalysisReader
+     * \brief Interface for reading analysis files.
+     *
+     */
     class EspinaCore_EXPORT AnalysisReader
     {
-    public:
-      using Extensions    = QStringList;
-      using Description   = QString;
-      using ExtensionList = QMap<Description, Extensions>;
+      public:
+        using Extensions    = QStringList;
+        using Description   = QString;
+        using ExtensionList = QMap<Description, Extensions>;
 
-    public:
-      /** \brief AnalysisReader class destructor.
-       *
-       */
-      virtual ~AnalysisReader()
-      {}
+      public:
 
-      /** \brief Returns the type of analysis reader.
-       *
-       */
-      virtual const QString type() const = 0;
+        /** \brief AnalysisReader class destructor.
+         *
+         */
+        virtual ~AnalysisReader()
+        {}
 
-      /** \brief Returns a list of file extensions the reader can process.
-       *
-       */
-      virtual const ExtensionList supportedFileExtensions() const = 0;
+        /** \brief Returns the type of analysis reader.
+         *
+         */
+        virtual const QString type() const = 0;
 
-      /** \brief Reads an analysis data file.
-       * \param[in] file analysis data file.
-       * \param[in] factory core factory smart pointer.
-       * \param[in] hander error handler smart pointer.
-       *
-       */
-      virtual AnalysisSPtr read(const QFileInfo&  file,
-                                CoreFactorySPtr   factory,
-                                ProgressReporter *reporter = nullptr,
-                                ErrorHandlerSPtr  handler = ErrorHandlerSPtr()) = 0;
+        /** \brief Returns a list of file extensions the reader can process.
+         *
+         */
+        virtual const ExtensionList supportedFileExtensions() const = 0;
+
+        /** \brief Reads an analysis data file.
+         * \param[in] file analysis data file.
+         * \param[in] factory core factory smart pointer.
+         * \param[in] hander error handler smart pointer.
+         * \param[in] options Loading options.
+         *
+         */
+        virtual AnalysisSPtr read(const QFileInfo&  file,
+                                  CoreFactorySPtr   factory,
+                                  ProgressReporter *reporter = nullptr,
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                  const LoadOptions options  = LoadOptions()) = 0;
     };
   } // namespace IO
 

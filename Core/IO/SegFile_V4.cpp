@@ -21,22 +21,23 @@
 
 // ESPINA
 #include "SegFile_V4.h"
-#include "Core/Analysis/Channel.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Graph/DirectedGraph.h"
-#include "Core/Analysis/Persistent.h"
-#include "Core/Analysis/Sample.h"
-#include "Core/Analysis/Segmentation.h"
-#include "Core/Analysis/Query.h"
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Graph/DirectedGraph.h>
+#include <Core/Analysis/Persistent.h>
+#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Query.h>
 #include <Core/Analysis/Data/Volumetric/StreamedVolume.hxx>
-#include "Core/Factory/CoreFactory.h"
-#include "Core/IO/SegFile.h"
-#include "Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h"
-#include "Core/IO/ClassificationXML.h"
-#include "Core/Analysis/Filters/ReadOnlyFilter.h"
-#include "Core/Utils/TemporalStorage.h"
-#include "Core/Utils/EspinaException.h"
-
+#include <Core/Factory/CoreFactory.h>
+#include <Core/IO/SegFile.h>
+#include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
+#include <Core/IO/ClassificationXML.h>
+#include <Core/Analysis/Filters/ReadOnlyFilter.h>
+#include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Readers/ChannelReader.h>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
 #include "ProgressReporter.h"
 
 using namespace ESPINA;
@@ -63,15 +64,17 @@ const float RELATIONS_PROGRESS_CHUNK = RELATIONS_PROGRESS - SNAPSHOT_PROGRESS;
 
 //-----------------------------------------------------------------------------
 SegFile_V4::Loader::Loader(QuaZip& zip,
-                           CoreFactorySPtr factory,
+                           CoreFactorySPtr   factory,
                            ProgressReporter *reporter,
-                           ErrorHandlerSPtr handler)
-: m_zip(zip)
-, m_factory(factory)
-, m_reporter(reporter)
-, m_handler(handler)
+                           ErrorHandlerSPtr  handler,
+                           const LoadOptions options)
+: m_zip        (zip)
+, m_factory    {factory}
+, m_reporter   {reporter}
+, m_handler    {handler}
+, m_options    {options}
 , m_dataFactory{new MarchingCubesFromFetchedVolumetricData()}
-, m_analysis{new Analysis()}
+, m_analysis   {new Analysis()}
 {
 }
 
@@ -267,7 +270,12 @@ ChannelSPtr SegFile_V4::Loader::createChannel(DirectedGraph::Vertex roVertex)
 
   auto vertex_v4 = edge.source;
   auto filter    = std::dynamic_pointer_cast<Filter>(inflateVertexV4(vertex_v4));
-
+  auto reader    = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
+  if(reader)
+  {
+    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
+                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+  }
   filter->update(); // Existing outputs weren't stored in previous versions
 
   auto channel = m_factory->createChannel(filter, 0);
@@ -691,12 +699,13 @@ SegFile_V4::SegFile_V4()
 }
 
 //-----------------------------------------------------------------------------
-AnalysisSPtr SegFile_V4::load(QuaZip&          zip,
-                              CoreFactorySPtr  factory,
+AnalysisSPtr SegFile_V4::load(QuaZip&           zip,
+                              CoreFactorySPtr   factory,
                               ProgressReporter *reporter,
-                              ErrorHandlerSPtr handler)
+                              ErrorHandlerSPtr  handler,
+                              const LoadOptions options)
 {
-  Loader loader(zip, factory, reporter, handler);
+  Loader loader(zip, factory, reporter, handler, options);
 
   return loader.load();
 }

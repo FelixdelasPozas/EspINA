@@ -82,8 +82,11 @@ vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(const Q
     throw EspinaException(what, details);
   }
 
+  auto data = reader->GetPolyDataOutput();
+  data->Modified();
+
   auto mesh = vtkSmartPointer<vtkPolyData>::New();
-  mesh->DeepCopy(reader->GetPolyDataOutput());
+  mesh->DeepCopy(data);
 
   return mesh;
 }
@@ -304,9 +307,10 @@ VolumeBounds EspinaCore_EXPORT ESPINA::PolyDataUtils::polyDataVolumeBounds(vtkSm
 {
   Bounds result;
 
-  if (data && data->GetNumberOfCells() > 0)
+  if (data && (data->GetNumberOfCells() > 0 || data->GetNumberOfPoints() > 0 || data->GetNumberOfLines() > 0))
   {
     Nm bounds[6];
+    data->ComputeBounds();
     data->GetBounds(bounds);
 
     result = Bounds(bounds);

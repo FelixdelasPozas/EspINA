@@ -77,6 +77,13 @@ namespace ESPINA
       void setStroke(const Core::SkeletonStroke &stroke)
       { m_lastStroke = stroke; };
 
+      /** \brief Sets the strokes for the menu instead the default category strokes.
+       * \param[in] strokes List of defined strokes.
+       * \param[in] category Category string of the segmentation.
+       *
+       */
+      void setStrokes(const Core::SkeletonStrokes &strokes, const QString &category);
+
       /** \brief Weird hack for the tool to respond if the last coordinates signaled correspond to a start point.
        * \param[in] value True to indicate a start point and false otherwise.
        *
@@ -127,19 +134,28 @@ namespace ESPINA
        */
       bool isCollision(const NmVector3 &point) const;
 
+      /** \brief Helper method that modifies the given position to execute the menu inside the given view.
+       * \param[in] menu QMenu pointer that is going to be exec.
+       * \param[in] view View where the menu will be shown.
+       * \param[inout] position QPoint where the menu will be exec.
+       *
+       */
+      void fixMenuPositionForView(const QMenu *menu, const RenderView *view, QPoint &position);
+
       using PointTemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 
       enum class OperationMode: char { NORMAL = 0, COLLISION_START, COLLISION_MIDDLE };
 
-      OperationMode        m_operation;      /** current handler operation mode.                        */
-      QMenu               *m_strokeMenu;     /** strokes context menu.                                  */
-      QMenu               *m_connectionMenu; /** Connection type context menu.                          */
-      QString              m_category;       /** current segmentation category.                         */
-      bool                 m_cancelled;      /** true if the menu was cancelled, false otherwise.       */
-      Plane                m_plane;          /** plane of the last event.                               */
-      NmVector3            m_point;          /** last connection point.                                 */
-      bool                 m_isStartPoint;   /** true to indicate that the last point is a start point. */
-      Core::SkeletonStroke m_lastStroke;     /** last stroke selected.                                  */
+      OperationMode         m_operation;      /** current handler operation mode.                           */
+      QMenu                *m_strokeMenu;     /** strokes context menu.                                     */
+      QMenu                *m_connectionMenu; /** Connection type context menu.                             */
+      QString               m_category;       /** current segmentation category.                            */
+      bool                  m_cancelled;      /** true if the menu was cancelled, false otherwise.          */
+      Plane                 m_plane;          /** plane of the last event.                                  */
+      NmVector3             m_point;          /** last connection point.                                    */
+      bool                  m_isStartPoint;   /** true to indicate that the last point is a start point.    */
+      Core::SkeletonStroke  m_lastStroke;     /** last stroke selected.                                     */
+      Core::SkeletonStrokes m_strokes;        /** list of strokes of current skeleton or empty for default. */
   };
 
   using SkeletonToolsEventHandlerSPtr = std::shared_ptr<SkeletonToolsEventHandler>;

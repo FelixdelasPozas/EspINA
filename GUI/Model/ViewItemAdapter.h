@@ -29,8 +29,8 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/ViewItem.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   class ViewItemAdapter;
   using ViewItemAdapterPtr   = ViewItemAdapter *;
   using ViewItemAdapterList  = QList<ViewItemAdapterPtr>;

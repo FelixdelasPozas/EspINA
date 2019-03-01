@@ -197,10 +197,10 @@ View2D::~View2D()
   //   qDebug() << "              Destroying Slice View" << m_plane;
   //   qDebug() << "********************************************************";
   // Representation destructors may need to access slice view in their destructors
-  shutdownAndRemoveManagers();
-
   m_renderer->RemoveAllViewProps();
   m_thumbnail->RemoveAllViewProps();
+
+  shutdownAndRemoveManagers();
 
   m_state2D = nullptr;
 }
@@ -677,6 +677,10 @@ bool View2D::eventFilter(QObject* caller, QEvent* e)
       e->accept();
       break;
     case QEvent::Leave:
+      // NOTE: some clients complained about the view getting stuck into scroll mode not being able to
+      // snap out of it. Not being able to reproduce the bug lets try to get out of it every time the
+      // mouse leaves the view as it's probably an error of the VTK event manager in some rare circumstances.
+      m_view->GetInteractor()->MiddleButtonReleaseEvent();
       m_inThumbnail = false;
       break;
     case QEvent::ContextMenu:

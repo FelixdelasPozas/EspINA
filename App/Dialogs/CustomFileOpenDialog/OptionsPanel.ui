@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>355</width>
-    <height>214</height>
+    <height>328</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -52,14 +52,35 @@ after loading the file.</string>
     </widget>
    </item>
    <item>
-    <widget class="QCheckBox" name="m_toolSettings">
-     <property name="toolTip">
-      <string>Loads all the tools parameters from the SEG file
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="styleSheet">
+      <string notr="true">QGroupBox {
+    border: 1px solid gray;
+    border-radius: 0px;
+    margin-top: 1ex; 
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center; 
+}</string>
+     </property>
+     <property name="title">
+      <string>SEG File Options</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="m_toolSettings">
+        <property name="toolTip">
+         <string>Loads all the tools parameters from the SEG file
 instead of using the tool's default parameters.</string>
-     </property>
-     <property name="text">
-      <string>Load tool settings from last session.</string>
-     </property>
+        </property>
+        <property name="text">
+         <string>Load tool settings stored in SEG file.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -93,24 +114,16 @@ QGroupBox::title {
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QCheckBox" name="m_usePreviousSettings">
-        <property name="toolTip">
-         <string>Use the settings stored in the EspINA SEG file from previous session.
-If starting a new session then streaming will be disabled.</string>
-        </property>
+       <widget class="QRadioButton" name="m_usePreviousSettings">
         <property name="text">
          <string>Use previous settings (if loading a SEG file).</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="m_useStackStreaming">
-        <property name="toolTip">
-         <string>Use stack streaming for stack files. Recommended for
-huge stacks or a big number of stacks in the session.</string>
-        </property>
+       <widget class="QRadioButton" name="m_useStackStreaming">
         <property name="text">
-         <string>Use stack streaming from disk.</string>
+         <string>Force use of stack streaming from disk.</string>
         </property>
        </widget>
       </item>

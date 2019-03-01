@@ -261,10 +261,8 @@ void CheckAnalysis::finishedTask()
 
   if(isAborted())
   {
-    for(auto task: m_checkList)
-    {
-      if(!task->hasFinished()) task->abort();
-    }
+    auto stopTask = [](std::shared_ptr<CheckTask> otherTask){ if(otherTask && !otherTask->hasFinished()) otherTask->abort(); };
+    std::for_each(m_checkList.constBegin(), m_checkList.constEnd(), stopTask);
 
     resume();
     return;
@@ -592,11 +590,7 @@ void CheckSegmentationTask::checkSkeletonProblems() const
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
 
-    int isolated = 0;
-    for(auto node: nodes)
-    {
-      if(node->connections.size() == 0) ++isolated;
-    }
+    auto isolated = std::count_if(nodes.constBegin(), nodes.constEnd(), [](const Core::SkeletonNode *node) { if(node->connections.size() == 0) return true; else return false; });
 
     if(isolated != 0)
     {
@@ -604,6 +598,8 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
+
+    definition.clear();
   }
 }
 

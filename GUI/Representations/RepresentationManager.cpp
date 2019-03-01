@@ -487,13 +487,12 @@ void RepresentationManager::onChildTerminated(RepresentationManager *sender)
 
   if(manager)
   {
-    for(auto child: m_childs)
+    auto equalOp = [&manager] (const RepresentationManager *child) { return manager == child; };
+    auto it = std::find_if(m_childs.constBegin(), m_childs.constEnd(), equalOp);
+    if(it != m_childs.constEnd())
     {
-      if(manager == child)
-      {
-        m_childs.removeOne(child);
-        return;
-      }
+      m_childs.removeOne(*it);
+      return;
     }
   }
 

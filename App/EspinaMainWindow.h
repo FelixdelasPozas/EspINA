@@ -25,13 +25,13 @@
 #include "EspinaConfig.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
+#include <Core/Readers/ChannelReader.h>
 #include <Extensions/LibraryExtensionFactory.h>
 #include <Extensions/Issues/Issues.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
 #include <GUI/Widgets/SchedulerProgress.h>
 #include <Support/Plugin.h>
-#include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Settings/SettingsPanel.h>
 #include <Support/Widgets/Panel.h>
@@ -163,14 +163,18 @@ namespace ESPINA
 
   private slots:
     /** \brief Replace current session analysis with the loaded one
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
      *
      */
-    void onAnalysisLoaded(AnalysisSPtr analysis);
+    void onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options);
 
     /** \brief Merge loaded analysis to current session analysis
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
      *
      */
-    void onAnalysisImported(AnalysisSPtr analysis);
+    void onAnalysisImported(AnalysisSPtr analysis, const IO::LoadOptions options);
 
     /** \brief Saves tools settings just before saving a session.
      *
@@ -406,6 +410,11 @@ namespace ESPINA
      *
      */
     void assignActiveStack();
+
+    /** \brief Saves misc session settings onto the settings file in the analysis.
+     *
+     */
+    void saveSessionSettings();
 
     /** \brief Launches the stack edges analyzer.
      *

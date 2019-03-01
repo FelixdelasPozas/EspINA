@@ -26,16 +26,14 @@
 #include <Core/Utils/AnalysisUtils.h>
 #include <Core/Utils/ListUtils.hxx>
 #include <Core/Analysis/Channel.h>
+#include <Core/Plugin.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/ColorEngines/CategoryColorEngine.h>
 #include <GUI/ColorEngines/NumberColorEngine.h>
-#include <GUI/ColorEngines/UserColorEngine.h>
-#include <GUI/ColorEngines/InformationColorEngine.h>
 #include <GUI/Utils/DefaultIcons.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Widgets/Styles.h>
-#include <Support/Readers/ChannelReader.h>
 #include <Support/Settings/Settings.h>
 #include <Support/Utils/FactoryUtils.h>
 #include <Support/Widgets/PanelSwitch.h>
@@ -57,6 +55,7 @@
 #include <App/ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.h>
 #include <App/ToolGroups/Visualize/Representations/StackRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h>
 #include <App/ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h>
 #include <App/ToolGroups/Visualize/GenericTogglableTool.h>
 #include <App/ToolGroups/Visualize/FullscreenTool.h>
@@ -79,6 +78,7 @@
 
 // C++
 #include <sstream>
+#include <numeric>
 
 // Qt
 #include <QtGui>
@@ -93,6 +93,8 @@ using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Support;
 using namespace ESPINA::Support::Widgets;
+
+const QString ACTIVE_STACK_SETTINGS_KEY = QObject::tr("Active Stack");
 
 //------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
@@ -139,7 +141,16 @@ EspinaMainWindow::EspinaMainWindow(QList< QObject* >& plugins)
 
   initColorEngines();
 
-  loadPlugins(plugins);
+  try
+  {
+    loadPlugins(plugins);
+  }
+  catch(const EspinaException &e)
+  {
+    qWarning() << "Unable to load plugins: exception";
+    qWarning() << e.what();
+    qWarning() << e.details();
+  }
 
   createToolShortcuts();
 
@@ -180,33 +191,59 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
 {
   auto factory = m_context.factory();
 
-  for(auto plugin : plugins)
+  for(auto plugin: plugins)
   {
-    auto validPlugin = qobject_cast<Plugin*>(plugin);
-    if (validPlugin)
+    auto validCorePlugin = qobject_cast<Core::CorePlugin *>(plugin);
+    if(validCorePlugin)
     {
-      validPlugin->init(m_context);
+      qDebug() << "LOADING CORE PLUGIN:" << validCorePlugin->name();
 
-      connect(this,        SIGNAL(analysisChanged()),
-              validPlugin, SLOT(onAnalysisChanged()));
-      connect(this,        SIGNAL(analysisAboutToBeClosed()),
-              validPlugin, SLOT(onAnalysisClosed()));
+      for (auto extensionFactory : validCorePlugin->channelExtensionFactories())
+      {
+        qDebug() << plugin << "- Channel Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
+        factory->registerExtensionFactory(extensionFactory);
+      }
 
-      for (auto colorEngine : validPlugin->colorEngines())
+      for(auto filterFactory: validCorePlugin->filterFactories())
+      {
+        qDebug() << plugin << "- Filter Factory  ...... OK (" << filterFactory->providedFilters() << ")";
+        factory->registerFilterFactory(filterFactory);
+      }
+
+      for(auto reader: validCorePlugin->analysisReaders())
+      {
+        qDebug() << plugin << "- Analysis Reader  ...... OK (" << reader->type() << ")";
+        factory->registerAnalysisReader(reader);
+      }
+
+      for (auto extensionFactory : validCorePlugin->segmentationExtensionFactories())
+      {
+        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
+        factory->registerExtensionFactory(extensionFactory);
+      }
+    }
+
+    auto validApplicationPlugin = qobject_cast<Support::AppPlugin *>(plugin);
+    if (validApplicationPlugin)
+    {
+      qDebug() << "LOADING ESPINA PLUGIN:" << validApplicationPlugin->name();
+
+      validApplicationPlugin->init(m_context);
+
+      connect(this,                   SIGNAL(analysisChanged()),
+              validApplicationPlugin, SLOT(onAnalysisChanged()));
+      connect(this,                   SIGNAL(analysisAboutToBeClosed()),
+              validApplicationPlugin, SLOT(onAnalysisClosed()));
+
+      for (auto colorEngine : validApplicationPlugin->colorEngines())
       {
         qDebug() << plugin << "- Color Engine " << colorEngine->colorEngine()->tooltip() << " ...... OK";
         registerColorEngine(colorEngine);
       }
 
-      for (auto extensionFactory : validPlugin->channelExtensionFactories())
+      for (auto tool : validApplicationPlugin->tools())
       {
-        qDebug() << plugin << "- Channel Extension Factory  ...... OK";
-        factory->registerExtensionFactory(extensionFactory);
-      }
-
-      for (auto tool : validPlugin->tools())
-      {
-        qDebug() << plugin << "- Tool " /*<< tool.second->toolTip()*/ << " ...... OK";
+        qDebug() << plugin << "- Tool " << tool.second->id() << " ...... OK";
         switch (tool.first)
         {
           case ToolCategory::SESSION:
@@ -233,41 +270,23 @@ void EspinaMainWindow::loadPlugins(QList<QObject *> &plugins)
         }
       }
 
-      for(auto filterFactory: validPlugin->filterFactories())
-      {
-        qDebug() << plugin << "- Filter Factory  ...... OK (" << filterFactory->providedFilters() << ")";
-        factory->registerFilterFactory(filterFactory);
-      }
-
-      for(auto reader: validPlugin->analysisReaders())
-      {
-        qDebug() << plugin << "- Analysis Reader  ...... OK (" << reader->type() << ")";
-        factory->registerAnalysisReader(reader);
-      }
-
-      for (auto extensionFactory : validPlugin->segmentationExtensionFactories())
-      {
-        qDebug() << plugin << "- Segmentation Extension Factory  ...... OK (" << extensionFactory->providedExtensions() << ")";
-        factory->registerExtensionFactory(extensionFactory);
-      }
-
-      for (auto report : validPlugin->reports())
+      for (auto report : validApplicationPlugin->reports())
       {
         qDebug() << plugin << "- Register Report" << report->name() << " ...... OK";
         m_analyzeToolGroup->registerReport(report);
       }
 
-      for (auto settings : validPlugin->settingsPanels())
+      for (auto settings : validApplicationPlugin->settingsPanels())
       {
         qDebug() << plugin << "- Settings Panel " << settings->windowTitle() << " ...... OK";
         m_availableSettingsPanels << settings;
       }
 
-      for (auto factory : validPlugin->representationFactories())
+      for (auto repFactory : validApplicationPlugin->representationFactories())
       {
         qDebug() << plugin << "- Representation Factory  ...... OK";
-        registerRepresentationFactory(factory);
-        registerRepresentationSwitches(m_context.representation(factory));
+        registerRepresentationFactory(repFactory);
+        registerRepresentationSwitches(m_context.representation(repFactory));
       }
     }
   }
@@ -383,8 +402,14 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
 
   m_minimizedStatus = false;
 
-  // perform initialization actions after the show event.
-  QTimer::singleShot(0, this, SLOT(delayedInitActions()));
+  static bool started = true;
+  if(started)
+  {
+    started = false;
+
+    // perform initialization actions after first show.
+    QTimer::singleShot(0, this, SLOT(delayedInitActions()));
+  }
 }
 
 //------------------------------------------------------------------------
@@ -501,16 +526,15 @@ void EspinaMainWindow::openAnalysis(QStringList filenames)
   {
     if(!successFiles.isEmpty())
     {
-      m_openFileTool->load(successFiles);
+      m_openFileTool->load(successFiles, IO::LoadOptions());
     }
 
     if(!failedFiles.isEmpty())
     {
-      QString message(tr("The following files couldn't be loaded because they do not exist:\n"));
-      for(auto filename: failedFiles)
-      {
-        message += QString("\n") + filename;
-      }
+      auto joinFilenamesOp = [](const QString &A, const QString &B) { return A + QString("\n") + B; };
+      auto message = std::accumulate(failedFiles.begin(), failedFiles.end(),
+                                     QString("The following files couldn't be loaded because they do not exist:\n"),
+                                     joinFilenamesOp);
 
       DefaultDialogs::InformationMessage(message, tr("Error loading files"));
     }
@@ -518,7 +542,7 @@ void EspinaMainWindow::openAnalysis(QStringList filenames)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
+void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options)
 {
   Q_ASSERT(analysis);
 
@@ -544,7 +568,10 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   initializeCrosshair();
 
-  updateToolsSettings();
+  if(options.contains(tr("Load Tool Settings")) && (options.value(tr("Load Tool Settings")).toBool() == true))
+  {
+    updateToolsSettings();
+  }
 
   enableWidgets(true);
 
@@ -582,9 +609,17 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 
   m_autoSave.resetCountDown();
 
-  if(!m_context.model()->isEmpty() && m_settings->performAnalysisCheckOnLoad())
+  if(!m_context.model()->isEmpty())
   {
-    checkAnalysisConsistency();
+    if(options.contains(tr("Check analysis")))
+    {
+      // if the options explicitly says something about check use this branch.
+      if(options.value(tr("Check analysis")) == true) checkAnalysisConsistency();
+    }
+    else
+    {
+      if(m_settings->performAnalysisCheckOnLoad()) checkAnalysisConsistency();
+    }
   }
 
   emit analysisChanged();
@@ -593,7 +628,7 @@ void EspinaMainWindow::onAnalysisLoaded(AnalysisSPtr analysis)
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
+void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis, const IO::LoadOptions options)
 {
   stopAnalysisConsistencyCheck();
 
@@ -611,9 +646,17 @@ void EspinaMainWindow::onAnalysisImported(AnalysisSPtr analysis)
 
   updateSceneState(m_context.viewState().crosshair(), m_context.viewState(), toViewItemSList(model->channels()));
 
-  if(!m_context.model()->isEmpty() && m_settings->performAnalysisCheckOnLoad())
+  if(!m_context.model()->isEmpty())
   {
-    checkAnalysisConsistency();
+    if(options.contains(tr("Check analysis")))
+    {
+      // if the options explicitly says something about check use this branch.
+      if(options.value(tr("Check analysis")) == true) checkAnalysisConsistency();
+    }
+    else
+    {
+      if(m_settings->performAnalysisCheckOnLoad()) checkAnalysisConsistency();
+    }
   }
 }
 
@@ -768,6 +811,7 @@ void EspinaMainWindow::initColorEngines()
   createColorEngine(categoryColorEngine, "category");
 
   registerColorEngine(std::make_shared<InformationColorEngineSwitch>(m_context));
+  registerColorEngine(std::make_shared<ConnectionsColorEngineSwitch>(m_context));
 }
 
 
@@ -854,8 +898,8 @@ void EspinaMainWindow::createSessionToolGroup()
   m_openFileTool->setOrder("0-0", "1-Session");
   m_openFileTool->setCloseCallback(this);
 
-  connect(m_openFileTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
-          this,                 SLOT(onAnalysisLoaded(AnalysisSPtr)));
+  connect(m_openFileTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr, const IO::LoadOptions)),
+          this,                 SLOT(onAnalysisLoaded(AnalysisSPtr, const IO::LoadOptions)));
 
   connect(&m_autoSave,          SIGNAL(restoreFromFile(QString)),
           m_openFileTool.get(), SLOT(loadAnalysis(QString)));
@@ -864,8 +908,8 @@ void EspinaMainWindow::createSessionToolGroup()
   importTool->setShortcut(Qt::CTRL+Qt::Key_I);
   importTool->setOrder("0-1", "1-Session");
 
-  connect(importTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr)),
-          this,             SLOT(onAnalysisImported(AnalysisSPtr)));
+  connect(importTool.get(), SIGNAL(analysisLoaded(AnalysisSPtr, const IO::LoadOptions)),
+          this,             SLOT(onAnalysisImported(AnalysisSPtr, const IO::LoadOptions)));
 
   m_saveTool = std::make_shared<FileSaveTool>("FileSave", ":/espina/file_save.svg", tr("Save File"), m_context, m_analysis, m_errorHandler);
   m_saveTool->setOrder("1-0", "1_FileGroup");
@@ -1388,12 +1432,35 @@ void EspinaMainWindow::checkAnalysisConsistency()
 void EspinaMainWindow::assignActiveStack()
 {
   auto model = m_context.model();
+  const auto &stacks = model->channels();
 
-  if (!model->channels().isEmpty())
+  if (!stacks.isEmpty())
   {
-    auto channel = model->channels().first().get();
+    ChannelAdapterPtr activeStack{nullptr};
 
-    getSelection(m_context)->setActiveChannel(channel);
+    if(model->storage())
+    {
+      auto settings  = model->storage()->sessionSettings();
+      const auto stackName = settings->value(ACTIVE_STACK_SETTINGS_KEY, QString()).toString();
+
+      if(!stackName.isEmpty())
+      {
+        auto selectionOp = [stackName](const ChannelAdapterSPtr stack) { return (stack->data(Qt::DisplayRole).toString().compare(stackName) == 0); };
+        auto it = std::find_if(stacks.constBegin(), stacks.constEnd(), selectionOp);
+
+        if(it != stacks.constEnd())
+        {
+          activeStack = (*it).get();
+        }
+      }
+    }
+
+    if(!activeStack)
+    {
+      activeStack = stacks.first().get();
+    }
+
+    getSelection(m_context)->setActiveChannel(activeStack);
   }
 }
 
@@ -1431,6 +1498,7 @@ void EspinaMainWindow::updateToolsSettings()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAboutToSaveSession()
 {
+  saveSessionSettings();
   saveToolsSettings();
   m_busy = true;
 }
@@ -1538,7 +1606,7 @@ void EspinaMainWindow::initializeCrosshair()
 }
 
 //------------------------------------------------------------------------
-void ESPINA::EspinaMainWindow::delayedInitActions()
+void EspinaMainWindow::delayedInitActions()
 {
   try
   {
@@ -1550,4 +1618,16 @@ void ESPINA::EspinaMainWindow::delayedInitActions()
   }
 
   // TODO: check espina version against a server and warn the user about a new version.
+}
+
+//------------------------------------------------------------------------
+void EspinaMainWindow::saveSessionSettings()
+{
+  auto activeStack = getSelection(m_context)->activeChannel();
+  if(m_context.model() && m_context.model()->storage() && activeStack)
+  {
+    auto settings = m_context.model()->storage()->sessionSettings();
+    settings->setValue(ACTIVE_STACK_SETTINGS_KEY, activeStack->data(Qt::DisplayRole).toString());
+    settings->sync();
+  }
 }

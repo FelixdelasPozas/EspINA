@@ -261,14 +261,10 @@ QModelIndex ClassificationProxy::parent(const QModelIndex& child) const
       }
       case ItemAdapter::Type::SEGMENTATION:
       {
-        for(auto category : m_categorySegmentations.keys())
-        {
-          if (m_categorySegmentations[category].contains(childItem))
-          {
-            parent = categoryIndex(category);
-            break;
-          }
-        }
+        const auto categories = m_categorySegmentations.keys();
+        auto containsOp = [this, childItem](const CategoryAdapterPtr category){ return (this->m_categorySegmentations[category].contains(childItem)); };
+        auto it = std::find_if(categories.constBegin(), categories.constEnd(), containsOp);
+        if(it != categories.constEnd()) parent = categoryIndex(*it);
         break;
       }
       default:

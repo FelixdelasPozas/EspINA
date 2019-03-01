@@ -38,6 +38,10 @@ using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 
+/** \class NoteEditor::GUI
+ * \brief Chessire-cat implementation.
+ *
+ */
 class NoteEditor::GUI
 : public  Ui::NoteEditor
 {
@@ -101,10 +105,10 @@ void NoteEditor::exportNote()
 
     if(file.error() != QFile::NoError)
     {
-      auto message = tr("Couldn't save file '%1'. Cause: %2").arg(fileName.split('/').last()).arg(file.errorString());
-      auto title   = tr("EspINA");
+      auto message    = tr("Couldn't save file '%1'. Cause: %2").arg(fileName.split('/').last()).arg(file.errorString());
+      auto errorTitle = tr("EspINA");
 
-      DefaultDialogs::InformationMessage(message, title);
+      DefaultDialogs::InformationMessage(message, errorTitle);
     }
 
   }

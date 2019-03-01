@@ -141,13 +141,9 @@ void ChannelEdges::initializeEdges()
 //-----------------------------------------------------------------------------
 void ChannelEdges::analyzeChannel()
 {
-  {
-    QReadLocker lock(&m_dataMutex);
+  QReadLocker lock(&m_dataMutex);
 
-    if(m_edgesAnalyzer->isRunning() || m_edgesAnalyzer->hasFinished()) return;
-  }
-
-  QWriteLocker lock(&m_dataMutex);
+  if(m_edgesAnalyzer->isRunning() || m_edgesAnalyzer->hasFinished()) return;
 
   m_edgesAnalyzer->setDescription(QObject::tr("Analyzing Edges: %1").arg(m_extendedItem->name()));
 
@@ -159,13 +155,9 @@ void ChannelEdges::computeAdaptiveEdges()
 {
   checkAnalysisData();
 
-  {
-    QReadLocker lock(&m_dataMutex);
+  QReadLocker lock(&m_dataMutex);
 
-    if(m_edgesCreator->isRunning() || m_edgesCreator->hasFinished()) return;
-  }
-
-  QWriteLocker lock(&m_dataMutex);
+  if(m_edgesCreator->isRunning() || m_edgesCreator->hasFinished()) return;
 
   m_edgesCreator->setDescription(QObject::tr("Computing Edges: %1").arg(m_extendedItem->name()));
 
@@ -215,6 +207,8 @@ void ChannelEdges::loadEdgesData()
 State ChannelEdges::state() const
 {
   checkAnalysisData();
+
+  QReadLocker lock(&m_dataMutex);
 
   return QString("%1,%2,%3").arg(m_useDistanceToBounds)
                             .arg(m_backgroundColor)
@@ -269,6 +263,8 @@ itkVolumeType::RegionType ChannelEdges::sliceRegion(unsigned int slice) const
     const_cast<ChannelEdges *>(this)->initializeEdges();
 
     double LB[3], RT[3];
+
+    QReadLocker lock(&m_dataMutex);
 
     m_edges->GetPoint(slice*4+0, LB);
     m_edges->GetPoint(slice*4+2, RT);
@@ -362,7 +358,7 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
   auto result = vtkSmartPointer<vtkPolyData>::New();
   {
     QReadLocker lock(&m_dataMutex);
-    result->DeepCopy(m_edges);
+    if(m_edges) result->DeepCopy(m_edges);
   }
 
   return result;
@@ -372,6 +368,8 @@ vtkSmartPointer<vtkPolyData> ChannelEdges::channelEdges()
 Nm ChannelEdges::computedVolume()
 {
   initializeEdges();
+
+  QReadLocker lock(&m_dataMutex);
 
   return m_computedVolume;
 }
@@ -391,7 +389,11 @@ QString ChannelEdges::snapshotName(const QString& file) const
 void ChannelEdges::invalidate()
 {
   invalidateResults();
-  m_invalidated = true;
+
+  {
+    QWriteLocker lock(&m_dataMutex);
+    m_invalidated = true;
+  }
 
   emit invalidated();
 }
@@ -455,6 +457,7 @@ void ChannelEdges::setAnalisysValues(bool useBounds, int color, int threshold)
     }
     else
     {
+      QWriteLocker lock(&m_dataMutex);
       m_hasAnalizedChannel = true;
     }
 
@@ -467,6 +470,8 @@ bool ChannelEdges::useDistanceToBounds() const
 {
   checkAnalysisData();
 
+  QReadLocker lock(&m_dataMutex);
+
   return m_useDistanceToBounds;
 }
 
@@ -475,6 +480,8 @@ int ChannelEdges::backgroundColor() const
 {
   checkAnalysisData();
 
+  QReadLocker lock(&m_dataMutex);
+
   return m_backgroundColor;
 }
 
@@ -482,6 +489,8 @@ int ChannelEdges::backgroundColor() const
 int ChannelEdges::threshold() const
 {
   checkAnalysisData();
+
+  QReadLocker lock(&m_dataMutex);
 
   return m_threshold;
 }
@@ -516,6 +525,8 @@ void ChannelEdges::checkEdgesData()
     {
       auto volume = readLockVolume(m_extendedItem->output());
       createRectangularRegion(volume->bounds().bounds());
+
+      QWriteLocker lock(&m_dataMutex);
       m_hasCreatedEdges = true;
     }
   }
@@ -524,6 +535,8 @@ void ChannelEdges::checkEdgesData()
 //-----------------------------------------------------------------------------
 void ChannelEdges::createRectangularRegion(const Bounds &bounds)
 {
+  QWriteLocker lock(&m_dataMutex);
+
   m_edges       = vtkSmartPointer<vtkPolyData>::New();
   auto points   = vtkSmartPointer<vtkPoints>::New();
   auto cells    = vtkSmartPointer<vtkCellArray>::New();

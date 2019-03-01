@@ -17,9 +17,14 @@
  *
  */
 
+// ESPINA
 #include "ColorRange.h"
 
+// Qt
+#include <QColor>
+
 using namespace ESPINA::GUI::Utils;
+
 //------------------------------------------------------------------------
 ColorRange::ColorRange(const double min, const double max)
 : m_minColor(Qt::blue)
@@ -129,7 +134,7 @@ double RangeHSV::adjustRange(const double value,
                              const double minValue,
                              const double maxValue) const
 {
-  return qMax(minValue, qMin(value, maxValue));
+  return std::max(minValue, std::min(value, maxValue));
 }
 
 //-----------------------------------------------------------------------------
@@ -138,4 +143,25 @@ double RangeHSV::interpolateFactor(const double value,
                                    const double maxValue) const
 {
   return (value - minValue) / (maxValue - minValue);
+}
+
+//-----------------------------------------------------------------------------
+void ColorRange::setRangeToFullHUERange()
+{
+  m_minColor = QColor::fromHsv(0  , 255, 255);
+  m_maxColor = QColor::fromHsv(359, 255, 255);
+}
+
+//-----------------------------------------------------------------------------
+void ColorRange::setRangeToHalfHUERange()
+{
+  m_minColor = QColor::fromHsv(0  , 255, 255);
+  m_maxColor = QColor::fromHsv(179, 255, 255);
+}
+
+//-----------------------------------------------------------------------------
+void ColorRange::setRangeToTruncatedHUERange(const int value)
+{
+  m_minColor = QColor::fromHsv(                   0, 255, 255);
+  m_maxColor = QColor::fromHsv(std::min(359, value), 255, 255);
 }

@@ -553,11 +553,9 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
   {
     for(auto node: set)
     {
-      auto count = 0;
-      for(auto connection: node->connections.keys())
-      {
-        if(edge == node->connections[connection]) ++count;
-      }
+      auto equalEdge = [edge, node](SkeletonNode *connection){ if(edge == node->connections[connection]) return true; return false; };
+      const auto nodeConnections = node->connections.keys();
+      auto count = std::count_if(nodeConnections.constBegin(), nodeConnections.constEnd(), equalEdge);
 
       if(count == 1)
       {
@@ -835,16 +833,11 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
 
   auto substitute = [&skeleton](const int strokeIndex, const int previous, const int value)
   {
-    for(auto &edge: skeleton.edges)
-    {
-      if(edge.strokeIndex == strokeIndex && edge.strokeNumber == previous)
-      {
-        edge.strokeNumber = value;
-        return;
-      }
-    }
+    auto equalOp = [strokeIndex, previous](const SkeletonEdge &edge) { return (edge.strokeIndex == strokeIndex && edge.strokeNumber == previous); };
+    auto it = std::find_if(skeleton.edges.begin(), skeleton.edges.end(), equalOp);
 
-    Q_ASSERT(false); // this should be dead code.
+    Q_ASSERT(it != skeleton.edges.end());
+    (*it).strokeNumber = value;
   };
 
   for(auto value: recount.keys())
@@ -1013,12 +1006,9 @@ const bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
   if(node->path.end->isTerminal() && node->path.end->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
     return true;
 
-  for(auto child: node->children)
-  {
-    if(isTruncated(child)) return true;
-  }
+  auto result = std::any_of(node->children.constBegin(), node->children.constEnd(), [](const PathHierarchyNode *child) { return isTruncated(child); });
 
-  return false;
+  return result;
 }
 
 //--------------------------------------------------------------------
@@ -1053,10 +1043,8 @@ const QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *
   if(node->path.end->isTerminal() && connectionPoints.contains(endPoint))
     points << endPoint;
 
-  for(const auto child: node->children)
-  {
-    points << connectionsInNode(child, connectionPoints);
-  }
+  auto operation = [&connectionPoints, &points](const PathHierarchyNode *child) { points << connectionsInNode(child, connectionPoints); };
+  std::for_each(node->children.constBegin(), node->children.constEnd(), operation);
 
   return points;
 }
@@ -1098,6 +1086,64 @@ void ESPINA::Core::cleanSkeletonStrokes(SkeletonDefinition& skeleton)
 
   skeleton.strokes = cleanSkeleton.strokes;
   skeleton.edges   = cleanSkeleton.edges;
+
+  // identify identical name strokes.
+  QStringList duplicated;
+  for(int i = 0; i < skeleton.strokes.size(); ++i)
+  {
+    const auto name = skeleton.strokes[i].name;
+    auto count = std::count_if(skeleton.strokes.begin(), skeleton.strokes.end(), [name](const SkeletonStroke &other) { return name == other.name; });
+    if(count > 1) duplicated << name;
+  }
+
+  while(!duplicated.isEmpty())
+  {
+    SkeletonStrokes toRemove;
+    auto name = duplicated.takeFirst();
+
+    auto it = std::find_if(skeleton.strokes.begin(), skeleton.strokes.end(), [&name](const SkeletonStroke &stroke) { return name == stroke.name; });
+    auto position = skeleton.strokes.indexOf(*it);
+    auto count    = skeleton.count[*it];
+
+    while(it != skeleton.strokes.end())
+    {
+      it = std::find_if(it + 1, skeleton.strokes.end(), [&name](const SkeletonStroke &stroke) { return name == stroke.name; });
+      if(it != skeleton.strokes.end())
+      {
+        toRemove << *it;
+        auto otherPosition = skeleton.strokes.indexOf(*it);
+
+        auto replaceEdges = [position, otherPosition, count](SkeletonEdge &edge)
+        {
+          if(edge.strokeIndex == otherPosition)
+          {
+            edge.strokeIndex = position;
+            edge.strokeNumber += count;
+          }
+          else
+          {
+            if(edge.strokeIndex > otherPosition)
+            {
+              edge.strokeIndex -= 1;
+            }
+          }
+        };
+
+        std::for_each(skeleton.edges.begin(), skeleton.edges.end(), replaceEdges);
+        count += skeleton.count[*it];
+      }
+    }
+
+    if(!toRemove.isEmpty())
+    {
+      skeleton.count[skeleton.strokes.at(position)] = count;
+      for(auto &stroke: toRemove)
+      {
+        skeleton.strokes.removeAll(stroke);
+        skeleton.count.remove(stroke);
+      }
+    }
+  }
 }
 
 //--------------------------------------------------------------------
@@ -1141,16 +1187,13 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
 
           if(key == node)
           {
-            if(node->connections.keys().contains(otherNode))
-            {
-              node->connections.remove(otherNode);
-            }
+            if(node->connections.keys().contains(otherNode)) node->connections.remove(otherNode);
           }
           else
           {
-            node->connections.insert(key, otherNode->connections[key]);
-            key->connections.insert(node, key->connections[otherNode]);
-            key->connections.remove(otherNode);
+            if(!node->connections.contains(key)) node->connections.insert(key, otherNode->connections[key]);
+            if(!key->connections.contains(node)) key->connections.insert(node, key->connections[otherNode]);
+            if(key->connections.contains(otherNode)) key->connections.remove(otherNode);
           }
         }
 

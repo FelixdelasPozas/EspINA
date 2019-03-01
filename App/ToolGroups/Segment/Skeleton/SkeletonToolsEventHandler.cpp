@@ -108,6 +108,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
 
             if(!m_isStartPoint) break;
 
+            fixMenuPositionForView(m_strokeMenu, view, position);
             m_strokeMenu->setParent(view);
             m_strokeMenu->exec(position);
             usedMenu = true;
@@ -172,6 +173,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
               }
               else
               {
+                fixMenuPositionForView(m_connectionMenu, view, position);
                 m_connectionMenu->setParent(view);
                 m_connectionMenu->exec(position);
                 usedMenu = true;
@@ -245,7 +247,19 @@ void SkeletonToolsEventHandler::onActionSelected(QAction *action)
 
     --index; // the first action is the title.
 
-    auto strokes = STROKES[m_category]; // Q_ASSERT(m_category is valid)
+    Core::SkeletonStrokes strokes = m_strokes;
+    if(m_strokes.isEmpty())
+    {
+      if(STROKES.keys().contains(m_category))
+      {
+        strokes = STROKES[m_category];
+      }
+      else
+      {
+        strokes = defaultStrokes(nullptr);
+      }
+    }
+
     if(menu == m_connectionMenu)
     {
       if(index < strokes.size())
@@ -297,17 +311,18 @@ void SkeletonToolsEventHandler::setStrokesCategory(const QString &category)
   }
 
   m_category = category;
+  m_strokes.clear();
 
   if(STROKES.keys().contains(m_category))
   {
     if(STROKES[m_category].size() != 1)
     {
-      m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu("Start Trace", m_category);
+      m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu("Start Trace", STROKES[m_category]);
       connect(m_strokeMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
 
       if(isSpecialCategory())
       {
-        m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", m_category);
+        m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", STROKES[m_category]);
         connect(m_connectionMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
       }
     }
@@ -358,4 +373,56 @@ bool SkeletonToolsEventHandler::isCollision(const NmVector3& point) const
   }
 
   return false;
+}
+
+//------------------------------------------------------------------------
+void SkeletonToolsEventHandler::setStrokes(const Core::SkeletonStrokes& strokes, const QString &category)
+{
+  if(m_strokeMenu)
+  {
+    if(m_strokeMenu->isVisible()) m_strokeMenu->close();
+    m_strokeMenu->setParent(nullptr);
+    disconnect(m_strokeMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+    delete m_strokeMenu;
+
+    if(m_connectionMenu)
+    {
+      if(m_connectionMenu->isVisible()) m_connectionMenu->close();
+      m_connectionMenu->setParent(nullptr);
+      disconnect(m_connectionMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+      delete m_connectionMenu;
+    }
+
+    m_strokeMenu = nullptr;
+    m_connectionMenu = nullptr;
+  }
+
+  m_category = category;
+  m_strokes  = strokes;
+
+  m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu("Start Trace", m_strokes);
+  connect(m_strokeMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+
+  if(isSpecialCategory())
+  {
+    m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", m_strokes);
+    connect(m_connectionMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
+  }
+}
+
+//------------------------------------------------------------------------
+void SkeletonToolsEventHandler::fixMenuPositionForView(const QMenu *menu, const RenderView* view, QPoint& position)
+{
+  auto size = view->size();
+  auto hint = menu->sizeHint();
+
+  if(size.height() - position.y() < hint.height())
+  {
+    position.setY(size.height() - hint.height() - 10);
+  }
+
+  if(size.width() - position.x() < hint.width())
+  {
+    position.setX(size.width() - hint.width() - 10);
+  }
 }

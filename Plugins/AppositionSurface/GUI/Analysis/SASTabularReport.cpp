@@ -35,8 +35,6 @@
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 
-const QString SEGMENTATION_GROUP = "Segmentation";
-
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::GUI;
@@ -99,8 +97,6 @@ void SASTabularReport::createCategoryEntry(const QString& category)
 InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
 {
   InformationSelector::GroupedInfo info;
-
-  info[SEGMENTATION_GROUP] << tr("Category");
 
   for (auto type : m_factory->availableSegmentationExtensions())
   {
@@ -209,7 +205,7 @@ void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo ex
       {
         try
         {
-          if(!isSASExtensions(extensionType) && extensionType != SEGMENTATION_GROUP)
+          if(!isSASExtensions(extensionType))
           {
             retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
           }

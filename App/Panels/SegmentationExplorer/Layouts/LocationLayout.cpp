@@ -125,11 +125,7 @@ void LocationLayout::contextMenu(const QPoint& pos)
   {
     for(int i = 0; i < modelStacks.size(); ++i)
     {
-      if(modelStacks.at(i).get() == stack)
-      {
-        return i;
-        break;
-      }
+      if(modelStacks.at(i).get() == stack) return i;
     }
 
     return -1;
@@ -326,9 +322,9 @@ void LocationLayout::selectAllFromStack()
       auto stack = modelStacks.at(stackIndex);
 
       QItemSelection selection;
-      auto stackIndex = index(stack.get());
+      auto stackModelIndex = index(stack.get());
       auto number = m_proxy->segmentationsOf(stack.get()).size();
-      selection.merge(QItemSelection(stackIndex.child(0,0), stackIndex.child(number-1, 0)), QItemSelectionModel::Select);
+      selection.merge(QItemSelection(stackModelIndex.child(0,0), stackModelIndex.child(number-1, 0)), QItemSelectionModel::Select);
 
       if(!selection.isEmpty())
       {

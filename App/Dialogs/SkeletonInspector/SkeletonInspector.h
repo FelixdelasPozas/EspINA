@@ -26,6 +26,7 @@
 #include "ui_SkeletonInspector.h"
 #include "SkeletonInspectorTreeModel.h"
 #include <App/ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h>
+#include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <GUI/Representations/ManualPipelineSources.h>
 #include <GUI/Representations/Pipelines/SegmentationSkeleton3DPipeline.h>
 #include <GUI/View/View3D.h>
@@ -131,6 +132,12 @@ namespace ESPINA
        *
        */
       void onSaveButtonPressed();
+
+      /** \brief Updates the tree selection when a row in the table is selected.
+       * \param[in] row Row of the activated cell.
+       *
+       */
+      void onCellClicked(int row);
 
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
@@ -245,6 +252,42 @@ namespace ESPINA
           bool                      m_randomColoring; /** true to use random colors and false to use stroke colors. */
       };
 
+      /** \class Item
+       * \brief Reimplementation of a table widget item, needed for sorting the table.
+       *
+       */
+      class Item
+      : public QTableWidgetItem
+      {
+        public:
+          /** \brief Item class constructor.
+           *
+           */
+          explicit Item(const QString &info)
+          : QTableWidgetItem{info}
+          {};
+
+          virtual bool operator<(const QTableWidgetItem &other) const override
+          {
+            if(column() == 0)
+            {
+              auto rdata = this->data(Qt::DisplayRole).toString();
+              auto ldata = other.data(Qt::DisplayRole).toString();
+
+              if(rdata.endsWith("(Truncated)", Qt::CaseInsensitive)) rdata = rdata.left(rdata.length()-12);
+              if(ldata.endsWith("(Truncated)", Qt::CaseInsensitive)) ldata = ldata.left(ldata.length()-12);
+
+              auto diff = rdata.length() - ldata.length();
+              if(diff < 0) return true;
+              if(diff > 0) return false;
+
+              return (rdata < ldata);
+            }
+
+            return QTableWidgetItem::operator<(other);
+          }
+      };
+
       using TemporalPipelineSPtr = std::shared_ptr<SkeletonInspectorPipeline>;
 
       SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                 */
@@ -253,6 +296,7 @@ namespace ESPINA
       RepresentationList       m_representations;     /** list of view's representations factories and switches. */
       QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                            */
       TemporalPipelineSPtr     m_temporalPipeline;    /** segmentation temporal representation.                  */
+      Core::SkeletonDefinition m_definition;          /** skeleton definition struct.                            */
   };
 
   /** \class SkeletonInspectorRepresentationSwitch

@@ -68,10 +68,18 @@ namespace ESPINA
       virtual ~SkeletonEditionTool();
 
       virtual void abortOperation() override
-      { deactivateEventHandler(); };
+      { if(isChecked()) deactivateEventHandler(); };
 
       virtual void saveSettings(std::shared_ptr<QSettings> settings) override;
       virtual void restoreSettings(std::shared_ptr<QSettings> settings) override;
+
+      virtual void onExclusiveToolInUse(ProgressTool* tool) override;
+
+    protected slots:
+      /** \brief Enables/Disables the tool depending on the current segmentation selection.
+       *
+       */
+      virtual void updateStatus() override;
 
     private slots:
       /** \brief Performs tool initialization/de-initialization.
@@ -174,6 +182,30 @@ namespace ESPINA
        */
       void onHueModificationsButtonClicked(bool value);
 
+      /** \brief Deactivates the truncation button after a succesfull skeleton modification.
+       *
+       */
+      void onTruncationSuccess();
+
+      /** \brief Updates the skeleton when a stroke is modified or added in the stroke definition dialog.
+       * \param[in] stroke SkeletonStroke struct of modified stroke.
+       *
+       */
+      void onStrokeModified(const Core::SkeletonStroke &stroke);
+
+      /** \brief Updates the skeleton when a stroke is renamed in the stroke definition dialog.
+       * \param[in] oldName Stroke old name.
+       * \param[in] newName Stroke new name.
+       *
+       */
+      void onStrokeRenamed(const QString &oldName, const QString &newName);
+
+      /** \brief Updates the skeleton when a stroke is removed in the stroke definition dialog.
+       * \param[in] stroke SkeletonStroke struct of removed stroke.
+       *
+       */
+      void onStrokeRemoved(const Core::SkeletonStroke &stroke);
+
     private:
       virtual bool acceptsNInputs(int n) const;
 
@@ -205,6 +237,12 @@ namespace ESPINA
        *
        */
       void updateStrokes();
+
+      /** \brief Helper method to insert strokes into m_strokes.
+       * \param[in] strokes List of skeleton strokes to check and add if not present in m_strokes.
+       *
+       */
+      void populateStrokes(const Core::SkeletonStrokes &strokes);
 
     private:
       /** \class NullRepresentationPipeline
@@ -264,6 +302,8 @@ namespace ESPINA
       TemporalRepresentationsSPtr                         m_pointsFactory;   /** representation prototypes.                        */
       QList<SkeletonWidgetSPtr>                           m_widgets;         /** list of widgets currently on views.               */
       QList<ConnectionPointsTemporalRepresentation2DSPtr> m_pointWidgets;    /** list of point representations currently on views. */
+      bool                                                m_allowSwich;      /** true if the skeleton creation tool is enabled.    */
+      Core::SkeletonStrokes                               m_strokes;         /** list of strokes of the segmentation.              */
   };
 
 } // namespace ESPINA

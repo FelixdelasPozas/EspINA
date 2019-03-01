@@ -86,10 +86,9 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
 
   m_mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
   m_mapToColors->SetInputData(m_strokeCanvas);
-  m_mapToColors->SetUpdateExtent(extent);
   m_mapToColors->SetLookupTable(m_lut);
   m_mapToColors->SetNumberOfThreads(1);
-  m_mapToColors->Update();
+  m_mapToColors->UpdateWholeExtent();
 
   m_actor = vtkSmartPointer<vtkImageActor>::New();
   m_actor->SetPickable(false);
@@ -98,7 +97,7 @@ StrokePainter::StrokePainter(const NmVector3 &spacing,
   m_actor->GetMapper()->SetNumberOfThreads(1);
   m_actor->GetMapper()->BorderOn();
   m_actor->GetMapper()->SetInputConnection(m_mapToColors->GetOutputPort());
-  m_actor->GetMapper()->SetUpdateExtent(extent);
+  m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Update();
 
   // preview actor must be above others or it will be occluded

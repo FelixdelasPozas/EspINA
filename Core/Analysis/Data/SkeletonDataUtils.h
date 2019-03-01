@@ -46,7 +46,7 @@ namespace ESPINA
   namespace Core
   {
     /** \struct SkeletonStroke
-     * \brief Skeleton strokes definition struct.
+     * \brief Skeleton stroke definition struct.
      *
      */
     struct EspinaCore_EXPORT SkeletonStroke
@@ -125,14 +125,15 @@ namespace ESPINA
         }
     };
 
-    /** \brief Registers the skeleton data types operators.
+    /** \brief Registers the skeleton data types operators in Qt metadata structures for signal/slots operations.
      *
      */
     void EspinaCore_EXPORT registerSkeletonDataOperators();
 
     using SkeletonStrokes = QList<struct SkeletonStroke>;
 
-    /** \brief Struct SkeletonEdge
+    /** \struct SkeletonEdge
+     * \brief Defines the data of an edge in a SkeletonDefinition.
      *
      */
     struct EspinaCore_EXPORT SkeletonEdge
@@ -189,7 +190,7 @@ namespace ESPINA
      */
     enum SkeletonNodeProperty: int
     {
-      TRUNCATED = 1 << 0
+      TRUNCATED = 1 << 0 /** the path that contains the node is truncated at the node position. */
     };
 
     Q_DECLARE_FLAGS(SkeletonNodeFlags, SkeletonNodeProperty)
@@ -197,7 +198,7 @@ namespace ESPINA
 
 
     /** \struct SkeletonNode
-     * \brief Definition of a point in 3D coordinates and it's connections and annotations.
+     * \brief Definition of a point in 3D coordinates and it's connections and properties.
      *
      */
     struct EspinaCore_EXPORT SkeletonNode
@@ -240,7 +241,8 @@ namespace ESPINA
        */
       bool isTerminal() const
       {
-        return this->connections.size() == 1 && !this->connections.keys().contains(const_cast<SkeletonNode *>(this));
+        const auto connectionNodes = this->connections.keys();
+        return connectionNodes.size() == 1 && !connectionNodes.contains(const_cast<SkeletonNode *>(this));
       }
 
       /** \brief Returns true if the node is a branching node and false otherwise.
@@ -261,14 +263,18 @@ namespace ESPINA
 
     using SkeletonNodes = QList<SkeletonNode *>;
 
+    /** \struct Path
+     * \brief Defines the structure of a path in a skeleton definition, listing its nodes and a begin and an ending node.
+     *
+     */
     struct EspinaCore_EXPORT Path
     {
-      SkeletonNode *begin;
-      SkeletonNode *end;
-      SkeletonNodes seen;
-      QString       note;
-      int           edge;
-      int           stroke;
+      SkeletonNode *begin;   /** path begin node.                                                                   */
+      SkeletonNode *end;     /** path end node.                                                                     */
+      SkeletonNodes seen;    /** list of nodes of path path, including begin and end & ordered begin->end.          */
+      QString       note;    /** annotation, normally the name of the stroke of the path.                           */
+      int           edge;    /** index of the path edge of the path in the list of edges of SkeletonDefinition.     */
+      int           stroke;  /** index of the path stroke of the path in the list of strokes of SkeletonDefinition. */
 
       /** \brief Path struct constructor.
        *
@@ -317,7 +323,7 @@ namespace ESPINA
       { return !(*this == other); }
 
       /** \brief Operator < for paths, rather arbitrary.
-       * \param[in] other other path for comparison.
+       * \param[in] other other path for comparison and ordering.
        *
        */
       bool operator<(const Path &other) const;
@@ -326,7 +332,7 @@ namespace ESPINA
     using PathList = QList<Path>;
 
     /** \struct SkeletonDefinition
-     * \brief Contatins all needed data for a skeleton based on strokes.
+     * \brief Contains all needed data for a skeleton based on strokes.
      *
      */
     struct EspinaCore_EXPORT SkeletonDefinition
@@ -336,7 +342,7 @@ namespace ESPINA
         SkeletonStrokes           strokes; /** list of used strokes.              */
         QMap<SkeletonStroke, int> count;   /** maps strokes and times used.       */
 
-        /** brief Initializes the structure.
+        /** brief Clears the structure.
          *
          */
         void clear()
@@ -344,8 +350,8 @@ namespace ESPINA
           for(auto node: nodes) delete node;
           nodes.clear();
           edges.clear();
-          strokes.clear();
           count.clear();
+          strokes.clear();
         }
     };
 

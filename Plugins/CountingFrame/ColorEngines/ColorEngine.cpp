@@ -102,7 +102,7 @@ LUTSPtr ColorEngine::lut(ConstSegmentationAdapterPtr segmentation)
 
 
 //-----------------------------------------------------------------------------
-double ColorEngine::exlcusionOpacity() const
+double ColorEngine::exclusionOpacity() const
 {
   return m_exclusionOpacity;
 }

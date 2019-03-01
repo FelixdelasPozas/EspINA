@@ -512,14 +512,25 @@ void ClassificationLayout::createCategory()
 
   if(QDialog::Accepted == dialog.exec())
   {
-    name = uniqueCategoryName(parentCategory, dialog.categoryName());
+    auto categoryName = dialog.categoryName();
+    if(categoryName.isEmpty())
+    {
+      auto title   = tr("Create category");
+      auto message = tr("Error creating the category. The category name must not be empty!");
 
-    WaitingCursor cursor;
+      DefaultDialogs::ErrorMessage(message, title);
+    }
+    else
+    {
+      name = uniqueCategoryName(parentCategory, categoryName);
 
-    auto undoStack = getUndoStack();
-    undoStack->beginMacro(tr("Create category '%1'.").arg(name));
-    undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, dialog.categoryColor(), dialog.ROI()));
-    undoStack->endMacro();
+      WaitingCursor cursor;
+
+      auto undoStack = getUndoStack();
+      undoStack->beginMacro(tr("Create category '%1'.").arg(name));
+      undoStack->push(new AddCategoryCommand(model->smartPointer(parentCategory), name, model, dialog.categoryColor(), dialog.ROI()));
+      undoStack->endMacro();
+    }
   }
 }
 

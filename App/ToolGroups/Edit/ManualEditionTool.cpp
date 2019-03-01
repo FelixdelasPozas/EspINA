@@ -92,7 +92,7 @@ ManualEditionTool::~ManualEditionTool()
 //------------------------------------------------------------------------
 void ManualEditionTool::abortOperation()
 {
-  m_drawingWidget.abortOperation();
+  if(isChecked()) m_drawingWidget.abortOperation();
 }
 
 //------------------------------------------------------------------------

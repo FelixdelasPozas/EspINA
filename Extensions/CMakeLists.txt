@@ -12,6 +12,7 @@ qt4_add_resources(EXTENSIONS_RCC
 
 qt4_wrap_cpp(EXTENSIONS_MOC
   EdgeDistances/ChannelEdges.h
+  SLIC/StackSLIC.h
 #   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -38,6 +39,10 @@ set (EXTENSIONS_SOURCES
   SkeletonInformation/DendriteInformation.cpp
   SkeletonInformation/SynapseInformation.cpp
   SkeletonInformation/SkeletonInformationFactory.cpp
+  SLIC/StackSLIC.cpp
+  SLIC/StackSLICFactory.cpp
+  BasicInformation/BasicSegmentationInformation.cpp
+  BasicInformation/BasicSegmentationInformationFactory.cpp
   LibraryExtensionFactory.cpp
   )
 

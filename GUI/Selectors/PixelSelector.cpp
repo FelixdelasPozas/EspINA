@@ -187,11 +187,11 @@ NmVector3 BestPixelSelector::getPickPoint(RenderView *view)
   if(selectedItems.empty())
     Q_ASSERT(false);
 
-  auto selectedItem  = selectedItems.first().second;
-  auto channel       = channelPtr(selectedItem);
-  auto channelBounds = channel->bounds();
+  auto selectedItem   = selectedItems.first().second;
+  auto channel        = channelPtr(selectedItem);
+  auto channelBounds  = channel->bounds();
   auto channelSpacing = channel->output()->spacing();
-  auto channelOrigin = channel->position();
+  auto channelOrigin  = channel->position();
 
   auto pickedBounds = selectedItems.first().first->bounds();
   double pickedPoint[3]{(pickedBounds[0]+pickedBounds[1])/2, (pickedBounds[2]+pickedBounds[3])/2, (pickedBounds[4]+pickedBounds[5])/2};

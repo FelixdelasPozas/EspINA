@@ -23,6 +23,7 @@
 #include <ToolGroups/Session/LogTool.h>
 #include <App/Dialogs/LogDialog/LogDialog.h>
 #include <App/EspinaMainWindow.h>
+#include <EspinaConfig.h>
 
 using namespace ESPINA;
 
@@ -62,7 +63,7 @@ void LogTool::saveSettings(std::shared_ptr<QSettings> settings)
   // time to dump the contents of the log to disk.
   if(!m_log.isEmpty())
   {
-    appendMessage(tr("Save data to disk."));
+    appendMessage(tr("Saved session to disk from EspINA version %1.").arg(ESPINA_VERSION));
     getModel()->storage()->saveSnapshot(SnapshotData{LOG_FILE, m_log});
   }
 }
@@ -166,7 +167,7 @@ void LogTool::updateToolStatus()
 }
 
 //--------------------------------------------------------------------
-void ESPINA::LogTool::onDialogDestroyed()
+void LogTool::onDialogDestroyed()
 {
   m_dialog = nullptr;
   if(isChecked()) setChecked(false);

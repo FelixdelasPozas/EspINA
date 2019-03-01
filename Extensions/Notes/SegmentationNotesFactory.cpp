@@ -28,8 +28,8 @@ using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
 
 //-----------------------------------------------------------------------
-SegmentationNotesFactory::SegmentationNotesFactory(CoreFactory* factory)
-: SegmentationExtensionFactory{factory}
+SegmentationNotesFactory::SegmentationNotesFactory()
+: SegmentationExtensionFactory{nullptr}
 {
 }
 
@@ -65,6 +65,7 @@ SegmentationExtensionSPtr SegmentationNotesFactory::createExtension(const Segmen
 SegmentationExtension::TypeList SegmentationNotesFactory::providedExtensions() const
 {
   SegmentationExtension::TypeList list;
+
   list << SegmentationNotes::TYPE;
 
   return list;

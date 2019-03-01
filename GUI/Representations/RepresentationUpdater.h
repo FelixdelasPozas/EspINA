@@ -160,6 +160,7 @@ namespace ESPINA
       RepresentationPipeline::Actors   m_actors;           /** list of actors of the frame.                               */
 
       mutable QReadWriteLock           m_dataLock;         /** protects the execution data.                               */
+      mutable bool                     m_needsUpdate;      /** true if the updater can effectively run, false otherwise.  */
   };
 
   using RepresentationUpdaterSPtr  = std::shared_ptr<RepresentationUpdater>;

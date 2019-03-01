@@ -450,7 +450,7 @@ void SpacingChanger::processXML(QByteArray& data)
       {
         auto total = data.mid(cfbegin+tokenBegin.length(), cfend-cfbegin-tokenBegin.length());
         auto CFlist = total.split('\n');
-        QByteArray replacement;
+        QByteArray replacement2;
 
         for(auto CF: CFlist)
         {
@@ -492,12 +492,12 @@ void SpacingChanger::processXML(QByteArray& data)
           writeInfo(tr("Counting Frame: Replaced '%1' with '%2'").arg(QString::fromAscii(CF))
                                                      .arg(CFreplacement));
 
-          replacement.append(CFreplacement.toAscii());
-          if(CF != CFlist.last()) replacement.append('\n');
+          replacement2.append(CFreplacement.toAscii());
+          if(CF != CFlist.last()) replacement2.append('\n');
         }
 
         data.remove(cfbegin+tokenBegin.length(), total.size());
-        data.insert(cfbegin+tokenBegin.length(), replacement);
+        data.insert(cfbegin+tokenBegin.length(), replacement2);
       }
       else
       {
@@ -817,44 +817,41 @@ ESPINA::NmVector3 SpacingChanger::getSpacing(const QByteArray &data)
 {
   const QByteArray tokenBegin = "Spacing=";
   const QByteArray tokenEnd = ";";
-  int begin = 0;
   NmVector3 spacing;
+
+  int begin = 0;
+  begin = data.indexOf(tokenBegin, begin);
 
   if(begin != -1)
   {
-    begin = data.indexOf(tokenBegin, begin);
+    auto end = data.indexOf(tokenEnd, begin);
 
-    if(begin != -1)
+    if (end != -1)
     {
-      auto end = data.indexOf(tokenEnd, begin);
+      auto part = data.mid(begin + tokenBegin.size(), end - begin - tokenBegin.size());
 
-      if(end != -1)
+      if (spacing == NmVector3())
       {
-        auto part = data.mid(begin+tokenBegin.size(), end-begin-tokenBegin.size());
-
-        if(spacing == NmVector3())
-        {
-          spacing = parseSpacing(part);
-        }
-        else
-        {
-          auto otherSpacing = parseSpacing(part);
-
-          if(otherSpacing != spacing)
-          {
-            writeError(tr("Different spacing in content.dot: %1 and %2").arg(spacing.toString()).arg(otherSpacing.toString()));
-          }
-        }
+        spacing = parseSpacing(part);
       }
       else
       {
-        increaseErrors();
-        writeError(tr("ERROR: getSpacing() can't find end index!"));
-        throw EspinaException(tr("ERROR: can't find end index!"), tr("ERROR: can't find end index!"));
-      }
+        auto otherSpacing = parseSpacing(part);
 
-      begin = end;
+        if (otherSpacing != spacing)
+        {
+          writeError(tr("Different spacing in content.dot: %1 and %2").arg(spacing.toString()).arg(otherSpacing.toString()));
+        }
+      }
     }
+    else
+    {
+      increaseErrors();
+      writeError(tr("ERROR: getSpacing() can't find end index!"));
+      throw EspinaException(tr("ERROR: can't find end index!"), tr("ERROR: can't find end index!"));
+    }
+
+    begin = end;
   }
 
   if(spacing == NmVector3())

@@ -55,6 +55,7 @@
 #include <vtkGlyphSource2D.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkTransform.h>
+#include <vtkFreeTypeLabelRenderStrategy.h>
 
 // Qt
 #include <QMutexLocker>
@@ -91,8 +92,6 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_colors->SetNumberOfComponents(3);
 
   m_points = vtkSmartPointer<vtkPoints>::New();
-  m_points->SetNumberOfPoints(1);
-  m_points->SetPoint(0, 0.0, 0.0, 0.0);
 
   m_pointsData = vtkSmartPointer<vtkPolyData>::New();
   m_pointsData->SetPoints(m_points);
@@ -116,8 +115,6 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 
   auto polyData = vtkSmartPointer<vtkPolyData>::New();
   auto points = vtkSmartPointer<vtkPoints>::New();
-  points->SetNumberOfPoints(1);
-  points->InsertNextPoint(0, 0, 0);
   polyData->SetPoints(points);
 
   m_pointer = vtkSmartPointer<vtkGlyph3D>::New();
@@ -185,6 +182,8 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 
   m_truncatedActor = vtkSmartPointer<vtkFollower>::New();
   m_truncatedActor->SetMapper(m_glyphMapper);
+  m_truncatedActor->GetProperty()->SetColor(1, 0, 0);
+  m_truncatedActor->GetProperty()->Modified();
 
   m_showLabels = true;
 
@@ -200,6 +199,7 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_labelProperty = vtkSmartPointer<vtkTextProperty>::New();
   m_labelProperty->SetBold(true);
   m_labelProperty->SetFontFamilyToArial();
+  m_labelProperty->SetShadow(false);
   m_labelProperty->SetFontSize(m_labelSize);
   m_labelProperty->SetJustificationToCentered();
   m_labelProperty->SetVerticalJustificationToCentered();
@@ -208,17 +208,24 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
   m_labelFilter->SetInputData(m_labelData);
   m_labelFilter->SetLabelArrayName("Labels");
-  m_labelFilter->SetTextProperty(m_labelProperty);
+  m_labelFilter->GetTextProperty()->SetFontSize(m_labelSize);
+  m_labelFilter->GetTextProperty()->SetBold(true);
+
+  auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
+  strategy->SetDefaultTextProperty(m_labelProperty);
 
   m_labelPlacer = vtkSmartPointer<vtkLabelPlacementMapper>::New();
   m_labelPlacer->SetInputConnection(m_labelFilter->GetOutputPort());
   m_labelPlacer->SetPlaceAllLabels(true);
-  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF()*0.6, m_labelColor.blueF()*0.6);
-  m_labelPlacer->SetBackgroundOpacity(0.5);
   m_labelPlacer->SetShapeToRoundedRect();
   m_labelPlacer->SetMaximumLabelFraction(0.9);
   m_labelPlacer->SetUseDepthBuffer(false);
   m_labelPlacer->SetStyleToFilled();
+  m_labelPlacer->SetRenderStrategy(strategy);
+  m_labelPlacer->SetGeneratePerturbedLabelSpokes(false);
+  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF()*0.6, m_labelColor.blueF()*0.6);
+  m_labelPlacer->SetBackgroundOpacity(0.5);
+  m_labelPlacer->SetMargin(3);
 
   m_labelActor = vtkSmartPointer<vtkActor2D>::New();
   m_labelActor->SetMapper(m_labelPlacer);
@@ -245,9 +252,10 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
   }
 
   {
-    QMutexLocker lock(&s_skeletonMutex);
-
     auto stroke = currentStroke();
+    if(stroke.isNull()) return ;
+
+    QMutexLocker lock(&s_skeletonMutex);
 
     worldPos[normalCoordinateIndex(m_orientation)] = m_slice;
     auto node = new SkeletonNode{worldPos};
@@ -271,7 +279,7 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
           {
             unsigned int prioritary = 0;
             int prioritaryIndex = -1;
-            for(auto edgeIndex: s_currentVertex->connections)
+            for(auto edgeIndex: s_currentVertex->connections.values())
             {
               auto otherStroke = s_skeleton.strokes.at(s_skeleton.edges.at(edgeIndex).strokeIndex);
               if(otherStroke.useMeasure)
@@ -291,7 +299,7 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
             {
               s_skeleton.count[stroke]++;
 
-              edge.strokeIndex  = m_currentStrokeIndex;
+              edge.strokeIndex  = s_skeleton.strokes.indexOf(stroke);
               edge.strokeNumber = s_skeleton.count[stroke];
               edge.parentEdge   = prioritaryIndex;
               s_skeleton.edges << edge;
@@ -343,16 +351,18 @@ bool vtkSkeletonWidgetRepresentation::ActivateNode(int displayPos[2])
   GetWorldPositionFromDisplayPosition(displayPos, worldPos);
 
   double distance2 = VTK_DOUBLE_MAX;
-  for (auto node : m_visiblePoints.keys())
+  const auto nodes = m_visiblePoints.keys();
+
+  auto closestNodeOp = [&distance2, &worldPos, &closestNode](SkeletonNode * const &node)
   {
     auto nodeDistance = vtkMath::Distance2BetweenPoints(worldPos, node->position);
-
     if (nodeDistance < distance2)
     {
       distance2 = nodeDistance;
       closestNode = node;
     }
-  }
+  };
+  std::for_each(nodes.constBegin(), nodes.constEnd(), closestNodeOp);
 
   if (closestNode == nullptr || (m_tolerance < distance2))
   {
@@ -513,12 +523,8 @@ void vtkSkeletonWidgetRepresentation::deleteNode(SkeletonNode *node)
   delete node;
   node = nullptr;
 
-  for (auto connection : connections)
-  {
-    if (connection->connections.isEmpty()) toDelete << connection;
-  }
-
-  for (auto otherNode : toDelete) deleteNode(otherNode);
+  std::for_each(connections.constBegin(), connections.constEnd(), [&toDelete](SkeletonNode *node) { if(node->connections.isEmpty()) toDelete << node; });
+  std::for_each(toDelete.begin(), toDelete.end(), [this](SkeletonNode *node){ this->deleteNode(node); });
 }
 
 //-----------------------------------------------------------------------------
@@ -562,6 +568,11 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
 
   if (node_i != node_j)
   {
+    {
+      QMutexLocker lock(&s_skeletonMutex);
+      if(s_currentVertex && s_skeleton.nodes[node_i]->connections[s_skeleton.nodes[node_j]] == m_currentEdgeIndex) return false;
+    }
+
     AddNodeAtPosition(worldPos); // adds a new node and makes it current node, so it's joined to cursor, if any.
     int contourEdgeIndex = -1;
     {
@@ -602,6 +613,15 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
   }
   else
   {
+    {
+      QMutexLocker lock(&s_skeletonMutex);
+      auto addedNode = s_skeleton.nodes[node_i];
+      const auto nodeConn = addedNode->connections.keys();
+      auto operation = [this, addedNode](SkeletonNode *node) { return addedNode->connections.value(node) == this->m_currentEdgeIndex; };
+      auto count = std::count_if(nodeConn.constBegin(), nodeConn.constEnd(), operation);
+      if(count > 1) return false;
+    }
+
     SkeletonNode *addedNode = nullptr;
     int nodeEdge = -1;
     int noPrioritary = -1;
@@ -751,12 +771,12 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   // to use as scale factor later.
   distance = 1000 * distance / scale;
 
-  m_points->Reset();
-  m_lines->Reset();
-  m_dashedLines->Reset();
-  m_truncatedPoints->Reset();
-  m_labelPoints->Reset();
-  m_labels->Reset();
+  m_points->Initialize();
+  m_lines->Initialize();
+  m_dashedLines->Initialize();
+  m_truncatedPoints->Initialize();
+  m_labelPoints->Initialize();
+  m_labels->Initialize();
 
   auto cells = vtkSmartPointer<vtkCellArray>::New();
   auto dashedCells = vtkSmartPointer<vtkCellArray>::New();
@@ -772,7 +792,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   unsigned char green[3]       {  0,255,  0};
   unsigned char blue[3]        {  0,  0,255};
   unsigned char intersection[3]{255,  0,255};
-  m_colors->Reset();
+  m_colors->Initialize();
 
   m_visiblePoints.clear();
   QSet<int> truncatedStrokes, visibleStrokes;
@@ -876,10 +896,10 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
     }
     else
     {
-      for (auto connectedNode : node->connections.keys())
+      for (auto connectedNode: node->connections.keys())
       {
-        if ((node->position[planeIndex] < m_slice && connectedNode->position[planeIndex] >= m_slice)
-            || (node->position[planeIndex] > m_slice && connectedNode->position[planeIndex] <= m_slice))
+        if ((node->position[planeIndex] < m_slice && connectedNode->position[planeIndex] >= m_slice) ||
+            (node->position[planeIndex] > m_slice && connectedNode->position[planeIndex] <= m_slice))
         {
           if (!m_visiblePoints.contains(node))
           {
@@ -1024,29 +1044,29 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_pointsData->GetPointData()->Modified();
   m_glypher->SetInputData(m_pointsData);
   m_glypher->SetScaleFactor(distance * HandleSize);
-  m_glypher->Update();
-  m_mapper->Update();
+  m_glypher->UpdateWholeExtent();
+  m_mapper->UpdateWholeExtent();
   m_actor->Modified();
 
   m_lines->SetLines(cells);
   m_lines->GetCellData()->SetScalars(cellsColors);
   m_lines->SetPoints(m_points);
   m_lines->Modified();
-  m_linesMapper->Update();
+  m_linesMapper->UpdateWholeExtent();
   m_linesActor->Modified();
 
   m_dashedLines->SetLines(dashedCells);
   m_dashedLines->GetCellData()->SetScalars(dashedCellsColors);
   m_dashedLines->SetPoints(m_points);
   m_dashedLines->Modified();
-  m_dashedLinesMapper->Update();
+  m_dashedLinesMapper->UpdateWholeExtent();
   m_dashedLinesActor->Modified();
 
   m_truncatedPoints->Modified();
   m_truncatedData->Modified();
   m_truncatedData->GetPointData()->Modified();
   m_glyphMapper->SetScaleFactor(distance * HandleSize);
-  m_glyphMapper->Update();
+  m_glyphMapper->UpdateWholeExtent();
   m_truncatedActor->SetVisibility(m_truncatedPoints->GetNumberOfPoints() != 0);
   m_truncatedActor->Modified();
 
@@ -1055,10 +1075,11 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
   m_labels->Modified();
   m_labelData->Modified();
   m_labelFilter->Update();
-  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF() * 0.6, m_labelColor.blueF() * 0.6);
-  m_labelPlacer->SetUpdateExtentToWholeExtent();
+  m_labelPlacer->UpdateWholeExtent();
   m_labelPlacer->RemoveAllClippingPlanes();
-  m_labelPlacer->Update();
+  m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF() * 0.6, m_labelColor.blueF() * 0.6);
+  m_labelPlacer->SetBackgroundOpacity(0.5);
+  m_labelPlacer->UpdateWholeExtent();
   m_labelActor->SetVisibility(m_showLabels);
   m_labelActor->Modified();
 
@@ -1073,17 +1094,18 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
 void vtkSkeletonWidgetRepresentation::UpdatePointer()
 {
   auto idx = normalCoordinateIndex(m_orientation);
+  auto stroke = currentStroke();
 
   QMutexLocker lock(&s_skeletonMutex);
 
-  if (s_currentVertex != nullptr && (std::abs(s_currentVertex->position[idx] - m_slice) <= std::abs(m_shift)))
+  if ((s_currentVertex != nullptr) && (std::abs(s_currentVertex->position[idx] - m_slice) <= std::abs(m_shift)))
   {
     double pos[3];
     std::memcpy(pos, s_currentVertex->position, 3 * sizeof(double));
     pos[idx] = m_slice + m_shift;
 
     auto polyData = vtkPolyData::SafeDownCast(m_pointer->GetInput());
-    polyData->GetPoints()->Reset();
+    polyData->GetPoints()->Initialize();
     polyData->GetPoints()->SetNumberOfPoints(1);
     polyData->GetPoints()->SetPoint(0, pos);
     polyData->GetPoints()->Modified();
@@ -1091,7 +1113,7 @@ void vtkSkeletonWidgetRepresentation::UpdatePointer()
     m_pointer->Update();
     m_pointerActor->GetMapper()->Update();
 
-    auto color = QColor::fromHsv(currentStroke().colorHue, 255,255);
+    auto color = QColor::fromHsv(stroke.colorHue, 255,255);
     m_pointerActor->GetProperty()->SetColor(1 - color.redF()/2., 1 - color.greenF()/2., 1 - color.blueF()/2.);
     m_pointerActor->VisibilityOn();
   }
@@ -1175,35 +1197,13 @@ void vtkSkeletonWidgetRepresentation::ReleaseGraphicsResources(vtkWindow* win)
 int vtkSkeletonWidgetRepresentation::RenderOverlay(vtkViewport* viewport)
 {
   int count = 0;
-  if (m_pointerActor->GetVisibility())
-  {
-    count += m_pointerActor->RenderOverlay(viewport);
-  }
 
-  if (m_linesActor->GetVisibility())
-  {
-    count += m_linesActor->RenderOverlay(viewport);
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    count += m_dashedLinesActor->RenderOverlay(viewport);
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    count += m_actor->RenderOverlay(viewport);
-  }
-
-  if(m_truncatedActor->GetVisibility())
-  {
-    count += m_truncatedActor->RenderOverlay(viewport);
-  }
-
-  if(m_labelActor->GetVisibility())
-  {
-    count += m_labelActor->RenderOverlay(viewport);
-  }
+  if (m_pointerActor->GetVisibility())     count += m_pointerActor->RenderOverlay(viewport);
+  if (m_linesActor->GetVisibility())       count += m_linesActor->RenderOverlay(viewport);
+  if (m_dashedLinesActor->GetVisibility()) count += m_dashedLinesActor->RenderOverlay(viewport);
+  if (m_actor->GetVisibility())            count += m_actor->RenderOverlay(viewport);
+  if(m_truncatedActor->GetVisibility())    count += m_truncatedActor->RenderOverlay(viewport);
+  if(m_labelActor->GetVisibility())        count += m_labelActor->RenderOverlay(viewport);
 
   return count;
 }
@@ -1215,35 +1215,13 @@ int vtkSkeletonWidgetRepresentation::RenderOpaqueGeometry(vtkViewport* viewport)
   BuildRepresentation();
 
   int count = 0;
-  if (m_pointerActor->GetVisibility())
-  {
-    count += m_pointerActor->RenderOpaqueGeometry(viewport);
-  }
 
-  if (m_linesActor->GetVisibility())
-  {
-    count += m_linesActor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    count += m_dashedLinesActor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    count += m_actor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_truncatedActor->GetVisibility())
-  {
-    count += m_truncatedActor->RenderOpaqueGeometry(viewport);
-  }
-
-  if (m_labelActor->GetVisibility())
-  {
-    count += m_labelActor->RenderOpaqueGeometry(viewport);
-  }
+  if (m_pointerActor->GetVisibility())     count += m_pointerActor->RenderOpaqueGeometry(viewport);
+  if (m_linesActor->GetVisibility())       count += m_linesActor->RenderOpaqueGeometry(viewport);
+  if (m_dashedLinesActor->GetVisibility()) count += m_dashedLinesActor->RenderOpaqueGeometry(viewport);
+  if (m_actor->GetVisibility())            count += m_actor->RenderOpaqueGeometry(viewport);
+  if (m_truncatedActor->GetVisibility())   count += m_truncatedActor->RenderOpaqueGeometry(viewport);
+  if (m_labelActor->GetVisibility())       count += m_labelActor->RenderOpaqueGeometry(viewport);
 
   return count;
 }
@@ -1253,35 +1231,12 @@ int vtkSkeletonWidgetRepresentation::RenderTranslucentPolygonalGeometry(vtkViewp
 {
   int count = 0;
 
-  if (m_pointerActor->GetVisibility())
-  {
-    count += m_pointerActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_linesActor->GetVisibility())
-  {
-    count += m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    count += m_dashedLinesActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    count += m_actor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_truncatedActor->GetVisibility())
-  {
-    count += m_truncatedActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
-
-  if (m_labelActor->GetVisibility())
-  {
-    count += m_labelActor->RenderTranslucentPolygonalGeometry(viewport);
-  }
+  if (m_pointerActor->GetVisibility())     count += m_pointerActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_linesActor->GetVisibility())       count += m_linesActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_dashedLinesActor->GetVisibility()) count += m_dashedLinesActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_actor->GetVisibility())            count += m_actor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_truncatedActor->GetVisibility())   count += m_truncatedActor->RenderTranslucentPolygonalGeometry(viewport);
+  if (m_labelActor->GetVisibility())       count += m_labelActor->RenderTranslucentPolygonalGeometry(viewport);
 
   return count;
 }
@@ -1291,35 +1246,12 @@ int vtkSkeletonWidgetRepresentation::HasTranslucentPolygonalGeometry()
 {
   int result = 0;
 
-  if (m_pointerActor->GetVisibility())
-  {
-    result |= m_pointerActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_linesActor->GetVisibility())
-  {
-    result |= m_linesActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_dashedLinesActor->GetVisibility())
-  {
-    result |= m_dashedLinesActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_actor->GetVisibility())
-  {
-    result |= m_actor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_truncatedActor->GetVisibility())
-  {
-    result |= m_truncatedActor->HasTranslucentPolygonalGeometry();
-  }
-
-  if (m_labelActor->GetVisibility())
-  {
-    result |= m_labelActor->HasTranslucentPolygonalGeometry();
-  }
+  if (m_pointerActor->GetVisibility())     result |= m_pointerActor->HasTranslucentPolygonalGeometry();
+  if (m_linesActor->GetVisibility())       result |= m_linesActor->HasTranslucentPolygonalGeometry();
+  if (m_dashedLinesActor->GetVisibility()) result |= m_dashedLinesActor->HasTranslucentPolygonalGeometry();
+  if (m_actor->GetVisibility())            result |= m_actor->HasTranslucentPolygonalGeometry();
+  if (m_truncatedActor->GetVisibility())   result |= m_truncatedActor->HasTranslucentPolygonalGeometry();
+  if (m_labelActor->GetVisibility())       result |= m_labelActor->HasTranslucentPolygonalGeometry();
 
   return result;
 }
@@ -1339,7 +1271,7 @@ vtkSmartPointer<vtkPolyData> vtkSkeletonWidgetRepresentation::GetRepresentationP
 
   performPathsMerge();
 
-  adjustStrokeNumbers(s_skeleton);
+  Core::adjustStrokeNumbers(s_skeleton);
 
   return Core::toPolyData(s_skeleton);
 }
@@ -1383,33 +1315,47 @@ void vtkSkeletonWidgetRepresentation::FindClosestNode(const int X, const int Y, 
 
   GetWorldPositionFromDisplayPosition(displayPos, pos);
 
-  for(auto i = 0; i < s_skeleton.nodes.size(); ++i)
+  auto closestNodeOp = [this, &distance, planeIndex, &pos, &worldPos, &closestNode](SkeletonNode * const &node)
   {
-    if(!areEqual(s_skeleton.nodes[i]->position[planeIndex], m_slice)) continue;
+    if(!areEqual(node->position[planeIndex], m_slice)) return;
 
-    auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, s_skeleton.nodes[i]->position);
+    auto nodeDistance = vtkMath::Distance2BetweenPoints(pos, node->position);
     if(distance > nodeDistance)
     {
       distance = nodeDistance;
-      closestNode = i;
+      closestNode = s_skeleton.nodes.indexOf(node);
 
-      std::memcpy(worldPos, s_skeleton.nodes[i]->position, 3* sizeof(double));
+      std::memcpy(worldPos, node->position, 3* sizeof(double));
     }
-  }
+  };
+
+  std::for_each(s_skeleton.nodes.constBegin(), s_skeleton.nodes.constEnd(), closestNodeOp);
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::Initialize(vtkSmartPointer<vtkPolyData> pd)
 {
-  if(pd == nullptr || pd->GetNumberOfPoints() <= 0) return; // Yeah right.. build from nothing!
+  bool isEmpty = true;
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+    isEmpty = s_skeleton.nodes.isEmpty();
+  }
 
-  QMutexLocker lock(&s_skeletonMutex);
+  if(!isEmpty)
+  {
+    ClearRepresentation();
+  }
+
   Q_ASSERT(s_skeleton.nodes.isEmpty());
 
-  s_skeleton = Core::toSkeletonDefinition(pd);
-  Core::cleanSkeletonStrokes(s_skeleton);
-  Core::removeIsolatedNodes(s_skeleton.nodes);
-  Core::mergeSamePositionNodes(s_skeleton.nodes);
+  if(pd != nullptr && pd->GetNumberOfPoints() > 0)
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+    s_skeleton = Core::toSkeletonDefinition(pd);
+    Core::cleanSkeletonStrokes(s_skeleton);
+    Core::removeIsolatedNodes(s_skeleton.nodes);
+    Core::mergeSamePositionNodes(s_skeleton.nodes);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1430,12 +1376,14 @@ void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
     {
       if(s_skeletonSpacing != spacing)
       {
-        for(auto node: s_skeleton.nodes)
+        auto changeSpacingOp = [&spacing](SkeletonNode *node)
         {
           node->position[0] = node->position[0]/s_skeletonSpacing[0] * spacing[0];
           node->position[1] = node->position[1]/s_skeletonSpacing[1] * spacing[1];
           node->position[2] = node->position[2]/s_skeletonSpacing[2] * spacing[2];
-        }
+        };
+
+        std::for_each(s_skeleton.nodes.begin(), s_skeleton.nodes.end(), changeSpacingOp);
 
         s_skeletonSpacing = spacing;
       }
@@ -1447,7 +1395,7 @@ void vtkSkeletonWidgetRepresentation::SetSpacing(const NmVector3& spacing)
 
     auto planeIdx = normalCoordinateIndex(m_orientation);
     double max = -1;
-    for(int i = 0; i < 3; ++i)
+    for(auto i: {0,1,2})
     {
       if(i == planeIdx) continue;
       max = std::max(spacing[i], max);
@@ -1464,16 +1412,7 @@ void vtkSkeletonWidgetRepresentation::ClearRepresentation()
 {
   QMutexLocker lock(&s_skeletonMutex);
 
-  for(auto node: s_skeleton.nodes)
-  {
-    node->connections.clear();
-    delete node;
-  }
-
-  s_skeleton.nodes.clear();
-  s_skeleton.count.clear();
-  s_skeleton.edges.clear();
-  s_skeleton.strokes.clear();
+  s_skeleton.clear();
 
   s_currentVertex = nullptr;
 }
@@ -1492,7 +1431,8 @@ double vtkSkeletonWidgetRepresentation::FindClosestDistanceAndNode(const int X, 
 
   auto result = Core::closestDistanceAndNode(point_pos, s_skeleton.nodes, node_i, node_j, worldPos);
 
-  // NOTE: the Core:: util method returns the sqrt, that is, the real distance, but we're using the square of that in all of our computations in the widget.
+  // NOTE: the Core:: util method returns the sqrt, that is, the real distance, but we're using the square of that in all of our
+  // computations in the widget to avoid the square root operation.
   return result * result;
 }
 
@@ -1532,16 +1472,38 @@ bool vtkSkeletonWidgetRepresentation::IsNearNode(int x, int y) const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidgetRepresentation::setStroke(const Core::SkeletonStroke &stroke)
 {
-  QMutexLocker lock(&s_skeletonMutex);
-
-  if(!s_skeleton.strokes.contains(stroke))
+  bool updated = false;
   {
-    s_skeleton.strokes << stroke;
-    s_skeleton.count.insert(stroke, 0);
+    QMutexLocker lock(&s_skeletonMutex);
+
+    auto equalNameOp = [stroke](const SkeletonStroke &other) { return stroke.name == other.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalNameOp);
+    if(it == s_skeleton.strokes.end())
+    {
+      s_skeleton.strokes << stroke;
+      s_skeleton.count.insert(stroke, 0);
+    }
+    else
+    {
+      (*it).colorHue   = stroke.colorHue;
+      (*it).type       = stroke.type;
+      (*it).useMeasure = stroke.useMeasure;
+
+      auto countKeys = s_skeleton.count.keys();
+      auto cIt = std::find_if(countKeys.begin(), countKeys.end(), equalNameOp);
+      Q_ASSERT(cIt != countKeys.end());
+      auto count = s_skeleton.count[*cIt];
+      s_skeleton.count.remove(*cIt);
+      s_skeleton.count.insert(stroke, count);
+
+      updated = true;
+    }
+
+    m_currentStrokeIndex = s_skeleton.strokes.indexOf(stroke);
+    m_currentEdgeIndex   = -1;
   }
 
-  m_currentStrokeIndex = s_skeleton.strokes.indexOf(stroke);
-  m_currentEdgeIndex   = -1;
+  if(updated) BuildRepresentation();
 }
 
 //-----------------------------------------------------------------------------
@@ -1583,8 +1545,16 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
     return true;
   }
 
+  if(m_currentEdgeIndex != -1)
+  {
+    auto closestConnections = closestNode->connections.keys();
+    auto operation = [this, closestNode](SkeletonNode *node){ return (closestNode->connections.value(node) == this->m_currentEdgeIndex); };
+    auto count = std::count_if(closestConnections.constBegin(), closestConnections.constEnd(), operation);
+    if(count > 1) return false;
+  }
+
   QMutexLocker lock(&s_skeletonMutex);
-  for (auto connectionNode : s_currentVertex->connections.keys())
+  for (auto connectionNode: s_currentVertex->connections.keys())
   {
     if(!connectionNode->connections.contains(closestNode)) connectionNode->connections.insert(closestNode, s_currentVertex->connections[connectionNode]);
     if(!closestNode->connections.contains(connectionNode)) closestNode->connections.insert(connectionNode, s_currentVertex->connections[connectionNode]);
@@ -1684,11 +1654,25 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
     }
     connectionNode->connections.clear();
 
-    // get the stroke values.
-    if(!s_skeleton.strokes.contains(stroke))
+    auto equalNameOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalNameOp);
+    if(it == s_skeleton.strokes.end())
     {
       s_skeleton.strokes << stroke;
       s_skeleton.count.insert(stroke, 0);
+    }
+    else
+    {
+      (*it).colorHue   = stroke.colorHue;
+      (*it).useMeasure = stroke.useMeasure;
+      (*it).type       = stroke.type;
+
+      auto countKeys = s_skeleton.count.keys();
+      auto cIt = std::find_if(countKeys.begin(), countKeys.end(), equalNameOp);
+      Q_ASSERT(cIt != countKeys.end());
+      auto count = s_skeleton.count[*cIt];
+      s_skeleton.count.remove(*cIt);
+      s_skeleton.count.insert(stroke, count);
     }
 
     s_skeleton.count[stroke]++;
@@ -1842,6 +1826,7 @@ void vtkSkeletonWidgetRepresentation::setLabelsColor(const QColor& color)
     m_labelColor = color;
 
     m_labelPlacer->SetBackgroundColor(m_labelColor.redF() * 0.6, m_labelColor.greenF()*0.6, m_labelColor.blueF()*0.6);
+    m_labelPlacer->SetBackgroundOpacity(0.5);
     m_labelPlacer->Update();
     m_labelActor->Modified();
 
@@ -1856,9 +1841,10 @@ void vtkSkeletonWidgetRepresentation::setLabelsSize(unsigned int size)
   {
     m_labelSize = size;
 
-    m_labelProperty->SetLineOffset(m_labelSize);
     m_labelProperty->SetFontSize(m_labelSize);
     m_labelProperty->Modified();
+    m_labelFilter->GetTextProperty()->SetFontSize(m_labelSize);
+    m_labelFilter->GetTextProperty()->Modified();
     m_labelFilter->Update();
     m_labelPlacer->Update();
     m_labelActor->Modified();
@@ -2016,9 +2002,15 @@ const Core::PathList vtkSkeletonWidgetRepresentation::currentSelectedPaths(const
 //--------------------------------------------------------------------
 Core::SkeletonStroke vtkSkeletonWidgetRepresentation::currentStroke() const
 {
-  Q_ASSERT(m_currentStrokeIndex >= 0 && !s_skeleton.strokes.isEmpty());
+  Core::SkeletonStroke result;
 
-  return s_skeleton.strokes.at(m_currentStrokeIndex);
+  QMutexLocker lock(&s_skeletonMutex);
+  if(m_currentStrokeIndex >= 0 && !s_skeleton.strokes.isEmpty() && m_currentStrokeIndex < s_skeleton.strokes.size())
+  {
+    result = s_skeleton.strokes.at(m_currentStrokeIndex);
+  }
+
+  return result;
 }
 
 //--------------------------------------------------------------------
@@ -2427,9 +2419,9 @@ bool vtkSkeletonWidgetRepresentation::ToggleStrokeProperty(const Core::SkeletonN
     if(!node1->isTerminal() && !node2->isTerminal()) return false;
     if(node1->isTerminal() && node2->isTerminal())   return false;
 
-    auto node = node1->isTerminal() ? node1 : node2;
+    auto operationNode = node1->isTerminal() ? node1 : node2;
 
-    node->flags ^= property;
+    operationNode->flags ^= property;
   }
 
   return true;
@@ -2466,7 +2458,7 @@ void vtkSkeletonWidgetRepresentation::setWidth(const int width)
 }
 
 //--------------------------------------------------------------------
-void ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::setChangeCoincidetHue(const bool value)
+void vtkSkeletonWidgetRepresentation::setChangeCoincidetHue(const bool value)
 {
   if(m_changeCoincidentHue != value)
   {
@@ -2479,9 +2471,115 @@ void ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::setC
 }
 
 //--------------------------------------------------------------------
-const bool ESPINA::GUI::View::Widgets::Skeleton::vtkSkeletonWidgetRepresentation::changeCoincidentHue() const
+const bool vtkSkeletonWidgetRepresentation::changeCoincidentHue() const
 {
   return m_changeCoincidentHue;
+}
+
+//--------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::removeStroke(const Core::SkeletonStroke &stroke)
+{
+  bool updated{false};
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+
+    auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalOp);
+
+    if(it != s_skeleton.strokes.end())
+    {
+      auto strokeIndex = s_skeleton.strokes.indexOf(*it);
+      s_skeleton.count.remove(*it);
+      s_skeleton.strokes.removeAll(*it);
+
+      std::vector<int> edgesToRemove; // QList doesn't have a reverse iterator, std::vector does.
+
+      auto processEdges = [strokeIndex, &edgesToRemove](SkeletonEdge &edge)
+      {
+        if(edge.strokeIndex == strokeIndex)
+        {
+          edgesToRemove.push_back(s_skeleton.edges.indexOf(edge));
+        }
+        else
+        {
+          if(edge.strokeIndex > strokeIndex)
+          {
+            edge.strokeIndex -= 1;
+          }
+        }
+      };
+
+      auto processEdgesParents = [&edgesToRemove](SkeletonEdge &edge)
+      {
+        if(std::any_of(edgesToRemove.cbegin(), edgesToRemove.cend(), [&edge](const int edgeIndex) { return edgeIndex == edge.parentEdge; }))
+        {
+          edge.parentEdge = -1;
+        }
+      };
+
+      std::for_each(s_skeleton.edges.begin(), s_skeleton.edges.end(), processEdges);
+      std::for_each(s_skeleton.edges.begin(), s_skeleton.edges.end(), processEdgesParents);
+
+      auto processNodes = [](const int edgeIndex)
+      {
+        for(auto node: s_skeleton.nodes)
+        {
+          SkeletonNodes toRemove;
+          for(auto cNode: node->connections.keys())
+          {
+            if(node->connections[cNode] == edgeIndex)
+            {
+              toRemove << cNode;
+            }
+            else
+            {
+              if(node->connections[cNode] > edgeIndex) node->connections[cNode] -= 1;
+            }
+          }
+
+          if(!toRemove.isEmpty())
+          {
+            for(auto cNode: toRemove) node->connections.remove(cNode);
+          }
+        }
+      };
+
+      std::sort(edgesToRemove.begin(), edgesToRemove.end());
+
+      std::for_each(edgesToRemove.crbegin(), edgesToRemove.crend(), processNodes);
+      std::for_each(edgesToRemove.crbegin(), edgesToRemove.crend(), [](const int edgeIndex) { s_skeleton.edges.removeAt(edgeIndex); });
+
+      Core::removeIsolatedNodes(s_skeleton.nodes);
+      updated = true;
+    }
+  }
+
+  if(updated) BuildRepresentation();
+}
+
+//--------------------------------------------------------------------
+void vtkSkeletonWidgetRepresentation::renameStroke(const QString &oldName, const QString &newName)
+{
+  bool updated{false};
+  {
+    QMutexLocker lock(&s_skeletonMutex);
+
+    auto equalOp = [&oldName](const Core::SkeletonStroke &stroke) { return oldName == stroke.name; };
+    auto it = std::find_if(s_skeleton.strokes.begin(), s_skeleton.strokes.end(), equalOp);
+
+    if(it != s_skeleton.strokes.end())
+    {
+      SkeletonStroke oldStroke = *it;
+      auto count = s_skeleton.count[oldStroke];
+      s_skeleton.count.remove(oldStroke);
+      (*it).name = newName;
+      s_skeleton.count.insert(*it, count);
+
+      updated = true;
+    }
+  }
+
+  if(updated) BuildRepresentation();
 }
 
 //--------------------------------------------------------------------

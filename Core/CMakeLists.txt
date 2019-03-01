@@ -14,6 +14,7 @@ qt4_add_resources(CORE_RCC
   )
 
 qt4_wrap_cpp(CORE_MOC
+  Plugin.h
   Analysis/Data.h
   Analysis/Extensions.h
   Analysis/Output.h
@@ -30,6 +31,7 @@ set (CORE_SOURCES
   ${CORE_RCC}
   ${CORE_MOC}
   ${CORE_UI}
+  Plugin.cpp
   Analysis/Analysis.cpp
   Analysis/Category.cpp
   Analysis/Channel.cpp
@@ -65,6 +67,7 @@ set (CORE_SOURCES
   IO/SegFile_V4.cpp
   IO/SegFile_V5.cpp
   IO/ZipUtils.cpp
+  Readers/ChannelReader.cpp
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
   MultiTasking/TaskGroupProgress.cpp

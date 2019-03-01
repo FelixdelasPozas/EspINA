@@ -421,7 +421,7 @@ void SeedGrowSegmentationFilter::execute()
     closingFilter->SetForegroundValue(SEG_VOXEL_VALUE);
     closingFilter->ReleaseDataFlagOn();
 
-    ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 50, 75);
+    ITKProgressReporter<ClosingFilterType> closeProgress(this, closingFilter, 50, 75);
 
     closingFilter->Update();
 

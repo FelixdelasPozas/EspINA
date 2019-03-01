@@ -90,9 +90,9 @@ View3D::View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors, QW
 //-----------------------------------------------------------------------------
 View3D::~View3D()
 {
-  shutdownAndRemoveManagers();
-
   mainRenderer()->RemoveAllViewProps();
+
+  shutdownAndRemoveManagers();
 }
 
 //-----------------------------------------------------------------------------
@@ -163,6 +163,11 @@ void View3D::onCrosshairChanged(const FrameCSPtr frame)
     m_axialScrollBar   ->blockSignals(false);
     m_coronalScrollBar ->blockSignals(false);
     m_sagittalScrollBar->blockSignals(false);
+  }
+
+  if(frame->flags.testFlag(Frame::Option::Focus))
+  {
+    moveCamera(point);
   }
 }
 
@@ -388,13 +393,13 @@ void View3D::addActor(vtkProp *actor)
 {
   if(actor)
   {
+    m_renderer->AddActor(actor);
+
     auto follower = dynamic_cast<vtkFollower *>(actor);
     if(follower)
     {
-      follower->SetCamera(mainRenderer()->GetActiveCamera());
+      follower->SetCamera(m_renderer->GetActiveCamera());
     }
-
-    m_renderer->AddActor(actor);
   }
 }
 

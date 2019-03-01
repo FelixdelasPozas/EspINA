@@ -65,6 +65,7 @@
 #include <vtkGlyph3DMapper.h>
 #include <vtkTransform.h>
 #include <vtkFollower.h>
+#include <vtkFreeTypeLabelRenderStrategy.h>
 
 // Qt
 #include <QToolBar>
@@ -74,6 +75,7 @@
 // C++
 #include <random>
 #include <chrono>
+#include <functional>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -131,6 +133,7 @@ void SkeletonInspector::closeEvent(QCloseEvent *event)
   m_segmentation->clearTemporalRepresentation();
   for(auto &stroke: m_strokes) stroke.actors.clear();
   m_strokes.clear();
+  m_definition.clear();
 }
 
 //--------------------------------------------------------------------
@@ -139,8 +142,8 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
   Q_ASSERT(hasSkeletonData(segmentation->output()));
 
   auto skeleton    = readLockSkeleton(segmentation->output())->skeleton();
-  auto definition  = toSkeletonDefinition(skeleton);
-  auto pathList    = paths(definition.nodes, definition.edges, definition.strokes);
+  m_definition     = toSkeletonDefinition(skeleton);
+  auto pathList    = paths(m_definition.nodes, m_definition.edges, m_definition.strokes);
   auto connections = getModel()->connections(segmentation);
 
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -166,8 +169,8 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     info.path      = path;
     info.selected  = true;
     info.length    = path.length();
-    info.used      = definition.strokes.at(path.stroke).useMeasure;
-    info.hue       = definition.strokes.at(path.stroke).colorHue;
+    info.used      = m_definition.strokes.at(path.stroke).useMeasure;
+    info.hue       = m_definition.strokes.at(path.stroke).colorHue;
     info.randomHue = assignRandomFromHue(info.hue);
 
     auto points = vtkSmartPointer<vtkPoints>::New();
@@ -176,15 +179,15 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     auto lines = vtkSmartPointer<vtkCellArray>::New();
     lines->SetNumberOfCells(path.seen.size() -1);
 
-    for(vtkIdType i = 0; i < path.seen.size(); ++i)
+    for(vtkIdType j = 0; j < path.seen.size(); ++j)
     {
-      points->SetPoint(i, path.seen.at(i)->position);
+      points->SetPoint(j, path.seen.at(j)->position);
 
-      if(i > 0)
+      if(j > 0)
       {
         auto line = vtkSmartPointer<vtkLine>::New();
-        line->GetPointIds()->SetId(0, i-1);
-        line->GetPointIds()->SetId(1, i);
+        line->GetPointIds()->SetId(0, j-1);
+        line->GetPointIds()->SetId(1, j);
 
         lines->InsertNextCell(line);
       }
@@ -222,14 +225,14 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputData(polyData);
 
-    auto hue   = definition.strokes.at(path.stroke).colorHue;
+    auto hue   = m_definition.strokes.at(path.stroke).colorHue;
     auto color = QColor::fromHsv(hue, 255,255);
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
     actor->GetProperty()->SetLineWidth(1);
     actor->SetPickable(false);
-    if(definition.strokes.at(path.stroke).type != 0)
+    if(m_definition.strokes.at(path.stroke).type != 0)
     {
       actor->GetProperty()->SetLineStipplePattern(0xFF00);
     }
@@ -271,6 +274,9 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
         truncatedActor->SetPickable(false);
         truncatedActor->SetOrigin(node->position);
         truncatedActor->SetPosition(0,0,0);
+        truncatedActor->GetProperty()->SetColor(1, 0, 0);
+        truncatedActor->GetProperty()->Modified();
+        truncatedActor->Modified();
 
         info.actors << truncatedActor;
         break;
@@ -280,9 +286,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     m_strokes << info;
   }
 
-  auto lessThan = [](const struct StrokeInfo &lhs, const struct StrokeInfo &rhs) { return lhs < rhs; };
-
-  qSort(m_strokes.begin(), m_strokes.end(), lessThan);
+  qSort(m_strokes);
 }
 
 //--------------------------------------------------------------------
@@ -524,19 +528,14 @@ void SkeletonInspector::focusOnActor(int row)
 {
   Bounds focusBounds;
   auto name = m_table->item(row, 0)->data(Qt::DisplayRole);
+  auto equalOp = [&name](const StrokeInfo &stroke) {return (stroke.name == name); };
+  auto it = std::find_if(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
 
-  for(auto &stroke: m_strokes)
+  if(it != m_strokes.constEnd())
   {
-    if(stroke.name == name)
-    {
-      focusBounds = Bounds{stroke.actors.first()->GetBounds()};
-      break;
-    }
-  }
+    auto focusBounds = Bounds{(*it).actors.first()->GetBounds()};
 
-  if(focusBounds.areValid())
-  {
-    getViewState().focusViewOn(centroid(focusBounds));
+    if(focusBounds.areValid()) getViewState().focusViewOn(centroid(focusBounds));
   }
 }
 
@@ -766,22 +765,29 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     labelsData->SetPoints(labelPoints);
     labelsData->GetPointData()->AddArray(labelText);
 
+    auto textSize = SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
+
     auto property = vtkSmartPointer<vtkTextProperty>::New();
     property->SetBold(true);
     property->SetFontFamilyToArial();
-    property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
+    property->SetFontSize(textSize);
     property->SetJustificationToCentered();
 
     auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
     labelFilter->SetInputData(labelsData);
     labelFilter->SetLabelArrayName("Labels");
-    labelFilter->SetTextProperty(property);
+    labelFilter->GetTextProperty()->SetFontSize(textSize);
+    labelFilter->GetTextProperty()->SetBold(true);
     labelFilter->Update();
+
+    auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
+    strategy->SetDefaultTextProperty(property);
 
     auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
     labelMapper->SetInputConnection(labelFilter->GetOutputPort());
     labelMapper->SetGeneratePerturbedLabelSpokes(true);
     labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+    labelMapper->SetBackgroundOpacity(0.5);
     labelMapper->SetPlaceAllLabels(true);
     labelMapper->SetShapeToRoundedRect();
     labelMapper->SetStyleToFilled();
@@ -982,6 +988,7 @@ void SkeletonInspector::initSpinesTable()
   m_spinesButton->setChecked(false);
 
   connect(m_spinesButton, SIGNAL(clicked(bool)), this, SLOT(onSpinesButtonClicked(bool)));
+  connect(m_table, SIGNAL(cellClicked(int, int)), this, SLOT(onCellClicked(int)));
   connect(m_table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(focusOnActor(int)));
 
   auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(m_segmentation, getFactory());
@@ -997,24 +1004,26 @@ void SkeletonInspector::initSpinesTable()
   m_table->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
   m_table->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
   m_table->setHorizontalHeaderLabels(headers.split(";"));
+  m_table->sortByColumn(0, Qt::AscendingOrder);
+  m_table->setSortingEnabled(false);
 
   for(int i = 0; i < spines.size(); ++i)
   {
     auto spine = spines.at(i);
-    m_table->setItem(i, 0,new QTableWidgetItem(spine.name));
-    m_table->setItem(i, 1,new QTableWidgetItem(spine.complete ? "yes":"no"));
-    m_table->setItem(i, 2,new QTableWidgetItem(spine.branched ? "yes":"no"));
-    m_table->setItem(i, 3,new QTableWidgetItem(QString::number(spine.length)));
-    m_table->setItem(i, 4,new QTableWidgetItem(QString::number(spine.numSynapses)));
-    m_table->setItem(i, 5,new QTableWidgetItem(QString::number(spine.numAsymmetric)));
-    m_table->setItem(i, 6,new QTableWidgetItem(QString::number(spine.numAsymmetricHead)));
-    m_table->setItem(i, 7,new QTableWidgetItem(QString::number(spine.numAsymmetricNeck)));
-    m_table->setItem(i, 8,new QTableWidgetItem(QString::number(spine.numSymmetric)));
-    m_table->setItem(i, 9,new QTableWidgetItem(QString::number(spine.numSymmetricHead)));
-    m_table->setItem(i,10,new QTableWidgetItem(QString::number(spine.numSymmetricNeck)));
-    m_table->setItem(i,11,new QTableWidgetItem(QString::number(spine.numAxons)));
-    m_table->setItem(i,12,new QTableWidgetItem(QString::number(spine.numAxonsInhibitory)));
-    m_table->setItem(i,13,new QTableWidgetItem(QString::number(spine.numAxonsExcitatory)));
+    m_table->setItem(i, 0,new Item(spine.name));
+    m_table->setItem(i, 1,new Item(spine.complete ? "yes":"no"));
+    m_table->setItem(i, 2,new Item(spine.branched ? "yes":"no"));
+    m_table->setItem(i, 3,new Item(QString::number(spine.length)));
+    m_table->setItem(i, 4,new Item(QString::number(spine.numSynapses)));
+    m_table->setItem(i, 5,new Item(QString::number(spine.numAsymmetric)));
+    m_table->setItem(i, 6,new Item(QString::number(spine.numAsymmetricHead)));
+    m_table->setItem(i, 7,new Item(QString::number(spine.numAsymmetricNeck)));
+    m_table->setItem(i, 8,new Item(QString::number(spine.numSymmetric)));
+    m_table->setItem(i, 9,new Item(QString::number(spine.numSymmetricHead)));
+    m_table->setItem(i,10,new Item(QString::number(spine.numSymmetricNeck)));
+    m_table->setItem(i,11,new Item(QString::number(spine.numAxons)));
+    m_table->setItem(i,12,new Item(QString::number(spine.numAxonsInhibitory)));
+    m_table->setItem(i,13,new Item(QString::number(spine.numAxonsExcitatory)));
   }
 
   connect(m_table->selectionModel(), SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)),
@@ -1024,6 +1033,7 @@ void SkeletonInspector::initSpinesTable()
   m_table->adjustSize();
   m_table->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
   m_table->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  m_table->setSortingEnabled(true);
 
   m_tabWidget->setVisible(false);
 }
@@ -1059,6 +1069,42 @@ void SkeletonInspector::saveToCSV(const QString& filename) const
     out << dendriteName << "\n";
   }
   file.close();
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onCellClicked(int row)
+{
+  auto name = m_table->item(row,0)->data(Qt::DisplayRole).toString();
+
+  std::function<const QModelIndex (const QModelIndex &index, const QAbstractItemModel *model)> checkIndex = [&name, &checkIndex](const QModelIndex &index, const QAbstractItemModel *model)
+  {
+    if(index.isValid() && index.data(Qt::DisplayRole).toString() == name)
+    {
+      return index;
+    }
+
+    if(model->hasChildren(index))
+    {
+      for(auto i = 0; i < model->rowCount(index); ++i)
+      {
+        for(auto j = 0; j < model->columnCount(index); ++j)
+        {
+          auto child = checkIndex(model->index(i,j, index), model);
+          if(child != QModelIndex()) return child;
+        }
+      }
+    }
+
+    return QModelIndex();
+  };
+
+  auto index = checkIndex(m_treeView->rootIndex(), m_treeView->model());
+  if(index != QModelIndex())
+  {
+    m_treeView->blockSignals(true);
+    m_treeView->setCurrentIndex(index);
+    m_treeView->blockSignals(false);
+  }
 }
 
 //--------------------------------------------------------------------

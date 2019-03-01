@@ -111,12 +111,6 @@ SegmentationExplorer::Layout::Layout(CheckableTreeView              *view,
 }
 
 //------------------------------------------------------------------------
-SegmentationExplorer::Layout::~Layout()
-{
-  reset();
-}
-
-//------------------------------------------------------------------------
 void SegmentationExplorer::Layout::deleteSegmentations(SegmentationAdapterList segmentations)
 {
   if(!segmentations.empty())
@@ -191,22 +185,16 @@ void SegmentationExplorer::Layout::releaseInspectorResources(SegmentationInspect
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationAdapterList segmentations)
+QString SegmentationExplorer::Layout::toKey(const SegmentationAdapterList segmentations)
 {
   QStringList pointers;
-  QString result;
 
-  for(auto seg : segmentations)
-  {
-    pointers += QString().number(reinterpret_cast<unsigned long long>(seg));
-  }
+  auto getPointerStrings = [&pointers](const SegmentationAdapterPtr seg) { pointers << QString().number(reinterpret_cast<unsigned long long>(seg)); };
+  std::for_each(segmentations.begin(), segmentations.end(), getPointerStrings);
 
-  pointers.sort(); // O(n log n).
+  pointers.sort();
 
-  for(auto pointer: pointers)
-  {
-    result += pointer + QString("|");
-  }
+  auto result = pointers.join("|");
 
   return result;
 }
@@ -216,13 +204,13 @@ void SegmentationExplorer::Layout::reset()
 {
   for(auto key: m_inspectors.keys())
   {
-    m_inspectors[key]->close();
-    m_inspectors.remove(key);
+    auto dialog = m_inspectors[key];
+    if(dialog) dialog->close();
   }
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(SegmentationAdapterPtr segmentation)
+QString SegmentationExplorer::Layout::toKey(const SegmentationAdapterPtr segmentation)
 {
   return QString("%1|").arg(reinterpret_cast<unsigned long long>(segmentation));
 }

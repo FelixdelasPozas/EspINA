@@ -48,7 +48,7 @@ namespace ESPINA
          * \param[in] factory model factory.
          *
          */
-        explicit CFStackExtensionFactory(CoreFactory *factory, CountingFrameManager *manager, SchedulerSPtr scheduler);
+        explicit CFStackExtensionFactory(Core::SegmentationExtensionFactorySPtr factory, CountingFrameManager *manager, SchedulerSPtr scheduler = SchedulerSPtr());
 
         virtual Core::StackExtensionSPtr createExtension(const Core::StackExtension::Type      &type,
                                                          const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache(),
@@ -56,9 +56,16 @@ namespace ESPINA
 
         virtual Core::StackExtension::TypeList providedExtensions() const;
 
+        /** \brief Sets the scheduler in late initialization.
+         *
+         */
+        void setScheduler(SchedulerSPtr scheduler)
+        { m_scheduler = scheduler; }
+
       private:
-        CountingFrameManager *m_manager;   /** plugin's counting frame manager. */
-        SchedulerSPtr         m_scheduler; /** application's task scheduler.    */
+        Core::SegmentationExtensionFactorySPtr m_factory;   /** stereological inclusion factory. */
+        CountingFrameManager                  *m_manager;   /** plugin's counting frame manager. */
+        SchedulerSPtr                          m_scheduler; /** application's task scheduler.    */
     };
 
     /** \class CFSegmentationExtensionFactory
@@ -72,7 +79,7 @@ namespace ESPINA
         /** \brief CFSegmentationExtensionFactory class constructor.
          *
          */
-        explicit CFSegmentationExtensionFactory(CoreFactory *factory);
+        explicit CFSegmentationExtensionFactory();
 
         virtual Core::SegmentationExtensionSPtr createExtension(const Core::SegmentationExtension::Type      &type,
                                                                 const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache(),

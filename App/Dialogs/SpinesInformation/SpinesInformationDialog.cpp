@@ -39,6 +39,10 @@
 #include <QSpacerItem>
 #include <QTableWidget>
 #include <QApplication>
+#include <QThread>
+
+// C++
+#include <algorithm>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -60,7 +64,7 @@ SpinesInformationDialog::SpinesInformationDialog(SegmentationAdapterList input, 
 
   createGUI();
 
-  computeInformation();
+  computeInformation(m_segmentations);
 
   ESPINA_SETTINGS(settings);
 
@@ -68,6 +72,24 @@ SpinesInformationDialog::SpinesInformationDialog(SegmentationAdapterList input, 
   resize(settings.value("size", QSize (400, 200)).toSize());
   move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
+}
+
+//--------------------------------------------------------------------
+SpinesInformationDialog::~SpinesInformationDialog()
+{
+  for(auto task: m_pendingInformation)
+  {
+    disconnect(task.get(), SIGNAL(finished()), this, SLOT(onTaskFinished()));
+
+    task->abort();
+
+    if(!task->thread()->wait(100))
+    {
+      task->thread()->quit();
+    }
+  }
+
+  m_pendingInformation.clear();
 }
 
 //--------------------------------------------------------------------
@@ -88,19 +110,32 @@ void SpinesInformationDialog::connectSignals()
 {
   auto model = getModel().get();
 
-  // only watched if the dialog is for all segmentations in the model.
-  if(m_segmentations.isEmpty())
-  {
-    connect(model, SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
-            this,  SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
-    connect(model, SIGNAL(segmentationsAboutToBeRemoved(ViewItemAdapterSList)),
-            this,  SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
-  }
-
+  connect(model, SIGNAL(segmentationsAdded(ViewItemAdapterSList)),
+          this,  SLOT(onSegmentationsAdded(ViewItemAdapterSList)));
+  connect(model, SIGNAL(segmentationsAboutToBeRemoved(ViewItemAdapterSList)),
+          this,  SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
   connect(model, SIGNAL(connectionAdded(Connection)),
           this,  SLOT(onConnectionModified(Connection)));
   connect(model, SIGNAL(connectionRemoved(Connection)),
           this,  SLOT(onConnectionModified(Connection)));
+
+  // clean input and connect dendrite segmentations.
+  SegmentationAdapterList toRemove;
+  for(auto segmentation: m_segmentations)
+  {
+    if(!segmentation->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
+    {
+      toRemove << segmentation;
+    }
+  }
+
+  if(!toRemove.isEmpty())
+  {
+    for(auto segmentation: toRemove)
+    {
+      m_segmentations.removeAll(segmentation);
+    }
+  }
 
   for(auto segmentation: m_segmentations)
   {
@@ -154,30 +189,44 @@ void SpinesInformationDialog::onExportButtonClicked()
 //--------------------------------------------------------------------
 void SpinesInformationDialog::onOutputModified()
 {
-  refreshTable();
+  auto segmentation = dynamic_cast<SegmentationAdapterPtr>(sender());
+  if(segmentation)
+  {
+    SegmentationAdapterList list;
+    list << segmentation;
+
+    computeInformation(list);
+  }
+  else
+  {
+    qWarning() << "Couldn't cast to segmentation." << __FILE__ << __LINE__;
+  }
 }
 
 //--------------------------------------------------------------------
 void SpinesInformationDialog::onSegmentationsAdded(ViewItemAdapterSList items)
 {
-  bool needsRefresh = false;
+  SegmentationAdapterList segmentations;
 
   for(auto item: items)
   {
     auto segmentation = segmentationPtr(item.get());
-    if(segmentation && segmentation->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
+    if(segmentation && segmentation->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive) && !m_segmentations.contains(segmentation))
     {
       m_segmentations << segmentation;
 
-      auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(segmentation, getFactory());
-      auto spines    = extension->spinesInformation();
-      m_spinesMap.insert(segmentation, spines);
+      connect(segmentation, SIGNAL(outputModified()),
+              this,         SLOT(onOutputModified()));
 
-      needsRefresh = true;
+
+      segmentations << segmentation;
     }
   }
 
-  if(needsRefresh) refreshTable();
+  if(!segmentations.isEmpty())
+  {
+    computeInformation(segmentations);
+  }
 }
 
 //--------------------------------------------------------------------
@@ -196,11 +245,18 @@ void SpinesInformationDialog::onSegmentationsRemoved(ViewItemAdapterSList items)
     }
   }
 
-  if(needsRefresh) refreshTable();
+  if(!m_segmentations.isEmpty())
+  {
+    if(needsRefresh) refreshTable();
+  }
+  else
+  {
+    close();
+  }
 }
 
 //--------------------------------------------------------------------
-void ESPINA::SpinesInformationDialog::createGUI()
+void SpinesInformationDialog::createGUI()
 {
   setWindowTitle(tr("Spines Information Report"));
   setWindowIconText(":/espina/espina.svg");
@@ -240,6 +296,9 @@ void ESPINA::SpinesInformationDialog::createGUI()
   m_table->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
   m_table->setHorizontalHeaderLabels(headers.split(";"));
   m_table->horizontalHeader()->setStretchLastSection(true);
+  m_table->setAlternatingRowColors(true);
+  m_table->setSortingEnabled(true);
+  m_table->sortByColumn(1, Qt::SortOrder::AscendingOrder);
 
   connect(m_table, SIGNAL(cellDoubleClicked(int, int)),
           this,    SLOT(focusOnActor(int)));
@@ -265,7 +324,7 @@ void ESPINA::SpinesInformationDialog::createGUI()
 }
 
 //--------------------------------------------------------------------
-void ESPINA::SpinesInformationDialog::saveToCSV(const QString& filename)
+void SpinesInformationDialog::saveToCSV(const QString& filename)
 {
   QFile file(filename);
 
@@ -299,10 +358,14 @@ void ESPINA::SpinesInformationDialog::saveToCSV(const QString& filename)
 //--------------------------------------------------------------------
 void SpinesInformationDialog::onConnectionModified(Connection connection)
 {
-  if(m_segmentations.contains(connection.item1.get()) ||
-     m_segmentations.contains(connection.item2.get()))
+  SegmentationAdapterList segmentations;
+
+  if(m_segmentations.contains(connection.item1.get())) segmentations << connection.item1.get();
+  if(m_segmentations.contains(connection.item2.get())) segmentations << connection.item2.get();
+
+  if(!segmentations.isEmpty())
   {
-    refreshTable();
+    computeInformation(segmentations);
   }
 }
 
@@ -311,13 +374,14 @@ void SpinesInformationDialog::focusOnActor(int row)
 {
   auto segmentationName = m_table->item(row, 1)->data(Qt::DisplayRole).toString();
 
-  for(auto segmentation: m_segmentations)
+  auto selectionOp = [segmentationName](const SegmentationAdapterPtr segmentation) { return (segmentation->data(Qt::DisplayRole).toString() == segmentationName); };
+  auto it = std::find_if(m_segmentations.constBegin(), m_segmentations.constEnd(), selectionOp);
+
+  if(it != m_segmentations.constEnd())
   {
-    if(segmentation->data(Qt::DisplayRole).toString() == segmentationName)
-    {
-      getSelection()->set(SegmentationAdapterList{segmentation});
-      getViewState().focusViewOn(centroid(segmentation->bounds()));
-    }
+    const auto segmentation = *it;
+    getSelection()->set(SegmentationAdapterList{segmentation});
+    getViewState().focusViewOn(centroid(segmentation->bounds()));
   }
 }
 
@@ -353,95 +417,153 @@ void SpinesInformationDialog::saveToXLS(const QString& filename)
 }
 
 //--------------------------------------------------------------------
-void SpinesInformationDialog::computeInformation()
+void SpinesInformationDialog::computeInformation(SegmentationAdapterList segmentations)
 {
-  if(m_segmentations.isEmpty())
+  auto task = std::make_shared<ComputeInformationTask>(segmentations, getFactory(), getScheduler());
+  connect(task.get(), SIGNAL(finished()), this, SLOT(onTaskFinished()), Qt::QueuedConnection);
+
+  m_pendingInformation << task;
+
+  Task::submit(task);
+}
+
+//--------------------------------------------------------------------
+void SpinesInformationDialog::onTaskFinished()
+{
+  auto task = qobject_cast<ComputeInformationTask *>(sender());
+  if(task)
   {
-    for(auto segmentation: getModel()->segmentations())
+    auto information = task->information();
+    for(auto segmentation: information.keys())
     {
-      if(segmentation->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
-      {
-        m_segmentations << segmentation.get();
-      }
+      m_spinesMap.insert(segmentation, information[segmentation]);
     }
+
+    auto selectionOp = [task](std::shared_ptr<ComputeInformationTask> otherTask) { return otherTask.get() == task; };
+    auto it = std::find_if(m_pendingInformation.constBegin(), m_pendingInformation.constEnd(), selectionOp);
+    if(it != m_pendingInformation.constEnd())
+    {
+      m_pendingInformation.removeAll(*it);
+    }
+    else
+    {
+      qWarning() << "Couldn't find associated smart pointer to task!" << __FILE__ << __LINE__;
+    }
+
+    refreshTable();
   }
-
-  qSort(m_segmentations.begin(), m_segmentations.end(), lessThan<SegmentationAdapterPtr>);
-
-  refreshTable();
-
-  m_table->resizeColumnsToContents();
-  m_table->setAlternatingRowColors(true);
-  m_table->setSortingEnabled(true);
-  m_table->sortByColumn(1, Qt::SortOrder::AscendingOrder);
+  else
+  {
+    qWarning() << "Couldn't cast to ComputeInformationTask!" << __FILE__ << __LINE__;
+  }
 }
 
 //--------------------------------------------------------------------
 void SpinesInformationDialog::refreshTable()
 {
-  m_table->setRowCount(0);
-  m_table->setUpdatesEnabled(false);
-
-  int row = 0;
-  Item *item = nullptr;
-  for(auto segmentation: m_segmentations)
+  // wait until all information has been obtained.
+  if(m_pendingInformation.isEmpty())
   {
-    auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(segmentation, getFactory());
+    std::sort(m_segmentations.begin(), m_segmentations.end(), lessThan<SegmentationAdapterPtr>);
+
+    int selectedRow = -1;
+    if(!m_table->selectedItems().isEmpty()) selectedRow = m_table->selectedItems().first()->row();
+    m_table->clearContents();
+    m_table->setRowCount(0);
+    m_table->setUpdatesEnabled(false);
+    m_table->setSortingEnabled(false);
+
+    int row = 0;
+    Item *item = nullptr;
+    for(const auto segmentation: m_segmentations)
+    {
+      const auto spines = m_spinesMap.value(segmentation);
+
+      m_table->setRowCount(row + spines.size());
+      for(const auto &spine: spines)
+      {
+        item = new Item(spine.name);
+        item->setTextAlignment(Qt::AlignLeft);
+        m_table->setItem(row, 0, item);
+        item = new Item(spine.parentName);
+        item->setTextAlignment(Qt::AlignLeft);
+        m_table->setItem(row, 1, item);
+        item = new Item(spine.complete ? "yes":"no");
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 2, item);
+        item = new Item(spine.branched ? "yes":"no");
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 3, item);
+        item = new Item(QString::number(spine.length));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 4, item);
+        item = new Item(QString::number(spine.numSynapses));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 5, item);
+        item = new Item(QString::number(spine.numAsymmetric));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 6, item);
+        item = new Item(QString::number(spine.numAsymmetricHead));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 7, item);
+        item = new Item(QString::number(spine.numAsymmetricNeck));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 8, item);
+        item = new Item(QString::number(spine.numSymmetric));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 9, item);
+        item = new Item(QString::number(spine.numSymmetricHead));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 10, item);
+        item = new Item(QString::number(spine.numSymmetricNeck));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 11, item);
+        item = new Item(QString::number(spine.numAxons));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 12, item);
+        item = new Item(QString::number(spine.numAxonsInhibitory));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 13, item);
+        item = new Item(QString::number(spine.numAxonsExcitatory));
+        item->setTextAlignment(Qt::AlignCenter);
+        m_table->setItem(row, 14, item);
+
+        ++row;
+      }
+    }
+
+    m_table->setUpdatesEnabled(true);
+    m_table->setSortingEnabled(true);
+    if(selectedRow != -1) m_table->selectRow(std::min(selectedRow, m_table->rowCount()));
+    m_table->resizeColumnsToContents();
+  }
+}
+
+//--------------------------------------------------------------------
+SpinesInformationDialog::ComputeInformationTask::ComputeInformationTask(const SegmentationAdapterList &segmentations, ModelFactorySPtr factory, SchedulerSPtr scheduler)
+: Task     {scheduler}
+, m_factory{factory}
+{
+  setDescription(tr("Spine information computation task."));
+
+  for(auto segmentation: segmentations) m_spinesMap.insert(segmentation, SpinesList());
+
+  Q_ASSERT(m_factory);
+}
+
+//--------------------------------------------------------------------
+void SpinesInformationDialog::ComputeInformationTask::run()
+{
+  int i = 0;
+  for(auto segmentation: m_spinesMap.keys())
+  {
+    if(!canExecute()) return;
+
+    auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(segmentation, m_factory);
     auto spines    = extension->spinesInformation();
+
     m_spinesMap.insert(segmentation, spines);
 
-    m_table->setRowCount(row + spines.size());
-    for(auto spine: spines)
-    {
-      item = new Item(spine.name);
-      item->setTextAlignment(Qt::AlignLeft);
-      m_table->setItem(row, 0, item);
-      item = new Item(spine.parentName);
-      item->setTextAlignment(Qt::AlignLeft);
-      m_table->setItem(row, 1, item);
-      item = new Item(spine.complete ? "yes":"no");
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 2, item);
-      item = new Item(spine.branched ? "yes":"no");
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 3, item);
-      item = new Item(QString::number(spine.length));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 4, item);
-      item = new Item(QString::number(spine.numSynapses));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 5, item);
-      item = new Item(QString::number(spine.numAsymmetric));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 6, item);
-      item = new Item(QString::number(spine.numAsymmetricHead));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 7, item);
-      item = new Item(QString::number(spine.numAsymmetricNeck));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 8, item);
-      item = new Item(QString::number(spine.numSymmetric));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 9, item);
-      item = new Item(QString::number(spine.numSymmetricHead));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 10, item);
-      item = new Item(QString::number(spine.numSymmetricNeck));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 11, item);
-      item = new Item(QString::number(spine.numAxons));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 12, item);
-      item = new Item(QString::number(spine.numAxonsInhibitory));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 13, item);
-      item = new Item(QString::number(spine.numAxonsExcitatory));
-      item->setTextAlignment(Qt::AlignCenter);
-      m_table->setItem(row, 14, item);
-
-      ++row;
-    }
+    reportProgress(++i/m_spinesMap.size());
   }
-
-  m_table->setUpdatesEnabled(true);
 }

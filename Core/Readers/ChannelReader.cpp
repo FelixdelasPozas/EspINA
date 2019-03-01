@@ -118,10 +118,11 @@ const AnalysisReader::ExtensionList ChannelReader::supportedFileExtensions() con
 }
 
 //------------------------------------------------------------------------
-AnalysisSPtr ChannelReader::read(const QFileInfo& file,
-                                 CoreFactorySPtr  factory,
-                                 ProgressReporter *reporter,
-                                 ErrorHandlerSPtr handler)
+AnalysisSPtr ChannelReader::read(const QFileInfo&      file,
+                                 CoreFactorySPtr       factory,
+                                 ProgressReporter     *reporter,
+                                 ErrorHandlerSPtr      handler,
+                                 const IO::LoadOptions options)
 {
   auto analysis = std::make_shared<Analysis>();
 
@@ -171,6 +172,8 @@ AnalysisSPtr ChannelReader::read(const QFileInfo& file,
   filter->setErrorHandler(handler);
   filter->setFileName(file);
   filter->setStorage(factory->defaultStorage());
+  filter->setStreaming(options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
+                       options.value(VolumetricStreamReader::STREAMING_OPTION) == true);
   filter->update();
 
   auto channel = factory->createChannel(filter, 0);

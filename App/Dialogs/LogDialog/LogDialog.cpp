@@ -27,6 +27,7 @@
 // Qt
 #include <QClipboard>
 #include <QTextCursor>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -36,12 +37,15 @@ const QString SETTINGS_GROUP = "Log Dialog";
 //--------------------------------------------------------------------
 LogDialog::LogDialog()
 : QDialog{DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint}}
+, m_dirty{false}
 {
   setupUi(this);
 
   setAttribute(Qt::WA_DeleteOnClose);
 
-  connect(m_copy, SIGNAL(pressed()), this, SLOT(onCopyPressed()));
+  connect(m_copy,         SIGNAL(pressed()),                    this, SLOT(onCopyPressed()));
+  connect(m_searchButton, SIGNAL(pressed()),                    this, SLOT(onSearchButtonPressed()));
+  connect(m_searchLine,   SIGNAL(textChanged(const QString &)), this, SLOT(onSearchLineModified()));
 
   ESPINA_SETTINGS(settings);
   settings.beginGroup(SETTINGS_GROUP);
@@ -50,7 +54,7 @@ LogDialog::LogDialog()
 }
 
 //--------------------------------------------------------------------
-void LogDialog::closeEvent(QCloseEvent *ev)
+void LogDialog::closeEvent(QCloseEvent *e)
 {
   ESPINA_SETTINGS(settings);
   settings.beginGroup(SETTINGS_GROUP);
@@ -58,12 +62,14 @@ void LogDialog::closeEvent(QCloseEvent *ev)
   settings.endGroup();
   settings.sync();
 
-  QDialog::closeEvent(ev);
+  QDialog::closeEvent(e);
 }
 
 //--------------------------------------------------------------------
 void LogDialog::addText(const QString& text)
 {
+  clearDirtyFlag();
+
   m_plainTextEdit->moveCursor(QTextCursor::End);
   m_plainTextEdit->insertPlainText(text);
   m_plainTextEdit->moveCursor(QTextCursor::End);
@@ -80,6 +86,8 @@ void LogDialog::setText(const QString& text)
 void LogDialog::clear()
 {
   m_plainTextEdit->clear();
+  m_dirty = false;
+  m_searchText->setText(tr("No search has been performed."));
 }
 
 //--------------------------------------------------------------------
@@ -87,4 +95,112 @@ void LogDialog::onCopyPressed()
 {
   auto clipboard = QApplication::clipboard();
   clipboard->setText(m_plainTextEdit->toPlainText());
+}
+
+//--------------------------------------------------------------------
+void LogDialog::onSearchButtonPressed()
+{
+  static QString text;
+  static unsigned long count = 0;
+  static unsigned long max   = 0;
+
+  m_plainTextEdit->updateGeometry();
+
+  if(text == m_searchLine->text())
+  {
+    ++count;
+    if(count >= max) count = 0;
+  }
+  else
+  {
+    text  = m_searchLine->text();
+    count = 0;
+  }
+
+  auto document       = m_plainTextEdit->document();
+  auto previousCursor = m_plainTextEdit->textCursor();
+  unsigned int found  = 0;
+
+  clearDirtyFlag();
+
+  QTextCursor highlightCursor(document);
+  QTextCursor cursor(document);
+  cursor.beginEditBlock();
+
+  QTextCharFormat highlight(highlightCursor.charFormat());
+  highlight.setForeground(Qt::red);
+
+  QTextCharFormat highbackground(highlightCursor.charFormat());
+  highbackground.setForeground(Qt::white);
+  highbackground.setBackground(Qt::red);
+
+  while (!highlightCursor.isNull() && !highlightCursor.atEnd())
+  {
+    highlightCursor = document->find(text, highlightCursor, QTextDocument::FindCaseSensitively);
+
+    if (!highlightCursor.isNull())
+    {
+      if(found != count)
+      {
+        highlightCursor.setCharFormat(highlight);
+      }
+      else
+      {
+        highlightCursor.setCharFormat(highbackground);
+        highlightCursor.clearSelection();
+
+        m_plainTextEdit->setTextCursor(highlightCursor);
+      }
+
+      ++found;
+    }
+  }
+
+  cursor.endEditBlock();
+
+  QString message;
+
+  if(found == 0)
+  {
+    message = tr("There are no occurrences of '%1'.").arg(text);
+  }
+  else
+  {
+    message = tr("Found %1 occurrences of '%2' (selected occurrence %3).").arg(found).arg(text).arg(count+1);
+  }
+
+  m_searchText->setText(message);
+
+  max = found;
+
+  m_dirty = (found != 0);
+}
+
+//--------------------------------------------------------------------
+void LogDialog::onSearchLineModified()
+{
+  auto text = m_searchLine->text();
+
+  m_searchButton->setEnabled(!text.isEmpty());
+
+  if(text.isEmpty())
+  {
+    m_searchText->setText(tr("No search has been performed."));
+  }
+  else
+  {
+    m_searchText->setText(tr("Click on search button to find occurrences of '%1' in the log.").arg(text));
+  }
+
+  clearDirtyFlag();
+}
+
+//--------------------------------------------------------------------
+void LogDialog::clearDirtyFlag()
+{
+  if(m_dirty)
+  {
+    m_plainTextEdit->document()->undo();
+    m_dirty = false;
+  }
 }

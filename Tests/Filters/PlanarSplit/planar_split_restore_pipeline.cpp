@@ -105,10 +105,14 @@ int planar_split_restore_pipeline( int argc, char** argv )
       auto output = segmentation->output();
       auto filter = dynamic_cast<DilateFilter*>(output->filter());
 
-      filter->setRadius(2);
-      filter->update();
+      if(filter)
+      {
+        filter->setRadius(2);
+        filter->update();
 
-      return false;
+        return false;
+      }
+      return true;
     };
 
     error |= checkSegmentations(analysis2, 2)

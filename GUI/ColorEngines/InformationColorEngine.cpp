@@ -21,6 +21,7 @@
 #include "InformationColorEngine.h"
 #include <GUI/Utils/ColorRange.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/Model/CategoryAdapter.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -28,11 +29,14 @@ using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Utils;
 using namespace ESPINA::GUI::ColorEngines;
 
+const QList<QVariant::Type> NUMERICAL_TYPES = { QVariant::Int, QVariant::UInt, QVariant::LongLong, QVariant::ULongLong, QVariant::Double, QVariant::Bool };
+
 //-----------------------------------------------------------------------------
 InformationColorEngine::InformationColorEngine()
 : ColorEngine("PropertyColorEngine", tr("Color by a property value."))
 , m_key("MorphologicalInformation", "Size")
 , m_colorRange(new RangeHSV(0, 10000))
+, m_extension{nullptr}
 {
 }
 
@@ -54,21 +58,53 @@ void InformationColorEngine::setInformation(const SegmentationExtension::Informa
 }
 
 //-----------------------------------------------------------------------------
+void InformationColorEngine::setInformation(const Core::SegmentationExtension::InformationKey& key, const QStringList categories)
+{
+  m_key = key;
+
+  m_categories = categories;
+  m_colorRange->setMinimumValue(0);
+  m_colorRange->setMaximumValue(m_categories.size()-1);
+
+  emit modified();
+}
+
+
+//-----------------------------------------------------------------------------
 QColor InformationColorEngine::color(ConstSegmentationAdapterPtr segmentation)
 {
   Q_ASSERT(segmentation);
 
-  QColor color(Qt::gray);
+  QColor color(40,40,40); // very dark gray
 
-  auto extensions = segmentation->readOnlyExtensions();
-
-  if (extensions->isReady(m_key))
+  if(m_extension && m_extension->validCategory(segmentation->category()->classificationName()) && m_extension->validData(segmentation->output()))
   {
-    auto info = extensions->information(m_key);
+    auto extensions = segmentation->readOnlyExtensions();
 
-    if (info.isValid() && info.canConvert<double>())
+    if (extensions->isReady(m_key))
     {
-      color = m_colorRange->color(info.toDouble());
+      auto info = extensions->information(m_key);
+
+      if (info.isValid())
+      {
+        if(NUMERICAL_TYPES.contains(info.type()))
+        {
+          color = m_colorRange->color(info.toDouble());
+        }
+        else
+        {
+          if(info.type() == QVariant::String || info.canConvert<QString>())
+          {
+            auto category = info.toString();
+            if(m_categories.contains(category))
+            {
+              auto pos = m_categories.indexOf(category);
+
+              color = m_colorRange->color(pos);
+            }
+          }
+        }
+      }
     }
   }
 

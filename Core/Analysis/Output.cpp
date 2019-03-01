@@ -218,7 +218,7 @@ void Output::onDataChanged()
 //----------------------------------------------------------------------------
 void Output::setData(Output::DataSPtr data)
 {
-  Data::Type type = data->type();
+  const auto type = data->type();
 
   if (!m_data.contains(type))
   {
@@ -336,13 +336,10 @@ bool Output::isSegmentationOutput() const
     auto content  = analysis->content();
     auto outEdges = content->outEdges(m_filter, QString::number(m_id));
 
-    for (auto edge : outEdges)
-    {
-      if (std::dynamic_pointer_cast<Segmentation>(edge.target))
-      {
-        return true;
-      }
-    }
+    auto booleanOp = [](const DirectedGraph::Edge &edge) { return (nullptr != std::dynamic_pointer_cast<Segmentation>(edge.target)); };
+    auto exists = std::any_of(outEdges.constBegin(), outEdges.constEnd(), booleanOp);
+
+    return exists;
   }
 
   return false;

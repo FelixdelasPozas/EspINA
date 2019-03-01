@@ -52,13 +52,13 @@ SeedTemporalRepresentation::SeedTemporalRepresentation(SeedGrowSegmentationFilte
 , m_glyph2D              {nullptr}
 , m_glyphMapper          {nullptr}
 , m_actor                {nullptr}
+, m_seed                 {filter->seed()}
 , m_view                 {nullptr}
 , m_filter               {filter}
 , m_planeIndex           {-1}
 , m_lastSlice            {-std::numeric_limits<Nm>::min()}
 , m_active               {false}
 {
-  m_seed = filter->seed();
 }
 
 //--------------------------------------------------------------------

@@ -69,13 +69,31 @@ namespace ESPINA
       void clear();
 
     protected:
-      virtual void closeEvent(QCloseEvent *ev) override;
+      virtual void closeEvent(QCloseEvent *e) override;
 
     private slots:
       /** \brief Copies the window text to the system clipboard.
        *
        */
       void onCopyPressed();
+
+      /** \brief Performs a search on the log text.
+       *
+       */
+      void onSearchButtonPressed();
+
+      /** \brief Enables/disables the search button depending on its contents.
+       *
+       */
+      void onSearchLineModified();
+
+    private:
+      /** \brief Removes the text highlights and clears the dirty flag.
+       *
+       */
+      void clearDirtyFlag();
+
+      bool m_dirty; /** true if there is a search highlighted on the log, false otherwise. */
   };
 
 } // namespace ESPINA

@@ -26,7 +26,6 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Factory/CoreFactory.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <CountingFrames/CountingFrame.h>
 #include <Extensions/ExtensionUtils.h>
@@ -42,9 +41,9 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-ApplyCountingFrame::ApplyCountingFrame(CountingFrame *countingFrame,
-                                       CoreFactory   *factory,
-                                       SchedulerSPtr  scheduler)
+ApplyCountingFrame::ApplyCountingFrame(CountingFrame                         *countingFrame,
+                                       Core::SegmentationExtensionFactorySPtr factory,
+                                       SchedulerSPtr                          scheduler)
 : Task           {scheduler}
 , m_countingFrame{countingFrame}
 , m_factory      {factory}
@@ -96,12 +95,12 @@ void ApplyCountingFrame::run()
       auto maxTasks = Scheduler::maxRunningTasks();
       QVector<SegmentationSList> partitions(maxTasks);
 
-      int i = 0;
+      int iteration = 0;
       for(auto segmentation: validSegmentations)
       {
         if (!canExecute()) break;
 
-        partitions[i++ % maxTasks] << segmentation;
+        partitions[iteration++ % maxTasks] << segmentation;
       }
 
       for(unsigned int i = 0; i < maxTasks; ++i)
@@ -179,10 +178,8 @@ void ApplyCountingFrame::onTaskProgress(int value, ApplySegmentationCountingFram
   m_tasks[task].Progress = value;
 
   double progressValue = 0;
-  for(auto data: m_tasks.values())
-  {
-    progressValue += data.Progress;
-  }
+  const auto tasks = m_tasks.values();
+  std::for_each(tasks.constBegin(), tasks.constEnd(), [&progressValue](const CF::ApplyCountingFrame::Data &data) { progressValue += data.Progress; });
 
   reportProgress(progressValue/Scheduler::maxRunningTasks());
 }
@@ -209,10 +206,10 @@ void ApplyCountingFrame::onTaskFinished()
 }
 
 //--------------------------------------------------------------------
-ApplySegmentationCountingFrame::ApplySegmentationCountingFrame(CountingFrame    *countingFrame,
-                                                               SegmentationSList segmentations,
-                                                               CoreFactory      *factory,
-                                                               SchedulerSPtr     scheduler)
+ApplySegmentationCountingFrame::ApplySegmentationCountingFrame(CountingFrame                         *countingFrame,
+                                                               SegmentationSList                      segmentations,
+                                                               Core::SegmentationExtensionFactorySPtr factory,
+                                                               SchedulerSPtr                          scheduler)
 : Task           {scheduler}
 , m_countingFrame{countingFrame}
 , m_segmentations{segmentations}
@@ -235,9 +232,20 @@ void ApplySegmentationCountingFrame::run()
 
       auto segmentation = m_segmentations.at(i);
 
-      auto inclusionExtension = retrieveOrCreateSegmentationExtension<StereologicalInclusion>(segmentation, m_factory);
-      inclusionExtension->addCountingFrame(m_countingFrame);
-      inclusionExtension->evaluateCountingFrame(m_countingFrame);
+      StereologicalInclusionSPtr extension = nullptr;
+      if(segmentation->readOnlyExtensions()->hasExtension(StereologicalInclusion::TYPE))
+      {
+        extension = segmentation->extensions()->get<StereologicalInclusion>();
+      }
+      else
+      {
+        auto segExtension = m_factory->createExtension(StereologicalInclusion::TYPE);
+        segmentation->extensions()->add(segExtension);
+        extension = std::dynamic_pointer_cast<StereologicalInclusion>(segExtension);
+      }
+
+      extension->addCountingFrame(m_countingFrame);
+      extension->evaluateCountingFrame(m_countingFrame);
 
       auto newProgress = (100 * i)/m_segmentations.size();
 

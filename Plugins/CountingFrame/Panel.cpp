@@ -470,13 +470,13 @@ void CF::Panel::enableCategoryConstraints(bool enable)
 void CF::Panel::updateUI(QModelIndex index)
 {
   bool validCF = !m_countingFrames.isEmpty() && index.isValid();
-  bool isEditable = true;
+  bool canBeEdited = true;
 
   if (validCF)
   {
     CountingFrame *cf;
     cf = m_cfModel->countingFrame(index);
-    isEditable = cf->isEditable();
+    canBeEdited = cf->isEditable();
     Q_ASSERT(cf);
 
     showInfo(cf);
@@ -501,17 +501,17 @@ void CF::Panel::updateUI(QModelIndex index)
 
   m_gui->countingFrames->setEnabled(validCF);
 
-  m_gui->leftMargin  ->setEnabled(validCF && isEditable);
-  m_gui->topMargin   ->setEnabled(validCF && isEditable);
-  m_gui->frontMargin ->setEnabled(validCF && isEditable);
-  m_gui->rightMargin ->setEnabled(validCF && isEditable);
-  m_gui->bottomMargin->setEnabled(validCF && isEditable);
-  m_gui->backMargin  ->setEnabled(validCF && isEditable);
+  m_gui->leftMargin  ->setEnabled(validCF && canBeEdited);
+  m_gui->topMargin   ->setEnabled(validCF && canBeEdited);
+  m_gui->frontMargin ->setEnabled(validCF && canBeEdited);
+  m_gui->rightMargin ->setEnabled(validCF && canBeEdited);
+  m_gui->bottomMargin->setEnabled(validCF && canBeEdited);
+  m_gui->backMargin  ->setEnabled(validCF && canBeEdited);
 
   m_gui->countingFrameDescription->setEnabled(validCF);
 
-  m_gui->useCategoryConstraint->setEnabled(validCF && isEditable);
-  m_gui->categorySelector     ->setEnabled(m_gui->useCategoryConstraint->isChecked() && isEditable);
+  m_gui->useCategoryConstraint->setEnabled(validCF && canBeEdited);
+  m_gui->categorySelector     ->setEnabled(m_gui->useCategoryConstraint->isChecked() && canBeEdited);
 
   m_gui->lockCF  ->setEnabled(validCF);
   m_gui->deleteCF->setEnabled(validCF);
@@ -805,15 +805,13 @@ void CF::Panel::onMarginsComputed()
   PendingCF                 pendingCF;
   ComputeOptimalMarginsSPtr optimalMargins;
 
-  for(auto cf : m_pendingCFs)
+  auto equalOp = [&task](const PendingCF cf) { return cf.Task.get() == task; };
+  auto it = std::find_if(m_pendingCFs.constBegin(), m_pendingCFs.constEnd(), equalOp);
+  if(it != m_pendingCFs.constEnd())
   {
-    if (cf.Task.get() == task)
-    {
-      pendingCF      = cf;
-      optimalMargins = cf.Task;
-      m_pendingCFs.removeOne(cf);
-      break;
-    }
+    pendingCF = *it;
+    optimalMargins = (*it).Task;
+    m_pendingCFs.removeOne(*it);
   }
 
   Q_ASSERT(pendingCF.Task);

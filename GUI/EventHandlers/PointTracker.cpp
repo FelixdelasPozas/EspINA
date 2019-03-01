@@ -180,7 +180,7 @@ PointTracker::Track PointTracker::interpolate(const NmVector3 &point1, const NmV
 
   if(distance > m_maxDistance2)
   {
-    int chunks = sqrt(static_cast<int>(distance/m_maxDistance2));
+    const int chunks = sqrt(static_cast<int>(distance/m_maxDistance2));
 
     Q_ASSERT(chunks > 0);
 

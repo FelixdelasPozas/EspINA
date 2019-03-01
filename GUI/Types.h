@@ -46,13 +46,14 @@ namespace ESPINA
   using ChannelAdapterSList    = QList<ChannelAdapterSPtr>;
 
   class SegmentationAdapter;
-  using SegmentationAdapterPtr      = SegmentationAdapter *;
-  using ConstSegmentationAdapterPtr = const SegmentationAdapter *;
-  using SegmentationAdapterCPtr     = const SegmentationAdapter *;
-  using SegmentationAdapterSet      = QSet<SegmentationAdapterPtr>;
-  using SegmentationAdapterList     = QList<SegmentationAdapterPtr>;
-  using SegmentationAdapterSPtr     = std::shared_ptr<SegmentationAdapter>;
-  using SegmentationAdapterSList    = QList<SegmentationAdapterSPtr>;
+  using SegmentationAdapterPtr       = SegmentationAdapter *;
+  using ConstSegmentationAdapterPtr  = const SegmentationAdapter *;
+  using ConstSegmentationAdapterList = QList<ConstSegmentationAdapterPtr>;
+  using SegmentationAdapterCPtr      = const SegmentationAdapter *;
+  using SegmentationAdapterSet       = QSet<SegmentationAdapterPtr>;
+  using SegmentationAdapterList      = QList<SegmentationAdapterPtr>;
+  using SegmentationAdapterSPtr      = std::shared_ptr<SegmentationAdapter>;
+  using SegmentationAdapterSList     = QList<SegmentationAdapterSPtr>;
 
   class Panel;
 

@@ -207,6 +207,19 @@ namespace ESPINA
                */
               void setStroke(const Core::SkeletonStroke &stroke);
 
+              /** \brief Removes the stroke from the skeleton (also removes all edges of the stroke).
+               * \param[in] stroke skeleton stroke struct.
+               *
+               */
+              void removeStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Renames the stroke with the old name with the new one.
+               * \param[in] oldName Stroke current name.
+               * \param[in] newName Stroke new name.
+               *
+               */
+              void renameStroke(const QString &oldName, const QString &newName);
+
               /** \brief Returns the current stroke definition used.
                *
                */

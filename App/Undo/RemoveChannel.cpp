@@ -30,10 +30,10 @@ RemoveChannel::RemoveChannel(ChannelAdapterSPtr channel, Support::Context &conte
 : QUndoCommand{parent}
 , m_channel   {channel}
 , m_sample    {nullptr}
+, m_relations {context.model()->relations(channel.get(), ESPINA::RELATION_INOUT)}
 , m_context   (context)
+, m_active    {Support::getActiveChannel(context) == m_channel.get()}
 {
-  m_relations = context.model()->relations(channel.get(), ESPINA::RELATION_INOUT);
-  m_active    = (Support::getActiveChannel(context) == m_channel.get());
 }
 
 //------------------------------------------------------------------------

@@ -137,12 +137,13 @@ SegmentationAdapterSList QueryAdapter::segmentationsOnChannel(ChannelAdapterSPtr
 //------------------------------------------------------------------------
 SampleAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SampleSPtr adaptedSample)
 {
-  for (auto sample : model->samples())
+  const auto samples = model->samples();
+
+  auto equalOp = [adaptedSample](const SampleAdapterSPtr sample) { return (sample->m_sample == adaptedSample); };
+  auto it = std::find_if(samples.constBegin(), samples.constEnd(), equalOp);
+  if(it != samples.constEnd())
   {
-    if (sample->m_sample == adaptedSample)
-    {
-      return sample;
-    }
+    return *it;
   }
 
   return SampleAdapterSPtr();
@@ -168,14 +169,13 @@ ChannelAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, ChannelSLi
 
   for (auto channel : model->channels())
   {
-    for (auto adaptedChannel : adaptedChannels)
+    auto equalOp = [channel](const ChannelSPtr adaptedStack) { return (channel->m_channel == adaptedStack); };
+    auto it = std::find_if(adaptedChannels.constBegin(), adaptedChannels.constEnd(), equalOp);
+
+    if(it != adaptedChannels.constEnd())
     {
-      if (channel->m_channel == adaptedChannel)
-      {
-        adaptedChannels.removeOne(adaptedChannel);
-        channels << channel;
-        break;
-      }
+      adaptedChannels.removeOne(*it);
+      channels << channel;
     }
 
     if (adaptedChannels.isEmpty()) break;
@@ -187,12 +187,13 @@ ChannelAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, ChannelSLi
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr QueryAdapter::smartPointer(ModelAdapterPtr model, SegmentationSPtr adaptedSegmentation)
 {
-  for (auto segmentation : model->segmentations())
+  const auto segmentations = model->segmentations();
+
+  auto selectionOp = [adaptedSegmentation](const SegmentationAdapterSPtr segmentation) { return (segmentation->m_segmentation == adaptedSegmentation); };
+  auto it = std::find_if(segmentations.constBegin(), segmentations.constEnd(), selectionOp);
+  if(it != segmentations.constEnd())
   {
-    if (segmentation->m_segmentation == adaptedSegmentation)
-    {
-      return segmentation;
-    }
+    return *it;
   }
 
   return SegmentationAdapterSPtr();
@@ -203,13 +204,15 @@ SegmentationAdapterSList QueryAdapter::segmentationsOfCategory(ModelAdapterSPtr 
 {
   SegmentationAdapterSList results;
 
-  for(auto segmentation: model->segmentations())
+  auto selectionOp = [&results, category](const SegmentationAdapterSPtr segmentation)
   {
     if((category == segmentation->category()) || (segmentation->category()->classificationName().startsWith(category->classificationName(), Qt::CaseSensitive)))
     {
       results << segmentation;
     }
-  }
+  };
+
+  std::for_each(model->segmentations().constBegin(), model->segmentations().constEnd(), selectionOp);
 
   return results;
 }
@@ -221,14 +224,12 @@ SegmentationAdapterSList QueryAdapter::smartPointer(ModelAdapterPtr model, Segme
 
   for (auto segmentation : model->segmentations())
   {
-    for (auto adaptedSegmentation : adaptedSegmentations)
+    auto equalOp = [segmentation](const SegmentationSPtr adaptedSegmentation) { return (segmentation->m_segmentation == adaptedSegmentation); };
+    auto it = std::find_if(adaptedSegmentations.constBegin(), adaptedSegmentations.constEnd(), equalOp);
+    if(it != adaptedSegmentations.constEnd())
     {
-      if (segmentation->m_segmentation == adaptedSegmentation)
-      {
-        adaptedSegmentations.removeOne(adaptedSegmentation);
-        segmentations << segmentation;
-        break;
-      }
+      adaptedSegmentations.removeOne(*it);
+      segmentations << segmentation;
     }
 
     if (adaptedSegmentations.isEmpty()) break;

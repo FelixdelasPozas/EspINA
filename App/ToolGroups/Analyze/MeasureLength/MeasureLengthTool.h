@@ -51,8 +51,6 @@ namespace ESPINA
        */
       virtual ~MeasureLengthTool();
 
-      virtual void abortOperation();
-
     signals:
       void stopMeasuring();
 

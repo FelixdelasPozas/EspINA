@@ -38,6 +38,10 @@
 #include "Extensions/SkeletonInformation/AxonInformation.h"
 #include "Extensions/SkeletonInformation/SynapseInformation.h"
 #include "SkeletonInformation/SkeletonInformationFactory.h"
+#include "SLIC/StackSLIC.h"
+#include "SLIC/StackSLICFactory.h"
+#include "BasicInformation/BasicSegmentationInformation.h"
+#include "BasicInformation/BasicSegmentationInformationFactory.h"
 
 // C++
 #include <memory>
@@ -52,6 +56,7 @@ LibraryStackExtensionFactory::LibraryStackExtensionFactory(CoreFactory* factory)
 : StackExtensionFactory{factory}
 {
   m_factories.insert(ChannelEdges::TYPE, std::make_shared<ChannelEdgesFactory>(factory));
+  m_factories.insert(StackSLIC::TYPE, std::make_shared<StackSLICFactory>(factory));
 }
 
 //-----------------------------------------------------------------------
@@ -93,18 +98,18 @@ StackExtension::TypeList ESPINA::LibraryStackExtensionFactory::providedExtension
   return list;
 }
 
-
 //-----------------------------------------------------------------------
 LibrarySegmentationExtensionFactory::LibrarySegmentationExtensionFactory(CoreFactory* factory)
 : SegmentationExtensionFactory{factory}
 {
-  m_factories.insert(EdgeDistance::TYPE,             std::make_shared<EdgeDistanceFactory>(factory));
-  m_factories.insert(SegmentationIssues::TYPE,       std::make_shared<SegmentationIssuesFactory>(factory));
-  m_factories.insert(MorphologicalInformation::TYPE, std::make_shared<MorphologicalInformationFactory>(factory));
-  m_factories.insert(SegmentationNotes::TYPE,        std::make_shared<SegmentationNotesFactory>(factory));
-  m_factories.insert(SegmentationTags::TYPE,         std::make_shared<SegmentationTagsFactory>(factory));
+  m_factories.insert(BasicSegmentationInformationExtension::TYPE, std::make_shared<BasicSegmentationInformationExtensionFactory>());
+  m_factories.insert(EdgeDistance::TYPE,                          std::make_shared<EdgeDistanceFactory>(factory));
+  m_factories.insert(SegmentationIssues::TYPE,                    std::make_shared<SegmentationIssuesFactory>());
+  m_factories.insert(MorphologicalInformation::TYPE,              std::make_shared<MorphologicalInformationFactory>());
+  m_factories.insert(SegmentationNotes::TYPE,                     std::make_shared<SegmentationNotesFactory>());
+  m_factories.insert(SegmentationTags::TYPE,                      std::make_shared<SegmentationTagsFactory>());
 
-  auto skeletonExtensionsFactory = std::make_shared<SkeletonInformationFactory>(factory);
+  auto skeletonExtensionsFactory = std::make_shared<SkeletonInformationFactory>();
   m_factories.insert(DendriteSkeletonInformation::TYPE, skeletonExtensionsFactory);
   m_factories.insert(AxonSkeletonInformation::TYPE, skeletonExtensionsFactory);
   m_factories.insert(SynapseConnectionInformation::TYPE, skeletonExtensionsFactory);

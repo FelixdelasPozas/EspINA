@@ -22,6 +22,8 @@
 #ifndef GUI_MODEL_PROXIES_LOCATIONPROXY_H_
 #define GUI_MODEL_PROXIES_LOCATIONPROXY_H_
 
+#include "EspinaGUI_Export.h"
+
 // ESPINA
 #include <GUI/Model/ModelAdapter.h>
 
@@ -40,7 +42,7 @@ namespace ESPINA
          * \brief Groups segmentations by the stack of origin.
          *
          */
-        class LocationProxy
+        class EspinaGUI_EXPORT LocationProxy
         : public QAbstractProxyModel
         {
             Q_OBJECT

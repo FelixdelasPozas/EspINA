@@ -389,8 +389,8 @@ void vtkPlaneContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------------
 void vtkPlaneContourWidget::AddNode()
 {
-  int X = this->Interactor->GetEventPosition()[0];
-  int Y = this->Interactor->GetEventPosition()[1];
+  const auto X = this->Interactor->GetEventPosition()[0];
+  const auto Y = this->Interactor->GetEventPosition()[1];
 
   // If the rep already has at least 2 nodes, check how close we are to the first
   auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep);
@@ -423,10 +423,6 @@ void vtkPlaneContourWidget::AddNode()
       this->EventCallbackCommand->SetAbortFlag(1);
       this->InvokeEvent(vtkCommand::EndInteractionEvent, nullptr);
       this->m_mode = this->m_actualMode;
-
-      // change cursor
-      int X = this->Interactor->GetEventPosition()[0];
-      int Y = this->Interactor->GetEventPosition()[1];
 
       this->WidgetRep->ComputeInteractionState(X, Y);
       int state = this->WidgetRep->GetInteractionState();
@@ -579,8 +575,8 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
   auto self = reinterpret_cast<vtkPlaneContourWidget*>(w);
   auto rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
+  const auto X = self->Interactor->GetEventPosition()[0];
+  const auto Y = self->Interactor->GetEventPosition()[1];
 
   if (self->WidgetState == vtkPlaneContourWidget::Start) return;
 
@@ -593,7 +589,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
     if (self->FollowCursor || self->ContinuousDraw)
     {
       // Have the last node follow the mouse in this case...
-      const int numNodes = rep->GetNumberOfNodes();
+      int numNodes = rep->GetNumberOfNodes();
 
       if ((numNodes > 1) && (rep->GetClosedLoop() == 0))
       {
@@ -615,7 +611,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
           if (rep->CheckAndCutContourIntersection())
           {
             // last check
-            int numNodes = rep->GetNumberOfNodes();
+            numNodes = rep->GetNumberOfNodes();
             if (rep->CheckNodesForDuplicates(numNodes - 1, numNodes - 2))
             {
               rep->DeleteNthNode(numNodes - 2);

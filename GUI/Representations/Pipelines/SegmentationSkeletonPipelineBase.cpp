@@ -44,6 +44,8 @@
 #include <vtkDataSet.h>
 #include <vtkPointData.h>
 #include <vtkLabelPlacementMapper.h>
+#include <vtkFollower.h>
+#include <vtkGlyph3DMapper.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -82,6 +84,9 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
   for(auto actor: actors)
   {
+    auto follower = vtkFollower::SafeDownCast(actor.Get());
+    if(follower) continue;
+
     auto actor2D = vtkActor2D::SafeDownCast(actor.Get());
 
     if(actor2D)
@@ -101,6 +106,9 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
     if(actorVTK)
     {
+      auto truncatedMapper = vtkGlyph3DMapper::SafeDownCast(actorVTK->GetMapper());
+      if(truncatedMapper) continue;
+
       auto data = vtkPolyData::SafeDownCast(actorVTK->GetMapper()->GetInput());
       if(!data) return;
 

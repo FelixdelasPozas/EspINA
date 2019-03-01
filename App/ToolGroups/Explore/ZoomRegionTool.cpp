@@ -59,7 +59,7 @@ ZoomRegionTool::~ZoomRegionTool()
 //----------------------------------------------------------------------------
 void ZoomRegionTool::abortOperation()
 {
-  setChecked(false);
+  if(isChecked()) setChecked(false);
 }
 
 //----------------------------------------------------------------------------

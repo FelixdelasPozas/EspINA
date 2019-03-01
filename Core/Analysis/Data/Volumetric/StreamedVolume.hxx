@@ -168,6 +168,12 @@ namespace ESPINA
          */
         const typename T::PointType itkOriginalOrigin() const;
 
+        /** \brief Fills the volume with the given value.
+         * \param[in] value Pixel value.
+         *
+         */
+        virtual void fill(const typename T::PixelType &value);
+
       protected:
         virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
         { return false; }
@@ -541,6 +547,16 @@ namespace ESPINA
       QReadLocker lock(&this->m_lock);
 
       return m_origin;
+    }
+
+    //-----------------------------------------------------------------------------
+    template<typename T>
+    void StreamedVolume<T>::fill(const typename T::PixelType &value)
+    {
+      auto message = QObject::tr("Attempt to modify a read-only volume. File: %1").arg(m_fileName.absoluteFilePath());
+      auto details = QObject::tr("StreamedVolume<>::fill(&value) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
     }
 
   } // namespace Core

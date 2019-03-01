@@ -34,6 +34,8 @@ ColorEngineMenu::ColorEngineMenu(const QString        &title,
 : QMenu   {title}
 , m_engine{colorEngine}
 {
+  restoreUserSettings();
+
   connect(this, SIGNAL(triggered(QAction*)),
           this, SLOT(toggleColorEngine(QAction*)));
 }

@@ -23,11 +23,13 @@
 
 #include "CountingFramePlugin_Export.h"
 
+// ESPINA
 #include <Support/Plugin.h>
+#include <GUI/Model/ModelAdapter.h>
 
+// Plugin
 #include "CountingFrameManager.h"
 #include "ColorEngines/ColorEngine.h"
-#include <GUI/Model/ModelAdapter.h>
 
 namespace ESPINA
 {
@@ -36,10 +38,10 @@ namespace ESPINA
   namespace CF
   {
     class CountingFramePlugin_EXPORT CountingFramePlugin
-    : public Support::Plugin
+    : public Support::AppPlugin
     {
         Q_OBJECT
-        Q_INTERFACES(ESPINA::Support::Plugin)
+        Q_INTERFACES(ESPINA::Core::CorePlugin ESPINA::Support::AppPlugin)
 
       public:
         /** \brief CountingFramePlugin class constructor.
@@ -52,6 +54,18 @@ namespace ESPINA
          */
         virtual ~CountingFramePlugin()
         {};
+
+        virtual const QString name() const
+        { return tr("Counting Frame Plugin"); }
+
+        virtual const QString description() const
+        { return tr("Stereological inclusion methods to count segmentations per volume."); }
+
+        virtual const QString organization() const
+        { return tr("Universidad Politécnica de Madrid."); }
+
+        virtual const QString maintainer() const
+        { return tr("felix.delaspozas@ctb.upm.es"); }
 
         virtual void init(Support::Context &context);
 
@@ -69,16 +83,15 @@ namespace ESPINA
         virtual void onAnalysisClosed();
 
       private:
+        Support::Context                      *m_context;                        /** application context.                           */
         SchedulerSPtr                          m_scheduler;                      /** application task scheduler.                    */
         QUndoStack                            *m_undoStack;                      /** application undo stack.                        */
-        Support::Context                      *m_context;                        /** application context.                           */
-
         std::shared_ptr<CountingFrameManager>  m_manager;                        /** counting frame manager object.                 */
         Panel                                 *m_dockWidget;                     /** counting frame panel.                          */
         CountingFrameColorEngineSPtr           m_colorEngine;                    /** counting frame color engine.                   */
         RepresentationFactorySPtr              m_representationFactory;          /** counting frame representation factory.         */
-        Core::StackExtensionFactorySPtr        m_channelExtensionFactory;        /** counting frame channel extension factory.      */
         Core::SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;   /** counting frame segmentation extension factory. */
+        Core::StackExtensionFactorySPtr        m_channelExtensionFactory;        /** counting frame channel extension factory.      */
     };
   }
 } // namespace ESPINA

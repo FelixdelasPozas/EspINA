@@ -42,12 +42,12 @@ namespace ESPINA
 
     public:
       /** \brief ImageLogicFilter class constructor.
-			 * \param[in] inputs, list of input smart pointers.
-			 * \param[in] type, ImageLogicFilter type.
-			 * \param[in] scheduler, scheduler smart pointer.
+			 * \param[in] inputs list of input smart pointers.
+			 * \param[in] type ImageLogicFilter type.
+			 * \param[in] scheduler scheduler smart pointer.
        *
        */
-      explicit ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
+      explicit ImageLogicFilter(InputSList inputs, Type type, SchedulerSPtr scheduler = SchedulerSPtr());
 
       /** \brief ImageLogicFilter class virtual destructor.
        *
@@ -64,6 +64,13 @@ namespace ESPINA
        */
       void setOperation(Operation op);
 
+      /** \brief Sets the hue value for new strokes in case of skeleton addition.
+       * \param[in] hue Hue value in [0, 359]
+       *
+       */
+      void setNewSkeletonStrokesHue(const int hue)
+      { m_hue = std::min(359, std::max(0,hue)); }
+
     protected:
       virtual Snapshot saveFilterSnapshot() const;
 
@@ -78,19 +85,29 @@ namespace ESPINA
       virtual bool ignoreStorageContent() const;
 
     protected:
-      /** \brief Performs the logical addition of the input segmentations.
+      /** \brief Performs the logical addition of the input volumetric segmentations.
        *
        */
-      void addition();
+      void volumetricAddition();
 
-      /** \brief Performs the subtraction off all the segmentations from the
-       * first one.
+      /** \brief Performs the logical addition of the input skeleton segmentations.
        *
        */
-      void subtraction();
+      void skeletonAddition();
+
+      /** \brief Performs the subtraction of all the volumetric segmentations from the first one.
+       *
+       */
+      void volumetricSubtraction();
+
+      /** \brief Performs the subtraction of all the skeleton segmentations from the first one.
+       *
+       */
+      void skeletonSubtraction();
 
     private:
-      Operation m_operation;
+      Operation m_operation; /** operation type.                                                   */
+      int       m_hue;       /** hue color of skeleton strokes in the skeleton addition operation. */
   };
 
   using ImageLogicFilterPtr  = ImageLogicFilter *;

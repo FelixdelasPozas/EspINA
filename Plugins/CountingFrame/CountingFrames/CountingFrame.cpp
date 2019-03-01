@@ -40,11 +40,11 @@ using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrame::CountingFrame(CountingFrameExtension *extension,
-                             Nm                      inclusion[3],
-                             Nm                      exclusion[3],
-                             SchedulerSPtr           scheduler,
-                             CoreFactory            *factory)
+CountingFrame::CountingFrame(CountingFrameExtension                *extension,
+                             Nm                                     inclusion[3],
+                             Nm                                     exclusion[3],
+                             SchedulerSPtr                          scheduler,
+                             Core::SegmentationExtensionFactorySPtr factory)
 : INCLUSION_FACE   {255}
 , EXCLUSION_FACE   {0}
 , m_scheduler      {scheduler}
@@ -427,10 +427,7 @@ vtkSmartPointer<vtkPolyData> CountingFrame::innerFramePolyData() const
   QReadLocker lock(&m_countingFrameMutex);
 
   auto polydata = vtkSmartPointer<vtkPolyData>::New();
-  if(m_innerFrame)
-  {
-    polydata->DeepCopy(m_innerFrame);
-  }
+  if(m_innerFrame) polydata->DeepCopy(m_innerFrame);
 
   return polydata;
 }

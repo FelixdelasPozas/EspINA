@@ -110,6 +110,7 @@ void SegmentationMeshSwitch::restoreSettings(std::shared_ptr<QSettings> settings
 void SegmentationMeshSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
   saveCheckedState(settings);
+
   settings->setValue(SEGMENTATION_MESH_SMOOTH_VALUE_KEY, m_smooth->value());
 }
 
@@ -130,7 +131,7 @@ void SegmentationMeshSwitch::onSmoothChanged(int value)
 
     if(m_smoothEnabled)
     {
-      ViewItemAdapterList items = m_smoothedMeshManager->pools().first()->sources();
+      const ViewItemAdapterList items = m_smoothedMeshManager->pools().first()->sources();
 
       invalidateRepresentations(items);
     }

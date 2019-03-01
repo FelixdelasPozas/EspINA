@@ -1,3 +1,4 @@
+
 /*
     
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
@@ -358,10 +359,10 @@ bool StereologicalInclusion::isExcludedByCountingFrame(CountingFrame* cf)
         isExcluded = false;
         if(i == regionPoints->GetNumberOfPoints() -4) return true;
 
-        for(auto i: {1,3})
+        for(auto k: {1,3})
         {
           // segmentation can have several "parts" and if one is outside then is out
-          if(minBounds[i] >= sliceBounds[i])
+          if(minBounds[k] >= sliceBounds[k])
           {
             return true;
           }

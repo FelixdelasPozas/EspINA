@@ -152,5 +152,8 @@
     <file>clipboard_copy.svg</file>
     <file>slice_interpolation.svg</file>
     <file>slic.svg</file>
+    <file>connectionGradient.svg</file>
+    <file>weight-balance.svg</file>
+    <file>ruler-max.svg</file>
   </qresource>
 </RCC>

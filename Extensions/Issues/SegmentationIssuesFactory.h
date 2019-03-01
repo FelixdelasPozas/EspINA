@@ -42,10 +42,9 @@ namespace ESPINA
     {
       public:
         /** \brief SegmentationIssuesFactory class constructor.
-         * \param[in] factory pointer to core factory.
          *
          */
-        explicit SegmentationIssuesFactory(CoreFactory *factory);
+        explicit SegmentationIssuesFactory();
 
         /** \brief SegmentationIssuesFactory class virtual destructor.
          *

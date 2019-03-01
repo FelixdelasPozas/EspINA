@@ -106,6 +106,7 @@ void SegmentationVolumetricSwitch::restoreSettings(std::shared_ptr<QSettings> se
 void SegmentationVolumetricSwitch::saveSettings(std::shared_ptr<QSettings> settings)
 {
   saveCheckedState(settings);
+
   settings->setValue(VOLUMETRIC_GPU_ENABLED_KEY, m_gpuOptionButton->isChecked());
 }
 

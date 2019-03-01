@@ -84,6 +84,14 @@ namespace ESPINA
        */
       void abortTasks();
 
+      /** \brief Returns the connections resulting of the given operation and segmentations.
+       * \param[in] segmentation Segmentation result of the operation.
+       * \param[in] segmentations Reference to a list of segmentations.
+       * \param[in] operation Logic operation.
+       *
+       */
+      const ConnectionList operationConnections(const SegmentationAdapterSPtr segmentation, const SegmentationAdapterList &segmentations, const ImageLogicFilter::Operation operation) const;
+
       /** context of the operation task. */
       struct TaskContext
       {

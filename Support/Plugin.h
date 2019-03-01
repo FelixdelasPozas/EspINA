@@ -29,6 +29,7 @@
 #include <Core/Factory/ExtensionFactory.h>
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
+#include <Core/Plugin.h>
 
 // Qt
 #include <QtPlugin>
@@ -57,15 +58,21 @@ namespace ESPINA
 
     using CategorizedTool = QPair<ToolCategory, Widgets::ToolSPtr>;
 
-    class EspinaSupport_EXPORT Plugin
-    : public QObject
+    /** \class Plugin
+     * \brief Interface for plugins at application level (EspINA plugins).
+     *
+     */
+    class EspinaSupport_EXPORT AppPlugin
+    : public Core::CorePlugin
     {
       Q_OBJECT
+      Q_INTERFACES(ESPINA::Core::CorePlugin)
+
     public:
       /** \brief Plugin class virtual destructor.
        *
        */
-      virtual ~Plugin()
+      virtual ~AppPlugin()
       {}
 
       /** \brief Gives the plugin the neccesary objects to initialize itself.
@@ -73,36 +80,6 @@ namespace ESPINA
        *
        */
       virtual void init(Context &context) = 0;
-
-      /** \brief Returns a list of channel extension factories.
-       *
-       *  Whenever this plugin provides a channel extension, it should provide
-       *  a factory to obtain such extensions, otherwise read only information will
-       *  be available after loading them.
-       */
-      virtual Core::StackExtensionFactorySList channelExtensionFactories() const
-      { return Core::StackExtensionFactorySList(); }
-
-      /** \brief Returns a list of segmentation extension factories.
-       *
-       *  Whenever this plugin provides a segmentation extension, it should provide
-       *  a factory to obtain such extensions, otherwise read only information will
-       *  be available after loading them.
-       */
-      virtual Core::SegmentationExtensionFactorySList segmentationExtensionFactories() const
-      { return Core::SegmentationExtensionFactorySList(); }
-
-      /** \brief Returns a list of filter factories provided by the plugin.
-       *
-       */
-      virtual FilterFactorySList filterFactories() const
-      { return FilterFactorySList(); }
-
-      /** \brief Returns a list of analysis readers provided by the plugin.
-       *
-       */
-      virtual AnalysisReaderSList analysisReaders() const
-      { return AnalysisReaderSList(); }
 
       /** \brief Returns a list of color engines provided by the plugin.
        *
@@ -123,6 +100,9 @@ namespace ESPINA
       virtual QList<CategorizedTool> tools() const
       { return QList<CategorizedTool>(); }
 
+      /** \brief Returns a list of reports provided by the plugin.
+       *
+       */
       virtual ReportSList reports() const
       { return ReportSList(); }
 
@@ -149,9 +129,10 @@ namespace ESPINA
       virtual void onAnalysisChanged()
       {}
     };
-  }
+
+  } // namespace Support
 } // namespace ESPINA
 
-Q_DECLARE_INTERFACE(ESPINA::Support::Plugin, "es.upm.cesvima.ESPINA.Plugin/1.6")
+Q_DECLARE_INTERFACE(ESPINA::Support::AppPlugin, "es.upm.cesvima.ESPINA.Plugin/2.0")
 
 #endif // ESPINA_PLUGIN_H

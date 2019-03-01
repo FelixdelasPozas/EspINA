@@ -241,11 +241,24 @@ namespace ESPINA
               void SetTolerance(const double value)
               { if(value < 0 || m_tolerance== value) return; m_tolerance = value; }
 
-              /** \brief Sets the properties of the next stroke.
-               * \param[in] stroke stroke struct.
+              /** \brief Inserts the stroke if not present in the list or updates the properties of the stroke.
+               * \param[in] stroke SkeletonStroke struct.
                *
                */
               void setStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Removes the stroke from the stroke list and all its related edges.
+               * \param[in] stroke SkeletonStroke struct.
+               *
+               */
+              void removeStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Renames the stroke with the old name to the new one.
+               * \param[in] oldName Stroke current name.
+               * \param[in] newName Stroke new name.
+               *
+               */
+              void renameStroke(const QString &oldName, const QString &newName);
 
               /** \brief Returns the current tolerance for the widget.
                *

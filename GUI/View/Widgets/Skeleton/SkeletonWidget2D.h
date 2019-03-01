@@ -40,6 +40,7 @@
 #include <QMap>
 
 class vtkPolyData;
+class vtkTextActor;
 
 namespace ESPINA
 {
@@ -90,6 +91,18 @@ namespace ESPINA
                *
                */
               void setStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Removes the stroke from the skeleton (also removing all edges of the stroke).
+               *
+               */
+              void removeStroke(const Core::SkeletonStroke &stroke);
+
+              /** \brief Renames the stroke with the old name with the new one.
+               * \param[in] oldName Stroke current name.
+               * \param[in] newName Stroke new name.
+               *
+               */
+              void renameStroke(const QString &oldName, const QString &newName);
 
               /** \brief Initialize skeleton data structure.
                * \param[in] pd Skeleton vtkPolyData smartPointer.
@@ -183,6 +196,7 @@ namespace ESPINA
               void modified(vtkSmartPointer<vtkPolyData> polydata);
               void updateWidgets();
               void strokeChanged(const Core::SkeletonStroke stroke);
+              void truncationSuccess();
 
             private:
               using Track = SkeletonEventHandler::Track;
@@ -194,6 +208,7 @@ namespace ESPINA
               void onStrokeEnded(RenderView *view);
               void onMousePress(Qt::MouseButtons button, const QPoint &p, RenderView *view);
               void onMouseRelease(Qt::MouseButtons button, const QPoint &p, RenderView *view);
+              void updateCues();
 
             private:
               /** \brief Helper method to connect the handler signals.
@@ -206,6 +221,11 @@ namespace ESPINA
                */
               void disconnectSignals();
 
+              /** \brief Helper method to initialize and setup visual cue actors.
+               *
+               */
+              void initializeVisualCues();
+
               virtual void initializeImplementation(RenderView *view);
 
               virtual void uninitializeImplementation();
@@ -215,12 +235,15 @@ namespace ESPINA
 
               using RepresentationSettings = GUI::Representations::Settings::SkeletonPoolSettingsSPtr;
 
-              Nm                       m_position; /** position of the actors over the segmentations. */
-              SkeletonEventHandlerSPtr m_handler;  /** event handler for the widget.                  */
-              Mode                     m_mode;     /** current operation mode.                        */
-              bool                     m_moving;   /** true when translating a node, false otherwise. */
-              RepresentationSettings   m_settings; /** skeleton representation settings.              */
-              QList<NmVector3>         m_points;   /** skeleton connection points.                    */
+              Nm                       m_position;     /** position of the actors over the segmentations.      */
+              SkeletonEventHandlerSPtr m_handler;      /** event handler for the widget.                       */
+              Mode                     m_mode;         /** current operation mode.                             */
+              bool                     m_moving;       /** true when translating a node, false otherwise.      */
+              RepresentationSettings   m_settings;     /** skeleton representation settings.                   */
+              QList<NmVector3>         m_points;       /** skeleton connection points.                         */
+              bool                     m_hasTruncated; /** true after a successful trucation, false otherwise. */
+
+              vtkSmartPointer<vtkTextActor> m_successActor; /** successful operation visual cue actor. */
           };
 
           using SkeletonWidget2DSPtr = std::shared_ptr<SkeletonWidget2D>;

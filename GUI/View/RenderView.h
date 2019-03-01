@@ -217,6 +217,8 @@ namespace ESPINA
 
     void viewFocusedOn(NmVector3 focusPoint);
 
+    void viewResized(QSize size);
+
   protected slots:
 
     /** \brief Resets the view to it's initial state.
@@ -237,6 +239,7 @@ namespace ESPINA
   protected:
     virtual void keyPressEvent(QKeyEvent *event) override;
     virtual void keyReleaseEvent(QKeyEvent *event) override;
+    virtual void resizeEvent(QResizeEvent *event) override;
 
     /** \brief RenderView class constructor.
      * \param[in] parent raw pointer of the QWidget parent of this one.

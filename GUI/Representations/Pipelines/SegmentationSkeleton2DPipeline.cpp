@@ -54,8 +54,8 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkGlyphSource2D.h>
-#include <vtkFollower.h>
 #include <vtkTransform.h>
+#include <vtkFreeTypeLabelRenderStrategy.h>
 
 // C++
 #include <cstring>
@@ -319,10 +319,12 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       labelsData->GetPointData()->AddArray(labelText);
       labelsData->Modified();
 
+      auto textSize =  SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
+
       auto property = vtkSmartPointer<vtkTextProperty>::New();
       property->SetBold(true);
       property->SetFontFamilyToArial();
-      property->SetFontSize(SegmentationSkeletonPoolSettings::getAnnotationsSize(state));
+      property->SetFontSize(textSize);
       property->SetJustificationToCentered();
       property->SetVerticalJustificationToCentered();
       property->Modified();
@@ -330,19 +332,26 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
       labelFilter->SetInputData(labelsData);
       labelFilter->SetLabelArrayName("Labels");
-      labelFilter->SetTextProperty(property);
+      labelFilter->GetTextProperty()->SetFontSize(textSize);
+      labelFilter->GetTextProperty()->SetBold(true);
       labelFilter->Update();
+
+      auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
+      strategy->SetDefaultTextProperty(property);
 
       auto hueColor = QColor::fromHsv(hue, 255,255);
       auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
       labelMapper->SetInputConnection(labelFilter->GetOutputPort());
+      labelMapper->SetGeneratePerturbedLabelSpokes(false);
       labelMapper->SetPlaceAllLabels(true);
-      labelMapper->SetBackgroundColor(hueColor.redF() * 0.6, hueColor.greenF() * 0.6, hueColor.blueF() * 0.6);
-      labelMapper->SetShapeToRoundedRect();
-      labelMapper->SetMaximumLabelFraction(1);
+      labelMapper->SetMaximumLabelFraction(0.9);
       labelMapper->SetUseDepthBuffer(false);
-      labelMapper->SetBackgroundOpacity(0.5);
+      labelMapper->SetShapeToRoundedRect();
       labelMapper->SetStyleToFilled();
+      labelMapper->SetRenderStrategy(strategy);
+      labelMapper->SetBackgroundColor(hueColor.redF() * 0.6, hueColor.greenF() * 0.6, hueColor.blueF() * 0.6);
+      labelMapper->SetBackgroundOpacity(0.5);
+      labelMapper->SetMargin(5);
       labelMapper->Update();
 
       auto labelActor = vtkSmartPointer<vtkActor2D>::New();
@@ -390,8 +399,12 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
 
       glyphMapper->Update();
 
-      auto truncatedActor = vtkSmartPointer<vtkFollower>::New();
+      auto truncatedActor = vtkSmartPointer<vtkActor>::New();
       truncatedActor->SetMapper(glyphMapper);
+      truncatedActor->GetProperty()->SetColor(1, 0, 0);
+      truncatedActor->GetProperty()->Modified();
+      truncatedActor->SetPosition(0, 0, 0);
+      truncatedActor->Modified();
 
       actors << truncatedActor;
     }

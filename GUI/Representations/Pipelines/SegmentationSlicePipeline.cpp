@@ -110,7 +110,6 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
       auto mapToColors = vtkSmartPointer<vtkImageMapToColors>::New();
       mapToColors->SetInputData(slice);
       mapToColors->SetLookupTable(s_highlighter.lut(color, item->isSelected()));
-      mapToColors->SetUpdateExtent(extent);
       mapToColors->SetNumberOfThreads(1);
       mapToColors->UpdateInformation();
       mapToColors->UpdateWholeExtent();
@@ -118,7 +117,6 @@ RepresentationPipeline::ActorList SegmentationSlicePipeline::createActors(ConstV
       auto actor = vtkSmartPointer<vtkImageActor>::New();
       actor->GetMapper()->BorderOn();
       actor->GetMapper()->SetInputConnection(mapToColors->GetOutputPort());
-      actor->GetMapper()->SetUpdateExtent(extent);
       actor->GetMapper()->SetNumberOfThreads(1);
       actor->GetMapper()->UpdateInformation();
       actor->GetMapper()->UpdateWholeExtent();

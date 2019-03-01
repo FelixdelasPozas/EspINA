@@ -592,7 +592,7 @@ void SkeletonCreationTool::onSkeletonModified(vtkSmartPointer<vtkPolyData> polyd
 
     m_nextButton->setEnabled(m_item != getActiveChannel());
 
-    for(auto widget: m_pointWidgets) widget->clearPoints();
+    std::for_each(m_pointWidgets.constBegin(), m_pointWidgets.constEnd(), [](ConnectionPointsTemporalRepresentation2DSPtr pointWidget) { pointWidget->clearPoints(); });
   }
   else
   {
@@ -613,9 +613,12 @@ void SkeletonCreationTool::onNextButtonPressed()
   if(!m_skeletonWidgets.isEmpty())
   {
     m_skeletonWidgets.first()->stop();
+
+    // force the processing of the event from the widget that adds the skeleton to the model or updates the existing one.
+    QApplication::processEvents();
   }
 
-  SkeletonWidget2D::initializeData(nullptr);
+  SkeletonWidget2D::ClearRepresentation();
 
   for(auto widget: m_skeletonWidgets)
   {
@@ -790,6 +793,8 @@ void SkeletonCreationTool::updateStrokes()
     {
       STROKES[categoryName] = defaultStrokes(currentCategory);
     }
+
+    qSort(strokes);
 
     for(int i = 0; i < strokes.size(); ++i)
     {

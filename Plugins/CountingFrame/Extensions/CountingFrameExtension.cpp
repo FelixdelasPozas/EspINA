@@ -42,10 +42,10 @@ using namespace ESPINA::CF;
 StackExtension::Type CountingFrameExtension::TYPE = "CountingFrame";
 
 //-----------------------------------------------------------------------------
-CountingFrameExtension::CountingFrameExtension(CountingFrameManager *manager,
-                                               SchedulerSPtr         scheduler,
-                                               CoreFactory          *factory,
-                                               const State          &state)
+CountingFrameExtension::CountingFrameExtension(CountingFrameManager                  *manager,
+                                               SchedulerSPtr                          scheduler,
+                                               Core::SegmentationExtensionFactorySPtr factory,
+                                               const State                           &state)
 : StackExtension{InfoCache()}
 , m_manager     {manager}
 , m_scheduler   {scheduler}

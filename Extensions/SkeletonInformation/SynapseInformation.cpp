@@ -121,7 +121,6 @@ void SynapseConnectionInformation::updateInformation() const
     for(auto connection: connections)
     {
       auto other = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
-      auto &point = connection.point;
       Q_ASSERT(other);
 
       if(other->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
@@ -150,7 +149,7 @@ void SynapseConnectionInformation::updateInformation() const
 
         for(auto &path: pathList)
         {
-          if(path.hasEndingPoint(point))
+          if(path.hasEndingPoint(connection.point))
           {
             if(path.note.startsWith("Shaft", Qt::CaseInsensitive))
             {
@@ -215,6 +214,8 @@ void SynapseConnectionInformation::updateInformation() const
             }
           }
         }
+
+        definition.clear();
       }
 
       if(other->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))

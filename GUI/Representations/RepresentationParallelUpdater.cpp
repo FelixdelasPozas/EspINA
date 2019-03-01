@@ -120,6 +120,8 @@ RepresentationParallelUpdater::~RepresentationParallelUpdater()
 //--------------------------------------------------------------------
 void RepresentationParallelUpdater::run()
 {
+  if(!m_needsUpdate) return;
+
   auto frame = std::make_shared<Frame>();
   RepresentationState settings;
   UpdateRequestList updateList;
@@ -142,7 +144,7 @@ void RepresentationParallelUpdater::run()
     updateList = *m_updateList;
     updateList.detach();
 
-    m_updateList    = &m_sources;
+    m_updateList = &m_sources;
     m_requestedSources.clear();
   }
 
@@ -200,6 +202,7 @@ void RepresentationParallelUpdater::run()
   {
     if(isValid(frame))
     {
+      m_needsUpdate = false;
       emit actorsReady(frame, m_actors);
     }
   }
@@ -291,10 +294,8 @@ void RepresentationParallelUpdater::computeProgress(ParallelUpdaterTask *task, i
 
     m_tasks[task].Progress = progress;
 
-    for(auto data: m_tasks)
-    {
-      totalProgress += data.Progress;
-    }
+    const auto tasks = m_tasks.values();
+    std::for_each(tasks.constBegin(), tasks.constEnd(), [&totalProgress](const RepresentationParallelUpdater::Data &data) { totalProgress += data.Progress; });
   }
 
   reportProgress(totalProgress/m_taskNum);

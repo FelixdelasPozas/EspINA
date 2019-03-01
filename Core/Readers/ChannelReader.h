@@ -22,24 +22,25 @@
 #ifndef ESPINA_CHANNEL_READER_H
 #define ESPINA_CHANNEL_READER_H
 
-#include "Support/EspinaSupport_Export.h"
+#include "Core/EspinaCore_Export.h"
 
 // ESPINA
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/FilterFactory.h>
+#include <Core/IO/SegFile.h>
 
 namespace ESPINA
 {
   /** \class ChannelReader
-   * \brief Implements a reader for stacks.
+   * \brief Implements a reader for stacks raw files.
    *
    */
-  class EspinaSupport_EXPORT ChannelReader
+  class EspinaCore_EXPORT ChannelReader
   : public FilterFactory
   , public IO::AnalysisReader
   {
     public:
-      static const Filter::Type VOLUMETRIC_STREAM_READER;    /** channel reader signature. */
+      static const Filter::Type VOLUMETRIC_STREAM_READER;    /** channel reader signature.     */
       static const Filter::Type ESPINA_1_3_2_CHANNEL_READER; /** channel reader old signature. */
 
       virtual const QString type() const
@@ -51,10 +52,11 @@ namespace ESPINA
 
       virtual const ExtensionList supportedFileExtensions() const;
 
-      virtual AnalysisSPtr read(const QFileInfo& file,
-                                CoreFactorySPtr  factory,
+      virtual AnalysisSPtr read(const QFileInfo&      file,
+                                CoreFactorySPtr       factory,
                                 IO::ProgressReporter *reporter = nullptr,
-                                ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+                                ErrorHandlerSPtr      handler  = ErrorHandlerSPtr(),
+                                const IO::LoadOptions options  = IO::LoadOptions());
   };
 
   using ChannelReaderSPtr = std::shared_ptr<ChannelReader>;

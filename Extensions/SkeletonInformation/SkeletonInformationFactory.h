@@ -42,10 +42,9 @@ namespace ESPINA
     {
       public:
         /** \brief SkeletonInformationFactory class constructor.
-         * \param[in] factory core factory pointer.
          *
          */
-        explicit SkeletonInformationFactory(CoreFactory *factory);
+        explicit SkeletonInformationFactory();
 
         /** \brief SkeletonInformationFactory class virtual destructor.
          *

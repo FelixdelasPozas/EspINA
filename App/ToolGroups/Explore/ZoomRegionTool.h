@@ -47,7 +47,7 @@ namespace ESPINA
        */
       virtual ~ZoomRegionTool();
 
-      virtual void abortOperation();
+      virtual void abortOperation() override;
 
     private slots:
       /** \brief Activates the tool.

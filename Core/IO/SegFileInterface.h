@@ -27,6 +27,7 @@
 // ESPINA
 #include "Core/IO/ErrorHandler.h"
 #include <Core/Analysis/Analysis.h>
+#include <Core/IO/SegFile.h>
 
 // QuaZip
 #include <quazip/quazip.h>
@@ -61,7 +62,8 @@ namespace ESPINA
         virtual AnalysisSPtr load(QuaZip           &zip,
                                   CoreFactorySPtr   factory,
                                   ProgressReporter *reporter = nullptr,
-                                  ErrorHandlerSPtr  handler = ErrorHandlerSPtr()) = 0;
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                  LoadOptions       options  = LoadOptions()) = 0;
 
         /** \brief Saves an analysis to a QuaZip file.
          * \param[in] analysis analysis to save.

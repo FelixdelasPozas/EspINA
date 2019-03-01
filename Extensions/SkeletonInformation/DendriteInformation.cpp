@@ -308,7 +308,6 @@ void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinitio
       if(axon)
       {
         ++info.numAxons;
-        auto seg = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
         if(seg->category()->name().startsWith("Asy", Qt::CaseInsensitive)) ++info.numAxonsExcitatory;
         else                                                               ++info.numAxonsInhibitory;
       }
@@ -368,8 +367,7 @@ void DendriteSkeletonInformation::updateInformation() const
           }
           else
           {
-            Q_ASSERT(!next);
-            next = connection;
+            if(!next) next = connection; // if "next" is not null the path is malformed.
           }
         }
 
@@ -446,9 +444,9 @@ void DendriteSkeletonInformation::updateInformation() const
             auto otherEdge = connectionNode->connections[otherNode];
             if(otherEdge != shaftEdge && otherEdge != node->path.edge)
             {
-              auto otherEdge = edges.at(connectionNode->connections[otherNode]);
-              auto otherStroke = strokes.at(otherEdge.strokeIndex);
-              if(otherStroke.name.startsWith("Spine", Qt::CaseInsensitive))
+              auto sEdge   = edges.at(connectionNode->connections[otherNode]);
+              auto sStroke = strokes.at(sEdge.strokeIndex);
+              if(sStroke.name.startsWith("Spine", Qt::CaseInsensitive))
               {
                 distanceToNext = 0; // there is another spine at the very beginning.
                 break;
@@ -593,6 +591,8 @@ void DendriteSkeletonInformation::updateInformation() const
     {
       markAsInvalid(DENDRITE_SYNAPSES_RATIO);
     }
+
+    definition.clear();
   }
 }
 

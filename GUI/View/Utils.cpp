@@ -53,7 +53,6 @@ void Utils::addPadding(vtkSmartPointer< vtkImageData > image, int normal)
     pad->SetOutputWholeExtent(extent);
     pad->SetConstant(SEG_BG_VALUE);
     pad->SetNumberOfThreads(1);
-    pad->SetUpdateExtentToWholeExtent();
     pad->ReleaseDataFlagOn();
     pad->UpdateWholeExtent();
 

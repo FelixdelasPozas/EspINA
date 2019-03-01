@@ -63,7 +63,20 @@ namespace ESPINA
       * \param[in] other Reference to a struct StrokeInfo to compare.
       *
       */
-     bool operator<(const StrokeInfo &other) const { if(name.length() < other.name.length()) return true; else return name < other.name; };
+     bool operator<(const StrokeInfo &other) const
+     {
+       auto rdata = name;
+       auto ldata = other.name;
+
+       if(rdata.endsWith("(Truncated)", Qt::CaseInsensitive)) rdata = rdata.left(rdata.length()-12);
+       if(ldata.endsWith("(Truncated)", Qt::CaseInsensitive)) ldata = ldata.left(ldata.length()-12);
+
+       auto diff = rdata.length() - ldata.length();
+       if(diff < 0) return true;
+       if(diff > 0) return false;
+
+       return (rdata < ldata);
+     };
 
      /** \brief Operator == for struct StrokeInfo.
       * \param[in] other Reference to a struct StrokeInfo to compare.
@@ -213,6 +226,7 @@ namespace ESPINA
       QList<struct StrokeInfo>     &m_strokes;           /** List of stroke information structs.                                   */
       bool                          m_useRandomColoring; /** true to color strokes with random color, false to use stroke color.   */
       unsigned int                  m_connectionLevel;   /** Connection level.                                                     */
+      Core::SkeletonDefinition      m_definition;        /** skeleton definition struct.                                           */
   };
 
 } // namespace ESPINA

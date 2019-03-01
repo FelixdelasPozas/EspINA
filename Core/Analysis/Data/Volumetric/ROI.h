@@ -269,8 +269,8 @@ namespace ESPINA
       }
       else
       {
-        auto roiOrigin  = this->m_bounds.origin();
-        auto roiSpacing = this->m_bounds.spacing();
+        auto thisOrigin  = this->m_bounds.origin();
+        auto thisSpacing = this->m_bounds.spacing();
 
         while(!it.IsAtEnd())
         {
@@ -278,11 +278,11 @@ namespace ESPINA
           {
             auto index  = it.GetIndex();
             auto origin = image->GetOrigin();
-            NmVector3 point{ (index[0]+origin[0]) * roiSpacing[0],
-                             (index[1]*origin[1]) * roiSpacing[1],
-                             (index[2]*origin[2]) * roiSpacing[2]};
+            NmVector3 point{ (index[0]+origin[0]) * thisSpacing[0],
+                             (index[1]*origin[1]) * thisSpacing[1],
+                             (index[2]*origin[2]) * thisSpacing[2]};
 
-            VolumeBounds vBounds{Bounds(point), roiSpacing, roiOrigin};
+            VolumeBounds vBounds{Bounds(point), thisSpacing, thisOrigin};
             auto region = equivalentRegion<T>(volume, vBounds.bounds());
             itk::ImageRegionIterator<T> rit(volume, region);
             rit.GoToBegin();

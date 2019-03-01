@@ -79,18 +79,15 @@ bool moveRecursively(const QString &sourceDir, const QString &destinationDir, bo
           return false;
         }
 
-        result |= moveRecursively(info.absoluteFilePath(), subDir.absolutePath());
+        result &= moveRecursively(info.absoluteFilePath(), subDir.absolutePath());
       }
       else
       {
-        result |= QFile::copy(info.absoluteFilePath(), to.absoluteFilePath(info.baseName()));
-        result |= QFile::remove(info.absoluteFilePath());
+        result &= QFile::copy(info.absoluteFilePath(), to.absoluteFilePath(info.baseName()));
+        result &= QFile::remove(info.absoluteFilePath());
       }
 
-      if (!result)
-      {
-        return result;
-      }
+      if (!result) return result;
     }
   }
 
@@ -109,20 +106,17 @@ bool removeRecursively(const QString &dirName)
     {
       if (info.isDir())
       {
-        result |= removeRecursively(info.absoluteFilePath());
+        result &= removeRecursively(info.absoluteFilePath());
       }
       else
       {
-        result |= QFile::remove(info.absoluteFilePath());
+        result &= QFile::remove(info.absoluteFilePath());
       }
 
-      if (!result)
-      {
-        return result;
-      }
+      if (!result) return result;
     }
 
-    result |= dir.rmdir(dirName);
+    result &= dir.rmdir(dirName);
   }
 
   return result;

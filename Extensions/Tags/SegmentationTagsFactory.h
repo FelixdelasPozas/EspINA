@@ -42,10 +42,9 @@ namespace ESPINA
     {
       public:
         /** \brief SegmentationTagsFactory class constructor.
-         * \param[in] factory core factory pointer.
          *
          */
-        explicit SegmentationTagsFactory(CoreFactory *factory);
+        explicit SegmentationTagsFactory();
 
         /** \brief SegmentationTagsFactory class virtual destructor.
          *

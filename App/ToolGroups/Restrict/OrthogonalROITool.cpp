@@ -350,14 +350,12 @@ void OrthogonalROITool::defineROI(Selector::Selection channels)
   bool validSelection = false;
   Selector::SelectionItem selectedChannel;
 
-  for(auto channel: channels)
+  auto it = std::find_if(channels.constBegin(), channels.constEnd(), [this](const ESPINA::Selector::SelectionItem &item){ return (item.second == getActiveChannel()); });
+
+  if(it != channels.constEnd())
   {
-    if(channel.second == getActiveChannel())
-    {
-      validSelection  = true;
-      selectedChannel = channel;
-      break;
-    }
+    validSelection = true;
+    selectedChannel = (*it);
   }
 
   if(invalidSettings())

@@ -32,7 +32,7 @@
 #include <GUI/Representations/Frame.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/Styles.h>
-#include <GUI/Dialogs/ImageResolutionDialog.h>
+#include <GUI/Dialogs/ImageResolutionDialog/ImageResolutionDialog.h>
 
 // VTK
 #include <vtkMath.h>
@@ -90,20 +90,6 @@ RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
 RenderView::~RenderView()
 {
   disconnect();
-
-  for(auto manager: m_managers)
-  {
-    manager->shutdown();
-  }
-  m_managers.clear();
-
-  for(auto manager: m_temporalManagers)
-  {
-    manager->shutdown();
-  }
-  m_temporalManagers.clear();
-
-  m_inactiveManagers.clear();
 
   delete m_view;
 }
@@ -430,14 +416,15 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
 //-----------------------------------------------------------------------------
 Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
-  // NOTE: segmentations must have higher priority than stacks.
   Selector::Selection pickedItems;
+
+  // NOTE: segmentations must have higher priority than stacks.
   if(flags.testFlag(Selector::SEGMENTATION))
   {
     pickedItems = pickImplementation(Selector::SEGMENTATION, x, y, multiselection);
-  }
 
-  if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+    if(!multiselection && !pickedItems.isEmpty()) return pickedItems;
+  }
 
   if(flags.testFlag(Selector::CHANNEL) || flags.testFlag(Selector::SAMPLE))
   {
@@ -807,6 +794,14 @@ void RenderView::keyPressEvent(QKeyEvent* event)
 void RenderView::keyReleaseEvent(QKeyEvent* event)
 {
   if(!eventHandlerFilterEvent(event)) QWidget::keyReleaseEvent(event);
+}
+
+//-----------------------------------------------------------------------------
+void RenderView::resizeEvent(QResizeEvent *event)
+{
+  QWidget::resizeEvent(event);
+
+  emit viewResized(size());
 }
 
 //-----------------------------------------------------------------------------

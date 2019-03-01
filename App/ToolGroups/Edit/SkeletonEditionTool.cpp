@@ -22,6 +22,7 @@
 // ESPINA
 #include <App/ToolGroups/Edit/SkeletonEditionTool.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonToolsUtils.h>
+#include <App/ToolGroups/Segment/Skeleton/SkeletonCreationTool.h>
 #include <App/Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h>
 #include <App/ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h>
 #include <App/ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h>
@@ -62,9 +63,10 @@ const QString MODIFY_HUE_SETTINGS_KEY = QString{"Modify same-hue strokes to avoi
 
 //--------------------------------------------------------------------
 SkeletonEditionTool::SkeletonEditionTool(Support::Context& context)
-: EditTool("SkeletonEditionTool", ":/espina/tubular.svg", tr("Manual modification of skeletons."), context)
-, m_init  {false}
-, m_item  {nullptr}
+: EditTool    {"SkeletonEditionTool", ":/espina/tubular.svg", tr("Manual modification of skeletons."), context}
+, m_init      {false}
+, m_item      {nullptr}
+, m_allowSwich{false}
 {
   initEventHandler();
   initRepresentationFactories();
@@ -124,6 +126,15 @@ void SkeletonEditionTool::initTool(bool value)
     m_item->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
     m_item->setBeingModified(true);
 
+    auto skeleton   = readLockSkeleton(m_item->output())->skeleton();
+    auto definition = Core::toSkeletonDefinition(skeleton);
+
+    m_strokes.clear();
+
+    populateStrokes(definition.strokes);
+
+    definition.clear();
+
     updateStrokes();
 
     if(!getViewState().hasTemporalRepresentation(m_factory)) getViewState().addTemporalRepresentations(m_factory);
@@ -170,6 +181,7 @@ void SkeletonEditionTool::initTool(bool value)
         m_item->setBeingModified(false);
       }
       m_item = nullptr;
+      m_strokes.clear();
 
       disconnect(getModel().get(), SIGNAL(segmentationsRemoved(ViewItemAdapterSList)),
                  this,             SLOT(onSegmentationsRemoved(ViewItemAdapterSList)));
@@ -277,9 +289,8 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
     auto segmentation = dynamic_cast<SegmentationAdapterPtr>(m_item);
     if(segmentation)
     {
-      auto &strokes = STROKES[segmentation->category()->classificationName()];
-      auto index    = std::min(std::max(0, m_strokeCombo->currentIndex()), strokes.size()-1);
-      auto stroke   = strokes.at(index);
+      auto index    = std::min(std::max(0, m_strokeCombo->currentIndex()), m_strokes.size()-1);
+      auto stroke   = m_strokes.at(index);
       skeletonWidget->setStroke(stroke);
       skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
       skeletonWidget->setRepresentationTextColor(segmentation->category()->color());
@@ -288,6 +299,9 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
 
       connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),
               this,                 SLOT(onSkeletonModified(vtkSmartPointer<vtkPolyData>)), Qt::DirectConnection);
+
+      connect(skeletonWidget.get(), SIGNAL(truncationSuccess()),
+              this,                 SLOT(onTruncationSuccess()), Qt::DirectConnection);
 
       connect(skeletonWidget.get(), SIGNAL(strokeChanged(const Core::SkeletonStroke)),
               this,                 SLOT(onStrokeChanged(const Core::SkeletonStroke)), Qt::DirectConnection);
@@ -632,14 +646,13 @@ void SkeletonEditionTool::onStrokeTypeChanged(int index)
   {
     auto segmentation = segmentationPtr(m_item);
     auto name         = segmentation->category()->classificationName();
-    auto &strokes     = STROKES[name];
 
-    index = std::min(std::max(0,index), strokes.size() - 1);
+    index = std::min(std::max(0,index), m_strokes.size() - 1);
     Q_ASSERT(index >= 0);
 
     for(auto widget: m_widgets)
     {
-      widget->setStroke(strokes.at(index));
+      widget->setStroke(m_strokes.at(index));
     }
   }
 }
@@ -649,16 +662,54 @@ void SkeletonEditionTool::onStrokeConfigurationPressed()
 {
   if(m_item)
   {
-    auto segmentation = segmentationPtr(m_item);
-    auto name         = segmentation->category()->classificationName();
-    auto index        = m_strokeCombo->currentIndex();
+    auto segmentation   = segmentationPtr(m_item);
+    auto name           = segmentation->category()->classificationName();
+    auto index          = m_strokeCombo->currentIndex();
 
-    StrokeDefinitionDialog dialog(STROKES[name], segmentation->category());
+    StrokeDefinitionDialog dialog(m_strokes, segmentation->category());
+
+    connect(&dialog, SIGNAL(strokeModified(const Core::SkeletonStroke &)),    this, SLOT(onStrokeModified(const Core::SkeletonStroke &)), Qt::DirectConnection);
+    connect(&dialog, SIGNAL(strokeRenamed(const QString &, const QString &)), this, SLOT(onStrokeRenamed(const QString &, const QString &)), Qt::DirectConnection);
+    connect(&dialog, SIGNAL(strokeAdded(const Core::SkeletonStroke &)),       this, SLOT(onStrokeModified(const Core::SkeletonStroke &)), Qt::DirectConnection);
+    connect(&dialog, SIGNAL(strokeRemoved(const Core::SkeletonStroke &)),     this, SLOT(onStrokeRemoved(const Core::SkeletonStroke &)), Qt::DirectConnection);
+
     dialog.exec();
 
-    updateStrokes();
+    if(dialog.hasModifiedStrokes() && !m_widgets.isEmpty())
+    {
+      const auto skeleton = m_widgets.first()->getSkeleton();
 
-    index = std::min(std::max(0, index), STROKES[name].size() -1);
+      auto undoStack    = getUndoStack();
+      auto model        = getModel();
+
+      if(skeleton->GetNumberOfPoints() != 0)
+      {
+        ConnectionList connections;
+        auto segmentationSPtr   = model->smartPointer(segmentation);
+        auto classificationName = segmentation->category()->classificationName();
+
+        // insert connections if it's a dendrite or axon
+        if(classificationName.startsWith("Dendrite") || classificationName.startsWith("Axon"))
+        {
+          connections = GUI::Model::Utils::connections(skeleton, model);
+          for(auto &connection: connections)
+          {
+            connection.item1 = segmentationSPtr;
+            Q_ASSERT(connection.item1 && connection.item1.get());
+          }
+        }
+
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Modify skeleton strokes of '%1'.").arg(segmentationSPtr->data().toString()));
+        undoStack->push(new ModifySkeletonCommand(segmentationSPtr, skeleton, connections));
+        undoStack->endMacro();
+      }
+    }
+
+    index = std::min(std::max(0, index), m_strokes.size() -1);
+
+    updateStrokes();
 
     onStrokeTypeChanged(index);
   }
@@ -686,7 +737,7 @@ void SkeletonEditionTool::onStrokeChanged(const Core::SkeletonStroke stroke)
     auto name         = segmentation->category()->classificationName();
 
     m_strokeCombo->blockSignals(true);
-    m_strokeCombo->setCurrentIndex(STROKES[name].indexOf(stroke));
+    m_strokeCombo->setCurrentIndex(m_strokes.indexOf(stroke));
     m_strokeCombo->blockSignals(false);
   }
 }
@@ -722,6 +773,15 @@ void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentatio
       m_item->setTemporalRepresentation(std::make_shared<NullRepresentationPipeline>());
       m_item->setBeingModified(true);
 
+      auto skeleton = readLockSkeleton(selectedSeg->output())->skeleton();
+      auto definition = Core::toSkeletonDefinition(skeleton);
+
+      m_strokes.clear();
+
+      populateStrokes(definition.strokes);
+
+      definition.clear();
+
       updateStrokes();
 
       SkeletonWidget2D::ClearRepresentation();
@@ -743,20 +803,37 @@ void SkeletonEditionTool::onSelectionChanged(SegmentationAdapterList segmentatio
 }
 
 //--------------------------------------------------------------------
+void SkeletonEditionTool::updateStatus()
+{
+  auto selection = getSelectedSegmentations();
+  auto enabled = acceptsNInputs(selection.size())
+              && (selectionIsNotBeingModified(selection) || m_allowSwich)
+              && acceptsSelection(selection);
+
+  setEnabled(enabled);
+}
+
+//--------------------------------------------------------------------
 void SkeletonEditionTool::updateStrokes()
 {
   if(m_item)
   {
     auto segmentation = segmentationPtr(m_item);
-    auto category = segmentation->category();
+    auto category     = segmentation->category();
+    const auto name   = category->classificationName();
 
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->clear();
 
-    auto strokes = STROKES[category->classificationName()];
-    for(int i = 0; i < strokes.size(); ++i)
+    const auto keys = STROKES.keys();
+    if(keys.contains(name))
     {
-      auto stroke = strokes.at(i);
+      populateStrokes(STROKES[name]);
+    }
+
+    for(int i = 0; i < m_strokes.size(); ++i)
+    {
+      auto stroke = m_strokes.at(i);
 
       QPixmap original(ICONS.at(stroke.type));
       QPixmap copy(original.size());
@@ -768,9 +845,9 @@ void SkeletonEditionTool::updateStrokes()
 
     m_strokeCombo->blockSignals(false);
 
-    m_eventHandler->setStrokesCategory(category->classificationName());
+    m_eventHandler->setStrokes(m_strokes, category->classificationName());
 
-    if(m_strokeCombo->currentIndex() < 0 || m_strokeCombo->currentIndex() >= strokes.size())
+    if(m_strokeCombo->currentIndex() < 0 || m_strokeCombo->currentIndex() >= m_strokes.size())
     {
       m_strokeCombo->setCurrentIndex(0);
     }
@@ -812,4 +889,83 @@ void SkeletonEditionTool::saveSettings(std::shared_ptr<QSettings> settings)
 void SkeletonEditionTool::restoreSettings(std::shared_ptr<QSettings> settings)
 {
   m_changeHueButton->setChecked(settings->value(MODIFY_HUE_SETTINGS_KEY, false).toBool());
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onExclusiveToolInUse(ProgressTool* tool)
+{
+  ProgressTool::onExclusiveToolInUse(tool);
+
+  // clients want to switch from "creation" tool to "edition" tool without having to
+  // deactivate the previous one. Sigh...
+  m_allowSwich = (dynamic_cast<SkeletonCreationTool *>(tool) != nullptr);
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onTruncationSuccess()
+{
+  if(m_truncateButton->isChecked())
+  {
+    m_truncateButton->setChecked(false);
+    onModeChanged(true);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onStrokeModified(const Core::SkeletonStroke &stroke)
+{
+  if(!m_widgets.isEmpty())
+  {
+    auto widget = m_widgets.first();
+    widget->setStroke(stroke);
+
+    getViewState().refresh();
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onStrokeRenamed(const QString &oldName, const QString &newName)
+{
+  if(!m_widgets.isEmpty())
+  {
+    auto widget = m_widgets.first();
+    widget->renameStroke(oldName, newName);
+
+    getViewState().refresh();
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::onStrokeRemoved(const Core::SkeletonStroke &stroke)
+{
+  if(!m_widgets.isEmpty())
+  {
+    auto widget = m_widgets.first();
+    widget->removeStroke(stroke);
+
+    getViewState().refresh();
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonEditionTool::populateStrokes(const Core::SkeletonStrokes& strokes)
+{
+  auto segmentation = segmentationPtr(m_item);
+  if(segmentation)
+  {
+    const auto defaultStrokes = SkeletonToolsUtils::defaultStrokes(segmentation->category());
+
+    for(const auto &stroke: strokes)
+    {
+      // Some categories can have an unused stroke "Stroke" present in every category originated in early
+      // skeleton tools and data development. So if the default strokes size is not 1 then we can hide it.
+      if(stroke.name == "Stroke" && defaultStrokes.size() > 1) continue;
+
+      auto equalOp = [&stroke](const Core::SkeletonStroke &other) { return stroke.name == other.name; };
+      auto exists = std::any_of(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
+      if(!exists) { m_strokes << stroke; }
+    };
+  }
+
+  qSort(m_strokes);
 }
