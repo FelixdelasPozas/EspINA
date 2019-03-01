@@ -84,9 +84,11 @@ namespace ESPINA
 
       virtual bool notify(QObject *receiver, QEvent *e) override final
       {
+        bool returnValue = true;
+
         try
         {
-          return QApplication::notify(receiver, e);
+          returnValue = QApplication::notify(receiver, e);
         }
         catch(ESPINA::Core::Utils::EspinaException &e)
         {
@@ -107,7 +109,7 @@ namespace ESPINA
           std::cout << std::flush;
         }
 
-        return true;
+        return returnValue;
       }
   };
 

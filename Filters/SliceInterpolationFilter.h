@@ -142,7 +142,7 @@ namespace ESPINA
     private:
       bool    m_useSLIC;      /** true if the filter uses SLIC information, false otherwise. */
       double  m_threshold;    /** threshold value.                                           */
-      QString m_errorMessage; /** Error message or empty if filter ran succesfully.          */
+      QString m_errorMessage; /** Error message or empty if filter ran successfully.         */
   };
 
   using SliceInterpolationFilterPtr = SliceInterpolationFilter *;

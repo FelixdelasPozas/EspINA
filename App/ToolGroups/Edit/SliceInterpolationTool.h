@@ -83,6 +83,11 @@ namespace ESPINA
       void onTaskFinished();
 
     private:
+      /** \brief Stops and destroys all currently running tasks.
+       *
+       */
+      void abortTasks();
+
       /** \struct TaskContext
        * \brief Context of currently executing tasks.
        *

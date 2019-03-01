@@ -30,6 +30,7 @@
 
 // Qt
 #include <QPushButton>
+#include <QThread>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -51,21 +52,13 @@ SliceInterpolationTool::SliceInterpolationTool(Support::Context &context)
 //------------------------------------------------------------------------
 SliceInterpolationTool::~SliceInterpolationTool()
 {
-  abortOperation();
+  abortTasks();
 }
 
 //------------------------------------------------------------------------
 void SliceInterpolationTool::abortOperation()
 {
-  for(auto task: m_executingTasks.keys())
-  {
-    disconnect(task, SIGNAL(finished()),
-               this, SLOT(onTaskFinished()));
-
-    if(task->isRunning()) task->abort();
-  }
-
-  m_executingTasks.clear();
+  abortTasks();
 
   setChecked(false);
 }
@@ -111,7 +104,7 @@ void SliceInterpolationTool::applyFilter()
 
     markAsBeingModified(segmentation, true);
 
-    m_executingTasks[filter.get()] = taskContext;
+    m_executingTasks.insert(filter.get(), taskContext);
 
     showTaskProgress(filter);
 
@@ -175,7 +168,7 @@ void SliceInterpolationTool::onTaskFinished()
 
   if(filter && m_executingTasks.keys().contains(filter))
   {
-    auto taskContext = m_executingTasks[filter];
+    auto taskContext = m_executingTasks.value(filter);
 
     if (!filter->isAborted())
     {
@@ -215,4 +208,27 @@ void SliceInterpolationTool::onTaskFinished()
 
     throw EspinaException(what, details);
   }
+}
+
+//------------------------------------------------------------------------
+void SliceInterpolationTool::abortTasks()
+{
+  for(auto task: m_executingTasks.keys())
+  {
+    disconnect(task, SIGNAL(finished()),
+               this, SLOT(onTaskFinished()));
+
+    if(task && task->isRunning()) task->abort();
+
+    auto taskContext = m_executingTasks.value(task);
+
+    markAsBeingModified(taskContext.segmentation, false);
+
+    if (!task->thread()->wait(100))
+    {
+      task->thread()->terminate();
+    }
+  }
+
+  m_executingTasks.clear();
 }
