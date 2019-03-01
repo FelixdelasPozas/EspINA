@@ -25,6 +25,7 @@
 #include "Filters/EspinaFilters_Export.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Filter.h>
+#include <Core/Utils/Histogram.h>
 
 // ITK
 #include <itkBinaryBallStructuringElement.h>
@@ -34,48 +35,21 @@
 
 namespace ESPINA
 {
-  class EspinaFilters_EXPORT SliceInterpolationFilter: public Filter
+  /** \class SliceInterpolationFilter
+   * \brief Filter that fills the empty space between slices interpolating between them.
+   *
+   */
+  class EspinaFilters_EXPORT SliceInterpolationFilter
+  : public Filter
   {
     private:
-      using RegionType = itkVolumeType::RegionType;
-      using SpacingType = itkVolumeType::SpacingType;
+      using RegionType    = itkVolumeType::RegionType;
+      using SpacingType   = itkVolumeType::SpacingType;
+      using OriginType    = itkVolumeType::PointType;
       using SizeValueType = itkVolumeType::SizeValueType;
-      using PixelCounterType = unsigned long;
-      using Histogram = std::vector<PixelCounterType>;
-      //using HistogramSptr = std::shared_ptr<Histogram>;
-      using SLO = itk::ShapeLabelObject<SizeValueType,itkVolumeType::ImageDimension>;
+      using SLO           = itk::ShapeLabelObject<SizeValueType,itkVolumeType::ImageDimension>;
       using ShapeLabelMap = itk::LabelMap<SLO>;
-      using FloatImageType = itk::Image<float, 3>;
       using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
-
-      static const unsigned int INLAND_VOXEL_VALUE;
-      static const unsigned int BEACH_VOXEL_VALUE;
-      static const unsigned int COAST_VOXEL_VALUE;
-      static const unsigned int SEA_VOXEL_VALUE;
-
-      class ContourInfo
-      {
-        public:
-          ContourInfo();
-          ContourInfo(PixelCounterType inlandMode, PixelCounterType beachMode, PixelCounterType coastMode, PixelCounterType seaMode,
-                      itkVolumeType::Pointer contourMask);
-          PixelCounterType getInlandMode() const;
-          PixelCounterType getBeachMode() const;
-          PixelCounterType getCoastMode() const;
-          PixelCounterType getSeaMode() const;
-          itkVolumeType::Pointer getContourMask() const; /* Mask with the following values: inland = 255, beach = 2, coast = 1  and sea = 0 */
-          void setContourMask(itkVolumeType::Pointer image);
-
-          void print(std::ostream & os) const;
-
-        private:
-          PixelCounterType m_inland_mode;
-          PixelCounterType m_beach_mode;
-          PixelCounterType m_coast_mode;
-          PixelCounterType m_sea_mode;
-
-          itkVolumeType::Pointer m_contour_mask;
-      };
 
     public:
       /** \brief SliceInterpolationFilter class constructor.
@@ -90,49 +64,85 @@ namespace ESPINA
        *
        */
       virtual ~SliceInterpolationFilter()
-      {
-      }
+      {}
+
+      virtual const QStringList errors() const;
 
       virtual void restoreState(const State& state)
-      {
-      }
+      {}
 
       virtual State state() const
-      {
-        return State();
-      }
+      {return State();}
+
+      /** \brief Sets the use of SLIC clustering by the filter.
+       * \parma[in] value True to use SLIC false to use thresholding.
+       *
+       */
+      void setUseSLIC(const bool value)
+      { m_useSLIC = value; }
+
+      /** \brief Returns true if the filter uses SLIC and false if it uses thresholding.
+       *
+       */
+      const bool useSLIC() const
+      { return m_useSLIC; }
+
+      /** \brief Sets the threshold value of the filter.
+       * \param[in] value Threshold value in [0.1-0.9].
+       *
+       */
+      void setThreshold(const double value)
+      { m_threshold = std::min(0.9, std::max(0.1, value)); }
+
+      /** \brief Returns the threshold value of the filter.
+       *
+       */
+      const double thresholdValue() const
+      { return m_threshold; }
 
     protected:
       virtual Snapshot saveFilterSnapshot() const
-      {
-        return Snapshot();
-      }
+      { return Snapshot(); }
 
       virtual bool needUpdate() const;
 
       virtual bool ignoreStorageContent() const
-      {
-        return false;
-      }
+      { return false; }
 
       virtual void execute();
 
     private:
-      ContourInfo getContourInfo(const itkVolumeType::Pointer stackImage, const itkVolumeType::Pointer sloImage, const Axis direction,
-                                 const SizeValueType bufferSize) const;
-      itkVolumeType::Pointer sloToImage(const SLO::Pointer slObject, RegionType region, SpacingType spacing);
-      RegionType calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion, const RegionType& tarRegion, const Axis direction,
-                              const int extraOffset = 0);
+      /** \brief Helper method that processes a single segmentation slice. Returns the processed slice.
+       * \param[in] stackSlice Slice of the stack.
+       * \param[in] segSlice   Slice of the segmentation.
+       * \param[in] direction  Operation direction.
+       * \param[in] histogram  Histogram of the values of the given input.
+       */
+      itkVolumeType::Pointer processSlice(const itkVolumeType::Pointer stackImage,
+                                          const itkVolumeType::Pointer segImage,
+                                          const Axis direction,
+                                          const Core::Utils::Histogram &histogram) const;
 
-      void printRegion(const RegionType region) const;
-      void printImageInZ(const itkVolumeType::Pointer image, const itkVolumeType::OffsetValueType offsetInZ = 0) const;
-      void printHistogram(const char tag, const Histogram& histo) const;
+      /** \brief Helper method that converts a ShapeLabelObject into an itk image with the given spacing and origin.
+       * \param[in] sloObject ShapeLabelObject pointer.
+       * \param[in] region Region of the output image.
+       * \param[in] spacing Spacing of the output image.
+       * \param[in] origin Origin of the output image.
+       *
+       */
+      itkVolumeType::Pointer labelObjectToImage(const SLO::Pointer object,
+                                                const RegionType &region,
+                                                const SpacingType &spacing,
+                                                const OriginType &origin);
 
-      void writeImage(int id , const itkVolumeType::Pointer image) const;
-      void writeImageF(int id , const FloatImageType::Pointer image) const;
+
+      // TODO remove after debugging.
+      void writeImage(const itkVolumeType::Pointer image, const QString &name) const;
 
     private:
-      QString m_errorMessage;
+      bool    m_useSLIC;      /** true if the filter uses SLIC information, false otherwise. */
+      double  m_threshold;    /** threshold value.                                           */
+      QString m_errorMessage; /** Error message or empty if filter ran succesfully.          */
   };
 
   using SliceInterpolationFilterPtr = SliceInterpolationFilter *;

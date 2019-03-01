@@ -25,14 +25,26 @@
 #include <Support/Widgets/EditTool.h>
 #include <Filters/SliceInterpolationFilter.h>
 
-
+class QPushButton;
 
 namespace ESPINA
 {
-  class SliceInterpolationTool
-      : public Support::Widgets::EditTool
+  namespace GUI
   {
-    Q_OBJECT
+    namespace Widgets
+    {
+      class NumericalInput;
+      class ToolButton;
+    }
+  }
+  /** \class SliceInterpolationTool
+   * \brief Tool for slice interpolation filter.
+   *
+   */
+  class SliceInterpolationTool
+  : public Support::Widgets::EditTool
+  {
+      Q_OBJECT
     public:
       /** \brief SliceInterpolation class constructor.
        * \param[in] context application context.
@@ -46,11 +58,18 @@ namespace ESPINA
       virtual ~SliceInterpolationTool();
 
       virtual void abortOperation() override;
+      virtual void restoreSettings(std::shared_ptr<QSettings> settings);
+      virtual void saveSettings(std::shared_ptr<QSettings> settings);
 
     private:
       virtual bool acceptsNInputs(int n) const;
 
       virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
+
+      /** \brief Helper method that creates the tool parameters' widgets.
+       *
+       */
+      void initSettingsWidgets();
 
     private slots:
       /** \brief Launches the operation task.
@@ -64,13 +83,33 @@ namespace ESPINA
       void onTaskFinished();
 
     private:
+      /** \struct TaskContext
+       * \brief Context of currently executing tasks.
+       *
+       */
       struct TaskContext
       {
-          SliceInterpolationFilterSPtr Filter; /** filter being executed. */
-          SegmentationAdapterPtr Segmentation; /** segmentation.          */
+        SliceInterpolationFilterSPtr filter;       /** filter being executed. */
+        SegmentationAdapterPtr       segmentation; /** input segmentation.    */
+
+        /** \brief TaskContext stuct constructor.
+         *
+         */
+        TaskContext(): filter{nullptr}, segmentation{nullptr} {};
+
+        /** \brief TaskContext destructor.
+         *
+         */
+        ~TaskContext()
+        {
+          filter = nullptr;
+          segmentation = nullptr;
+        }
       };
 
-      QMap<TaskPtr, TaskContext> m_executingTasks; /** map of task<->context currently in execution. */
+      GUI::Widgets::NumericalInput *m_threshold;      /** threshold value widget.                       */
+      GUI::Widgets::ToolButton     *m_slicButton;     /** SLIC checkbox widget.                         */
+      QMap<TaskPtr, TaskContext>    m_executingTasks; /** map of task<->context currently in execution. */
   };
 } /* namespace ESPINA */
 

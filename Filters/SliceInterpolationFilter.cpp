@@ -20,48 +20,31 @@
 
 // ESPINA
 #include "SliceInterpolationFilter.h"
-//#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/SpatialUtils.hxx>
-#include <Core/Utils/BlockTimer.hxx>
+#include <Core/Utils/Histogram.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
 // ITK
 #include <itkBinaryDilateImageFilter.h>
 #include <itkBinaryErodeImageFilter.h>
-#include <itkBinaryFillholeImageFilter.h>
 #include <itkBinaryImageToShapeLabelMapFilter.h>
-#include <itkBinaryThresholdImageFilter.h>
 #include <itkCropImageFilter.h>
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkImageDuplicator.h>
-#include <itkImageFileWriter.h>
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkLabelMapToBinaryImageFilter.h>
-#include <itkLaplacianImageFilter.h>
-#include <itkPasteImageFilter.h>
-#include <itkRescaleIntensityImageFilter.h>
-
-
-// QT
-#include <QQueue>
-#include <QDebug>
-#include <QList>
-#include <QtCore>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
-const unsigned int SliceInterpolationFilter::INLAND_VOXEL_VALUE = SEG_VOXEL_VALUE;
-const unsigned int SliceInterpolationFilter::BEACH_VOXEL_VALUE = 2;
-const unsigned int SliceInterpolationFilter::COAST_VOXEL_VALUE = 1;
-const unsigned int SliceInterpolationFilter::SEA_VOXEL_VALUE = SEG_BG_VALUE;
-
 //------------------------------------------------------------------------
 SliceInterpolationFilter::SliceInterpolationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
-    : Filter(inputs, type, scheduler), m_errorMessage("")
+: Filter     {inputs, type, scheduler}
+, m_useSLIC  {false}
+, m_threshold{0.5}
 {
 }
 
@@ -74,9 +57,6 @@ bool SliceInterpolationFilter::needUpdate() const
 //------------------------------------------------------------------------
 void SliceInterpolationFilter::execute()
 {
-  BlockTimer<> timer0("Whole filter execution");
-
-  qDebug() << "Number of inputs: " << m_inputs.size();
   if (m_inputs.size() != 2)
   {
     auto what = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
@@ -85,10 +65,9 @@ void SliceInterpolationFilter::execute()
     throw EspinaException(what, details);
   }
 
-  auto input = m_inputs[0];
+  auto inputSegmentation = m_inputs[0];
 
-  bool validVolume = input->output()->isValid();
-  qDebug() << "Valid readLockVolume: " << validVolume;
+  bool validVolume = inputSegmentation->output()->isValid();
   if (!validVolume)
   {
     auto what = QObject::tr("Invalid input volume");
@@ -98,12 +77,11 @@ void SliceInterpolationFilter::execute()
   }
 
   // Checking user correct input
-  auto volume = sparseCopy<itkVolumeType>(readLockVolume(input->output())->itkImage());
-
-  auto image = volume->itkImage();
+  auto volume = sparseCopy<itkVolumeType>(readLockVolume(inputSegmentation->output())->itkImage());
+  auto segImage = volume->itkImage();
 
   auto biToSlmFilter = itk::BinaryImageToShapeLabelMapFilter<itkVolumeType>::New();
-  biToSlmFilter->SetInput(image);
+  biToSlmFilter->SetInput(segImage);
   biToSlmFilter->SetInputForegroundValue(SEG_VOXEL_VALUE);
   biToSlmFilter->SetFullyConnected(true);
   biToSlmFilter->SetNumberOfThreads(1);
@@ -112,476 +90,375 @@ void SliceInterpolationFilter::execute()
   auto slmOutput = biToSlmFilter->GetOutput();
 
   // Checking correct number of pieces
-  const auto slmOutputSize = slmOutput->GetNumberOfLabelObjects();
-  if (slmOutputSize < 2)
+  const auto sliceNumber = slmOutput->GetNumberOfLabelObjects();
+  if (sliceNumber < 2)
   {
-    m_errorMessage = tr("Wrong number of pieces (%1 found): must be 2 or more").arg(QString::number(slmOutputSize));
-    qDebug() << m_errorMessage;
+    m_errorMessage = tr("Wrong number of unconnected slices, must be two or more. Selected segmentation only has one.");
+    abort();
     return;
   }
 
-  // Checking correct direction
+  // Get interpolation direction.
   auto auxSize = itkVolumeType::SizeType();
-  auxSize.Fill(0); // Ensure 0's initialization
-  for (auto slmObj : slmOutput->GetLabelObjects())
-    auxSize += slmObj->GetBoundingBox().GetSize();
-  auto dir = -1;
-  for (int i = 0; i < itkVolumeType::ImageDimension && dir == -1; i++)
-    if (auxSize[i] == slmOutputSize)
-      dir = i;
-  if (dir == -1)
+  auxSize.Fill(0);
+  auto objects = slmOutput->GetLabelObjects();
+  auto sumOperation = [&auxSize](const SLO::Pointer object) { auxSize += object->GetBoundingBox().GetSize(); };
+  std::for_each(objects.begin(), objects.end(), sumOperation);
+
+  Axis direction{Axis::UNDEFINED};
+  for (int i = 0; i < itkVolumeType::ImageDimension && direction == Axis::UNDEFINED; i++)
   {
-    m_errorMessage = tr("Direction error: you should have all the pieces in the same coordinate (with a size of 1)");
-    qDebug() << m_errorMessage;
+    if (auxSize[i] == sliceNumber) direction = toAxis(i);
+  }
+
+  if (direction == Axis::UNDEFINED)
+  {
+    m_errorMessage = tr("Interpolation direction error. The segmentation must have all the slices in the same orientation with a depth of 1.");
+    abort();
     return;
   }
-  auto direction = toAxis(dir);
 
+  const auto dirIndex = idx(direction);
   reportProgress(0);
-  if (!canExecute())
-    return;
+
+  // TODO: generate known parts histogram.
+  const auto stackRegion = readLockVolume(m_inputs[1]->output())->itkImage()->GetLargestPossibleRegion();
+  auto segRegion = segImage->GetLargestPossibleRegion();
+  segRegion.Crop(stackRegion);
+
+  auto commonBounds = equivalentBounds<itkVolumeType>(segImage, segRegion);
+  segImage = volume->itkImage(commonBounds);
+
+  auto stackImage = readLockVolume(m_inputs[1]->output())->itkImage(commonBounds);
+  Core::Utils::Histogram original;
+  original.addValues(segImage, stackImage);
+  original.update();
+
+  reportProgress(5);
+
+  if (!canExecute()) return;
 
   //Sorting labels by in ascendant order
-  QList<SLO::Pointer> sloList;
-  for (auto slmObj : slmOutput->GetLabelObjects())
-  {
-    sloList << slmObj;
-  }
-  auto lessThan = [dir] (const SLO::Pointer a, const SLO::Pointer b)
-  {
-    return a->GetBoundingBox().GetIndex(dir) < b->GetBoundingBox().GetIndex(dir);
-  };
-  std::sort(sloList.begin(), sloList.end(), lessThan);
+  auto lessThan = [dirIndex] (const SLO::Pointer lhs, const SLO::Pointer rhs) { return lhs->GetBoundingBox().GetIndex(dirIndex) < rhs->GetBoundingBox().GetIndex(dirIndex); };
+  std::sort(objects.begin(), objects.end(), lessThan);
+
+  stackImage = readLockVolume(m_inputs[1]->output())->itkImage();
+  auto stackBounds = readLockVolume(m_inputs[1]->output())->bounds();
+  const auto spacing = stackBounds.spacing();
+  const auto origin  = stackBounds.origin();
+
+  const auto parts      = objects.size();
+  const auto firstSlice = objects.at(0)->GetBoundingBox().GetIndex(dirIndex);
+  const auto lastSlice  = objects.at(parts-1)->GetBoundingBox().GetIndex(dirIndex);
+  const auto totalSlices = (lastSlice-firstSlice-parts+1) * 2; // up + down
+  int currentProgress = 0;
 
   // Process for each pair of pieces
-  SLO::Pointer sourceSLO, targetSLO;
-  RegionType sloTargetReg;
-  auto stackVolume = readLockVolume(m_inputs.at(1)->output());
-  auto maxRegion = equivalentRegion<itkVolumeType>(stackVolume->bounds());
-  RegionType currentRegion, sourceRegion, targetRegion;
-  itkVolumeType::IndexValueType currentSizeOffset;
-  itkVolumeType::Pointer stackImg;
-  SizeValueType bufferSize;
+  unsigned int i = 0;
 
-  ContourInfo cInfo;
+  while (i < parts - 1)
   {
-    BlockTimer<> timer1("Processing time");
-    while (sloList.size() > 1)
+    if (!canExecute()) return;
+
+    auto sourceSLO = objects.at(i);
+    auto targetSLO = objects.at(i+1);
+    ++i;
+
+    reportProgress(5 + ((currentProgress * 100)/totalSlices)*0.95);
+
+    const auto sourceRegion = sourceSLO->GetBoundingBox();
+    const auto targetRegion = targetSLO->GetBoundingBox();
+
+    // we need to pad the middle region because of the dilate and erode filters. If the dilate 'sticks'
+    // to the edge of the image it is not correctly eroded, thus expanding the resulting slice when it's not
+    // necessary to.
+    auto middleBounds = boundingBox(equivalentBounds<itkVolumeType>(segImage, sourceRegion), equivalentBounds<itkVolumeType>(segImage, targetRegion));
+    auto middleRegion = equivalentRegion<itkVolumeType>(segImage, middleBounds);
+    auto paddedMiddleRegion = middleRegion;
+    paddedMiddleRegion.PadByRadius(20);
+    paddedMiddleRegion.SetIndex(dirIndex, middleRegion.GetIndex(dirIndex));
+    paddedMiddleRegion.SetSize(dirIndex, middleRegion.GetSize(dirIndex));
+
+    const auto paddedBounds = equivalentBounds<itkVolumeType>(origin, spacing, paddedMiddleRegion);
+    auto paddedImageDown = volume->itkImage(paddedBounds);
+
+    auto duplicator = itk::ImageDuplicator<itkVolumeType>::New();
+    duplicator->SetInputImage(paddedImageDown);
+    duplicator->Update();
+
+    auto paddedImageUp = duplicator->GetOutput();
+
+    auto paddedStack = create_itkImage<itkVolumeType>(paddedBounds, SEG_BG_VALUE, spacing, origin);
+    Q_ASSERT(intersect(paddedBounds, stackBounds));
+    auto common = intersection(paddedBounds, stackBounds);
+
+    copy_image<itkVolumeType>(stackImage, paddedStack, common);
+
+    Q_ASSERT(paddedMiddleRegion.IsInside(sourceRegion) && paddedMiddleRegion.IsInside(targetRegion));
+
+    long int sliceSize = 1;
+    for(auto i: {0,1,2}) { if(dirIndex == i) continue; sliceSize *= paddedMiddleRegion.GetSize(i); };
+
+    RegionType sliceRegion{paddedMiddleRegion};
+    sliceRegion.SetIndex(dirIndex, 0);
+    sliceRegion.SetSize(dirIndex, 1);
+
+    auto stackSlice = itkVolumeType::New();
+    stackSlice->SetRegions(sliceRegion);
+    stackSlice->SetOrigin(stackImage->GetOrigin());
+    stackSlice->SetSpacing(stackImage->GetSpacing());
+    stackSlice->Allocate();
+
+    auto segSlice = itkVolumeType::New();
+    segSlice->SetRegions(sliceRegion);
+    segSlice->SetOrigin(stackImage->GetOrigin());
+    segSlice->SetSpacing(stackImage->GetSpacing());
+    segSlice->Allocate();
+
+    if (!canExecute()) return;
+
+    // process down
+    for(auto z = sourceRegion.GetIndex(dirIndex) + 1; z < targetRegion.GetIndex(dirIndex); ++z)
     {
-      sourceSLO = sloList.takeFirst();
-      targetSLO = sloList.first();
+      reportProgress(5 + ((currentProgress++ * 100)/totalSlices)*0.95);
 
-      sourceRegion = sourceSLO->GetBoundingBox();
-      targetRegion = targetSLO->GetBoundingBox();
+      auto stackPointer = paddedStack->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      std::memcpy(stackSlice->GetBufferPointer(), stackPointer, sliceSize);
 
-      currentSizeOffset = 2 * (targetRegion.GetIndex(dir) - sourceRegion.GetIndex(dir) + 1);
-      currentRegion = calculateRoi(maxRegion, sourceRegion, targetRegion, direction, currentSizeOffset);
-      currentRegion.SetIndex(dir, sourceRegion.GetIndex(dir));// XXX Check if it's necessary
-      currentRegion.SetSize(dir, 1);
+      auto slicePointer = paddedImageDown->GetBufferPointer() + ((z-1 - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      std::memcpy(segSlice->GetBufferPointer(), slicePointer, sliceSize);
 
-      stackImg = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
-      bufferSize = currentRegion.GetSize(0) * currentRegion.GetSize(1) * currentRegion.GetSize(2);
+      auto slice  = processSlice(stackSlice, segSlice, direction, original);
 
-      auto spacing = stackImg->GetSpacing();
+      slicePointer = paddedImageDown->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      std::memcpy(slicePointer, slice->GetBufferPointer(), sliceSize);
 
-      auto sloImg = sloToImage(sourceSLO, currentRegion, spacing);
-      cInfo = getContourInfo(stackImg, sloImg, direction, bufferSize);
+      if (!canExecute()) return;
+    }
 
-      auto endIndex = targetRegion.GetIndex(dir) - 1;
-      while (currentRegion.GetIndex(dir) < endIndex)
-      { //TODO change algorithm
-        auto prevMask = cInfo.getContourMask();
-        auto prevMaskBuf = prevMask->GetBufferPointer();
-        auto prevMaskRegion = prevMask->GetLargestPossibleRegion();
-        prevMaskRegion.SetIndex(dir, prevMaskRegion.GetIndex(dir) + 1);
-        prevMask->SetRegions(prevMaskRegion);
+    // process up
+    for(auto z = targetRegion.GetIndex(dirIndex) - 1; z > sourceRegion.GetIndex(dirIndex); --z)
+    {
+      reportProgress(5 + ((currentProgress++ * 100)/totalSlices)*0.95);
 
-        // Extract stack image in the selected region
-        currentRegion.SetIndex(dir, currentRegion.GetIndex(dir) + 1);
-        stackImg = stackVolume->itkImage(equivalentBounds<itkVolumeType>(image, currentRegion));
+      auto stackPointer = paddedStack->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      std::memcpy(stackSlice->GetBufferPointer(), stackPointer, sliceSize);
 
-        // Apply gaussian blurring
-        auto imageDuplicator = itk::ImageDuplicator<itkVolumeType>::New();
-        imageDuplicator->SetInputImage(stackImg);
-        imageDuplicator->Update();
+      auto slicePointer = paddedImageUp->GetBufferPointer() + ((z+1 - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      std::memcpy(segSlice->GetBufferPointer(), slicePointer, sliceSize);
 
-        auto gaussianFilter = itk::DiscreteGaussianImageFilter<itkVolumeType, FloatImageType>::New();
-        gaussianFilter->SetInput(imageDuplicator->GetOutput());
-        gaussianFilter->SetVariance(2.0);
-        gaussianFilter->Update();
+      auto slice  = processSlice(stackSlice, segSlice, direction, original);
 
-        writeImageF(1, gaussianFilter->GetOutput());
+      slicePointer = paddedImageUp->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      std::memcpy(slicePointer, slice->GetBufferPointer(), sliceSize);
 
-        // Calculate laplacian of stack image
-        auto laplacianFilter = itk::LaplacianImageFilter<FloatImageType, FloatImageType>::New();
-        laplacianFilter->SetInput(gaussianFilter->GetOutput());
-        laplacianFilter->Update();
+      if (!canExecute()) return;
+    }
 
-        auto rescaleIntensityImageFilter = itk::RescaleIntensityImageFilter<FloatImageType, itkVolumeType>::New(); //f to u_int(normalized)
-        rescaleIntensityImageFilter->SetInput(laplacianFilter->GetOutput());
-        rescaleIntensityImageFilter->Update();
+    // mix both up and down.
+    auto downIt = itk::ImageRegionIteratorWithIndex<itkVolumeType>(paddedImageDown, paddedMiddleRegion);
+    auto upIt = itk::ImageRegionConstIteratorWithIndex<itkVolumeType>(paddedImageUp, paddedMiddleRegion);
+    downIt.GoToBegin();
+    upIt.GoToBegin();
 
-        writeImage(2, rescaleIntensityImageFilter->GetOutput());
-
-        unsigned int laplacianThreshold = 114;
-        auto binaryThresholdImageFilter = itk::BinaryThresholdImageFilter<itkVolumeType, itkVolumeType>::New();
-        binaryThresholdImageFilter->SetInput(rescaleIntensityImageFilter->GetOutput());
-        binaryThresholdImageFilter->SetLowerThreshold(255 - laplacianThreshold);
-        binaryThresholdImageFilter->SetUpperThreshold(255);
-        binaryThresholdImageFilter->SetInsideValue(SEG_VOXEL_VALUE);
-        binaryThresholdImageFilter->SetOutsideValue(SEG_BG_VALUE);
-        binaryThresholdImageFilter->Update();
-
-        writeImage(3, binaryThresholdImageFilter->GetOutput());
-
-        // Apply mask with inland and sea
-        auto auxImg = binaryThresholdImageFilter->GetOutput();
-        auto auxImgBuf = auxImg->GetBufferPointer();
-        for (SizeValueType i = 0; i < bufferSize; ++i)
-        {
-          switch (prevMaskBuf[i])
-          {
-            case INLAND_VOXEL_VALUE:
-              auxImgBuf[i] = SEG_VOXEL_VALUE;
-              break;
-            case SEA_VOXEL_VALUE:
-              auxImgBuf[i] = SEG_BG_VALUE;
-              break;
-          }
-        }
-
-        writeImage(4, auxImg);
-
-        // Ignore unconnected parts
-        itk::ImageRegionConstIteratorWithIndex<itkVolumeType> imageIterator(prevMask, prevMask->GetLargestPossibleRegion());
-        itkVolumeType::IndexType inlandIndex;
-        while(!imageIterator.IsAtEnd())
-        {
-          if (imageIterator.Get() == INLAND_VOXEL_VALUE){//Find one pixel that belongs to inland
-            inlandIndex = imageIterator.GetIndex();
-            break;
-          }
-          ++imageIterator;
-        }
-
-        auto binaryImageToLabelMapFilter = itk::BinaryImageToShapeLabelMapFilter<itkVolumeType>::New();
-        binaryImageToLabelMapFilter->SetInput(auxImg);
-        binaryImageToLabelMapFilter->SetInputForegroundValue(SEG_VOXEL_VALUE);
-        binaryImageToLabelMapFilter->SetFullyConnected(true);
-        binaryImageToLabelMapFilter->SetNumberOfThreads(1);
-        binaryImageToLabelMapFilter->Update();
-
-        SLO::Pointer labelObject;
-        auto n_labels = binaryImageToLabelMapFilter->GetOutput()->GetNumberOfLabelObjects();
-        for (unsigned int i = 0; i < n_labels; ++i){
-          labelObject = binaryImageToLabelMapFilter->GetOutput()->GetNthLabelObject(i);
-          if (labelObject->HasIndex(inlandIndex)) break;
-          labelObject = nullptr;
-        }
-
-        auto auxSloImg = sloToImage(labelObject, auxImg->GetLargestPossibleRegion(), auxImg->GetSpacing());
-
-        writeImage(5, auxSloImg);
-
-        // Dilate image
-        StructuringElementType ball;
-        ball.SetRadius(1);
-        ball.CreateStructuringElement();
-
-        auto binaryDilateFilter = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
-        binaryDilateFilter->SetInput(auxSloImg);
-        binaryDilateFilter->SetKernel(ball);
-        binaryDilateFilter->SetNumberOfThreads(1);
-        binaryDilateFilter->Update();
-        auto auxDilImg = binaryDilateFilter->GetOutput();
-
-        writeImage(6, auxDilImg);
-
-        // Fill holes
-        auto auxDilImgSpacing = auxDilImg->GetSpacing();
-        auto auxDilImgRegion = auxDilImg->GetLargestPossibleRegion();
-
-        auto fillHolesMaskRegion = auxDilImgRegion;
-        fillHolesMaskRegion.SetIndex(dir, fillHolesMaskRegion.GetIndex(dir) - 1);
-        fillHolesMaskRegion.SetSize(dir, 3);
-        auto fillHolesMask = itkVolumeType::New();
-        fillHolesMask->SetRegions(fillHolesMaskRegion);
-        fillHolesMask->SetSpacing(auxDilImgSpacing);
-        fillHolesMask->Allocate();
-        fillHolesMask->FillBuffer(SEG_VOXEL_VALUE);
-
-        auto pasteImageFilter = itk::PasteImageFilter <itkVolumeType, itkVolumeType>::New();
-        pasteImageFilter->SetInPlace(false);
-        pasteImageFilter->ReleaseDataFlagOn();
-        pasteImageFilter->SetNumberOfThreads(1);
-        pasteImageFilter->SetSourceImage(auxDilImg);
-        pasteImageFilter->SetSourceRegion(auxDilImgRegion);
-        pasteImageFilter->SetDestinationImage(fillHolesMask);
-        pasteImageFilter->SetDestinationIndex(auxDilImgRegion.GetIndex());
-        pasteImageFilter->Update();
-
-        auto binaryFillholeImageFilter = itk::BinaryFillholeImageFilter<itkVolumeType>::New();
-        binaryFillholeImageFilter->SetInput(pasteImageFilter->GetOutput());
-        binaryFillholeImageFilter->SetNumberOfThreads(1);
-        binaryFillholeImageFilter->ReleaseDataFlagOn();
-        binaryFillholeImageFilter->Update();
-
-        auto extractImageFilter = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>::New();
-        extractImageFilter->SetExtractionRegion(auxDilImgRegion);
-        extractImageFilter->SetInput(binaryFillholeImageFilter->GetOutput());
-        extractImageFilter->SetDirectionCollapseToIdentity();
-        extractImageFilter->Update();
-
-        writeImage(7, extractImageFilter->GetOutput());
-
-        // Erode image
-        auto binaryErodeFilter = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
-        binaryErodeFilter->SetInput(extractImageFilter->GetOutput());
-        binaryErodeFilter->SetKernel(ball);
-        binaryErodeFilter->SetNumberOfThreads(1);
-        binaryErodeFilter->Update();
-
-        writeImage(8, binaryErodeFilter->GetOutput());
-
-        // Opening image
-        ball.SetRadius(2);
-        ball.CreateStructuringElement();
-
-        auto binaryErodeFilter2 = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
-        binaryErodeFilter2->SetInput(binaryErodeFilter->GetOutput());
-        binaryErodeFilter2->SetKernel(ball);
-        binaryErodeFilter2->SetNumberOfThreads(1);
-        binaryErodeFilter2->Update();
-
-        auto binaryDilateFilter2 = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
-        binaryDilateFilter2->SetInput(binaryErodeFilter2->GetOutput());
-        binaryDilateFilter2->SetKernel(ball);
-        binaryDilateFilter2->SetNumberOfThreads(1);
-        binaryDilateFilter2->Update();
-
-        writeImage(9, binaryDilateFilter2->GetOutput());
-
-        // Save slice
-        expandAndDraw<itkVolumeType>(volume, binaryDilateFilter2->GetOutput());
+    while(!downIt.IsAtEnd())
+    {
+      if((downIt.Value() == SEG_VOXEL_VALUE) && (upIt.Value() == SEG_VOXEL_VALUE))
+      {
+        downIt.Set(1);
+      }
+      else
+      {
+        downIt.Set(0);
       }
 
+      ++downIt;
+      ++upIt;
     }
-  }
 
-  if (!canExecute())
-    return;
+    using StructuringElementType = itk::FlatStructuringElement<3>;
+    StructuringElementType::RadiusType radius;
+    for(int i: {0,1,2}) { radius.SetElement(i, i == dirIndex ? 0: 4); };
+
+    auto ball = StructuringElementType::Ball(radius);
+
+    auto finalDilate = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
+    finalDilate->SetInput(paddedImageDown);
+    finalDilate->SetKernel(ball);
+    finalDilate->SetForegroundValue(1);
+    finalDilate->SetBackgroundValue(0);
+    finalDilate->SetNumberOfThreads(1);
+    finalDilate->Update();
+
+    auto finalErode = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
+    finalErode->SetInput(finalDilate->GetOutput());
+    finalErode->SetKernel(ball);
+    finalErode->SetForegroundValue(1);
+    finalErode->SetBackgroundValue(0);
+    finalErode->SetNumberOfThreads(1);
+    finalErode->Update();
+
+    auto labelmap = itk::BinaryImageToShapeLabelMapFilter<itkVolumeType>::New();
+    labelmap->SetInput(finalErode->GetOutput());
+    labelmap->SetInputForegroundValue(1);
+    labelmap->SetOutputBackgroundValue(0);
+    labelmap->SetFullyConnected(true);
+    labelmap->SetNumberOfThreads(1);
+    labelmap->Update();
+
+    auto labelmapSeg = labelmap->GetOutput();
+
+    if (!canExecute()) return;
+
+    unsigned int max = 0;
+    int biggest = -1;
+    for(unsigned int i = 1; i < labelmapSeg->GetNumberOfLabelObjects() + 1; ++i)
+    {
+      auto pixelNum = labelmapSeg->GetLabelObject(i)->GetNumberOfPixels();
+      if(pixelNum > max)
+      {
+        biggest = static_cast<int>(i);
+        max = pixelNum;
+      }
+    }
+
+    if(biggest != -1)
+    {
+      SpacingType sloSpacing;
+      sloSpacing.SetElement(0, spacing[0]);
+      sloSpacing.SetElement(1, spacing[1]);
+      sloSpacing.SetElement(2, spacing[2]);
+
+      OriginType sloOrigin;
+      sloOrigin.SetElement(0, origin[0]);
+      sloOrigin.SetElement(1, origin[1]);
+      sloOrigin.SetElement(2, origin[2]);
+
+      SLO::Pointer selected = labelmapSeg->GetLabelObject(biggest);
+      auto finalSeg = labelObjectToImage(selected, paddedMiddleRegion, sloSpacing, sloOrigin);
+      auto minimalB = minimalBounds<itkVolumeType>(finalSeg, SEG_BG_VALUE);
+      auto finalRegion = equivalentRegion<itkVolumeType>(finalSeg, minimalB);
+
+      // we need to undo the padding before writing the results to the volume.
+      auto extractor = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>::New();
+      extractor->SetInput(finalSeg);
+      extractor->SetExtractionRegion(finalRegion);
+      extractor->UpdateLargestPossibleRegion();
+
+      expandAndDraw<itkVolumeType>(volume, extractor->GetOutput());
+    }
+ }
+
+  if (!canExecute()) return;
+
   reportProgress(100);
 
-  if (!m_outputs.contains(0)) m_outputs[0] = std::make_shared<Output>(this, 0, input->output()->spacing());
+  if (!m_outputs.contains(0)) m_outputs[0] = std::make_shared<Output>(this, 0, inputSegmentation->output()->spacing());
   m_outputs[0]->setData(volume);
   m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
 }
 
 //------------------------------------------------------------------------
-SliceInterpolationFilter::ContourInfo SliceInterpolationFilter::getContourInfo(const itkVolumeType::Pointer stackImg, const itkVolumeType::Pointer continentImg,
-                                                                               const Axis direction, const SizeValueType bufferSize) const
+itkVolumeType::Pointer SliceInterpolationFilter::processSlice(const itkVolumeType::Pointer stackSlice,
+                                                              const itkVolumeType::Pointer segSlice,
+                                                              const Axis direction,
+                                                              const Histogram &histogram) const
 {
-  /* inland = erode(continent);
-   * beach = continent - inland;
-   * dilate = dilate(continent);
-   * coast = dilate - sloImage
-   * sea = 255 - coast
-   */
-  using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
-  StructuringElementType ball;
-  ball.SetRadius(5);
-  ball.CreateStructuringElement();
+  const auto dirIndex = idx(direction);
+
+  using StructuringElementType = itk::FlatStructuringElement<3>;
+  StructuringElementType::RadiusType radius;
+  for(int i: {0,1,2}) { radius.SetElement(i, i == dirIndex ? 0: 4); };
+
+  auto ball = StructuringElementType::Ball(radius);
 
   // Erode
   auto binaryErodeFilter = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
-  binaryErodeFilter->SetInput(continentImg);
+  binaryErodeFilter->SetInput(segSlice);
   binaryErodeFilter->SetKernel(ball);
+  binaryErodeFilter->SetForegroundValue(SEG_VOXEL_VALUE);
+  binaryErodeFilter->SetBackgroundValue(SEG_BG_VALUE);
   binaryErodeFilter->SetNumberOfThreads(1);
   binaryErodeFilter->Update();
-  auto inlandImg = binaryErodeFilter->GetOutput();
+  auto erodeImg = binaryErodeFilter->GetOutput();
 
   // Dilate
   auto binaryDilateFilter = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
-  binaryDilateFilter->SetInput(continentImg);
+  binaryDilateFilter->SetInput(segSlice);
   binaryDilateFilter->SetKernel(ball);
+  binaryDilateFilter->SetForegroundValue(SEG_VOXEL_VALUE);
+  binaryDilateFilter->SetBackgroundValue(SEG_BG_VALUE);
   binaryDilateFilter->SetNumberOfThreads(1);
   binaryDilateFilter->Update();
   auto dilateImg = binaryDilateFilter->GetOutput();
 
-  // Return image
+  auto dilateBuffer = dilateImg->GetBufferPointer();
+  auto erodeBuffer  = erodeImg->GetBufferPointer();
+  for(unsigned long i = 0; i < dilateImg->GetLargestPossibleRegion().GetNumberOfPixels(); ++i)
+  {
+    if(erodeBuffer[i] == SEG_VOXEL_VALUE) dilateBuffer[i] = SEG_BG_VALUE;
+  }
+
+  auto gaussian  = itk::DiscreteGaussianImageFilter<itkVolumeType, itkVolumeType>::New();
+  gaussian->SetInput(stackSlice);
+  gaussian->SetVariance(2.0);
+  gaussian->SetFilterDimensionality(2);
+  gaussian->SetNumberOfThreads(1);
+  gaussian->Update();
+
+  const auto sliceSize = segSlice->GetLargestPossibleRegion().GetNumberOfPixels();
+
+  // Resulting image
   auto mask = itkVolumeType::New();
-  mask->SetRegions(continentImg->GetLargestPossibleRegion());
+  mask->SetRegions(stackSlice->GetLargestPossibleRegion());
   mask->Allocate();
+  std::memcpy(mask->GetBufferPointer(), binaryErodeFilter->GetOutput()->GetBufferPointer(), sliceSize);
 
-  // Buffers
-  auto stackImgBuf = stackImg->GetBufferPointer();
-  auto continentImgBuf = continentImg->GetBufferPointer();
-  auto inlandImgBuf = inlandImg->GetBufferPointer();
-  auto dilateImgBuf = dilateImg->GetBufferPointer();
   auto maskBuf = mask->GetBufferPointer();
+  auto stackImgBuf = gaussian->GetOutput()->GetBufferPointer();
 
-  // Histograms
-  auto inlandHist = Histogram(256);
-  auto beachHist = Histogram(256);
-  auto coastHist = Histogram(256);
-  auto seaHist = Histogram(256);
+  auto threshold = histogram.threshold(m_threshold);
+  int minor = std::max(0, histogram.medianValue()-threshold);
+  int major = std::min(255, histogram.medianValue()+threshold);
 
-  // Filling return mask with:  inland = INLAND_VOXEL_VALUE, beach = BEACH_VOXEL_VALUE,
-  //                            coast = COAST_VOXEL_VALUE and sea = SEA_VOXEL_VALUE
-  for (SizeValueType i = 0; i < bufferSize; ++i)
+  auto isValid = [major, minor](const unsigned char value) { return minor <= value && value <= major; };
+
+  dilateBuffer = binaryDilateFilter->GetOutput()->GetBufferPointer();
+
+  for (SizeValueType i = 0; i < sliceSize; ++i)
   {
-    if (inlandImgBuf[i])
+    if((dilateBuffer[i] == SEG_VOXEL_VALUE) && isValid(stackImgBuf[i]))
     {
-      maskBuf[i] = INLAND_VOXEL_VALUE;
-      ++inlandHist[stackImgBuf[i]];
-    }
-    else if (continentImgBuf[i] - inlandImgBuf[i])
-    {
-      maskBuf[i] = BEACH_VOXEL_VALUE;
-      ++beachHist[stackImgBuf[i]];
-    }
-    else if (dilateImgBuf[i])
-    {
-      maskBuf[i] = COAST_VOXEL_VALUE;
-      ++coastHist[stackImgBuf[i]];
-    }
-    else
-    {
-      maskBuf[i] = SEA_VOXEL_VALUE;
-      ++seaHist[stackImgBuf[i]];
+        maskBuf[i] = SEG_VOXEL_VALUE;
     }
   }
 
-  // Calculating histograms most common value (mode)
-  PixelCounterType inlandMode = 0, beachMode = 0, coastMode = 0, seaMode = 0;
-  unsigned int valInlandMode = 0, valBeachMode = 0, valCoastMode = 0, valSeaMode = 0;
-  for (unsigned int i = 0; i < 256; ++i)
-  {
-    if (inlandHist[i] > valInlandMode)
-    {
-      inlandMode = i;
-      valInlandMode = inlandHist[inlandMode];
-    }
-    if (beachHist[i] > valBeachMode)
-    {
-      beachMode = i;
-      valBeachMode = beachHist[beachMode];
-    }
-    if (coastHist[i] > valCoastMode)
-    {
-      coastMode = i;
-      valCoastMode = coastHist[coastMode];
-    }
-    if (seaHist[i] > valSeaMode)
-    {
-      seaMode = i;
-      valSeaMode = seaHist[seaMode];
-    }
-  }
+  auto finalDilate = itk::BinaryDilateImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
+  finalDilate->SetInput(mask);
+  finalDilate->SetKernel(ball);
+  finalDilate->SetForegroundValue(SEG_VOXEL_VALUE);
+  finalDilate->SetBackgroundValue(SEG_BG_VALUE);
+  finalDilate->SetNumberOfThreads(1);
+  finalDilate->Update();
 
-//  printHistogram('I',inlandHist);
-//  printHistogram('B',beachHist);
-//  printHistogram('C',coastHist);
-//  printHistogram('S',seaHist);
-//  printImageInZ(mask, 0);
+  auto finalErode = itk::BinaryErodeImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>::New();
+  finalErode->SetInput(finalDilate->GetOutput());
+  finalErode->SetKernel(ball);
+  finalErode->SetForegroundValue(SEG_VOXEL_VALUE);
+  finalErode->SetBackgroundValue(SEG_BG_VALUE);
+  finalErode->SetNumberOfThreads(1);
+  finalErode->Update();
 
+  std::memcpy(mask->GetBufferPointer(), finalErode->GetOutput()->GetBufferPointer(), sliceSize);
 
-  return ContourInfo(inlandMode, beachMode, coastMode, seaMode, mask);
+  return mask;
 }
 
 //------------------------------------------------------------------------
-SliceInterpolationFilter::RegionType SliceInterpolationFilter::calculateRoi(const RegionType& maxRegion, const RegionType& srcRegion,
-                                                                            const RegionType& tarRegion, const Axis direction, const int extraOffset)
-{
-  auto dir = idx(direction);
-
-  auto region = RegionType();
-
-  auto dirAux = dir;
-  for (unsigned char i = 0; i < 2; ++i)
-  {
-    dirAux = (dirAux + 1) % 3;
-    auto srcOrigin = srcRegion.GetIndex(dirAux);
-    auto tarOrigin = tarRegion.GetIndex(dirAux);
-
-    auto minIndex = (srcOrigin < tarOrigin) ? srcOrigin : tarOrigin;
-    minIndex -= extraOffset;
-    if (minIndex < 0)
-      minIndex = 0;
-
-    auto srcEnd = srcOrigin + srcRegion.GetSize(dirAux);
-    auto tarEnd = tarOrigin + tarRegion.GetSize(dirAux);
-    auto maxSize = (srcEnd > tarEnd) ? srcEnd - minIndex : tarEnd - minIndex;
-
-    auto maxRegionSize = maxRegion.GetSize(dirAux);
-    maxSize += 2 * extraOffset;
-    if (minIndex + maxSize > maxRegionSize)
-      maxSize = maxRegionSize - minIndex;
-
-    region.SetIndex(dirAux, minIndex);
-    region.SetSize(dirAux, maxSize);
-  }
-
-  return region;
-}
-
-//------------------------------------------------------------------------
-SliceInterpolationFilter::ContourInfo::ContourInfo()
-    : m_inland_mode { 0 }, m_beach_mode { 0 }, m_coast_mode { 0 }, m_sea_mode { 0 }, m_contour_mask { nullptr }
-{
-}
-
-//------------------------------------------------------------------------
-SliceInterpolationFilter::ContourInfo::ContourInfo(PixelCounterType inlandMode, PixelCounterType beachMode, PixelCounterType coastMode,
-                                                   PixelCounterType seaMode, itkVolumeType::Pointer contourMask)
-    : m_inland_mode { inlandMode }, m_beach_mode { beachMode }, m_coast_mode { coastMode }, m_sea_mode { seaMode }, m_contour_mask { contourMask }
-{
-}
-
-//------------------------------------------------------------------------
-SliceInterpolationFilter::PixelCounterType SliceInterpolationFilter::ContourInfo::getInlandMode() const
-{
-  return m_inland_mode;
-}
-
-//------------------------------------------------------------------------
-SliceInterpolationFilter::PixelCounterType SliceInterpolationFilter::ContourInfo::getBeachMode() const
-{
-  return m_beach_mode;
-}
-
-//------------------------------------------------------------------------
-SliceInterpolationFilter::PixelCounterType SliceInterpolationFilter::ContourInfo::getCoastMode() const
-{
-  return m_coast_mode;
-}
-
-//------------------------------------------------------------------------
-SliceInterpolationFilter::PixelCounterType SliceInterpolationFilter::ContourInfo::getSeaMode() const
-{
-  return m_sea_mode;
-}
-
-//------------------------------------------------------------------------
-itkVolumeType::Pointer SliceInterpolationFilter::ContourInfo::getContourMask() const
-{
-  return m_contour_mask;
-}
-
-//------------------------------------------------------------------------
-void SliceInterpolationFilter::ContourInfo::setContourMask(const itkVolumeType::Pointer image)
-{
-  m_contour_mask = image->Clone();
-}
-
-//------------------------------------------------------------------------
-void SliceInterpolationFilter::ContourInfo::print(std::ostream& os) const
-{
-  os << "ContourInfo [ " << m_sea_mode << ", " << m_coast_mode << ", " << m_beach_mode << ", " << m_inland_mode << " ]\n";
-}
-
-//------------------------------------------------------------------------
-itkVolumeType::Pointer SliceInterpolationFilter::sloToImage(const SLO::Pointer slObject, RegionType region, SpacingType spacing)
+itkVolumeType::Pointer SliceInterpolationFilter::labelObjectToImage(const SLO::Pointer slObject,
+                                                                    const RegionType &region,
+                                                                    const SpacingType &spacing,
+                                                                    const OriginType &origin)
 {
   // Creates a temporal map with the label
   auto map = ShapeLabelMap::New();
@@ -598,85 +475,35 @@ itkVolumeType::Pointer SliceInterpolationFilter::sloToImage(const SLO::Pointer s
 
   auto image = slmToBiFilter->GetOutput();
   image->SetSpacing(spacing);
+  image->SetOrigin(origin);
 
   return itkVolumeType::Pointer(image);
 }
 
 //------------------------------------------------------------------------
-void SliceInterpolationFilter::printRegion(const RegionType region) const
+void SliceInterpolationFilter::writeImage(const itkVolumeType::Pointer image, const QString &name) const
 {
-  std::cout << "A region:" << std::endl << region << " " << std::endl;
-}
+  static unsigned int i = 0;
 
-//------------------------------------------------------------------------
-void SliceInterpolationFilter::printImageInZ(const itkVolumeType::Pointer image, const itkVolumeType::OffsetValueType offsetInZ) const
-{
-  const unsigned int Z = 2;
-  auto region = image->GetLargestPossibleRegion();
-  region.SetIndex(Z, region.GetIndex(Z) + offsetInZ);
-  region.SetSize(Z, 1);
-  auto it = itk::ImageRegionIteratorWithIndex<itkVolumeType>(image, region);
-  auto index = region.GetIndex();
-  std::cout << "---Slice " << region.GetIndex(Z) << "---" << std::endl;
-  for (unsigned int i = region.GetIndex(0); i < region.GetIndex(0) + region.GetSize(0); ++i)
-  {
-    for (unsigned int j = region.GetIndex(1); j < region.GetIndex(1) + region.GetSize(1); ++j)
-    {
-      index[0] = i;
-      index[1] = j;
-      it.SetIndex(index);
-      switch (it.Value())
-      {
-        case INLAND_VOXEL_VALUE:
-          std::cout << "I";
-          break;
-        case BEACH_VOXEL_VALUE:
-          std::cout << "B";
-          break;
-        case COAST_VOXEL_VALUE:
-          std::cout << "C";
-          break;
-        case SEA_VOXEL_VALUE:
-          std::cout << "S";
-          break;
-        default:
-          std::cout << "?";
-          break;
-      }
-
-      if (j == region.GetIndex(1) + region.GetSize(1) - 1)
-        std::cout << std::endl;
-    }
-  }
-  std::cout << std::endl << std::endl;
-}
-
-//------------------------------------------------------------------------
-void SliceInterpolationFilter::writeImage(int id , const itkVolumeType::Pointer image) const
-{
+  Q_ASSERT(storage());
+  auto filename = storage()->absoluteFilePath(tr("Image %1 - %2.tif").arg(i).arg(name));
   auto writer = itk::ImageFileWriter<itkVolumeType>::New();
-  writer->SetFileName(std::string("/home/heavy/Image" + std::to_string(id) +".tif"));
+  writer->SetFileName(filename.toStdString().c_str());
   writer->SetInput(image);
   writer->Update();
+
+  ++i;
 }
 
 //------------------------------------------------------------------------
-void SliceInterpolationFilter::writeImageF(int id , const FloatImageType::Pointer image) const
+const QStringList SliceInterpolationFilter::errors() const
 {
-  auto writer = itk::ImageFileWriter<FloatImageType>::New();
-  writer->SetFileName(std::string("/home/heavy/Image" + std::to_string(id) +".tif"));
-  writer->SetInput(image);
-  writer->Update();
-}
+  QStringList messages;
 
-//------------------------------------------------------------------------
-void SliceInterpolationFilter::printHistogram(const char tag, const Histogram& histo) const
-{
-  cout << tag << " histogram:";
-  for (auto x : histo)
+  if(!m_errorMessage.isEmpty())
   {
-    if (x / 10 == 0) cout << ' ';
-    cout << ' ' << x;
+    messages << m_errorMessage;
   }
-  cout << endl;
+
+  return messages;
 }

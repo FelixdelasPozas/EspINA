@@ -151,5 +151,6 @@
     <file>log.svg</file>
     <file>clipboard_copy.svg</file>
     <file>slice_interpolation.svg</file>
+    <file>slic.svg</file>
   </qresource>
 </RCC>
