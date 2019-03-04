@@ -61,7 +61,7 @@ TemporalRepresentation3DSPtr TemporalPrototypes::createRepresentation3D() const
 }
 
 //------------------------------------------------------------------------
-QString TemporalPrototypes::name() const
+const QString TemporalPrototypes::name() const
 {
   return m_name;
 }
