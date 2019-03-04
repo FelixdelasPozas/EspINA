@@ -385,7 +385,7 @@ namespace ESPINA
       /** \brief CheckDuplicatedSegmentationsTask class virtual destructor.
        *
        */
-      ~CheckDuplicatedSegmentationsTask()
+      virtual ~CheckDuplicatedSegmentationsTask()
       {}
 
     private:
@@ -400,6 +400,33 @@ namespace ESPINA
       Extensions::IssueSPtr possibleDuplication(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated, const unsigned long long duplicatedVoxels) const;
 
       SegmentationAdapterSList m_segmentations; /** list of segmentations to check for duplicates. */
+  };
+
+  /** \class CheckStacksSizes
+   * \brief Task to check that the size of the stacks are the same.
+   *
+   */
+  class CheckStacksSizes
+  : public CheckTask
+  {
+    public:
+      /** \brief CheckStacksSizes class constructor.
+       * \param[in] stacks List of stacks of the analysis.
+       * \param[in] context Application context reference.
+       *
+       */
+      explicit CheckStacksSizes(const ChannelAdapterSList stacks, Support::Context &context);
+
+      /** \brief CheckStackSizes class virtual destructor.
+       *
+       */
+      virtual ~CheckStacksSizes()
+      {};
+
+    private:
+      virtual void run() override final;
+
+      const ChannelAdapterSList m_stacks; /* list of stacks. */
   };
 
 } // namespace ESPINA
