@@ -587,7 +587,7 @@ void SkeletonEditionTool::initEventHandler()
 //--------------------------------------------------------------------
 void SkeletonEditionTool::onModifierPressed(bool value)
 {
-  if(m_widgets.first()->mode() != SkeletonWidget2D::Mode::MODIFY)
+  if(!m_widgets.isEmpty() && m_widgets.first()->mode() != SkeletonWidget2D::Mode::MODIFY)
   {
     m_eraseButton->setChecked(!m_eraseButton->isChecked());
     updateWidgetsMode();
