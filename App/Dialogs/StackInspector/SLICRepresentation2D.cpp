@@ -85,7 +85,6 @@ void SLICRepresentation2D::initialize(RenderView* view)
 
   buildVTKPipeline();
 
-  // TODO: this will be needed when the real actor is computed.
   repositionActor(m_actor, view2d->widgetDepth(), m_planeIndex);
   repositionActor(m_pointsActor, 2*view2d->widgetDepth(), m_planeIndex);
 
@@ -228,11 +227,6 @@ void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr fr
 //--------------------------------------------------------------------
 void SLICRepresentation2D::buildVTKPipeline()
 {
-  // TODO: build the actor for the representation.
-  // Depending on the SLIC data create a slice data using the area of the channel
-  // edges, and then display that data on-screen. If there is no SLIC data, build the pipeline
-  // with no data, do not update actor or enter it in the view.
-
   // text actor
   m_textActor = vtkSmartPointer<vtkTextActor>::New();
   m_textActor->SetPosition2(10, 40);

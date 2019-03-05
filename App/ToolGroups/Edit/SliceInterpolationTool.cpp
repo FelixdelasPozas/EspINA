@@ -21,6 +21,8 @@
 // ESPINA
 #include "SliceInterpolationTool.h"
 #include <App/ToolGroups/Edit/EditToolGroup.h>
+#include <Extensions/SLIC/StackSLIC.h>
+#include <Core/Analysis/Channel.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/Widgets/NumericalInput.h>
@@ -33,6 +35,7 @@
 #include <QThread>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::GUI;
 using namespace ESPINA::GUI::Widgets;
@@ -92,10 +95,12 @@ void SliceInterpolationTool::applyFilter()
     Q_ASSERT(!channels.empty());
     auto stack = channels.first();
     inputs << stack->asInput();
+    auto extension = retrieveOrCreateStackExtension<StackSLIC>(stack, getFactory());
 
     auto filter = getFactory()->createFilter<SliceInterpolationFilter>(inputs, EditionFilterFactory::SLICE_INTERPOLATION_FILTER);
     filter->setDescription(tr("Interpolate slices of %1").arg(segmentation->data().toString()));
     filter->setUseSLIC(useSLIC);
+    filter->setSLICExtension(extension.get());
     filter->setThreshold(thresholdValue);
 
     TaskContext taskContext;
@@ -190,10 +195,11 @@ void SliceInterpolationTool::onTaskFinished()
     {
       if(!filter->errors().isEmpty())
       {
-        auto title = tr("Slice interpolation");
-        auto message = filter->errors().first();
+        auto title   = tr("Slice interpolation");
+        auto message = tr("Couldn't complete operation due to errors.");
+        auto details = filter->errors().first();
 
-        GUI::DefaultDialogs::ErrorMessage(message, title);
+        GUI::DefaultDialogs::ErrorMessage(message, title, details);
       }
     }
 

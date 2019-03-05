@@ -577,7 +577,7 @@ namespace ESPINA
     if(!sourceLargest.IsInside(sourceRegion))
     {
       auto message = QObject::tr("Source region not inside source image.");
-      auto details = QObject::tr("copy_image(source, destination, bounds) ->") + message;
+      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
     }
@@ -601,7 +601,7 @@ namespace ESPINA
     if(!destLargest.IsInside(destRegion))
     {
       auto message = QObject::tr("Destination region not inside destination image.");
-      auto details = QObject::tr("copy_image(source, destination, bounds) ->") + message;
+      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
     }
@@ -609,7 +609,7 @@ namespace ESPINA
     if(destRegion.GetNumberOfPixels() != sourceRegion.GetNumberOfPixels())
     {
       auto message = QObject::tr("Regions in source and destination doesn't have the same number of pixels.");
-      auto details = QObject::tr("copy_image(source, destination, bounds) ->") + message;
+      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
     }

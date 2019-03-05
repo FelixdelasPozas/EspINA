@@ -26,6 +26,7 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Filter.h>
 #include <Core/Utils/Histogram.h>
+#include <Extensions/SLIC/StackSLIC.h>
 
 // ITK
 #include <itkBinaryBallStructuringElement.h>
@@ -100,6 +101,13 @@ namespace ESPINA
       const double thresholdValue() const
       { return m_threshold; }
 
+      /** \brief Sets the SLIC extension.
+       * \param[in] extension SLIC extension pointer.
+       *
+       */
+      void setSLICExtension(Extensions::StackSLIC *extension)
+      { m_slic = extension; }
+
     protected:
       virtual Snapshot saveFilterSnapshot() const
       { return Snapshot(); }
@@ -135,14 +143,11 @@ namespace ESPINA
                                                 const SpacingType &spacing,
                                                 const OriginType &origin);
 
-
-      // TODO remove after debugging.
-      void writeImage(const itkVolumeType::Pointer image, const QString &name) const;
-
     private:
-      bool    m_useSLIC;      /** true if the filter uses SLIC information, false otherwise. */
-      double  m_threshold;    /** threshold value.                                           */
-      QString m_errorMessage; /** Error message or empty if filter ran successfully.         */
+      bool                   m_useSLIC;   /** true if the filter uses SLIC information, false otherwise. */
+      double                 m_threshold; /** threshold value.                                           */
+      Extensions::StackSLIC *m_slic;      /** Core factory object for SLIC extension creation.           */
+      QStringList            m_errors;    /** Error message or empty if filter ran successfully.         */
   };
 
   using SliceInterpolationFilterPtr = SliceInterpolationFilter *;

@@ -25,6 +25,7 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/SpatialUtils.hxx>
 #include <Core/Utils/Histogram.h>
+#include <Extensions/SLIC/StackSLIC.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 
 // ITK
@@ -38,6 +39,7 @@
 #include <itkLabelMapToBinaryImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
@@ -45,6 +47,7 @@ SliceInterpolationFilter::SliceInterpolationFilter(InputSList inputs, const Filt
 : Filter     {inputs, type, scheduler}
 , m_useSLIC  {false}
 , m_threshold{0.5}
+, m_slic     {nullptr}
 {
 }
 
@@ -64,6 +67,9 @@ void SliceInterpolationFilter::execute()
 
     throw EspinaException(what, details);
   }
+
+  reportProgress(0);
+  m_errors.clear();
 
   auto inputSegmentation = m_inputs[0];
 
@@ -93,7 +99,7 @@ void SliceInterpolationFilter::execute()
   const auto sliceNumber = slmOutput->GetNumberOfLabelObjects();
   if (sliceNumber < 2)
   {
-    m_errorMessage = tr("Wrong number of unconnected slices, must be two or more. Selected segmentation only has one.");
+    m_errors << tr("Wrong number of unconnected slices, must be two or more. Selected segmentation only has one.");
     abort();
     return;
   }
@@ -113,15 +119,13 @@ void SliceInterpolationFilter::execute()
 
   if (direction == Axis::UNDEFINED)
   {
-    m_errorMessage = tr("Interpolation direction error. The segmentation must have all the slices in the same orientation with a depth of 1.");
+    m_errors << tr("Interpolation direction error. The segmentation must have all the slices in the same orientation with a depth of 1.");
     abort();
     return;
   }
 
   const auto dirIndex = idx(direction);
-  reportProgress(0);
 
-  // TODO: generate known parts histogram.
   const auto stackRegion = readLockVolume(m_inputs[1]->output())->itkImage()->GetLargestPossibleRegion();
   auto segRegion = segImage->GetLargestPossibleRegion();
   segRegion.Crop(stackRegion);
@@ -188,7 +192,46 @@ void SliceInterpolationFilter::execute()
 
     auto paddedImageUp = duplicator->GetOutput();
 
-    auto paddedStack = create_itkImage<itkVolumeType>(paddedBounds, SEG_BG_VALUE, spacing, origin);
+    itkVolumeType::Pointer paddedStack = nullptr;
+
+    if(m_useSLIC && m_slic)
+    {
+      try
+      {
+        paddedStack = m_slic->getImageFromBounds(paddedBounds);
+      }
+      catch(const EspinaException &e)
+      {
+        m_errors << QString(e.details());
+        abort();
+        return;
+      }
+      catch(const std::exception &e)
+      {
+        m_errors << QString(e.what());
+        abort();
+        return;
+      }
+      catch(...)
+      {
+        if(!m_slic->errors().isEmpty())
+        {
+          m_errors << m_slic->errors();
+        }
+        else
+        {
+          m_errors << tr("Unspecified error when executing SLIC");
+        }
+
+        abort();
+        return;
+      }
+    }
+    else
+    {
+      paddedStack = create_itkImage<itkVolumeType>(paddedBounds, SEG_BG_VALUE, spacing, origin);
+    }
+
     Q_ASSERT(intersect(paddedBounds, stackBounds));
     auto common = intersection(paddedBounds, stackBounds);
 
@@ -218,38 +261,38 @@ void SliceInterpolationFilter::execute()
     if (!canExecute()) return;
 
     // process down
-    for(auto z = sourceRegion.GetIndex(dirIndex) + 1; z < targetRegion.GetIndex(dirIndex); ++z)
+    for(auto dir = sourceRegion.GetIndex(dirIndex) + 1; dir < targetRegion.GetIndex(dirIndex); ++dir)
     {
       reportProgress(5 + ((currentProgress++ * 100)/totalSlices)*0.95);
 
-      auto stackPointer = paddedStack->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      auto stackPointer = paddedStack->GetBufferPointer() + ((dir - sourceRegion.GetIndex(dirIndex)) * sliceSize);
       std::memcpy(stackSlice->GetBufferPointer(), stackPointer, sliceSize);
 
-      auto slicePointer = paddedImageDown->GetBufferPointer() + ((z-1 - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      auto slicePointer = paddedImageDown->GetBufferPointer() + ((dir-1 - sourceRegion.GetIndex(dirIndex)) * sliceSize);
       std::memcpy(segSlice->GetBufferPointer(), slicePointer, sliceSize);
 
       auto slice  = processSlice(stackSlice, segSlice, direction, original);
 
-      slicePointer = paddedImageDown->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      slicePointer = paddedImageDown->GetBufferPointer() + ((dir - sourceRegion.GetIndex(dirIndex)) * sliceSize);
       std::memcpy(slicePointer, slice->GetBufferPointer(), sliceSize);
 
       if (!canExecute()) return;
     }
 
     // process up
-    for(auto z = targetRegion.GetIndex(dirIndex) - 1; z > sourceRegion.GetIndex(dirIndex); --z)
+    for(auto dir = targetRegion.GetIndex(dirIndex) - 1; dir > sourceRegion.GetIndex(dirIndex); --dir)
     {
       reportProgress(5 + ((currentProgress++ * 100)/totalSlices)*0.95);
 
-      auto stackPointer = paddedStack->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      auto stackPointer = paddedStack->GetBufferPointer() + ((dir - sourceRegion.GetIndex(dirIndex)) * sliceSize);
       std::memcpy(stackSlice->GetBufferPointer(), stackPointer, sliceSize);
 
-      auto slicePointer = paddedImageUp->GetBufferPointer() + ((z+1 - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      auto slicePointer = paddedImageUp->GetBufferPointer() + ((dir+1 - sourceRegion.GetIndex(dirIndex)) * sliceSize);
       std::memcpy(segSlice->GetBufferPointer(), slicePointer, sliceSize);
 
       auto slice  = processSlice(stackSlice, segSlice, direction, original);
 
-      slicePointer = paddedImageUp->GetBufferPointer() + ((z - sourceRegion.GetIndex(dirIndex)) * sliceSize);
+      slicePointer = paddedImageUp->GetBufferPointer() + ((dir - sourceRegion.GetIndex(dirIndex)) * sliceSize);
       std::memcpy(slicePointer, slice->GetBufferPointer(), sliceSize);
 
       if (!canExecute()) return;
@@ -396,6 +439,7 @@ itkVolumeType::Pointer SliceInterpolationFilter::processSlice(const itkVolumeTyp
   auto erodeBuffer  = erodeImg->GetBufferPointer();
   for(unsigned long i = 0; i < dilateImg->GetLargestPossibleRegion().GetNumberOfPixels(); ++i)
   {
+    // creates 'frontier' image
     if(erodeBuffer[i] == SEG_VOXEL_VALUE) dilateBuffer[i] = SEG_BG_VALUE;
   }
 
@@ -481,29 +525,7 @@ itkVolumeType::Pointer SliceInterpolationFilter::labelObjectToImage(const SLO::P
 }
 
 //------------------------------------------------------------------------
-void SliceInterpolationFilter::writeImage(const itkVolumeType::Pointer image, const QString &name) const
-{
-  static unsigned int i = 0;
-
-  Q_ASSERT(storage());
-  auto filename = storage()->absoluteFilePath(tr("Image %1 - %2.tif").arg(i).arg(name));
-  auto writer = itk::ImageFileWriter<itkVolumeType>::New();
-  writer->SetFileName(filename.toStdString().c_str());
-  writer->SetInput(image);
-  writer->Update();
-
-  ++i;
-}
-
-//------------------------------------------------------------------------
 const QStringList SliceInterpolationFilter::errors() const
 {
-  QStringList messages;
-
-  if(!m_errorMessage.isEmpty())
-  {
-    messages << m_errorMessage;
-  }
-
-  return messages;
+  return m_errors;
 }

@@ -37,6 +37,7 @@ namespace ESPINA
       class ToolButton;
     }
   }
+
   /** \class SliceInterpolationTool
    * \brief Tool for slice interpolation filter.
    *
@@ -61,16 +62,6 @@ namespace ESPINA
       virtual void restoreSettings(std::shared_ptr<QSettings> settings);
       virtual void saveSettings(std::shared_ptr<QSettings> settings);
 
-    private:
-      virtual bool acceptsNInputs(int n) const;
-
-      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
-
-      /** \brief Helper method that creates the tool parameters' widgets.
-       *
-       */
-      void initSettingsWidgets();
-
     private slots:
       /** \brief Launches the operation task.
        *
@@ -83,6 +74,15 @@ namespace ESPINA
       void onTaskFinished();
 
     private:
+      virtual bool acceptsNInputs(int n) const;
+
+      virtual bool acceptsSelection(SegmentationAdapterList segmentations) override;
+
+      /** \brief Helper method that creates the tool parameters' widgets.
+       *
+       */
+      void initSettingsWidgets();
+
       /** \brief Stops and destroys all currently running tasks.
        *
        */

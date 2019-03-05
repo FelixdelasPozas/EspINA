@@ -65,21 +65,21 @@ const QString OPEN_RADIUS  ("EditTools::OpenRadius");
 const QString CLOSE_RADIUS ("EditTools::CloseRadius");
 
 // NOTE: there's a typo, don't change now or old files won't load correctly.
-const Filter::Type EditionFilterFactory::CLOSE_FILTER         = "CloseSegmentation";
-const Filter::Type EditionFilterFactory::CLOSE_FILTER_V4      = "EditorToolBar::ClosingFilter";
-const Filter::Type EditionFilterFactory::OPEN_FILTER          = "OpenSegmentation";
-const Filter::Type EditionFilterFactory::OPEN_FILTER_V4       = "EditorToolBar::OpeningFilter";
-const Filter::Type EditionFilterFactory::DILATE_FILTER        = "DilateSegmentation";
-const Filter::Type EditionFilterFactory::DILATE_FILTER_V4     = "EditorToolBar::DilateFilter";
-const Filter::Type EditionFilterFactory::ERODE_FILTER         = "ErodeSegmentation";
-const Filter::Type EditionFilterFactory::ERODE_FILTER_V4      = "EditorToolBar::ErodeFilter";
-const Filter::Type EditionFilterFactory::FILL_HOLES_FILTER    = "FillSegmentationHoles";
-const Filter::Type EditionFilterFactory::FILL_HOLES_FILTER_V4 = "EditorToolBar::FillHolesFilter";
-const Filter::Type EditionFilterFactory::FILL_HOLES2D_FILTER  = "FillSegmentationHoles2D";
-const Filter::Type EditionFilterFactory::IMAGE_LOGIC_FILTER   = "ImageLogicFilter";
-const Filter::Type EditionFilterFactory::ADDITION_FILTER      = "AdditionFilter";
-const Filter::Type EditionFilterFactory::SUBTRACTION_FILTER   = "SubstractionFilter";
-const Filter::Type EditionFilterFactory::SLICE_INTERPOLATION_FILTER  = "SliceInterpolationFilter";
+const Filter::Type EditionFilterFactory::CLOSE_FILTER               = "CloseSegmentation";
+const Filter::Type EditionFilterFactory::CLOSE_FILTER_V4            = "EditorToolBar::ClosingFilter";
+const Filter::Type EditionFilterFactory::OPEN_FILTER                = "OpenSegmentation";
+const Filter::Type EditionFilterFactory::OPEN_FILTER_V4             = "EditorToolBar::OpeningFilter";
+const Filter::Type EditionFilterFactory::DILATE_FILTER              = "DilateSegmentation";
+const Filter::Type EditionFilterFactory::DILATE_FILTER_V4           = "EditorToolBar::DilateFilter";
+const Filter::Type EditionFilterFactory::ERODE_FILTER               = "ErodeSegmentation";
+const Filter::Type EditionFilterFactory::ERODE_FILTER_V4            = "EditorToolBar::ErodeFilter";
+const Filter::Type EditionFilterFactory::FILL_HOLES_FILTER          = "FillSegmentationHoles";
+const Filter::Type EditionFilterFactory::FILL_HOLES_FILTER_V4       = "EditorToolBar::FillHolesFilter";
+const Filter::Type EditionFilterFactory::FILL_HOLES2D_FILTER        = "FillSegmentationHoles2D";
+const Filter::Type EditionFilterFactory::IMAGE_LOGIC_FILTER         = "ImageLogicFilter";
+const Filter::Type EditionFilterFactory::ADDITION_FILTER            = "AdditionFilter";
+const Filter::Type EditionFilterFactory::SUBTRACTION_FILTER         = "SubstractionFilter";
+const Filter::Type EditionFilterFactory::SLICE_INTERPOLATION_FILTER = "SliceInterpolationFilter";
 
 //------------------------------------------------------------------------
 FilterTypeList EditionFilterFactory::CloseFilters()
@@ -413,6 +413,7 @@ void EditToolGroup::initSliceInterpolationTool()
 {
   auto sliceInterpolation  = std::make_shared<SliceInterpolationTool>(getContext());
   sliceInterpolation->setOrder("1-0", "6-INTERPOLATION");
+
   addTool(sliceInterpolation);
 }
 
