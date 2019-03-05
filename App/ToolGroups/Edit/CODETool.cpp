@@ -77,6 +77,7 @@ void CODEToolBase::initOptionWidgets()
   m_radius->setMaximum(99);
   m_radius->setSliderVisibility(false);
   m_radius->setToolTip(tr("Morphological %1 radius.").arg(m_name));
+  Styles::setNestedStyle(m_radius);
 
   m_apply = Styles::createToolButton(":/espina/apply.svg", tr("Apply"));
 
@@ -212,7 +213,7 @@ void CODEToolBase::abortTasks()
 
     task.Task->abort();
 
-    markAsBeingModified(task.Segmentation, true);
+    markAsBeingModified(task.Segmentation, false);
 
     if(!task.Task->thread()->wait(100))
     {

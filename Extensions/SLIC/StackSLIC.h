@@ -71,7 +71,7 @@ namespace ESPINA
         virtual Snapshot snapshot() const;
         virtual bool invalidateOnChange() const { return false; }
         virtual void invalidate()  {};
-        virtual const QString toolTipText() const override  { return QObject::tr("SLIC Algorithm"); }
+        virtual const QString toolTipText() const override;
         virtual const InformationKeyList availableInformation() const { return InformationKeyList(); }
         virtual const TypeList dependencies() const
         {
@@ -221,11 +221,15 @@ namespace ESPINA
         virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }
 
       public:
+        /** \struct SuperVoxel
+         * \brief Supervoxel computed data.
+         *
+         */
         struct SuperVoxel
         {
-          itkVolumeType::IndexType center;
-          unsigned char color;
-          bool valid;
+          itkVolumeType::IndexType center; /** position in the stack image.                 */
+          unsigned char            color;  /** color.                                       */
+          bool                     valid;  /** true if has voxels assigned, false if empty. */
         };
 
       protected slots:
@@ -331,12 +335,15 @@ namespace ESPINA
         virtual void run();
         virtual void onAbort();
 
-        /** \brief Saves the computed results to the result struct.
-         * \param[in] List containing supervoxels information.
-         * \param[in] array containing the supervoxel label assigned to each voxel.
+        /** \brief Saves the computed results to the result struct to disk.
          *
          */
-        void saveResults(QList<Label> labels);
+        void saveResults();
+
+        /** \brief Saves the computed image to the temporal storage.
+         *
+         */
+        void saveRegionImage();
 
         /** \brief Compresses a slice and saves it to a QDataStream in RLE format prepending slice position and size.
          * \param[out] QDataStream that will hold the compressed slice.
@@ -398,7 +405,7 @@ namespace ESPINA
         /** \brief Recomputes the label center looking at the current label voxel positions.
          * \param[in,out] label to update.
          * \param[in] image Pointer to stack image.
-         * \param[in] tolerance Tolerance value.
+         * \param[in] tolerance Tolerance value for convergence test.
          *
          */
         void recalculateCenter(Label &label, itkVolumeType *image, const double tolerance);

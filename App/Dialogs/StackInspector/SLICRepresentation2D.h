@@ -53,19 +53,13 @@ namespace ESPINA
   {
       Q_OBJECT
     public:
-      /** \brief SLICRepresentation2D class constructor.
-       * \param[in] extension SLIC extension object.
-       *
-       */
-      explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension);
-
       /** \brief SLICRepresentation2D class constructor with extra parameters.
        * \param[in] extension SLIC extension object.
        * \param[in] opacity Opacity value of the representation in [0,1]
        * \param[in] useColors True to use random coloring and false to use supervoxel colors.
        *
        */
-      explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension, float opacity, bool useColors);
+      explicit SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension, float opacity = 0.3, bool useColors = true);
 
       /** \brief SLICRepresentation2D class virtual destructor.
        *
@@ -154,21 +148,21 @@ namespace ESPINA
       vtkSmartPointer<vtkLookupTable> randomLUT() const;
 
     private:
-      vtkSmartPointer<vtkTextActor>         m_textActor;    /** text representation actor.                    */
-      vtkSmartPointer<vtkImageActor>        m_actor;        /** slice representation actor.                   */
-      vtkSmartPointer<vtkImageMapToColors>  m_mapper;       /** mapper used for slic slices                   */
-      vtkSmartPointer<vtkImageData>         m_data;         /** image data holding slice information          */
-      vtkSmartPointer<vtkPoints>            m_points;       /** supervoxel centers for the centers actor.     */
-      vtkSmartPointer<vtkPolyData>          m_pointsData;   /** points polydata.                              */
-      vtkSmartPointer<vtkGlyph3DMapper>     m_pointsMapper; /** points mapper.                                */
-      vtkSmartPointer<vtkFollower>          m_pointsActor;  /** points actor.                                 */
-      RenderView                           *m_view;         /** view where the representations will be shown. */
-      bool                                  m_active;       /** true if visible and false otherwise.          */
-      Nm                                    m_lastSlice;    /** position of the last slice rendered.          */
-      int                                   m_planeIndex;   /** index of the view's plane.                    */
-      std::shared_ptr<Extensions::StackSLIC>m_extension;    /** slic extension instance                       */
-      float                                 opacity;        /** preview opacity                               */
-      bool                                  useColors;      /** whether to use colors or grayscale values     */
+      vtkSmartPointer<vtkTextActor>          m_textActor;    /** text representation actor.                    */
+      vtkSmartPointer<vtkImageActor>         m_actor;        /** slice representation actor.                   */
+      vtkSmartPointer<vtkImageMapToColors>   m_mapper;       /** mapper used for slic slices                   */
+      vtkSmartPointer<vtkImageData>          m_data;         /** image data holding slice information          */
+      vtkSmartPointer<vtkPoints>             m_points;       /** supervoxel centers for the centers actor.     */
+      vtkSmartPointer<vtkPolyData>           m_pointsData;   /** points polydata.                              */
+      vtkSmartPointer<vtkGlyph3DMapper>      m_pointsMapper; /** points mapper.                                */
+      vtkSmartPointer<vtkFollower>           m_pointsActor;  /** points actor.                                 */
+      RenderView                            *m_view;         /** view where the representations will be shown. */
+      bool                                   m_active;       /** true if visible and false otherwise.          */
+      Nm                                     m_lastSlice;    /** position of the last slice rendered.          */
+      int                                    m_planeIndex;   /** index of the view's plane.                    */
+      std::shared_ptr<Extensions::StackSLIC> m_extension;    /** slic extension instance                       */
+      float                                  m_opacity;      /** preview opacity                               */
+      bool                                   m_useColors;    /** whether to use colors or grayscale values     */
   };
 } // ESPINA
 

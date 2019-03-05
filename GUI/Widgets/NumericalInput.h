@@ -103,6 +103,12 @@ namespace ESPINA
          */
         void setWidgetsToolTip(const QString &tooltip);
 
+        /** \brief Sets the spin box suffix.
+         * \param[in] suffix Suffix text.
+         *
+         */
+        void setSpinBoxSuffix(const QString &suffix);
+
       public slots:
         /** \brief change slider value
          * \param[in] value to be set

@@ -759,10 +759,14 @@ void StackInspector::onSLICComputed()
 //------------------------------------------------------------------------
 void StackInspector::onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr clone)
 {
-  auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
+  if(m_stack->readOnlyExtensions()->hasExtension(StackSLIC::TYPE))
+  {
+    auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
 
-  connect(slicExtension.get(), SIGNAL(progress(int)), clone.get(), SLOT(setSLICComputationProgress(int)));
-  connect(slicExtension.get(), SIGNAL(computeAborted()), clone.get(), SLOT(setSLICComputationAborted()));
+    connect(slicExtension.get(), SIGNAL(progress(int)), clone.get(), SLOT(setSLICComputationProgress(int)));
+    connect(slicExtension.get(), SIGNAL(computeAborted()), clone.get(), SLOT(setSLICComputationAborted()));
+  }
+
   connect(slicPreviewOpacitySlider, SIGNAL(valueChanged(int)), clone.get(), SLOT(opacityChanged(int)));
   connect(slicPreviewColorsCheck, SIGNAL(stateChanged(int)), clone.get(), SLOT(colorModeCheckChanged(int)));
 }
@@ -871,6 +875,20 @@ void StackInspector::onSLICActionButtonPressed()
   {
     if(button->text() == "Compute")
     {
+      if(!m_stack->readOnlyExtensions()->hasExtension(StackSLIC::TYPE))
+      {
+        // NOTE: the current representation hasn't a valid extension and it's clones are not connected.
+        m_viewState.removeTemporalRepresentations(m_slicRepresentation);
+
+        auto slicExtension = createAndConnectSLICExtension();
+
+        auto representation2d = std::make_shared<SLICRepresentation2D>(slicExtension, slicPreviewOpacitySlider->value()/100.0, slicPreviewColorsCheck->isChecked());
+        connect(representation2d.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)), this, SLOT(onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
+        m_slicRepresentation = std::make_shared<TemporalPrototypes>(representation2d, nullptr, "SLIC Representation");
+
+        m_viewState.addTemporalRepresentations(m_slicRepresentation);
+      }
+
       computeSLIC();
     }
     else
@@ -919,26 +937,40 @@ void StackInspector::initEdgesTab()
 //------------------------------------------------------------------------
 void StackInspector::initSLICTab()
 {
-  //TODO: Load opacity/useColors from extension
-  int opacity = 30;
-  bool useColors = true;
-  slicPreviewColorsCheck->setChecked(useColors);
-  slicPreviewOpacitySlider->setValue(opacity);
-  auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
+  // default
+  int opacity                    = 30;
+  bool useColors                 = true;
+  long int superVoxelCount       = 0;
+  int superVoxelSize             = 10;
+  int colorWeight                = 20;
+  int iterations                 = 10;
+  double tolerance               = 0.;
+  StackSLIC::SLICVariant variant = StackSLIC::SLICVariant::SLIC;
+
+  std::shared_ptr<StackSLIC> slicExtension = nullptr;
+
+  if(m_stack->readOnlyExtensions()->hasExtension(StackSLIC::TYPE))
+  {
+    slicExtension = createAndConnectSLICExtension();
+
+    superVoxelCount = static_cast<long int>(slicExtension->getSupervoxelCount());
+    superVoxelSize  = static_cast<int>(slicExtension->getSupervoxelSize());
+    colorWeight     = static_cast<int>(slicExtension->getColorWeight());
+    iterations      = static_cast<int>(slicExtension->getIterations());
+    tolerance       = slicExtension->getTolerance();
+    variant         = slicExtension->getVariant();
+  }
 
   connect(slicActionButton, SIGNAL(released()), this, SLOT(onSLICActionButtonPressed()));
-  connect(this, SIGNAL(computeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
-  connect(this, SIGNAL(SLICAborted()), slicExtension.get(), SLOT(onAbortSLIC()));
-  connect(slicExtension.get(), SIGNAL(computeFinished()), this, SLOT(onSLICComputed()));
-  connect(slicExtension.get(), SIGNAL(progress(int)), slicProgressBar, SLOT(setValue(int)));
-  connect(slicExtension.get(), SIGNAL(computeAborted()), this, SLOT(onSLICComputationAborted()));
 
   auto representation2d = std::make_shared<SLICRepresentation2D>(slicExtension, opacity/100.0, useColors);
   connect(representation2d.get(), SIGNAL(cloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)), this, SLOT(onSLICRepresentationCloned(GUI::Representations::Managers::TemporalRepresentation2DSPtr)));
-  m_slicRepresentation = std::make_shared<TemporalPrototypes>(representation2d, TemporalRepresentation3DSPtr(), "SLIC Representation");
+  m_slicRepresentation = std::make_shared<TemporalPrototypes>(representation2d, nullptr, "SLIC Representation");
 
-  slicPreviewSVCountLabel->setText(QString("%1").arg(slicExtension->getSupervoxelCount()));
-  if(slicExtension->isRunning())
+  slicPreviewColorsCheck->setChecked(useColors);
+  slicPreviewOpacitySlider->setValue(opacity);
+  slicPreviewSVCountLabel->setText(QString("%1").arg(superVoxelCount));
+  if(slicExtension && slicExtension->isRunning())
   {
     slicPreviewStatusLabel->setText("Computing...");
     slicProgressBar->setEnabled(true);
@@ -949,7 +981,7 @@ void StackInspector::initSLICTab()
   {
     slicActionButton->setText("Compute");
     slicProgressBar->setEnabled(false);
-    if (slicExtension->isComputed())
+    if (slicExtension && slicExtension->isComputed())
     {
       slicPreviewStatusLabel->setText("Computed");
     }
@@ -959,12 +991,12 @@ void StackInspector::initSLICTab()
     }
   }
 
-  spatialDistanceBox->setValue(static_cast<int>(slicExtension->getSupervoxelSize()));
-  colorDistanceBox->setValue(static_cast<int>(slicExtension->getColorWeight()));
-  maxIterationsBox->setValue(static_cast<int>(slicExtension->getIterations()));
-  toleranceBox->setValue(slicExtension->getTolerance());
+  spatialDistanceBox->setValue(superVoxelSize);
+  colorDistanceBox->setValue(colorWeight);
+  maxIterationsBox->setValue(iterations);
+  toleranceBox->setValue(tolerance);
 
-  switch(slicExtension->getVariant())
+  switch(variant)
   {
     case StackSLIC::SLICVariant::SLICO:
       slicoRadio->setChecked(true);
@@ -992,4 +1024,18 @@ void StackInspector::onSLICComputationAborted()
       DefaultDialogs::ErrorMessage(errors.first(), tr("SLIC"));
     }
   }
+}
+
+//--------------------------------------------------------------------
+std::shared_ptr<Extensions::StackSLIC> StackInspector::createAndConnectSLICExtension()
+{
+  auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
+
+  connect(this, SIGNAL(computeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)), slicExtension.get(), SLOT(onComputeSLIC(unsigned char, unsigned char, Extensions::StackSLIC::SLICVariant, unsigned int, double)));
+  connect(this, SIGNAL(SLICAborted()), slicExtension.get(), SLOT(onAbortSLIC()));
+  connect(slicExtension.get(), SIGNAL(computeFinished()), this, SLOT(onSLICComputed()));
+  connect(slicExtension.get(), SIGNAL(progress(int)), slicProgressBar, SLOT(setValue(int)));
+  connect(slicExtension.get(), SIGNAL(computeAborted()), this, SLOT(onSLICComputationAborted()));
+
+  return slicExtension;
 }

@@ -27,6 +27,7 @@ set (FILTERS_SOURCES
   MorphologicalEditionFilter.cpp
   OpenFilter.cpp
   SeedGrowSegmentationFilter.cpp
+  SliceInterpolationFilter.cpp
   SplitFilter.cpp
   Utils/vtkTube.cpp
   Utils/Stencil.cpp

@@ -24,18 +24,14 @@
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Factory/CoreFactory.h>
 #include <Core/Utils/Spatial.h>
-#include <Core/Utils/BlockTimer.hxx>
 #include <Core/Utils/EspinaException.h>
 #include <Core/Types.h>
-#include <Extensions/EdgeDistances/ChannelEdges.h>
 
 //ITK
 #include <itkImage.h>
-#include <itkEuclideanDistanceMetric.h>
 #include <itkImageConstIteratorWithIndex.h>
 #include <itkImageRegion.h>
 #include <itkGradientMagnitudeImageFilter.h>
-#include <itkNeighborhoodIterator.h>
 
 // VTK
 #include <vtkUnsignedCharArray.h>
@@ -47,7 +43,6 @@
 #include <cmath>
 #include <memory>
 #include <functional>
-#include <queue>
 #include <utility>
 
 // Qt
@@ -56,6 +51,19 @@
 
 //Intrinsics
 #include <xmmintrin.h>
+
+/** \brief Helper method that returns a MHD file name for the given region.
+ * \param[in] region ITK region reference.
+ *
+ * NOTE: it must be MHD/RAW file as it stores the origin and spacing, tiff files doesn't.
+ *
+ */
+inline const QString regionFileName(const ESPINA::itkVolumeType::RegionType& region)
+{
+  auto regionName = QObject::tr("SLIC_%1_%2_%3_%4_%5_%6_region.mhd").arg(region.GetIndex(0)).arg(region.GetIndex(1)).arg(region.GetIndex(2))
+                                                                    .arg(region.GetSize(0)).arg(region.GetSize(1)).arg(region.GetSize(2));
+  return regionName;
+}
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -69,6 +77,8 @@ const QString StackSLIC::LABELS_FILE = "labels.slic";
 const QString StackSLIC::DATA_FILE   = "data.slic";
 
 const QStringList UNITS{ "bytes", "KB", "MB", "GB", "TB"};
+
+const QStringList VARIANTS_STRINGS{"SLIC", "SLIC0", "ASLIC", "SLIC Undefined!"};
 
 //-----------------------------------------------------------------------------
 StackSLIC::StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCache &cache)
@@ -246,7 +256,6 @@ StackSLIC::SLICComputeTask::SLICComputeTask(ChannelPtr stack, SchedulerSPtr sche
 //-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::run()
 {
-  BlockTimer<std::chrono::milliseconds> timer{"SLIC"};
   reportProgress(0);
   m_errorMessage.clear();
 
@@ -258,24 +267,26 @@ void StackSLIC::SLICComputeTask::run()
 
   //Get ITK image from extended item
   OutputSPtr output = m_stack->output();
-  auto inputVolume = readLockVolume(output);
-  if (!inputVolume->isValid())
+  itkVolumeType::Pointer image = nullptr;
+
   {
-    auto what    = QObject::tr("Invalid input volume");
-    auto details = QObject::tr("StackSLIC::onComputeSLIC() ->Invalid input volume.");
+    auto inputVolume = readLockVolume(output);
+    if (!inputVolume->isValid())
+    {
+      auto what    = QObject::tr("Invalid input volume");
+      auto details = QObject::tr("StackSLIC::onComputeSLIC() ->Invalid input volume.");
 
-    throw Utils::EspinaException(what, details);
+      throw Utils::EspinaException(what, details);
+    }
+
+    image = inputVolume->itkImage(); // raw volume so it won't consume more memory.
   }
-
-  auto image = inputVolume->itkImage();
 
   result.converged = false;
 
   //Find centers for the supervoxels
   QList<Label> labels;
   if(!initLabels(image, labels, edgesExtension.get())) return;
-
-  qDebug() << QString("Created %1 labels").arg(labels.size());
 
   // try to do it in memory, notify if there isn't enough memory.
   double totalSize = result.region.GetNumberOfPixels() * sizeof(unsigned int);
@@ -312,12 +323,7 @@ void StackSLIC::SLICComputeTask::run()
   {
     for(unsigned int iteration = 0; iteration < result.iterations && !result.converged; ++iteration)
     {
-      // asumme all converge if we are going to check for convergence. Set to false when recomputing supervoxel centers.
-      if(TOLERANCE > 0) result.converged = true;
-
       if(!canExecute()) break;
-
-      qDebug() << QString("Starting iteration: %1 - %2s").arg(iteration+1).arg(timer.elapsed()/1000);
 
       int newProgress = (100 * iteration) / result.iterations;
       if(newProgress != progress())
@@ -325,19 +331,16 @@ void StackSLIC::SLICComputeTask::run()
         reportProgress(newProgress);
       }
 
-      qDebug() << "Computing labels.";
       watcher.setFuture(QtConcurrent::map(labels, std::bind(&SLICComputeTask::computeLabel, this, std::placeholders::_1, edgesExtension, image, labels)));
       watcher.waitForFinished();
 
       if(!canExecute()) break;
 
-      qDebug() << "Recalculating centers.";
       watcher.setFuture(QtConcurrent::map(labels, std::bind(&SLICComputeTask::recalculateCenter, this, std::placeholders::_1, image, TOLERANCE)));
       watcher.waitForFinished();
 
       if(!canExecute()) break;
 
-      qDebug() << QString("Finishing iteration: %1 - %2").arg(iteration+1).arg(timer.elapsed()/1000);
     } //iteration
   }
   catch(const EspinaException &e)
@@ -356,10 +359,16 @@ void StackSLIC::SLICComputeTask::run()
     // add supervoxels as valid. Invalid labels (empty) will be marked as such when computing connectivity.
     std::for_each(labels.constBegin(), labels.constEnd(), [this](const Label &label) { result.supervoxels.append({label.center, label.color, label.valid});});
 
-    saveResults(labels);
-
-    result.computed = true;
-    result.modified = true;
+    if(image->GetLargestPossibleRegion() == result.region)
+    {
+      saveResults();
+      result.computed = true;
+      result.modified = true;
+    }
+    else
+    {
+      saveRegionImage();
+    }
   }
 
   voxels = nullptr;
@@ -522,40 +531,71 @@ itkVolumeType::Pointer StackSLIC::getImageFromBounds(const Bounds bounds) const
     throw Utils::EspinaException(message, details);
   }
 
+  const auto spacing = m_extendedItem->output()->spacing();
+  auto stackImage = readLockVolume(m_extendedItem->output())->itkImage();
+  auto region = equivalentRegion<itkVolumeType>(stackImage, bounds);
+
+  itkVolumeType::Pointer image = nullptr;
+
   if(!m_result.computed)
   {
-    auto message = QObject::tr("No SLIC data to retrieve!");
-    auto details = QObject::tr("StackSLIC::getImageFromBounds() -> There is no SLIC data.");
+    auto fileName = m_extendedItem->storage()->absoluteFilePath(regionFileName(region));
+    if(!QFile::exists(fileName))
+    {
+      auto min = std::min(region.GetSize(0), std::min(region.GetSize(1), region.GetSize(2)));
 
-    throw Utils::EspinaException(message, details);
+      SLICResult partialResult;
+      partialResult.iterations = m_result.iterations*2;
+      partialResult.m_c        = m_result.m_c/2;
+      partialResult.m_s        = min/2;
+      partialResult.tolerance  = m_result.tolerance;
+      partialResult.variant    = m_result.variant;
+      partialResult.region     = region;
+
+      auto task = std::make_shared<SLICComputeTask>(m_extendedItem, m_scheduler, m_factory, partialResult);
+
+      auto future = QtConcurrent::run(task.get(), &SLICComputeTask::run);
+      future.waitForFinished();
+
+      if(task->isAborted())
+      {
+        return image;
+      }
+    }
+
+    auto reader = itk::ImageFileReader<itkVolumeType>::New();
+    reader->SetFileName(fileName.toStdString().c_str());
+    reader->SetNumberOfThreads(1);
+    reader->Update();
+
+    image = reader->GetOutput();
   }
-
-  const auto spacing = m_extendedItem->output()->spacing();
-  auto image = create_itkImage<itkVolumeType>(bounds, SEG_BG_VALUE, spacing);
-  auto region = image->GetLargestPossibleRegion();
-
-  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_extendedItem, m_factory);
-
-  QReadLocker lock(&m_result.dataMutex);
-  for (int z = region.GetIndex(2); z < region.GetIndex(2) + static_cast<long int>(region.GetSize(2)); ++z)
+  else
   {
-    auto requestedSliceRegion = region;
-    requestedSliceRegion.SetIndex(2, z);
-    requestedSliceRegion.SetSize(2, 1);
-    requestedSliceRegion.Crop(edgesExtension->sliceRegion(z));
+    image = create_itkImage<itkVolumeType>(bounds, SEG_BG_VALUE, spacing);
+    auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_extendedItem, m_factory);
 
-    auto sliceImage = getUncompressedSlice(z);
-    auto requestedBounds = equivalentBounds<itkVolumeType>(image, requestedSliceRegion);
-    auto sliceImageBounds = equivalentBounds<itkVolumeType>(sliceImage, sliceImage->GetLargestPossibleRegion());
+    for (int z = region.GetIndex(2); z < region.GetIndex(2) + static_cast<long int>(region.GetSize(2)); ++z)
+    {
+      auto requestedSliceRegion = region;
+      requestedSliceRegion.SetIndex(2, z);
+      requestedSliceRegion.SetSize(2, 1);
+      requestedSliceRegion.Crop(edgesExtension->sliceRegion(z));
 
-    if(!intersect(requestedBounds, sliceImageBounds)) continue;
+      auto sliceImage = getUncompressedSlice(z);
+      auto requestedBounds = equivalentBounds<itkVolumeType>(image, requestedSliceRegion);
+      auto sliceImageBounds = equivalentBounds<itkVolumeType>(sliceImage, sliceImage->GetLargestPossibleRegion());
 
-    auto intersectionBounds = intersection(requestedBounds, sliceImageBounds);
+      if(!intersect(requestedBounds, sliceImageBounds)) continue;
 
-    copy_image<itkVolumeType>(sliceImage, image, intersectionBounds);
+      auto intersectionBounds = intersection(requestedBounds, sliceImageBounds);
+
+      copy_image<itkVolumeType>(sliceImage, image, intersectionBounds);
+    }
+
+    image->Modified();
   }
 
-  image->Modified();
   return image;
 }
 
@@ -636,7 +676,7 @@ QDataStream &operator<<(QDataStream &out, const StackSLIC::SuperVoxel &label)
 }
 
 //-----------------------------------------------------------------------------
-void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
+void StackSLIC::SLICComputeTask::saveResults()
 {
   QWriteLocker lock(&result.dataMutex);
   auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
@@ -659,7 +699,7 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
     QFile file(fileName);
     if(!file.open(QIODevice::WriteOnly|QIODevice::Truncate|QIODevice::Unbuffered))
     {
-      qDebug() << "failed to create" << fileName;
+      qWarning() << "SLIC Extension: failed to create file" << fileName;
       continue;
     }
 
@@ -668,7 +708,7 @@ void StackSLIC::SLICComputeTask::saveResults(QList<Label> labels)
 
     if(compressedData.size() != file.write(compressedData))
     {
-      qDebug() << "failed to save data of" << fileName;
+      qWarning() << "SLIC Extension: failed to save data to file" << fileName;
       continue;
     }
 
@@ -1010,6 +1050,9 @@ void StackSLIC::SLICComputeTask::computeLabel(Label &label, ChannelEdgesSPtr edg
 //-----------------------------------------------------------------------------
 void StackSLIC::SLICComputeTask::recalculateCenter(Label& label, itkVolumeType *image, const double tolerance)
 {
+  // asumme all converge if we are going to check for convergence. Set to false later when recomputing supervoxel centers.
+  if(tolerance > 0) result.converged = true;
+
   //Recalculate centers, check convergence
   const auto SCAN_SIZE = 2. * result.m_s;
 
@@ -1236,7 +1279,6 @@ const QByteArray StackSLIC::getSlice(const int slice) const
 
   if (!filePath.exists())
   {
-    qDebug() << filePath.absoluteFilePath();
     auto message = QObject::tr("Slice file not found");
     auto details = QObject::tr("SLICResult::getSlice() -> The path to the slice file doesn't exist.");
 
@@ -1333,4 +1375,67 @@ const QStringList StackSLIC::SLICComputeTask::errors() const
 const QStringList StackSLIC::errors() const
 {
   return ((m_task && m_task->hasErrors()) ? m_task->errors() : QStringList());
-};
+}
+
+//--------------------------------------------------------------------
+void StackSLIC::SLICComputeTask::saveRegionImage()
+{
+  auto stackImage = readLockVolume(m_stack->output())->itkImage();
+  auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
+
+  auto regionImage = itkVolumeType::New();
+  regionImage->SetRegions(result.region);
+  regionImage->SetSpacing(stackImage->GetSpacing());
+  regionImage->SetOrigin(stackImage->GetOrigin());
+  regionImage->Allocate();
+  std::memset(regionImage->GetBufferPointer(), SEG_BG_VALUE, result.region.GetNumberOfPixels());
+
+  auto imagePtr = regionImage->GetBufferPointer();
+  auto voxelPtr = &voxels[0];
+
+  for (auto z = result.region.GetIndex(2); z < result.region.GetIndex(2) + static_cast<long int>(result.region.GetSize(2)); ++z)
+  {
+    auto region = result.region;
+    region.SetIndex(2, z);
+    region.SetSize(2,1);
+    region.Crop(edgesExtension->sliceRegion(z));
+
+    for(auto y = result.region.GetIndex(1); y < result.region.GetIndex(1) + static_cast<long int>(result.region.GetSize(1)); ++y)
+    {
+      for(auto x = result.region.GetIndex(0); x < result.region.GetIndex(0) + static_cast<long int>(result.region.GetSize(0)); ++x)
+      {
+        if(region.IsInside(IndexType{x,y,z}) && *voxelPtr != std::numeric_limits<unsigned int>::max())
+        {
+          *imagePtr = result.supervoxels[*voxelPtr].color;
+        }
+
+        ++imagePtr;
+        ++voxelPtr;
+      }
+    }
+  }
+
+  auto fileName = m_stack->storage()->absoluteFilePath(regionFileName(result.region));
+  auto writer = itk::ImageFileWriter<itkVolumeType>::New();
+  writer->SetFileName(fileName.toStdString().c_str());
+  writer->SetInput(regionImage);
+  writer->Write();
+}
+
+//--------------------------------------------------------------------
+const QString StackSLIC::toolTipText() const
+{
+  QString tooltip;
+
+  if(m_result.variant == SLICVariant::UNDEFINED)
+  {
+    tooltip = tr("SLIC variant undefined!");
+  }
+  else
+  {
+    tooltip = tr("%1 computed: <b>%2</b>").arg(VARIANTS_STRINGS.at(static_cast<int>(m_result.variant)))
+                                          .arg(m_result.computed ? "yes":"no");
+  }
+
+  return tooltip;
+}

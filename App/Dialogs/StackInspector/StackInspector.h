@@ -278,6 +278,11 @@ namespace ESPINA
        */
       void abortSLIC();
 
+      /** \brief Creates the SLIC extension for the stack.
+       *
+       */
+      std::shared_ptr<Extensions::StackSLIC> createAndConnectSLICExtension();
+
     private:
       using BackgroundSelector = GUI::Widgets::PixelValueSelector;
 
@@ -301,9 +306,8 @@ namespace ESPINA
       double    m_brightness; /** stack brightness. */
       double    m_contrast;   /** stack contrast.   */
 
-      ESPINA::GUI::Representations::Managers::TemporalPrototypesSPtr m_slicRepresentation; /** SLIC representation manager. */
+      GUI::Representations::Managers::TemporalPrototypesSPtr m_slicRepresentation; /** SLIC representation manager. */
   };
-
 } // namespace ESPINA
 
 #endif // ESPINA_STACK_INSPECTOR_H_

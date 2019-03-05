@@ -53,19 +53,6 @@ using namespace ESPINA;
 using namespace ESPINA::GUI::View::Utils;
 
 //--------------------------------------------------------------------
-SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension)
-: m_textActor {nullptr}
-, m_view      {nullptr}
-, m_active    {false}
-, m_lastSlice {std::numeric_limits<double>::max()}
-, m_planeIndex{-1}
-, m_extension {extension}
-, opacity     {0.3}
-, useColors   {true}
-{
-}
-
-//--------------------------------------------------------------------
 SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC> extension, float opacity, bool useColors)
 : m_textActor {nullptr}
 , m_view      {nullptr}
@@ -73,8 +60,8 @@ SLICRepresentation2D::SLICRepresentation2D(std::shared_ptr<Extensions::StackSLIC
 , m_lastSlice {std::numeric_limits<double>::max()}
 , m_planeIndex{-1}
 , m_extension {extension}
-, opacity     {opacity}
-, useColors   {useColors}
+, m_opacity   {opacity}
+, m_useColors {useColors}
 {
 }
 
@@ -98,7 +85,6 @@ void SLICRepresentation2D::initialize(RenderView* view)
 
   buildVTKPipeline();
 
-  // TODO: this will be needed when the real actor is computed.
   repositionActor(m_actor, view2d->widgetDepth(), m_planeIndex);
   repositionActor(m_pointsActor, 2*view2d->widgetDepth(), m_planeIndex);
 
@@ -195,16 +181,14 @@ void SLICRepresentation2D::display(const GUI::Representations::FrameCSPtr& frame
 //--------------------------------------------------------------------
 GUI::Representations::Managers::TemporalRepresentation2DSPtr SLICRepresentation2D::cloneImplementation()
 {
-  return std::make_shared<SLICRepresentation2D>(m_extension, opacity, useColors);
+  return std::make_shared<SLICRepresentation2D>(m_extension, m_opacity, m_useColors);
 }
 
 //--------------------------------------------------------------------
 void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr frame)
 {
-  auto slice = frame->crosshair[m_planeIndex]/m_extension->getSliceSpacing();
-  bool computed = (m_extension != nullptr)                         &&
-                  m_extension->drawSliceInImageData(slice, m_data) &&
-                  m_extension->drawVoxelCenters(slice, m_points);
+  auto slice = frame->crosshair[m_planeIndex]/m_view->sceneResolution()[m_planeIndex];
+  bool computed = m_extension && m_extension->drawSliceInImageData(slice, m_data) && m_extension->drawVoxelCenters(slice, m_points);
 
   if(!computed)
   {
@@ -227,14 +211,14 @@ void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr fr
   m_pointsActor->SetVisibility(true);
   m_pointsActor->Modified();
 
-  m_textActor->SetVisibility(m_extension->isRunning());
+  m_textActor->SetVisibility(!m_extension || m_extension->isRunning());
   m_textActor->Modified();
 
   m_actor->SetVisibility(true);
   m_actor->GetMapper()->UpdateWholeExtent();
   m_actor->Update();
 
-  m_actor->SetOpacity(opacity);
+  m_actor->SetOpacity(m_opacity);
   m_actor->Modified();
 
   m_view->addActor(m_actor);
@@ -243,11 +227,6 @@ void SLICRepresentation2D::updateActor(const GUI::Representations::FrameCSPtr fr
 //--------------------------------------------------------------------
 void SLICRepresentation2D::buildVTKPipeline()
 {
-  // TODO: build the actor for the representation.
-  // Depending on the SLIC data create a slice data using the area of the channel
-  // edges, and then display that data on-screen. If there is no SLIC data, build the pipeline
-  // with no data, do not update actor or enter it in the view.
-
   // text actor
   m_textActor = vtkSmartPointer<vtkTextActor>::New();
   m_textActor->SetPosition2(10, 40);
@@ -261,7 +240,7 @@ void SLICRepresentation2D::buildVTKPipeline()
   m_textActor->GetTextProperty()->SetColor(1.0, 1.0, 1.0);
 
   std::stringstream ss;
-  if(!m_extension->isRunning())
+  if(!m_extension || !m_extension->isRunning())
   {
     ss << "SLIC not computed!\nRun it first.";
   }
@@ -288,7 +267,7 @@ void SLICRepresentation2D::buildVTKPipeline()
   m_data->AllocateScalars(VTK_UNSIGNED_CHAR, 1);
   m_data->Modified();
 
-  auto lut = useColors?randomLUT():grayscaleLUT();
+  auto lut = m_useColors ? randomLUT():grayscaleLUT();
 
   m_mapper = vtkSmartPointer<vtkImageMapToColors>::New();
   m_mapper->SetInputData(m_data);
@@ -406,9 +385,14 @@ void SLICRepresentation2D::setSLICComputationProgress(int value)
 //--------------------------------------------------------------------
 void SLICRepresentation2D::opacityChanged(int value)
 {
-  opacity = value/100.0;
-  m_actor->SetOpacity(opacity);
-  if(m_view) m_view->refresh();
+  const auto newOpacity = value/100.;
+
+  if(m_opacity != newOpacity)
+  {
+    m_opacity = newOpacity;
+    m_actor->SetOpacity(m_opacity);
+    if(m_view) m_view->refresh();
+  }
 }
 
 //--------------------------------------------------------------------
@@ -416,12 +400,12 @@ void SLICRepresentation2D::colorModeCheckChanged(int value)
 {
   if(value == Qt::Unchecked)
   {
-    useColors = false;
+    m_useColors = false;
     m_mapper->SetLookupTable(grayscaleLUT());
   }
   else
   {
-    useColors = true;
+    m_useColors = true;
     m_mapper->SetLookupTable(randomLUT());
   }
   if(m_view) m_view->refresh();
