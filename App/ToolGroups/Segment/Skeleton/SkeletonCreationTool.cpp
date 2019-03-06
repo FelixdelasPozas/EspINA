@@ -333,6 +333,7 @@ void SkeletonCreationTool::initTool(bool value)
     }
 
     onStrokeChanged(m_strokeCombo->currentIndex());
+    m_eventHandler->setMode(SkeletonEventHandler::Mode::CREATE);
   }
   else
   {
@@ -409,6 +410,7 @@ void SkeletonCreationTool::onSkeletonWidgetCloned(TemporalRepresentation2DSPtr c
     skeletonWidget->setSpacing(getActiveChannel()->output()->spacing());
     skeletonWidget->setRepresentationTextColor(category->color());
     skeletonWidget->setStrokeHueModification(m_changeHueButton->isChecked());
+    skeletonWidget->setMode(SkeletonWidget2D::Mode::CREATE);
     skeletonWidget->updateRepresentation();
 
     connect(skeletonWidget.get(), SIGNAL(modified(vtkSmartPointer<vtkPolyData>)),

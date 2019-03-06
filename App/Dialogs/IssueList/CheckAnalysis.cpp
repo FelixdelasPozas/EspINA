@@ -126,21 +126,24 @@ void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
 {
   IssueSPtr issue;
 
-  if (isSegmentation(item.get()))
+  if(item)
   {
-    auto segmentation = segmentationPtr(item.get());
+    if (isSegmentation(item.get()))
+    {
+      auto segmentation = segmentationPtr(item.get());
 
-    // we'll need it later so we create the tags extension now if not present.
-    retrieveOrCreateSegmentationExtension(segmentation, SegmentationTags::TYPE, m_context.factory());
+      // we'll need it later so we create the tags extension now if not present.
+      retrieveOrCreateSegmentationExtension(segmentation, SegmentationTags::TYPE, m_context.factory());
 
-    issue = std::make_shared<SegmentationIssue>(segmentation, severity, description, suggestion);
+      issue = std::make_shared<SegmentationIssue>(segmentation, severity, description, suggestion);
+    }
+    else
+    {
+     issue = std::make_shared<NeuroItemIssue>(item.get(), severity, description, suggestion);
+    }
+
+    reportIssue(item.get(), issue);
   }
-  else
-  {
-   issue = std::make_shared<NeuroItemIssue>(item.get(), severity, description, suggestion);
-  }
-
-  reportIssue(item.get(), issue);
 }
 
 //------------------------------------------------------------------------
@@ -201,6 +204,8 @@ CheckAnalysis::CheckAnalysis(Support::Context &context)
   }
 
   m_checkList << std::make_shared<CheckDuplicatedSegmentationsTask>(context);
+
+  m_checkList << std::make_shared<CheckStacksSizes>(model->channels(), context);
 }
 
 //------------------------------------------------------------------------
@@ -772,7 +777,7 @@ CheckDataTask::CheckDataTask(Support::Context &context, NeuroItemAdapterSPtr ite
 : CheckTask{context}
 , m_item   {item}
 {
-  setDescription(tr("Checking %1").arg(item->data().toString())); // for debugging, the user will never see this
+  setDescription(tr("Checking %1").arg(item->data().toString()));
 }
 
 //------------------------------------------------------------------------
@@ -783,5 +788,32 @@ template<typename T> void CheckDataTask::checkDataBounds(Output::ReadLockData<T>
     auto description = tr("%1 has invalid bounds.").arg(data->type());
 
     reportIssue(m_item, Extensions::Issue::Severity::CRITICAL, description, deleteHint(m_item));
+  }
+}
+
+//------------------------------------------------------------------------
+CheckStacksSizes::CheckStacksSizes(const ChannelAdapterSList stacks, Support::Context& context)
+: CheckTask{context}
+, m_stacks{stacks}
+{
+  setDescription(tr("Checking stacks sizes."));
+}
+
+//------------------------------------------------------------------------
+void CheckStacksSizes::run()
+{
+  QSet<QString> stacksBounds;
+  auto accumulateBoundsOp = [&stacksBounds] (const ChannelAdapterSPtr stack) { stacksBounds << stack->bounds().toString(); };
+  std::for_each(m_stacks.constBegin(), m_stacks.constEnd(), accumulateBoundsOp);
+
+  if(stacksBounds.count() != 1)
+  {
+    for(const auto stack: m_stacks)
+    {
+      const auto description = tr("Stacks have different sizes!");
+      const auto hint = tr("Check that stack files on disk are complete and the spacing of all stacks are equivalent.");
+
+      reportIssue(stack, Issue::Severity::WARNING, description, hint);
+    }
   }
 }

@@ -91,23 +91,6 @@ RenderView::~RenderView()
 {
   disconnect();
 
-  for(auto manager: m_managers)
-  {
-    manager->shutdown();
-  }
-  m_managers.clear();
-
-  for(auto manager: m_temporalManagers)
-  {
-    manager->shutdown();
-  }
-  m_temporalManagers.clear();
-
-  m_inactiveManagers.clear();
-
-  
-  QApplication::processEvents();
-  
   delete m_view;
 }
 
@@ -433,8 +416,9 @@ Selector::Selection RenderView::pick(const Selector::SelectionFlags flags,
 //-----------------------------------------------------------------------------
 Selector::Selection RenderView::pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection) const
 {
-  // NOTE: segmentations must have higher priority than stacks.
   Selector::Selection pickedItems;
+
+  // NOTE: segmentations must have higher priority than stacks.
   if(flags.testFlag(Selector::SEGMENTATION))
   {
     pickedItems = pickImplementation(Selector::SEGMENTATION, x, y, multiselection);

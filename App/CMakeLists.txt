@@ -29,6 +29,7 @@ qt5_wrap_cpp (ESPINA_MOC
   Dialogs/CustomFileOpenDialog/CustomFileDialog.h
   Dialogs/CustomFileOpenDialog/OptionsPanel.h
   Dialogs/StackInspector/StackInspector.h
+  Dialogs/StackInspector/SLICRepresentation2D.h
   Dialogs/Dialog3D/Dialog3D.h
   Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
   Dialogs/DistanceInformation/DistanceInformationTabularReport.h
@@ -73,6 +74,7 @@ qt5_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/EditToolGroup.h
   ToolGroups/Edit/SplitTool.h
   ToolGroups/Edit/SkeletonEditionTool.h
+  ToolGroups/Edit/SliceInterpolationTool.h
   ToolGroups/Session/FileOpenTool.h
   ToolGroups/Session/FileSaveTool.h
   ToolGroups/Session/LogTool.h
@@ -165,6 +167,7 @@ set (ESPINA_SOURCES
   Dialogs/CustomFileOpenDialog/CustomFileDialog.cpp
   Dialogs/CustomFileOpenDialog/OptionsPanel.cpp
   Dialogs/StackInspector/StackInspector.cpp
+  Dialogs/StackInspector/SLICRepresentation2D.cpp
   Dialogs/HueSelector/HueSelector.cpp
   Dialogs/IssueList/CheckAnalysis.cpp
   Dialogs/IssueList/IssueListDialog.cpp
@@ -219,6 +222,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edit/ImageLogicTool.cpp
   ToolGroups/Edit/ManualEditionTool.cpp
   ToolGroups/Edit/SliceEditionPipeline.cpp
+  ToolGroups/Edit/SliceInterpolationTool.cpp
   ToolGroups/Edit/SplitTool.cpp
   ToolGroups/Edit/SkeletonEditionTool.cpp
   ToolGroups/Explore/PositionMarksTool.cpp

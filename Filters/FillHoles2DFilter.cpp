@@ -32,9 +32,6 @@
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
-using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
-using PasteImageFilter = itk::PasteImageFilter <itkVolumeType, itkVolumeType>;
-
 //-----------------------------------------------------------------------------
 FillHoles2DFilter::FillHoles2DFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : Filter(inputs, type, scheduler), m_direction(Axis::Z)
@@ -105,7 +102,10 @@ void FillHoles2DFilter::execute()
 	const auto progressPerFilter  = (double)100/(numFilters*numSlices);
 	double progress               = 0;
 
+	typedef itk::PasteImageFilter <itkVolumeType, itkVolumeType> PasteImageFilter;
 	PasteImageFilter::Pointer pasteFilter        = nullptr;
+
+	typedef itk::BinaryFillholeImageFilter<itkVolumeType> BinaryFillholeFilter;
 	BinaryFillholeFilter::Pointer fillholeFilter = nullptr;
 
 	for(auto i = bounds[2*dir]; !areEqual(i, bounds[(2*dir)+1], spacing[dir]) && canExecute(); i += spacing[dir])

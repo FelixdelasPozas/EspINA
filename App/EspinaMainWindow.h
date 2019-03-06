@@ -76,11 +76,19 @@ namespace ESPINA
       : QApplication{argc, argv}
       {};
 
-      virtual bool notify(QObject *receiver, QEvent *e) override
+      /** \brief EspinaApplication class virtual destructor.
+       *
+       */
+      virtual ~EspinaApplication()
+      {};
+
+      virtual bool notify(QObject *receiver, QEvent *e) override final
       {
+        bool returnValue = true;
+
         try
         {
-          return QApplication::notify(receiver, e);
+          returnValue = QApplication::notify(receiver, e);
         }
         catch(const ESPINA::Core::Utils::EspinaException &e)
         {
@@ -101,7 +109,7 @@ namespace ESPINA
           std::cout << std::flush;
         }
 
-        return true;
+        return returnValue;
       }
   };
 

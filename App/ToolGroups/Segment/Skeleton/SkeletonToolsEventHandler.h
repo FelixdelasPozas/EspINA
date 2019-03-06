@@ -60,7 +60,8 @@ namespace ESPINA
       /** \brief SkeletonEventHandler class virtual destructor.
        *
        */
-      virtual ~SkeletonToolsEventHandler();
+      virtual ~SkeletonToolsEventHandler()
+      {};
 
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
 
@@ -140,7 +141,7 @@ namespace ESPINA
        * \param[inout] position QPoint where the menu will be exec.
        *
        */
-      void fixMenuPositionForView(const QMenu *menu, const RenderView *view, QPoint &position);
+      void fixMenuPositionForView(const QMenu *menu, const RenderView *view, QPoint &position) const;
 
       using PointTemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 

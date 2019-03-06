@@ -38,6 +38,8 @@
 #include "Extensions/SkeletonInformation/AxonInformation.h"
 #include "Extensions/SkeletonInformation/SynapseInformation.h"
 #include "SkeletonInformation/SkeletonInformationFactory.h"
+#include "SLIC/StackSLIC.h"
+#include "SLIC/StackSLICFactory.h"
 #include "BasicInformation/BasicSegmentationInformation.h"
 #include "BasicInformation/BasicSegmentationInformationFactory.h"
 
@@ -54,6 +56,7 @@ LibraryStackExtensionFactory::LibraryStackExtensionFactory(CoreFactory* factory)
 : StackExtensionFactory{factory}
 {
   m_factories.insert(ChannelEdges::TYPE, std::make_shared<ChannelEdgesFactory>(factory));
+  m_factories.insert(StackSLIC::TYPE, std::make_shared<StackSLICFactory>(factory));
 }
 
 //-----------------------------------------------------------------------
@@ -94,7 +97,6 @@ StackExtension::TypeList ESPINA::LibraryStackExtensionFactory::providedExtension
 
   return list;
 }
-
 
 //-----------------------------------------------------------------------
 LibrarySegmentationExtensionFactory::LibrarySegmentationExtensionFactory(CoreFactory* factory)

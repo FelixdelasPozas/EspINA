@@ -215,7 +215,7 @@ namespace ESPINA
             /** \brief Returns the name of the temporal prototypes object.
              *
              */
-            QString name() const;
+            const QString name() const;
 
           private:
             TemporalRepresentation2DSPtr m_prototype2D; /** 2D temporal representation. */

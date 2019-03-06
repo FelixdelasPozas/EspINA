@@ -65,11 +65,6 @@ SkeletonToolsEventHandler::SkeletonToolsEventHandler(Context &context)
 }
 
 //------------------------------------------------------------------------
-SkeletonToolsEventHandler::~SkeletonToolsEventHandler()
-{
-}
-
-//------------------------------------------------------------------------
 bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
 {
   auto me = dynamic_cast<QMouseEvent *>(e);
@@ -411,7 +406,7 @@ void SkeletonToolsEventHandler::setStrokes(const Core::SkeletonStrokes& strokes,
 }
 
 //------------------------------------------------------------------------
-void SkeletonToolsEventHandler::fixMenuPositionForView(const QMenu *menu, const RenderView* view, QPoint& position)
+void SkeletonToolsEventHandler::fixMenuPositionForView(const QMenu *menu, const RenderView* view, QPoint& position) const
 {
   auto size = view->size();
   auto hint = menu->sizeHint();

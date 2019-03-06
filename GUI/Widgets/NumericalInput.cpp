@@ -78,6 +78,11 @@ void NumericalInput::setWidgetsToolTip(const QString& tooltip)
   m_spinBox->setToolTip(tooltip);
 }
 
+void NumericalInput::setSpinBoxSuffix(const QString& suffix)
+{
+  m_spinBox->setSuffix(suffix);
+}
+
 //------------------------------------------------------------------------
 void NumericalInput::setValue(int value)
 {

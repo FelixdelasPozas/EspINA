@@ -28,6 +28,16 @@
 #include <QMouseEvent>
 #include <QLabel>
 #include <QDesktopServices>
+#include <QtGlobal>
+
+// ITK
+#include <itkVersion.h>
+
+// VTK
+#include <vtkVersion.h>
+
+// Boost
+#include <boost/version.hpp>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -39,6 +49,8 @@ AboutDialog::AboutDialog()
   setupUi(this);
 
   setWindowTitle(tr("About ESPINA"));
+
+  // EspINA tab
   version->setText(QString("Version: %1").arg(ESPINA_VERSION));
 
   // Adjust label pixmaps. If the ui file is modified those values need to be modified to be in sync. Don't like it but it does the job scaling
@@ -69,6 +81,16 @@ AboutDialog::AboutDialog()
   espinaLogo->installEventFilter(this);
   espinaText->installEventFilter(this);
   version->installEventFilter(this);
+
+  // Libraries tab
+  m_itkVersion->setText("Version " + QString(ITK_VERSION));
+  m_vtkVersion->setText("Version " + QString(VTK_VERSION));
+  m_qtVersion->setText("Version " + QString(QT_VERSION_STR));
+  m_boostVersion->setText(tr("Version %1.%2.%3").arg(BOOST_VERSION / 100000).arg(BOOST_VERSION / 100 % 1000).arg(BOOST_VERSION % 100));
+  m_quazipVersion->setText("Version 0.7.3");
+  m_xlslibVersion->setText("Version 2.1.0");
+
+  tabWidget->setCurrentIndex(0);
 }
 
 //-----------------------------------------------------------------------------

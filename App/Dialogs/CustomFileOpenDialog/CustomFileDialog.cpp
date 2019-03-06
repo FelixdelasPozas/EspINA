@@ -77,10 +77,11 @@ void CustomFileDialog::resizeEvent(QResizeEvent *event)
   QFileDialog::resizeEvent(event);
 
   m_size = size();
-  auto widgetSize = m_options->sizeHint().width();
-  auto spacing    = layout()->spacing();
-  if(m_options->isVisible())
+  auto spacing = layout()->spacing();
+
+  if(m_options && m_options->isVisible())
   {
+    auto widgetSize = m_options->sizeHint().width();
     m_size = QSize(m_size.width() - widgetSize - spacing, m_size.height());
   }
 }

@@ -448,6 +448,7 @@ namespace ESPINA
 
     auto sourceRegion = sourceImage->GetLargestPossibleRegion();
     auto componentsNum = sourceImage->GetNumberOfComponentsPerPixel();
+    auto pixelSize     = componentsNum * sizeof(typename T::PixelType);
 
     if(!sourceRegion.IsInside(region))
     {
@@ -468,14 +469,14 @@ namespace ESPINA
     auto thisPointer = sourceImage->GetBufferPointer();
     auto otherPointer = image->GetBufferPointer();
 
-    const unsigned long zJump     = sourceRegion.GetSize(0)*sourceRegion.GetSize(1)*componentsNum;
-    const unsigned long yJump     = sourceRegion.GetSize(0)*componentsNum;
-    const unsigned long zStart    = region.GetIndex(2);
+    const unsigned long zJump     = sourceRegion.GetSize(0)*sourceRegion.GetSize(1)*pixelSize;
+    const unsigned long yJump     = sourceRegion.GetSize(0)*pixelSize;
+    const unsigned long zStart    = region.GetIndex(2)-sourceRegion.GetIndex(2);
     const unsigned long zEnd      = zStart+region.GetSize(2);
-    const unsigned long yStart    = region.GetIndex(1);
+    const unsigned long yStart    = region.GetIndex(1)-sourceRegion.GetIndex(1);
     const unsigned long yEnd      = yStart+region.GetSize(1);
-    const unsigned long copySize  = region.GetSize(0)*componentsNum;
-    const unsigned long copyStart = region.GetIndex(0)*componentsNum;
+    const unsigned long copySize  = region.GetSize(0)*pixelSize;
+    const unsigned long copyStart = (region.GetIndex(0)-sourceRegion.GetIndex(0)) * pixelSize;
 
     for(unsigned long z = zStart; z < zEnd; ++z)
     {
@@ -573,26 +574,53 @@ namespace ESPINA
     const auto sourceLargest = source->GetLargestPossibleRegion();
     const auto sourceRegion  = equivalentRegion<T>(source, bounds);
 
-    const auto componentsNum = source->GetNumberOfComponentsPerPixel();
-    const auto copySize      = sourceRegion.GetSize(0)*componentsNum;
+    if(!sourceLargest.IsInside(sourceRegion))
+    {
+      auto message = QObject::tr("Source region not inside source image.");
+      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message;
 
-    const unsigned long sourceZJump = sourceLargest.GetSize(0)*sourceLargest.GetSize(1)*componentsNum;
-    const unsigned long sourceYJump = sourceLargest.GetSize(0)*componentsNum;
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    const auto componentsNum = source->GetNumberOfComponentsPerPixel();
+    const auto pixelSize     = componentsNum*sizeof(typename T::PixelType);
+    const auto copySize      = sourceRegion.GetSize(0)*pixelSize;
+
+    const unsigned long sourceZJump = sourceLargest.GetSize(0)*sourceLargest.GetSize(1)*pixelSize;
+    const unsigned long sourceYJump = sourceLargest.GetSize(0)*pixelSize;
     const unsigned long sZStart     = sourceRegion.GetIndex(2)-sourceLargest.GetIndex(2);
     const unsigned long sZEnd       = sZStart+sourceRegion.GetSize(2);
     const unsigned long sYStart     = sourceRegion.GetIndex(1)-sourceLargest.GetIndex(1);
     const unsigned long sYEnd       = sYStart+sourceRegion.GetSize(1);
-    const unsigned long sXStart     = (sourceRegion.GetIndex(0)-sourceLargest.GetIndex(0))*componentsNum;
+    const unsigned long sXStart     = (sourceRegion.GetIndex(0)-sourceLargest.GetIndex(0))*pixelSize;
 
     const auto destPointer   = destination->GetBufferPointer();
     const auto destLargest   = destination->GetLargestPossibleRegion();
     const auto destRegion    = equivalentRegion<T>(destination, bounds);
 
-    const unsigned long destZJump = destLargest.GetSize(0)*destLargest.GetSize(1)*componentsNum;
-    const unsigned long destYJump = destLargest.GetSize(0)*componentsNum;
+    if(!destLargest.IsInside(destRegion))
+    {
+      auto message = QObject::tr("Destination region not inside destination image.");
+      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    if(destRegion.GetNumberOfPixels() != sourceRegion.GetNumberOfPixels())
+    {
+      auto message = QObject::tr("Regions in source and destination doesn't have the same number of pixels.");
+      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
+    Q_ASSERT(destRegion.GetNumberOfPixels() == sourceRegion.GetNumberOfPixels());
+
+    const unsigned long destZJump = destLargest.GetSize(0)*destLargest.GetSize(1)*pixelSize;
+    const unsigned long destYJump = destLargest.GetSize(0)*pixelSize;
     const unsigned long dZStart   = destRegion.GetIndex(2)-destLargest.GetIndex(2);
     const unsigned long dYStart   = destRegion.GetIndex(1)-destLargest.GetIndex(1);
-    const unsigned long dXStart   = (destRegion.GetIndex(0)-destLargest.GetIndex(0))*componentsNum;
+    const unsigned long dXStart   = (destRegion.GetIndex(0)-destLargest.GetIndex(0))*pixelSize;
 
     for(unsigned long sZ = sZStart, dZ = dZStart; sZ < sZEnd; ++sZ, ++dZ)
     {

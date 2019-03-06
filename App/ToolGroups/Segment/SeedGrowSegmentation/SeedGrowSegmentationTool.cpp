@@ -316,6 +316,7 @@ void SeedGrowSegmentationTool::onRadiusValueChanged(int value)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 {
+  // check if any selection is a channel, and then select the primary one.
   auto isValidChannelOp = [](const Selector::SelectionItem &item) { return item.first && item.second && isChannel(item.second) && (item.first->numberOfVoxels() == 1); };
   auto it = std::find_if(selectedItems.constBegin(), selectedItems.constEnd(), isValidChannelOp);
   if(it == selectedItems.constEnd()) return;

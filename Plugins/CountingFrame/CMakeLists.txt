@@ -118,6 +118,11 @@ GENERATE_EXPORT_HEADER(
              EXPORT_MACRO_NAME CountingFramePlugin_EXPORT
              EXPORT_FILE_NAME CountingFramePlugin_Export.h
   )
+  
+ADD_COMPILER_EXPORT_FLAGS()
+if(DEFINED MINGW OR DEFINED MSVC)
+  SET(PLUGIN_LIBRARIES ${PLUGIN_LIBRARIES} iconv)
+endif(DEFINED MINGW OR DEFINED MSVC)
 
 target_link_libraries (CountingFramePlugin ${PLUGIN_LIBRARIES})
 
