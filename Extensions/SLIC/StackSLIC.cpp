@@ -47,6 +47,8 @@
 
 // Qt
 #include <QDataStream>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
 #include <QtCore>
 
 //Intrinsics

@@ -114,9 +114,10 @@ if(APPLE)
 endif (APPLE)
 
 add_library (EspinaSupport SHARED ${Support_SOURCES})
-if(DEFINED MINGW OR DEFINED MSVC)
-  SET(Support_EXTERNAL_LIBS ${Support_EXTERNAL_LIBS} iconv)
-endif(DEFINED MINGW OR DEFINED MSVC)
+#if(DEFINED MINGW OR DEFINED MSVC)
+#  SET(Support_EXTERNAL_LIBS ${Support_EXTERNAL_LIBS} iconv)
+#endif(DEFINED MINGW OR DEFINED MSVC)
+
 target_link_libraries (EspinaSupport ${Support_EXTERNAL_LIBS})
 
 GENERATE_EXPORT_HEADER(

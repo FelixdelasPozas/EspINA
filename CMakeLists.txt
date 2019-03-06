@@ -30,13 +30,14 @@ list( APPEND CMAKE_MODULE_PATH
 # Packages.
 find_package(QuaZip REQUIRED)
 include_directories(${QUAZIP_INCLUDE_DIR})
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Concurrent Test)
 #include(${QT_USE_FILE})
 set (QT_LIBRARIES
   Qt5::Core 
   Qt5::Gui 
   Qt5::Network 
   Qt5::Widgets 
+  Qt5::Concurrent
 )
 set (QT_TEST_LIBRARY
   Qt5::Test
