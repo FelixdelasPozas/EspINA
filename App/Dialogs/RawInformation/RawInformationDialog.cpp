@@ -45,6 +45,8 @@ RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Suppor
   report->setFilter(input);
   report->setModel(context.model());
 
+  connect(context.model().get(), SIGNAL(aboutToBeReset()), this, SLOT(close()));
+
   setLayout(new QVBoxLayout());
   layout()->addWidget(report);
 

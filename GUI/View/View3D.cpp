@@ -92,6 +92,8 @@ View3D::~View3D()
 {
   mainRenderer()->RemoveAllViewProps();
 
+  m_view->GetRenderWindow()->RemoveRenderer(m_renderer);
+
   shutdownAndRemoveManagers();
 }
 

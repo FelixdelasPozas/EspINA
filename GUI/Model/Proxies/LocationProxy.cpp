@@ -549,7 +549,7 @@ void LocationProxy::sourceRowsAboutToBeRemoved(const QModelIndex &sourceParent, 
       {
         if(m_orphaned.contains(segmentation))
         {
-          auto numStart    = m_orphaned.indexOf(segmentation);
+          auto numStart = m_orphaned.indexOf(segmentation);
           beginRemoveRows(orphanIndex(), numStart, numStart);
           m_orphaned.removeAll(segmentation);
           endRemoveRows();
@@ -875,7 +875,7 @@ const QMap<ChannelAdapterSPtr, ItemAdapterList> LocationProxy::groupSegmentation
 
   if(!orphaned.isEmpty())
   {
-    auto alreadyIn   = m_orphaned.size();
+    auto alreadyIn = m_orphaned.size();
     beginInsertRows(orphanIndex(), alreadyIn, alreadyIn + orphaned.size());
     m_orphaned << orphaned;
     endInsertRows();

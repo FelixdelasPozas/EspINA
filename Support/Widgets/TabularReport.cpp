@@ -474,8 +474,8 @@ void TabularReport::createCategoryEntry(const QString &category)
     infoProxy->setCategory(category);
     infoProxy->setFilter(&m_filter);
     infoProxy->setSourceModel(m_model);
-    connect (infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-             this,      SLOT(rowsRemoved(const QModelIndex &, int, int)));
+    connect(infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
+            this,      SLOT(rowsRemoved(const QModelIndex &, int, int)));
     entry->setProxy(infoProxy);
 
     DataSortFilter *sortFilter = new DataSortFilter();

@@ -144,12 +144,6 @@ namespace ESPINA
        */
       static SegmentationInspectorKey toKey(const SegmentationAdapterList segmentations);
 
-      /** \brief Converts a segmentationAdapter to a unique string key.
-       * \param[in] segmentation, segmentation adapter raw pointer.
-       *
-       */
-      static SegmentationInspectorKey toKey(const SegmentationAdapterPtr segmentation);
-
       /** \brief Resets the layout.
        *
        */

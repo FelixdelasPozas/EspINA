@@ -241,6 +241,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     labelText->SetName("Labels");
 
     data->GetLines()->InitTraversal();
+    QList<NmVector3> usedPoints;
     for(int i = 0; i < data->GetNumberOfLines(); ++i)
     {
       auto idList = vtkSmartPointer<vtkIdList>::New();
@@ -263,7 +264,29 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       if(ids.contains(text)) continue;
       ids << text;
 
-      labelPoints->InsertNextPoint(data->GetPoint(idList->GetId(1)));
+      double coordsA[3];
+      bool inserted = false;
+      for(auto j: {1,0})
+      {
+        data->GetPoint(idList->GetId(j), coordsA);
+        const NmVector3 pointCoords{coordsA[0], coordsA[1], coordsA[2]};
+        if(!usedPoints.contains(pointCoords))
+        {
+          usedPoints << pointCoords;
+          inserted = true;
+          break;
+        }
+      }
+
+      if(!inserted)
+      {
+        // both points are being used. coordsA contains the coordinates of the last point in the line.
+        double coordsB[3];
+        data->GetPoint(idList->GetId(1), coordsB);
+        for(auto j: {0,1,2}) coordsA[j] = (coordsA[j] + coordsB[j])/2.;
+      }
+
+      labelPoints->InsertNextPoint(coordsA);
       labelText->InsertNextValue(text.toStdString().c_str());
     }
 

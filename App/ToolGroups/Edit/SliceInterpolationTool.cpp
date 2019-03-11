@@ -173,7 +173,7 @@ void SliceInterpolationTool::onTaskFinished()
 
   if(filter && m_executingTasks.keys().contains(filter))
   {
-    auto taskContext = m_executingTasks.value(filter);
+    const auto &taskContext = m_executingTasks[filter];
 
     if (!filter->isAborted())
     {
@@ -226,7 +226,7 @@ void SliceInterpolationTool::abortTasks()
 
     if(task && task->isRunning()) task->abort();
 
-    auto taskContext = m_executingTasks.value(task);
+    const auto &taskContext = m_executingTasks[task];
 
     markAsBeingModified(taskContext.segmentation, false);
 
