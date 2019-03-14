@@ -158,6 +158,18 @@ namespace ESPINA
            */
           const unsigned char threshold(const float percent) const;
   
+          /** \brief Operator+ for histograms.
+           * \param[in] other Histogram object reference.
+           *
+           */
+          Histogram &operator+(const Histogram &other);
+
+          /** \brief Operator= for histograms.
+           * \param[in] other Histogram object reference.
+           *
+           */
+          Histogram &operator=(const Histogram &other);
+
         private:
           std::vector<unsigned long long> m_values; /** values count            */
           unsigned char                   m_major;  /** major value.            */

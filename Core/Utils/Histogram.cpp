@@ -210,3 +210,21 @@ void Histogram::addValues(unsigned char* buffer, const unsigned long length)
     }
   }
 }
+
+//--------------------------------------------------------------------
+Histogram& Histogram::operator +(const Histogram& other)
+{
+  for(int i = 0; i < 256; ++i) m_values[i] += other.values(i);
+  update();
+
+  return *this;
+}
+
+//--------------------------------------------------------------------
+Histogram& Histogram::operator =(const Histogram& other)
+{
+  for(int i = 0; i < 256; ++i) m_values[i] = other.values(i);
+  update();
+
+  return *this;
+}
