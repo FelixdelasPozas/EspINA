@@ -44,20 +44,21 @@ namespace ESPINA
    */
   struct StrokeInfo
   {
-     QString                          name;       /** stroke name.                       */
-     Core::Path                       path;       /** stroke path.                       */
-     double                           length;     /** stroke length.                     */
-     bool                             used;       /** used in total length.              */
-     QList<vtkSmartPointer<vtkActor>> actors;     /** stroke actors.                     */
-     bool                             selected;   /** true if selected, false otherwise. */
-     int                              hue;        /** hue color of the stroke.           */
-     int                              randomHue;  /** random color.                      */
-     NmVector3                        labelPoint; /** point of the label.                */
+     QString                          name;         /** stroke name.                       */
+     Core::Path                       path;         /** stroke path.                       */
+     double                           length;       /** stroke length.                     */
+     bool                             used;         /** used in total length.              */
+     QList<vtkSmartPointer<vtkActor>> actors;       /** stroke actors.                     */
+     bool                             selected;     /** true if selected, false otherwise. */
+     int                              hue;          /** hue color of the stroke.           */
+     int                              randomHue;    /** random color.                      */
+     int                              hierarchyHue; /** hierarchy color.                   */
+     NmVector3                        labelPoint;   /** point of the label.                */
 
      /** \brief StrokeInfo struct empty constructor.
       *
       */
-     StrokeInfo(): length{0}, used{false}, selected{false}, hue{0}, randomHue{0} {};
+     StrokeInfo(): length{0}, used{false}, selected{false}, hue{0}, randomHue{0}, hierarchyHue{0} {};
 
      /** \brief Operator < for struct StrokeInfo.
       * \param[in] other Reference to a struct StrokeInfo to compare.
@@ -116,6 +117,12 @@ namespace ESPINA
        *
        */
       void setRandomTreeColoring(const bool enabled);
+
+      /** \brief Displays the strokes with the normal color or with the hierarchy coloring.
+       * \param[in] enabled True to use hierarchy coloring and false to use stroke color.
+       *
+       */
+      void setHierarchyTreeColoring(const bool enabled);
 
       QVariant data(const QModelIndex &index, int role) const override;
 
@@ -219,14 +226,15 @@ namespace ESPINA
       { return static_cast<TreeNode *>(index.internalPointer()); }
 
     private:
-      TreeNode                     *m_StrokesTree;       /** strokes tree structure.                                               */
-      TreeNode                     *m_ConnectTree;       /** connections tree.                                                     */
-      const SegmentationAdapterSPtr m_segmentation;      /** Segmentation adapter of the main segmentation of the tree.            */
-      ModelAdapterSPtr              m_model;             /** Application model adapter.                                            */
-      QList<struct StrokeInfo>     &m_strokes;           /** List of stroke information structs.                                   */
-      bool                          m_useRandomColoring; /** true to color strokes with random color, false to use stroke color.   */
-      unsigned int                  m_connectionLevel;   /** Connection level.                                                     */
-      Core::SkeletonDefinition      m_definition;        /** skeleton definition struct.                                           */
+      TreeNode                     *m_StrokesTree;          /** strokes tree structure.                                                 */
+      TreeNode                     *m_ConnectTree;          /** connections tree.                                                       */
+      const SegmentationAdapterSPtr m_segmentation;         /** Segmentation adapter of the main segmentation of the tree.              */
+      ModelAdapterSPtr              m_model;                /** Application model adapter.                                              */
+      QList<struct StrokeInfo>     &m_strokes;              /** List of stroke information structs.                                     */
+      bool                          m_useRandomColoring;    /** true to color strokes with random color, false to use stroke color.     */
+      bool                          m_useHierarchyColoring; /** true to color strokes with hierarchy colors, false to use stroke color. */
+      unsigned int                  m_connectionLevel;      /** Connection level.                                                       */
+      Core::SkeletonDefinition      m_definition;           /** skeleton definition struct.                                             */
   };
 
 } // namespace ESPINA

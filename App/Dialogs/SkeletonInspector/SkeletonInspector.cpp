@@ -141,10 +141,11 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
 {
   Q_ASSERT(hasSkeletonData(segmentation->output()));
 
-  auto skeleton    = readLockSkeleton(segmentation->output())->skeleton();
-  m_definition     = toSkeletonDefinition(skeleton);
-  auto pathList    = paths(m_definition.nodes, m_definition.edges, m_definition.strokes);
-  auto connections = getModel()->connections(segmentation);
+  const auto skeleton    = readLockSkeleton(segmentation->output())->skeleton();
+  m_definition           = toSkeletonDefinition(skeleton);
+  const auto pathList    = paths(m_definition.nodes, m_definition.edges, m_definition.strokes);
+  const auto strokes     = m_definition.strokes;
+  const auto connections = getModel()->connections(segmentation);
 
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::minstd_rand0 rngenerator(seed);
@@ -160,18 +161,47 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     return value;
   };
 
+  auto hierarchyColor = [&strokes](const SkeletonStroke &stroke)
+  {
+    int position = 0;
+    QSet<int> hueValues;
+
+    for(int i = 0; i < strokes.size(); ++i)
+    {
+      auto &otherStroke = strokes.at(i);
+
+      hueValues << otherStroke.colorHue;
+
+      if(otherStroke == stroke) continue;
+
+      // alphabetic to keep certain order, but can be altered by introducing more strokes.
+      if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++position;
+    }
+
+    int finalHue = stroke.colorHue;
+    while((position != 0) && (position < 9) && hueValues.contains(finalHue))
+    {
+      finalHue = (stroke.colorHue + (40*position)) % 360;
+
+      ++position;
+    }
+
+    return finalHue;
+  };
+
   for(auto i = 0; i < pathList.size(); ++i)
   {
     auto path = pathList.at(i);
 
     struct StrokeInfo info;
-    info.name      = path.note;
-    info.path      = path;
-    info.selected  = true;
-    info.length    = path.length();
-    info.used      = m_definition.strokes.at(path.stroke).useMeasure;
-    info.hue       = m_definition.strokes.at(path.stroke).colorHue;
-    info.randomHue = assignRandomFromHue(info.hue);
+    info.name         = path.note;
+    info.path         = path;
+    info.selected     = true;
+    info.length       = path.length();
+    info.used         = strokes.at(path.stroke).useMeasure;
+    info.hue          = strokes.at(path.stroke).colorHue;
+    info.randomHue    = assignRandomFromHue(info.hue);
+    info.hierarchyHue = hierarchyColor(strokes.at(path.stroke));
 
     auto points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(path.seen.size());
@@ -377,6 +407,9 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
 
         connect(skeletonSwitch.get(), SIGNAL(coloringEnabled(bool)),
                 this,                 SLOT(onColoringEnabled(bool)));
+
+        connect(skeletonSwitch.get(), SIGNAL(randomColoringEnabled(bool)),
+                this,                 SLOT(onRandomColoringEnabled(bool)));
       }
     }
 
@@ -634,6 +667,21 @@ void SkeletonInspector::onColoringEnabled(bool value)
 {
   if(m_temporalPipeline)
   {
+    m_temporalPipeline->setHierarchyColors(value);
+
+    m_segmentation->invalidateRepresentations();
+    m_view.refresh();
+  }
+
+  auto treeModel = dynamic_cast<SkeletonInspectorTreeModel *>(m_treeView->model());
+  if(treeModel) treeModel->setHierarchyTreeColoring(value);
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onRandomColoringEnabled(bool value)
+{
+  if(m_temporalPipeline)
+  {
     m_temporalPipeline->setRandomColors(value);
 
     m_segmentation->invalidateRepresentations();
@@ -675,7 +723,7 @@ void SkeletonInspector::SkeletonInspectorPipeline::updateColors(RepresentationPi
   for(auto &stroke: m_strokes)
   {
     QColor color;
-    if(!m_randomColoring)
+    if(!m_randomColoring && !m_hierarchyColoring)
     {
       color = m_colorEngine->color(segmentation);
       if(color.hue() != stroke.hue)
@@ -685,7 +733,8 @@ void SkeletonInspector::SkeletonInspectorPipeline::updateColors(RepresentationPi
     }
     else
     {
-      color = QColor::fromHsv(stroke.randomHue, 255,255);
+      if(m_randomColoring) color = QColor::fromHsv(stroke.randomHue, 255,255);
+      else                 color = QColor::fromHsv(stroke.hierarchyHue, 255,255);
     }
 
     s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
@@ -721,7 +770,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 
     double factor = stroke.selected ? 1.0 : 0.65;
     QColor color;
-    if(!m_randomColoring)
+    if(!m_randomColoring && !m_hierarchyColoring)
     {
       color = m_colorEngine->color(segmentation);
       if(color.hue() != stroke.hue)
@@ -731,7 +780,8 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
     }
     else
     {
-      color = QColor::fromHsv(stroke.randomHue, 255,255);
+      if(m_randomColoring) color = QColor::fromHsv(stroke.randomHue, 255,255);
+      else                 color = QColor::fromHsv(stroke.hierarchyHue, 255,255);
     }
 
     s_highlighter.lut(color, item->isSelected())->GetTableValue(1,rgba);
@@ -904,15 +954,54 @@ void SkeletonInspector::emitSegmentationConnectionSignals()
 SkeletonInspector::SkeletonInspectorRepresentationSwitch::SkeletonInspectorRepresentationSwitch(RepresentationManagerSPtr manager, SkeletonPoolSettingsSPtr settings, Support::Context &context)
 : SegmentationSkeletonSwitch{"SkeletonInspectorRepresentationSwitch", manager, settings, ViewType::VIEW_3D, context}
 {
-  m_coloring = Styles::createToolButton(":/espina/skeletonColors.svg", QObject::tr("Enable/Disable stroke random coloring."));
+  m_coloring = Styles::createToolButton(":/espina/skeletonColors.svg", QObject::tr("Enable/Disable hierarchy stroke coloring."));
   m_coloring->setCheckable(true);
   m_coloring->setChecked(false);
 
-  connect(m_coloring, SIGNAL(toggled(bool)), this, SIGNAL(coloringEnabled(bool)));
+  connect(m_coloring, SIGNAL(toggled(bool)), this, SLOT(onButtonPressed(bool)));
 
   addSettingsWidget(m_coloring);
 
+  m_coloringRandom = Styles::createToolButton(":/espina/skeletonColorsRandom.svg", QObject::tr("Enable/Disable stroke random coloring."));
+  m_coloringRandom->setCheckable(true);
+  m_coloringRandom->setChecked(false);
+
+  connect(m_coloringRandom, SIGNAL(toggled(bool)), this, SLOT(onButtonPressed(bool)));
+
+  addSettingsWidget(m_coloringRandom);
+
   setOrder("1-2","0-Representations");
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::SkeletonInspectorRepresentationSwitch::onButtonPressed(bool value)
+{
+  auto button = dynamic_cast<ToolButton *>(sender());
+  if(button && (button == m_coloring || button == m_coloringRandom))
+  {
+    if(button == m_coloring)
+    {
+      if(m_coloringRandom->isChecked())
+      {
+        m_coloringRandom->blockSignals(true);
+        m_coloringRandom->setChecked(false);
+        m_coloringRandom->blockSignals(false);
+        emit randomColoringEnabled(false);
+      }
+      emit coloringEnabled(value);
+    }
+    else
+    {
+      if(m_coloring->isChecked())
+      {
+        m_coloring->blockSignals(true);
+        m_coloring->setChecked(false);
+        m_coloring->blockSignals(false);
+        emit coloringEnabled(false);
+      }
+      emit randomColoringEnabled(value);
+    }
+  }
 }
 
 //--------------------------------------------------------------------
