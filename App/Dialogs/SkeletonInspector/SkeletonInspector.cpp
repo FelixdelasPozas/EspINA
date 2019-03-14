@@ -696,7 +696,8 @@ void SkeletonInspector::onRandomColoringEnabled(bool value)
 SkeletonInspector::SkeletonInspectorPipeline::SkeletonInspectorPipeline(QList<struct StrokeInfo>& strokes)
 : SegmentationSkeleton3DPipeline(std::make_shared<CategoryColorEngine>())
 , m_strokes(strokes)
-, m_randomColoring{false}
+, m_randomColoring   {false}
+, m_hierarchyColoring{false}
 {
 }
 
@@ -1014,6 +1015,9 @@ void SkeletonInspector::onDistanceChanged(int distance)
     model->computeConnectionDistances(distance);
 
     m_treeView->expand(model->index(1,0, QModelIndex()));
+
+    m_segmentation->invalidateRepresentations();
+    m_view.refresh();
   }
 }
 
