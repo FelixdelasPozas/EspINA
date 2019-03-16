@@ -43,6 +43,7 @@
 #include <GUI/Representations/Pools/BufferedRepresentationPool.h>
 #include <GUI/View/View2D.h>
 #include <GUI/Widgets/PixelValueSelector.h>
+#include <GUI/Widgets/HistogramBarsView.h>
 #include <GUI/Widgets/Styles.h>
 #include <Support/Representations/SliceManager.h>
 #include "SLICRepresentation2D.h"
@@ -65,6 +66,8 @@
 #include <QColorDialog>
 #include <QBitmap>
 #include <QPainter>
+#include <QGraphicsScene>
+#include <QGraphicsItem>
 
 // VTK
 #include <vtkMath.h>
@@ -109,6 +112,9 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 
   /// SLIC TAB
   initSLICTab();
+
+  /// HISTOGRAM TAB
+  initHistogramTab();
 
   tabWidget->setCurrentIndex(0);
 
@@ -1027,6 +1033,83 @@ void StackInspector::onSLICComputationAborted()
 }
 
 //--------------------------------------------------------------------
+void StackInspector::initHistogramTab()
+{
+  if(!m_stack->readOnlyExtensions()->hasExtension(StackHistogram::TYPE))
+  {
+    m_computeHistogramButton->setVisible(true);
+    connect(m_computeHistogramButton, SIGNAL(pressed()), this, SLOT(onHistogramButtonPressed()));
+  }
+  else
+  {
+    m_computeHistogramButton->setVisible(false);
+    auto extension = retrieveExtension<StackHistogram>(m_stack->readOnlyExtensions());
+
+    m_histogramBarsView->setHistogram(extension->histogram());
+    m_histogramTreeView->setHistogram(extension->histogram());
+    m_minimumLabel->setText(tr("%1").arg(extension->minorValue()));
+    m_maximumLabel->setText(tr("%1").arg(extension->majorValue()));
+    m_meanLabel->setText(tr("%1").arg(extension->medianValue()));
+    m_modeLabel->setText(tr("%1").arg(extension->modeValue()));
+    m_valuesLabel->setText(tr("%1").arg(extension->count()));
+  }
+
+  onHistogramRadioChanged();
+
+  connect(m_barsRadioButton, SIGNAL(toggled(bool)), this, SLOT(onHistogramRadioChanged()));
+  connect(m_treeRadioButton, SIGNAL(toggled(bool)), this, SLOT(onHistogramRadioChanged()));
+}
+
+//--------------------------------------------------------------------
+void StackInspector::onHistogramButtonPressed()
+{
+  auto extension = retrieveOrCreateStackExtension<StackHistogram>(m_stack, getFactory());
+
+  auto task = std::make_shared<HistogramComputationTask>(m_stack, extension, getScheduler());
+
+  connect(task.get(), SIGNAL(progress(int)), m_histogramBarsView, SLOT(setProgress(int)));
+  connect(task.get(), SIGNAL(progress(int)), m_histogramTreeView, SLOT(setProgress(int)));
+  connect(task.get(), SIGNAL(finished()), this, SLOT(onHistogramComputed()));
+
+  Task::submit(task);
+
+  m_computeHistogramButton->setVisible(false);
+
+  Histogram empty;
+  m_histogramBarsView->setHistogram(empty);
+  m_histogramTreeView->setHistogram(empty);
+}
+
+//--------------------------------------------------------------------
+void StackInspector::onHistogramComputed()
+{
+  m_computeHistogramButton->setVisible(false);
+
+  auto task = qobject_cast<HistogramComputationTask *>(sender());
+  if(task)
+  {
+    m_histogramBarsView->setHistogram(task->histogram());
+    m_histogramTreeView->setHistogram(task->histogram());
+    m_minimumLabel->setText(tr("%1").arg(task->histogram().minorValue()));
+    m_maximumLabel->setText(tr("%1").arg(task->histogram().majorValue()));
+    m_meanLabel->setText(tr("%1").arg(task->histogram().medianValue()));
+    m_modeLabel->setText(tr("%1").arg(task->histogram().modeValue()));
+    m_valuesLabel->setText(tr("%1").arg(task->histogram().count()));
+  }
+  else
+  {
+    qWarning() << "StackInspector::onHistogramComputed() -> received signal but couldn't identity sender!";
+  }
+}
+
+//--------------------------------------------------------------------
+void StackInspector::onHistogramRadioChanged()
+{
+  m_histogramBarsView->setVisible(m_barsRadioButton->isChecked());
+  m_histogramTreeView->setVisible(m_treeRadioButton->isChecked());
+}
+
+//--------------------------------------------------------------------
 std::shared_ptr<Extensions::StackSLIC> StackInspector::createAndConnectSLICExtension()
 {
   auto slicExtension = retrieveOrCreateStackExtension<StackSLIC>(m_stack, getFactory());
@@ -1038,4 +1121,21 @@ std::shared_ptr<Extensions::StackSLIC> StackInspector::createAndConnectSLICExten
   connect(slicExtension.get(), SIGNAL(computeAborted()), this, SLOT(onSLICComputationAborted()));
 
   return slicExtension;
+}
+
+//--------------------------------------------------------------------
+HistogramComputationTask::HistogramComputationTask(ChannelAdapterSPtr stack, Extensions::StackHistogramSPtr extension, SchedulerSPtr scheduler)
+: Task       {scheduler}
+, m_stack    {stack}
+, m_extension{extension}
+{
+  setDescription(tr("Computing histogram of '%1'").arg(stack->data(Qt::DisplayRole).toString()));
+}
+
+//--------------------------------------------------------------------
+void HistogramComputationTask::run()
+{
+  connect(m_extension.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
+
+  m_extension->medianValue(); // forces computation.
 }

@@ -245,11 +245,16 @@ SeedGrowSegmentationRefineWidget::~SeedGrowSegmentationRefineWidget()
 
   getContext().viewState().removeTemporalRepresentations(m_seedPrototypes);
 
+  disconnect(m_roiTools.get(),               SIGNAL(ROIChanged(ROISPtr)),
+             this,                           SLOT(onROIChanged()));
+
   if(m_roiTools->currentROI() != nullptr)
   {
     m_roiTools->setCurrentROI(nullptr);
     m_roiTools->setVisible(false);
   }
+
+  QApplication::processEvents();
 }
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationRefineWidget::onFilterThresholdModified(int lower, int upper)

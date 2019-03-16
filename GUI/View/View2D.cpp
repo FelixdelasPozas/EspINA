@@ -205,7 +205,8 @@ View2D::~View2D()
   
   shutdownAndRemoveManagers();
 
-  m_state2D = nullptr;
+  m_view->GetRenderWindow()->RemoveRenderer(m_renderer);
+  m_view->GetRenderWindow()->RemoveRenderer(m_thumbnail);
 }
 
 //-----------------------------------------------------------------------------

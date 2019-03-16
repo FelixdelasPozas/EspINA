@@ -293,6 +293,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
       auto labelText   = vtkSmartPointer<vtkStringArray>::New();
       labelText->SetName("Labels");
 
+      QList<NmVector3> usedPoints;
       for(auto id: insertedLines.keys())
       {
         auto index  = insertedLines[id];
@@ -310,10 +311,32 @@ RepresentationPipeline::ActorList SegmentationSkeleton2DPipeline::createActors(C
         if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
 
         if(ids.contains(text)) continue;
-
         ids << text;
 
-        labelPoints->InsertNextPoint(newPoints->GetPoint(newPointIds[id]));
+        double coordsA[3];
+        bool inserted = false;
+        const auto linePointsIds = insertedLines.keys(index);
+        for(auto j: linePointsIds)
+        {
+          newPoints->GetPoint(newPointIds[j], coordsA);
+          const NmVector3 pointCoords{coordsA[0], coordsA[1], coordsA[2]};
+          if(!usedPoints.contains(pointCoords))
+          {
+            usedPoints << pointCoords;
+            inserted = true;
+            break;
+          }
+        }
+
+        if(!inserted)
+        {
+          // both points are being used. coordsA contains the coordinates of the last point in the line.
+          double coordsB[3];
+          newPoints->GetPoint(newPointIds[linePointsIds.first()], coordsB);
+          for(auto j: {0,1,2}) coordsA[j] = (coordsA[j] + coordsB[j])/2.;
+        }
+
+        labelPoints->InsertNextPoint(coordsA);
         labelText->InsertNextValue(text.toStdString().c_str());
       }
 

@@ -100,11 +100,17 @@ namespace ESPINA
        */
       void onRepresentationsInvalidated(ViewItemAdapterList segmentations);
 
+      /** \brief Changes the coloring of strokes from stroke color to stroke hierachy colors.
+       * \param[in] value True to display the strokes in hierarchy colors and false to use stroke color.
+       *
+       */
+      void onColoringEnabled(bool value);
+
       /** \brief Changes the coloring of strokes from stroke color to random.
        * \param[in] value True to display the strokes in random colors and false to use stroke color.
        *
        */
-      void onColoringEnabled(bool value);
+      void onRandomColoringEnabled(bool value);
 
       /** \brief Updates the model and expands the connections subtree.
        * \param[in] distance Connections distance new value.
@@ -235,21 +241,35 @@ namespace ESPINA
                                                                  const RepresentationState &state) override final;
 
           /** \brief Enables/Disables random coloring.
-           * \param[in] value True to enable random coloring and false to use stroke colors.
+           * \param[in] value True to enable random coloring, false otherwise.
            *
            */
           void setRandomColors(const bool value)
-          { m_randomColoring = value; }
+          { m_randomColoring = value; if(value && m_hierarchyColoring) m_hierarchyColoring = false; }
 
-          /** \brief Returns true if random coloring is enabled and false if the stroke colors are being used.
+          /** \brief Returns true if random coloring is enabled, false if not.
            *
            */
           const bool randomColors() const
           { return m_randomColoring; }
 
+          /** \brief Enables/Disables hierarchy coloring.
+           * \param[in] value True to enable hierarchy coloring, false otherwise.
+           *
+           */
+          void setHierarchyColors(const bool value)
+          { m_hierarchyColoring = value; if(value && m_randomColoring) m_randomColoring = false; }
+
+          /** \brief Returns true if hierarchy coloring is enabled, false otherwise.
+           *
+           */
+          const bool hierarchyColors() const
+          { return m_hierarchyColoring; }
+
         private:
-          QList<struct StrokeInfo> &m_strokes;        /** stroke information structs list.                          */
-          bool                      m_randomColoring; /** true to use random colors and false to use stroke colors. */
+          QList<struct StrokeInfo> &m_strokes;           /** stroke information structs list.                             */
+          bool                      m_randomColoring;    /** true to use random colors and false to use stroke colors.    */
+          bool                      m_hierarchyColoring; /** true to use hierarchy colors and false to use stroke colors. */
       };
 
       /** \class Item
@@ -326,9 +346,18 @@ namespace ESPINA
 
     signals:
       void coloringEnabled(bool value);
+      void randomColoringEnabled(bool value);
+
+    private slots:
+      /** \brief Emits the correct signal depending on the button pressed.
+       * \param[in] value True to enable and false to disable.
+       *
+       */
+      void onButtonPressed(bool value);
 
     private:
-      GUI::Widgets::ToolButton *m_coloring; /** random coloring enable/disable button. */
+      GUI::Widgets::ToolButton *m_coloring;       /** hierarchy coloring enable/disable button. */
+      GUI::Widgets::ToolButton *m_coloringRandom; /** random coloring enable/disable button.    */
   };
 
 

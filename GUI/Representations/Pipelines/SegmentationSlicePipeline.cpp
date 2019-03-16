@@ -167,7 +167,7 @@ void SegmentationSlicePipeline::updateColors(ActorList                 &actors,
 //----------------------------------------------------------------------------
 bool SegmentationSlicePipeline::pick(ConstViewItemAdapterPtr item, const NmVector3 &point) const
 {
-  if(hasVolumetricData(item->output()))
+  if(item && item->output() && hasVolumetricData(item->output()))
   {
     auto volume = readLockVolume(item->output());
     return isSegmentationVoxel(volume, point);

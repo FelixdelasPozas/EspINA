@@ -43,12 +43,6 @@ namespace ESPINA
     {
         Q_OBJECT
       public:
-        /** \brief StackSLIC class constructor.
-         * \param[in] cache Extension cache data.
-         *
-         */
-        explicit StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCache &cache);
-
         /** \brief StackSLIC class virtual destructor.
          *
          */
@@ -220,6 +214,12 @@ namespace ESPINA
 
         virtual QVariant cacheFail(const InformationKey& tag) const { return QVariant(); }
 
+        /** \brief StackSLIC class constructor.
+         * \param[in] cache Extension cache data.
+         *
+         */
+        explicit StackSLIC(SchedulerSPtr scheduler, CoreFactory* factory, const InfoCache &cache);
+
       public:
         /** \struct SuperVoxel
          * \brief Supervoxel computed data.
@@ -305,7 +305,8 @@ namespace ESPINA
          */
         const QByteArray getSlice(const int slice) const;
 
-        friend SLICComputeTask;
+        friend class SLICComputeTask;
+        friend class StackSLICFactory;
     };
 
     class StackSLIC::SLICComputeTask

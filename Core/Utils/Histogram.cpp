@@ -65,7 +65,7 @@ void Histogram::update()
     }
   }
 
-  m_median = value / m_count;
+  if(m_count != 0) m_median = value / m_count;
 }
 
 //--------------------------------------------------------------------
@@ -129,8 +129,9 @@ void Histogram::reset()
 //--------------------------------------------------------------------
 const unsigned char Histogram::threshold(const float percent) const
 {
-  if(m_major == std::numeric_limits<unsigned char>::min() &&
-     m_minor == std::numeric_limits<unsigned char>::max())
+  if(m_count == 0 ||
+    (m_major == std::numeric_limits<unsigned char>::min() &&
+     m_minor == std::numeric_limits<unsigned char>::max()))
   {
     // not updated, invalid median value.
     return 0;
@@ -209,4 +210,30 @@ void Histogram::addValues(unsigned char* buffer, const unsigned long length)
       addValue(buffer[i]);
     }
   }
+}
+
+//--------------------------------------------------------------------
+Histogram& Histogram::operator +(const Histogram& other)
+{
+  for(int i = 0; i < 256; ++i) m_values[i] += other.values(i);
+  update();
+
+  return *this;
+}
+
+//--------------------------------------------------------------------
+Histogram& Histogram::operator =(const Histogram& other)
+{
+  for(int i = 0; i < 256; ++i) m_values[i] = other.values(i);
+  update();
+
+  return *this;
+}
+
+//--------------------------------------------------------------------
+const bool Histogram::isEmpty() const
+{
+  for(int i = 0; i < 256; ++i) if(m_values[i] != 0) return false;
+
+  return true;
 }

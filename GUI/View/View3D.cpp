@@ -94,6 +94,8 @@ View3D::~View3D()
   
   QApplication::processEvents();
 
+  m_view->GetRenderWindow()->RemoveRenderer(m_renderer);
+
   shutdownAndRemoveManagers();
 }
 

@@ -42,6 +42,8 @@
 #include "SLIC/StackSLICFactory.h"
 #include "BasicInformation/BasicSegmentationInformation.h"
 #include "BasicInformation/BasicSegmentationInformationFactory.h"
+#include "Histogram/StackHistogram.h"
+#include "Histogram/StackHistogramFactory.h"
 
 // C++
 #include <memory>
@@ -55,8 +57,9 @@ using namespace ESPINA::Extensions;
 LibraryStackExtensionFactory::LibraryStackExtensionFactory(CoreFactory* factory)
 : StackExtensionFactory{factory}
 {
-  m_factories.insert(ChannelEdges::TYPE, std::make_shared<ChannelEdgesFactory>(factory));
-  m_factories.insert(StackSLIC::TYPE, std::make_shared<StackSLICFactory>(factory));
+  m_factories.insert(ChannelEdges::TYPE,   std::make_shared<ChannelEdgesFactory>(factory));
+  m_factories.insert(StackSLIC::TYPE,      std::make_shared<StackSLICFactory>(factory));
+  m_factories.insert(StackHistogram::TYPE, std::make_shared<StackHistogramFactory>(factory));
 }
 
 //-----------------------------------------------------------------------

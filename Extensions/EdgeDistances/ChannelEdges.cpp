@@ -274,6 +274,9 @@ itkVolumeType::RegionType ChannelEdges::sliceRegion(unsigned int slice) const
     region = equivalentRegion<itkVolumeType>(origin, spacing, bounds);
   }
 
+  auto stackRegion = readLockVolume(m_extendedItem->output())->itkImage()->GetLargestPossibleRegion();
+  region.Crop(stackRegion);
+
   return region;
 }
 
@@ -523,8 +526,8 @@ void ChannelEdges::checkEdgesData()
     }
     else
     {
-      auto volume = readLockVolume(m_extendedItem->output());
-      createRectangularRegion(volume->bounds().bounds());
+      auto volumeBounds = readLockVolume(m_extendedItem->output())->bounds().bounds();
+      createRectangularRegion(volumeBounds);
 
       QWriteLocker lock(&m_dataMutex);
       m_hasCreatedEdges = true;

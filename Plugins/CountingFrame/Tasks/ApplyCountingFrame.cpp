@@ -175,13 +175,20 @@ void ApplyCountingFrame::onTaskProgress(int value, ApplySegmentationCountingFram
     return;
   }
 
-  m_tasks[task].Progress = value;
+  if(task)
+  {
+    m_tasks[task].Progress = value;
+  }
 
-  double progressValue = 0;
   const auto tasks = m_tasks.values();
-  std::for_each(tasks.constBegin(), tasks.constEnd(), [&progressValue](const CF::ApplyCountingFrame::Data &data) { progressValue += data.Progress; });
+  if(!tasks.isEmpty())
+  {
+    double progressValue = 0;
+    auto accumulateProgressOp = [&progressValue](const CF::ApplyCountingFrame::Data &data) { progressValue += data.Progress; };
+    std::for_each(tasks.constBegin(), tasks.constEnd(), accumulateProgressOp);
 
-  reportProgress(progressValue/Scheduler::maxRunningTasks());
+    reportProgress(progressValue/tasks.size());
+  }
 }
 
 //--------------------------------------------------------------------
@@ -194,13 +201,12 @@ void ApplyCountingFrame::onTaskFinished()
   }
 
   bool finished = true;
-  for(auto task: m_tasks.keys())
-  {
-    finished &= task->hasFinished();
-  }
+  const auto tasks = m_tasks.keys();
+  std::for_each(tasks.constBegin(), tasks.constEnd(), [&finished](const ApplySegmentationCountingFrame *task) { finished &= task->hasFinished(); });
 
   if(finished)
   {
+    m_tasks.clear();
     m_condition.wakeAll();
   }
 }

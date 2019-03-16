@@ -42,12 +42,7 @@ namespace ESPINA
         static const Type TYPE;
 
       public:
-        /** \brief BasicSegmentationInformation class constructor.
-         *
-         */
-        BasicSegmentationInformationExtension(const InfoCache &infoCache);
-
-        /** \brief BasicSegmentationInformation class constructor.
+        /** \brief BasicSegmentationInformation class virtual destructor.
          *
          */
         virtual ~BasicSegmentationInformationExtension()
@@ -81,6 +76,14 @@ namespace ESPINA
 
         virtual void onExtendedItemSet(Segmentation* item)
         {};
+
+      private:
+        /** \brief BasicSegmentationInformation class constructor.
+         *
+         */
+        BasicSegmentationInformationExtension(const InfoCache &infoCache);
+
+        friend class BasicSegmentationInformationExtensionFactory;
     };
   
   } // namespace Extensions

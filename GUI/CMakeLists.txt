@@ -73,6 +73,8 @@ qt5_wrap_cpp(GUI_MOC
   Widgets/ColorBar.h
   Widgets/DrawingWidget.h
   Widgets/DoubleSpinBoxAction.h
+  Widgets/HistogramBarsView.h
+  Widgets/HistogramTreeMapView.h
   Widgets/HueSelector.h
   Widgets/InformationSelector.h
   Widgets/LineEditWithClear.h
@@ -233,6 +235,8 @@ set (GUI_SOURCES
   Widgets/ColorBar.cpp
   Widgets/DrawingWidget.cpp
   Widgets/DoubleSpinBoxAction.cpp
+  Widgets/HistogramBarsView.cpp
+  Widgets/HistogramTreeMapView.cpp
   Widgets/HueSelector.cpp
   Widgets/InformationSelector.cpp
   Widgets/LineEditWithClear.cpp

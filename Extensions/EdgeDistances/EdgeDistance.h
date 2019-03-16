@@ -97,7 +97,8 @@ namespace ESPINA
       protected:
         virtual QVariant cacheFail(const InformationKey& key) const;
 
-        virtual void onExtendedItemSet(Segmentation* segmentation);
+        virtual void onExtendedItemSet(Segmentation* segmentation)
+        {};
 
       private:
         /** \brief EdgeDistance class constructor.

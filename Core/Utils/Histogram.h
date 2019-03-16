@@ -65,6 +65,11 @@ namespace ESPINA
            */
           void update();
 
+          /** \brief Returns true if the histogram is empty and false otherwise.
+           *
+           */
+          const bool isEmpty() const;
+
           /** \brief Helper method that adds the values of the stack to the histogram where the
            * voxels with the same index have a value of SEG_VOXEL_VALUE in the given image.
            *
@@ -160,6 +165,18 @@ namespace ESPINA
            */
           const unsigned char threshold(const float percent) const;
   
+          /** \brief Operator+ for histograms.
+           * \param[in] other Histogram object reference.
+           *
+           */
+          Histogram &operator+(const Histogram &other);
+
+          /** \brief Operator= for histograms.
+           * \param[in] other Histogram object reference.
+           *
+           */
+          Histogram &operator=(const Histogram &other);
+
         private:
           std::vector<unsigned long long> m_values; /** values count            */
           unsigned char                   m_major;  /** major value.            */

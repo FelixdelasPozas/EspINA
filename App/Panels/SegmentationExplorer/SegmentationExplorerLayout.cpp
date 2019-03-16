@@ -210,12 +210,6 @@ void SegmentationExplorer::Layout::reset()
 }
 
 //------------------------------------------------------------------------
-QString SegmentationExplorer::Layout::toKey(const SegmentationAdapterPtr segmentation)
-{
-  return QString("%1|").arg(reinterpret_cast<unsigned long long>(segmentation));
-}
-
-//------------------------------------------------------------------------
 void SegmentationExplorer::Layout::onInspectorUpdated()
 {
   auto inspector = qobject_cast<SegmentationInspector *>(sender());
