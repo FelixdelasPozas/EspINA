@@ -63,6 +63,11 @@ namespace ESPINA
            */
           void update();
 
+          /** \brief Returns true if the histogram is empty and false otherwise.
+           *
+           */
+          const bool isEmpty() const;
+
           /** \brief Helper method that adds the values of the stack to the histogram where the
            * voxels with the same index have a value of SEG_VOXEL_VALUE in the given image.
            *
