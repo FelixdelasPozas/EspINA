@@ -82,11 +82,6 @@ const SegmentationExtension::InformationKeyList EdgeDistance::availableInformati
 }
 
 //------------------------------------------------------------------------
-void EdgeDistance::onExtendedItemSet(Segmentation* segmentation)
-{
-}
-
-//------------------------------------------------------------------------
 QVariant EdgeDistance::cacheFail(const InformationKey& key) const
 {
   if(key.value() == TOUCH_EDGES)

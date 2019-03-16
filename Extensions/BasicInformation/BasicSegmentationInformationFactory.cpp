@@ -39,7 +39,9 @@ Core::SegmentationExtensionSPtr BasicSegmentationInformationExtensionFactory::cr
                                                                                               const Core::SegmentationExtension::InfoCache& cache,
                                                                                               const State& state) const
 {
-  if(type != BasicSegmentationInformationExtension::TYPE)
+  Core::SegmentationExtensionSPtr extension = nullptr;
+
+  if(!providedExtensions().contains(type))
   {
     auto message = QString("Unknown extension type '%1'.").arg(type);
     auto details = QString("BasicSegmentationInformationExtensionFactory::createExtension() -> ") + message;
@@ -47,7 +49,9 @@ Core::SegmentationExtensionSPtr BasicSegmentationInformationExtensionFactory::cr
     throw Utils::EspinaException(message, details);
   }
 
-  return std::make_shared<BasicSegmentationInformationExtension>(cache);
+  extension = Core::SegmentationExtensionSPtr{new BasicSegmentationInformationExtension(cache)};
+
+  return extension;
 }
 
 //--------------------------------------------------------------------
