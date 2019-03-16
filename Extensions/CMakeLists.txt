@@ -13,6 +13,7 @@ qt4_add_resources(EXTENSIONS_RCC
 qt4_wrap_cpp(EXTENSIONS_MOC
   EdgeDistances/ChannelEdges.h
   SLIC/StackSLIC.h
+  Histogram/StackHistogram.h
 #   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -22,6 +23,8 @@ set (EXTENSIONS_SOURCES
   ${EXTENSIONS_RCC}
   EdgeDistances/ChannelEdges.cpp
   EdgeDistances/ChannelEdgesFactory.cpp
+  Histogram/StackHistogram.cpp
+  Histogram/StackHistogramFactory.cpp
   Issues/Issues.cpp
   Issues/SegmentationIssues.cpp
   Issues/SegmentationIssuesFactory.cpp

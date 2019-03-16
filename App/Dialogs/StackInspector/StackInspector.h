@@ -27,6 +27,8 @@
 // ESPINA
 #include <Core/Types.h>
 #include <Extensions/SLIC/StackSLIC.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/Histogram/StackHistogram.h>
 #include <GUI/Representations/Managers/TemporalManager.h>
 #include <GUI/Types.h>
 #include <GUI/Widgets/HueSelector.h>
@@ -197,6 +199,21 @@ namespace ESPINA
        */
       void onSLICComputationAborted();
 
+      /** \brief Launches a histogram computing task.
+       *
+       */
+      void onHistogramButtonPressed();
+
+      /** \brief Updates the UI and the histogram view when the histogram computation task has finished.
+       *
+       */
+      void onHistogramComputed();
+
+      /** \brief Modifies the UI when the user selects one of the histogram view.
+       *
+       */
+      void onHistogramRadioChanged();
+
     private:
       /** \brief Helper method to update views after changes to the stack.
        *
@@ -217,6 +234,11 @@ namespace ESPINA
        *
        */
       void initSLICTab();
+
+      /** \brief Helper method to initialize the histogram tab.
+       *
+       */
+      void initHistogramTab();
 
       /** \brief Helper method to initialize the view in properties tab.
        *
@@ -308,6 +330,43 @@ namespace ESPINA
 
       GUI::Representations::Managers::TemporalPrototypesSPtr m_slicRepresentation; /** SLIC representation manager. */
   };
+
+  /** \class HistogramComputationTask
+   * \brief Task for computing the histogram of a stack.
+   *
+   */
+  class HistogramComputationTask
+  : public Task
+  {
+      Q_OBJECT
+    public:
+      /** \brief HistogramComputationTask class constructor.
+       * \param[in] stack Stack object.
+       * \param[in] edgesExtension Stack edges extension or nullptr to not to use stack margins.
+       * \param[in] scheduler Application task scheduler.
+       *
+       */
+      explicit HistogramComputationTask(ChannelAdapterSPtr stack, Extensions::StackHistogramSPtr extension, SchedulerSPtr scheduler);
+
+      /** \brief HistogramComputationTask class virtual destructor.
+       *
+       */
+      virtual ~HistogramComputationTask()
+      {};
+
+      /** \brief Returns the computed histogram or an empty one if not finished.
+       *
+       */
+      const Core::Utils::Histogram &histogram() const
+      { return m_extension->histogram(); }
+
+    private:
+      virtual void run();
+
+      ChannelAdapterSPtr             m_stack;     /** stack object.                     */
+      Extensions::StackHistogramSPtr m_extension; /** histogram extension of the stack. */
+  };
+
 } // namespace ESPINA
 
 #endif // ESPINA_STACK_INSPECTOR_H_
