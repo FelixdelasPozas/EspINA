@@ -50,18 +50,19 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
   m_colorFrame->layout()->setMargin(0);
   m_colorFrame->layout()->addWidget(m_pixelSelector);
 
-  m_pixelSelector->setValue(settings->bestPixelValue());
-  m_xSize->setValue(settings->xSize());
-  m_ySize->setValue(settings->ySize());
-  m_zSize->setValue(settings->zSize());
-  m_applyCategoryROI->setChecked(settings->applyCategoryROI());
-  m_xSize->setEnabled(!settings->applyCategoryROI());
-  m_ySize->setEnabled(!settings->applyCategoryROI());
-  m_zSize->setEnabled(!settings->applyCategoryROI());
+  m_pixelSelector->setValue(m_settings->bestPixelValue());
+  m_xSize->setValue(m_settings->xSize());
+  m_ySize->setValue(m_settings->ySize());
+  m_zSize->setValue(m_settings->zSize());
+  m_applyCategoryROI->setChecked(m_settings->applyCategoryROI());
+  m_xSize->setEnabled(!m_settings->applyCategoryROI());
+  m_ySize->setEnabled(!m_settings->applyCategoryROI());
+  m_zSize->setEnabled(!m_settings->applyCategoryROI());
 
-  m_applyClosing->setChecked(settings->applyClose());
+  m_applyClosing->setChecked(m_settings->applyClose());
   m_closing->setEnabled(m_applyClosing->isChecked());
-  m_closing->setValue(settings->closeRadius());
+  m_closing->setMinimum(1);
+  m_closing->setValue(m_settings->closeRadius());
 
   connect(m_applyCategoryROI, SIGNAL(stateChanged(int)),
           this,               SLOT(changeTaxonomicalCheck(int)));
@@ -99,9 +100,9 @@ bool SeedGrowSegmentationsSettingsPanel::modified() const
 
   bool returnValue = false;
 
-  returnValue |= (m_xSize->value() != m_settings->xSize());
-  returnValue |= (m_ySize->value() != m_settings->ySize());
-  returnValue |= (m_zSize->value() != m_settings->zSize());
+  returnValue |= (m_xSize->value()                != m_settings->xSize());
+  returnValue |= (m_ySize->value()                != m_settings->ySize());
+  returnValue |= (m_zSize->value()                != m_settings->zSize());
   returnValue |= (m_applyCategoryROI->isChecked() != m_settings->applyCategoryROI());
   returnValue |= (m_pixelSelector->value()        != m_settings->bestPixelValue());
   returnValue |= (m_applyClosing->isChecked()     != m_settings->applyClose());
