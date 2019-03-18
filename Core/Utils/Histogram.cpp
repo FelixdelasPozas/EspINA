@@ -46,8 +46,8 @@ void Histogram::update()
   m_minor = std::numeric_limits<unsigned char>::max();
   m_major = std::numeric_limits<unsigned char>::min();
   m_count = 0;
-  unsigned long value = 0;
-  unsigned long max   = 0;
+  unsigned long long value = 0;
+  unsigned long long max   = 0;
 
   for(unsigned short i = 0; i < 256; ++i)
   {
