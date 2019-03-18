@@ -29,6 +29,7 @@
 // Qt
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
+#include <QTransform>
 
 class QWidget;
 
@@ -86,7 +87,9 @@ namespace ESPINA
           void resizeEvent(QResizeEvent* event) override;
 
         private:
-          Core::Utils::Histogram m_histogram; /** unsigned char histogram data. */
+          Core::Utils::Histogram m_histogram;         /** unsigned char histogram data.    */
+          QTransform             m_normalTransform;   /** normal view transformation.      */
+          QTransform             m_inverseYTransform; /** inverse Y coords transformation. */
       };
 
       /** \class HistogramBar

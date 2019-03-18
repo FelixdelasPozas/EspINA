@@ -22,6 +22,9 @@
 // ESPINA
 #include <GUI/Widgets/HistogramBarsView.h>
 
+// C++
+#include <cmath>
+
 // Qt
 #include <QResizeEvent>
 #include <QSize>
@@ -33,10 +36,11 @@ using namespace ESPINA::GUI::Widgets;
 //--------------------------------------------------------------------
 HistogramBarsView::HistogramBarsView(QWidget* parent)
 : QGraphicsView{parent}
+, m_normalTransform{1,0,0,0,1,0,0,0,1}
+, m_inverseYTransform{1,0,0,0,-1,0,0,0,1}
 {
   setScene(new QGraphicsScene(this));
   scene()->setBackgroundBrush(QBrush{QColor::fromRgb(217, 229, 242)});
-  scale(1,-1);
 
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -65,19 +69,23 @@ void HistogramBarsView::rebuild()
 
   scene()->clear();
   scene()->invalidate(scene()->sceneRect());
+  viewport()->updateGeometry();
   scene()->setSceneRect(viewport()->rect());
 
   if(m_histogram.isEmpty())
   {
+    if(transform() != m_normalTransform) setTransform(m_normalTransform);
+
     auto font = scene()->font();
     font.setPixelSize(22);
     font.setBold(true);
     auto item = scene()->addText("Histogram not computed.", font);
     item->setPos(scene()->width()/2 - item->boundingRect().width()/2, scene()->height()/2 - item->boundingRect().height()/2);
-    item->scale(1, -1);
   }
   else
   {
+    if(transform() != m_inverseYTransform) setTransform(m_inverseYTransform);
+
     unsigned long long max = 0;
     for(int i = 0; i < 256; ++i) max = std::max(max, m_histogram.values(i));
     double barWidth  = scene()->width() / 256.;
@@ -97,7 +105,6 @@ void HistogramBarsView::resizeEvent(QResizeEvent* event)
 {
   QGraphicsView::resizeEvent(event);
 
-  scene()->setSceneRect(QRect{0,0,event->size().width(), event->size().height()});
   rebuild();
 }
 
@@ -107,12 +114,13 @@ void HistogramBarsView::setProgress(int progress)
   scene()->clear();
   scene()->invalidate(scene()->sceneRect());
 
+  if(transform() != m_normalTransform) setTransform(m_normalTransform);
+
   auto font = scene()->font();
   font.setPixelSize(22);
   font.setBold(true);
   auto item = scene()->addText(tr("Histogram %1% computed.").arg(progress), font);
   item->setPos(scene()->width()/2 - item->boundingRect().width()/2, scene()->height()/2 - item->boundingRect().height()/2);
-  item->scale(1, -1);
 }
 
 //--------------------------------------------------------------------

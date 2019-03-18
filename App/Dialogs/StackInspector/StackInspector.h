@@ -360,11 +360,13 @@ namespace ESPINA
       const Core::Utils::Histogram &histogram() const
       { return m_extension->histogram(); }
 
+      virtual const QStringList errors() const override;
     private:
       virtual void run();
 
-      ChannelAdapterSPtr             m_stack;     /** stack object.                     */
-      Extensions::StackHistogramSPtr m_extension; /** histogram extension of the stack. */
+      ChannelAdapterSPtr             m_stack;     /** stack object.                                            */
+      Extensions::StackHistogramSPtr m_extension; /** histogram extension of the stack.                        */
+      QString                        m_error;     /** empty if successful otherwise contains the error string. */
   };
 
 } // namespace ESPINA
