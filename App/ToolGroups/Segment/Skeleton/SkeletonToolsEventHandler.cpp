@@ -188,7 +188,25 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
               m_point = point;
               emit addConnectionPoint(m_point);
               view->refresh();
-              m_operation = OperationMode::COLLISION_MIDDLE;
+
+              if(m_lastStroke.name.startsWith("shaft", Qt::CaseInsensitive))
+              {
+                m_operation = OperationMode::COLLISION_MIDDLE;
+              }
+              else
+              {
+                if(m_mode == Mode::CREATE)
+                {
+                  emit clearConnections();
+                  m_operation = OperationMode::NORMAL;
+                  updateTrack(me->pos(), view);
+
+                  emit stopped(view);
+                  m_track.clear();
+
+                  return true;
+                }
+              }
             }
           }
         }

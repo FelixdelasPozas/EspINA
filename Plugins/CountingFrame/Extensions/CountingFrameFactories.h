@@ -63,9 +63,9 @@ namespace ESPINA
         { m_scheduler = scheduler; }
 
       private:
-        Core::SegmentationExtensionFactorySPtr m_factory;   /** stereological inclusion factory. */
-        CountingFrameManager                  *m_manager;   /** plugin's counting frame manager. */
-        SchedulerSPtr                          m_scheduler; /** application's task scheduler.    */
+        Core::SegmentationExtensionFactorySPtr m_extensionfactory; /** stereological inclusion factory. */
+        CountingFrameManager                  *m_manager;          /** plugin's counting frame manager. */
+        SchedulerSPtr                          m_scheduler;        /** application's task scheduler.    */
     };
 
     /** \class CFSegmentationExtensionFactory

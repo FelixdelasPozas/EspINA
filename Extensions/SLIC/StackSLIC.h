@@ -79,7 +79,7 @@ namespace ESPINA
          * \param[in] coordinates of the chosen voxel.
          *
          */
-        const unsigned int getSupervoxel(const itkVolumeType::IndexType position) const;
+        const unsigned int getSupervoxel(const itkVolumeType::IndexType &position) const;
 
         /** \brief Returns the mean color of the specified supervoxel.
          * \param[in] supervoxel label.
@@ -106,13 +106,13 @@ namespace ESPINA
          * \param[in] Bounds of the region to obtain
          *
          */
-        itk::Image<unsigned int, 3>::Pointer getLabeledImageFromBounds(const Bounds bounds) const;
+        itk::Image<unsigned int, 3>::Pointer getLabeledImageFromBounds(const Bounds &bounds) const;
 
         /** \brief Returns a smart pointer to an ITK image that spans the chose Bounds colored with label colors.
          * \param[in] Bounds of the region to obtain
          *
          */
-        itkVolumeType::Pointer getImageFromBounds(const Bounds bounds) const;
+        itkVolumeType::Pointer getImageFromBounds(const Bounds &bounds) const;
 
         /** \brief Draws the calculated supervoxel centers onto an ITK Image.
          * \param[in] slice to draw.

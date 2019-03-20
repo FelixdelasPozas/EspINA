@@ -340,8 +340,8 @@ void SeedGrowSegmentationFilter::execute()
   seedBounds.setUpperInclusion(true);
 
   auto seedVoxel               = input->itkImage(seedBounds);
-  auto seedIndex               = seedVoxel->GetLargestPossibleRegion().GetIndex();
-  auto seedIntensity           = seedVoxel->GetPixel(seedIndex);
+  const auto seedIndex         = seedVoxel->GetLargestPossibleRegion().GetIndex();
+  const auto seedIntensity     = seedVoxel->GetPixel(seedIndex);
   itkVolumeType::Pointer image = nullptr;
 
   auto activeROI = roi();
@@ -356,7 +356,7 @@ void SeedGrowSegmentationFilter::execute()
       throw EspinaException(message, details);
     }
 
-    auto intersectionBounds = intersection(input->bounds(), activeROI->bounds());
+    const auto intersectionBounds = intersection(input->bounds(), activeROI->bounds());
 
     if(!intersectionBounds.areValid())
     {
@@ -409,7 +409,6 @@ void SeedGrowSegmentationFilter::execute()
 
   if(m_radius > 0)
   {
-     // qDebug() << "Closing Segmentation";
     StructuringElementType ball;
     ball.SetRadius(m_radius);
     ball.CreateStructuringElement();
@@ -432,8 +431,8 @@ void SeedGrowSegmentationFilter::execute()
 
   if (!canExecute()) return;
 
-  auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
-  auto spacing = m_inputs[0]->output()->spacing();
+  const auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+  const auto spacing = m_inputs[0]->output()->spacing();
 
   auto volume = std::make_shared<SparseVolume<itkVolumeType>>(output, bounds, spacing);
 

@@ -381,7 +381,7 @@ void StackSLIC::SLICComputeTask::onAbort()
 }
 
 //-----------------------------------------------------------------------------
-const unsigned int StackSLIC::getSupervoxel(const itkVolumeType::IndexType position) const
+const unsigned int StackSLIC::getSupervoxel(const itkVolumeType::IndexType &position) const
 {
   if(!m_result.computed || !m_result.region.IsInside(position)) return 0;
 
@@ -457,7 +457,7 @@ bool StackSLIC::drawSliceInImageData(const unsigned int slice, vtkSmartPointer<v
 }
 
 //-----------------------------------------------------------------------------
-itk::Image<unsigned int, 3>::Pointer StackSLIC::getLabeledImageFromBounds(const Bounds bounds) const
+itk::Image<unsigned int, 3>::Pointer StackSLIC::getLabeledImageFromBounds(const Bounds &bounds) const
 {
   if(isRunning())
   {
@@ -513,7 +513,7 @@ itk::Image<unsigned int, 3>::Pointer StackSLIC::getLabeledImageFromBounds(const 
 }
 
 //-----------------------------------------------------------------------------
-itkVolumeType::Pointer StackSLIC::getImageFromBounds(const Bounds bounds) const
+itkVolumeType::Pointer StackSLIC::getImageFromBounds(const Bounds &bounds) const
 {
   if(isRunning())
   {
