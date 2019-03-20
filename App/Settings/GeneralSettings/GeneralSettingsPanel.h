@@ -73,6 +73,9 @@ namespace ESPINA
 
       virtual Support::Settings::SettingsPanelPtr clone() override;
 
+    protected:
+      void showEvent(QShowEvent *e) override;
+
     private slots:
       /** \brief Disaplays the directory selection dialog an updates the internal values once the dialog has been closed.
        *

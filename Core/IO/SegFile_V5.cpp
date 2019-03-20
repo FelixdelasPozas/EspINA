@@ -306,10 +306,10 @@ QPair<FilterSPtr, Output::Id> SegFile_V5::Loader::findOutput(DirectedGraph::Vert
 {
   QPair<FilterSPtr, Output::Id> output;
 
-  DirectedGraph::Edges inputConections = m_content->inEdges(roVertex);
+  auto inputConections = m_content->inEdges(roVertex);
   Q_ASSERT(inputConections.size() == 1);
 
-  DirectedGraph::Edge edge = inputConections.first();
+  auto edge = inputConections.first();
 
   auto input = inflateVertex(edge.source);
 
@@ -349,7 +349,7 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 //-----------------------------------------------------------------------------
 QString SegFile_V5::Loader::parseCategoryName(const State& state)
 {
-  QStringList params = state.split(";");
+  auto params = state.split(";");
 
   return params[2].split("=")[1];
 }
@@ -396,11 +396,11 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex roVertex)
 {
-  DirectedGraph::Vertex vertex = findVertex(m_loadedVertices, roVertex->uuid());
+  auto vertex = findVertex(m_loadedVertices, roVertex->uuid());
 
   if (!vertex)
   {
-    ReadOnlyVertex *rov = dynamic_cast<ReadOnlyVertex *>(roVertex.get());
+    auto rov = dynamic_cast<ReadOnlyVertex *>(roVertex.get());
     switch (rov->type())
     {
       case VertexType::SAMPLE:
@@ -511,7 +511,7 @@ void SegFile_V5::Loader::loadRelations()
   std::istringstream stream(textStream.readAll().toStdString().c_str());
   read(stream, relations);
 
-  DirectedGraph::Vertices loadedVertices = m_analysis->content()->vertices();
+  auto loadedVertices = m_analysis->content()->vertices();
 
   int i     = 0;
   int total = relations->edges().size();

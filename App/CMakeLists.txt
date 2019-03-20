@@ -42,6 +42,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Dialogs/SkeletonInspector/SkeletonInspector.h
   Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h
   Dialogs/SpinesInformation/SpinesInformationDialog.h
+  Dialogs/UpdateAnnouncementDialog/UpdateAnnouncementDialog.h
   Panels/StackExplorer/StackExplorer.h
   Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
   Panels/SegmentationExplorer/Layouts/LocationLayout.h
@@ -107,6 +108,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Analyze/MeasureLength/MeasureLengthTool.h
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
   Undo/DrawUndoCommand.h
+  Utils/UpdateCheck.h
   Views/DefaultView.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
@@ -130,6 +132,7 @@ qt4_wrap_ui (ESPINA_UI
   Dialogs/Settings/GeneralSettingsDialog.ui
   Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.ui
   Dialogs/SkeletonInspector/SkeletonInspector.ui
+  Dialogs/UpdateAnnouncementDialog/UpdateAnnouncementDialog.ui
   Panels/StackExplorer/StackExplorer.ui
   Panels/SegmentationExplorer/SegmentationExplorer.ui
   Panels/SegmentationProperties/IssueProperty.ui
@@ -183,6 +186,7 @@ set (ESPINA_SOURCES
   Dialogs/SkeletonInspector/SkeletonInspector.cpp
   Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.cpp
   Dialogs/SpinesInformation/SpinesInformationDialog.cpp
+  Dialogs/UpdateAnnouncementDialog/UpdateAnnouncementDialog.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
@@ -271,6 +275,7 @@ set (ESPINA_SOURCES
   Undo/RenameSegmentationsCommand.cpp
   Undo/RemoveChannel.cpp
   Utils/TagUtils.cpp
+  Utils/UpdateCheck.cpp
   Views/DefaultView.cpp
   main.cpp
   )
