@@ -674,7 +674,11 @@ void SkeletonCreationTool::onStrokeConfigurationPressed()
 
     updateStrokes();
     index = std::min(std::max(0,index), STROKES[name].size() - 1);
+
+    m_strokeCombo->blockSignals(true);
     m_strokeCombo->setCurrentIndex(index);
+    m_strokeCombo->blockSignals(false);
+
     onStrokeChanged(index);
   }
 }
@@ -712,6 +716,8 @@ void SkeletonCreationTool::onStrokeChangedByWidget(const Core::SkeletonStroke st
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->setCurrentIndex(index);
     m_strokeCombo->blockSignals(false);
+
+    m_eventHandler->setStroke(stroke);
   }
 }
 
@@ -753,8 +759,9 @@ void SkeletonCreationTool::onStrokeChanged(int index)
     for(auto widget: m_skeletonWidgets)
     {
       widget->setStroke(stroke);
-      m_eventHandler->setStroke(stroke);
     }
+
+    m_eventHandler->setStroke(stroke);
 
     if(index != m_strokeCombo->currentIndex())
     {
@@ -818,6 +825,8 @@ void SkeletonCreationTool::updateStrokes()
     {
       m_strokeCombo->setCurrentIndex(0);
     }
+
+    m_eventHandler->setStroke(strokes.at(m_strokeCombo->currentIndex()));
   }
 }
 

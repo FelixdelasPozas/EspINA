@@ -28,6 +28,7 @@
 
 // Qt
 #include <QFile>
+#include <QDataStream>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;

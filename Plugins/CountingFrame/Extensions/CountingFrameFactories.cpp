@@ -34,7 +34,7 @@ using namespace ESPINA::CF;
 //-----------------------------------------------------------------------------
 CFStackExtensionFactory::CFStackExtensionFactory(Core::SegmentationExtensionFactorySPtr factory, CountingFrameManager* manager, SchedulerSPtr scheduler)
 : StackExtensionFactory{nullptr}
-, m_factory            {factory}
+, m_extensionfactory   {factory}
 , m_manager            {manager}
 , m_scheduler          {scheduler}
 {
@@ -53,7 +53,7 @@ StackExtensionSPtr CFStackExtensionFactory::createExtension(const StackExtension
     throw EspinaException(what, details);
   }
 
-  return StackExtensionSPtr{new CountingFrameExtension(m_manager, m_scheduler, m_factory, state)};
+  return StackExtensionSPtr{new CountingFrameExtension(m_manager, m_scheduler, m_extensionfactory, state)};
 }
 
 //-----------------------------------------------------------------------------

@@ -45,6 +45,15 @@ namespace ESPINA
     class EspinaSupport_EXPORT ApplicationSettings
     {
       public:
+        /** \class Frequency
+         * \brief Enum class for check frequency.
+         *
+         */
+        enum class UpdateCheckPeriodicity
+        {
+            ONCE_A_DAY = 0, ONCE_A_WEEK, ONCE_A_MONTH, NEVER
+        };
+
         /** \brief Settings class constructor.
          *
          */
@@ -106,16 +115,31 @@ namespace ESPINA
         const bool performAnalysisCheckOnLoad() const
         { return m_performAnalysisCheck; }
 
+        /** \brief Sets the periodicity of update checks.
+         * \param[in] moment UpdateCheckPeriodicity value.
+         *
+         */
+        void setUpdateCheckPeriodicity(const UpdateCheckPeriodicity moment);
+
+        /** \brief Returns the periodicity of update checks.
+         *
+         */
+        const UpdateCheckPeriodicity updateCheckPeriodicity() const
+        { return m_updateCheckPeriodicity; }
+
       private:
         static const QString LOAD_SEG_SETTINGS_KEY;
         static const QString TEMPORAL_STORAGE_PATH_KEY;
         static const QString USER_NAME;
         static const QString PERFORM_ANALYSIS_CHECK;
+        static const QString PERFORM_UPDATE_CHECK;
+        static const QString CHECK_PERIODICITY_KEY;
 
-        QString m_userName;
-        bool    m_loadSEGSettings;
-        QString m_temporalStoragePath;
-        bool    m_performAnalysisCheck;
+        QString                m_userName;               /** user name.                                                                        */
+        bool                   m_loadSEGSettings;        /** true to load tool and representation settings from the SEG file, false otherwise. */
+        QString                m_temporalStoragePath;    /** path for temporal storate.                                                        */
+        bool                   m_performAnalysisCheck;   /** true to perform checks after loading a SEG file, false otherwise.                 */
+        UpdateCheckPeriodicity m_updateCheckPeriodicity; /** frequency of update checks.                                                       */
     };
 
     using GeneralSettingsSPtr = std::shared_ptr<ApplicationSettings>;

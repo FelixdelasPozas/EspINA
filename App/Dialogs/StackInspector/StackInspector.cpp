@@ -1037,12 +1037,14 @@ void StackInspector::initHistogramTab()
 {
   if(!m_stack->readOnlyExtensions()->hasExtension(StackHistogram::TYPE))
   {
-    m_computeHistogramButton->setVisible(true);
+    m_computeHistogramButton->setEnabled(true);
+    m_computeHistogramButton->setToolTip(tr("Compute stack histogram."));
     connect(m_computeHistogramButton, SIGNAL(pressed()), this, SLOT(onHistogramButtonPressed()));
   }
   else
   {
-    m_computeHistogramButton->setVisible(false);
+    m_computeHistogramButton->setEnabled(false);
+    m_computeHistogramButton->setToolTip(tr("Stack histogram already computed."));
     auto extension = retrieveExtension<StackHistogram>(m_stack->readOnlyExtensions());
 
     m_histogramBarsView->setHistogram(extension->histogram());
@@ -1073,7 +1075,8 @@ void StackInspector::onHistogramButtonPressed()
 
   Task::submit(task);
 
-  m_computeHistogramButton->setVisible(false);
+  m_computeHistogramButton->setEnabled(false);
+  m_computeHistogramButton->setToolTip(tr("Stack histogram already computed."));
 
   Histogram empty;
   m_histogramBarsView->setHistogram(empty);
@@ -1083,18 +1086,38 @@ void StackInspector::onHistogramButtonPressed()
 //--------------------------------------------------------------------
 void StackInspector::onHistogramComputed()
 {
-  m_computeHistogramButton->setVisible(false);
-
   auto task = qobject_cast<HistogramComputationTask *>(sender());
   if(task)
   {
-    m_histogramBarsView->setHistogram(task->histogram());
-    m_histogramTreeView->setHistogram(task->histogram());
-    m_minimumLabel->setText(tr("%1").arg(task->histogram().minorValue()));
-    m_maximumLabel->setText(tr("%1").arg(task->histogram().majorValue()));
-    m_meanLabel->setText(tr("%1").arg(task->histogram().medianValue()));
-    m_modeLabel->setText(tr("%1").arg(task->histogram().modeValue()));
-    m_valuesLabel->setText(tr("%1").arg(task->histogram().count()));
+    if(task->hasErrors())
+    {
+      auto title = tr("Stack histogram");
+      auto message = tr("Couldn't compute histogram due to errors.");
+      auto details = task->errors().first();
+
+      DefaultDialogs::ErrorMessage(message, title, details);
+
+      m_computeHistogramButton->setEnabled(true);
+      m_computeHistogramButton->setToolTip(tr("Compute stack histogram."));
+    }
+    else
+    {
+      if(!task->isAborted())
+      {
+        m_histogramBarsView->setHistogram(task->histogram());
+        m_histogramTreeView->setHistogram(task->histogram());
+        m_minimumLabel->setText(tr("%1").arg(task->histogram().minorValue()));
+        m_maximumLabel->setText(tr("%1").arg(task->histogram().majorValue()));
+        m_meanLabel->setText(tr("%1").arg(task->histogram().medianValue()));
+        m_modeLabel->setText(tr("%1").arg(task->histogram().modeValue()));
+        m_valuesLabel->setText(tr("%1").arg(task->histogram().count()));
+      }
+      else
+      {
+        m_computeHistogramButton->setEnabled(true);
+        m_computeHistogramButton->setToolTip(tr("Compute stack histogram."));
+      }
+    }
   }
   else
   {
@@ -1133,9 +1156,39 @@ HistogramComputationTask::HistogramComputationTask(ChannelAdapterSPtr stack, Ext
 }
 
 //--------------------------------------------------------------------
+const QStringList ESPINA::HistogramComputationTask::errors() const
+{
+  QStringList errors;
+  errors << m_error;
+
+  return errors;
+}
+
+//--------------------------------------------------------------------
 void HistogramComputationTask::run()
 {
-  connect(m_extension.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)));
+  m_error.clear();
 
-  m_extension->medianValue(); // forces computation.
+  connect(m_extension.get(), SIGNAL(progress(int)), this, SIGNAL(progress(int)), Qt::DirectConnection);
+
+  try
+  {
+    m_extension->medianValue(); // forces computation.
+  }
+  catch(const itk::ExceptionObject &e)
+  {
+    m_error = tr("Error computing histogram. Error: %1").arg(e.GetDescription());
+  }
+  catch(const EspinaException &e)
+  {
+    m_error = tr("Error computing histogram. Error: %1").arg(e.details());
+  }
+  catch(const std::exception &e)
+  {
+    m_error = tr("Error computing histogram. Error: %1").arg(e.what());
+  }
+  catch(...)
+  {
+    m_error = tr("Error computing histogram. Unspecified error.");
+  }
 }

@@ -51,36 +51,36 @@ SeedGrowSegmentationSettings::SeedGrowSegmentationSettings()
   settings.endGroup();
 
   blockSignals(true);
-  if(!okX)      setXSize(500);
-  if(!okY)      setYSize(500);
-  if(!okZ)      setZSize(500);
-  if(!okRadius) setCloseRadius(1);
-  if(!okValue)  setBestPixelValue(0);
+  if(!okX) setXSize(500);
+  if(!okY) setYSize(500);
+  if(!okZ) setZSize(500);
+  if(!okRadius || m_radius < 1) setCloseRadius(1);
+  if(!okValue) setBestPixelValue(0);
   blockSignals(false);
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setXSize(long long value)
 {
-  m_xSize = value;
+  m_xSize = std::max(1LL,value);
 
-  set<long long>(ROI_X_SIZE_KEY, value);
+  set<long long>(ROI_X_SIZE_KEY, m_xSize);
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setYSize(long long value)
 {
-  m_ySize = value;
+  m_ySize = std::max(1LL, value);
 
-  set<long long>(ROI_Y_SIZE_KEY, value);
+  set<long long>(ROI_Y_SIZE_KEY, m_ySize);
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setZSize(long long value)
 {
-  m_zSize = value;
+  m_zSize = std::max(1LL, value);
 
-  set<long long>(ROI_Z_SIZE_KEY, value);
+  set<long long>(ROI_Z_SIZE_KEY, m_zSize);
 }
 
 //------------------------------------------------------------------------
@@ -96,21 +96,21 @@ void SeedGrowSegmentationSettings::setApplyCategoryROI(bool value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setBestPixelValue(int value)
 {
-  m_bestValue = value;
+  m_bestValue = std::max(0, std::min(255, value));
 
-  set<int>(BEST_PIXEL_VALUE, value);
+  set<int>(BEST_PIXEL_VALUE, m_bestValue);
 
-  emit bestValueChanged(value);
+  emit bestValueChanged(m_bestValue);
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentationSettings::setCloseRadius(int value)
 {
-  m_radius = value;
+  m_radius = std::max(1, value);
 
-  set<int>(CLOSE_RADIUS, value);
+  set<int>(CLOSE_RADIUS, m_radius);
 
-  emit closeRadiusChanged(value);
+  emit closeRadiusChanged(m_radius);
 }
 
 //------------------------------------------------------------------------

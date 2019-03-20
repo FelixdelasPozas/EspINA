@@ -264,6 +264,11 @@ namespace ESPINA
      */
     void delayedInitActions();
 
+    /** \brief Called when the update task has finished.
+     *
+     */
+    void onUpdateCheckFinished();
+
   private:
     /** \brief Helper method to initialize the available color engines.
      *
@@ -447,6 +452,11 @@ namespace ESPINA
      *
      */
     void initializeCrosshair();
+
+    /** \brief Launches the task that checks for updates.
+     *
+     */
+    void checkForUpdates();
 
   private:
     // ESPINA

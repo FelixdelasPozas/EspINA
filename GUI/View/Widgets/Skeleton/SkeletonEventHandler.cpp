@@ -180,7 +180,7 @@ bool SkeletonEventHandler::isTracking() const
 }
 
 //------------------------------------------------------------------------
-void SkeletonEventHandler::startTrack(const QPoint pos, RenderView *view)
+void SkeletonEventHandler::startTrack(const QPoint &pos, RenderView *view)
 {
   if(view)
   {
@@ -210,7 +210,7 @@ void SkeletonEventHandler::startTrack(const QPoint pos, RenderView *view)
 }
 
 //------------------------------------------------------------------------
-void SkeletonEventHandler::updateTrack(const QPoint pos, RenderView *view)
+void SkeletonEventHandler::updateTrack(const QPoint &pos, RenderView *view)
 {
   if(view)
   {
@@ -244,7 +244,7 @@ void SkeletonEventHandler::updateTrack(const QPoint pos, RenderView *view)
 }
 
 //------------------------------------------------------------------------
-SkeletonEventHandler::Track SkeletonEventHandler::interpolate(const QPoint point1, const QPoint point2, RenderView *view)
+SkeletonEventHandler::Track SkeletonEventHandler::interpolate(const QPoint &point1, const QPoint &point2, RenderView *view)
 {
   Track track;
 
@@ -296,7 +296,7 @@ void SkeletonEventHandler::removeWidget(SkeletonWidget2D *widget)
 }
 
 //------------------------------------------------------------------------
-Nm SkeletonEventHandler::distance2(const NmVector3 p1, const NmVector3 p2)
+inline Nm SkeletonEventHandler::distance2(const NmVector3 &p1, const NmVector3 &p2)
 {
   double point1[3] = { p1[0], p1[1], p1[2] };
   double point2[3] = { p2[0], p2[1], p2[2] };

@@ -24,6 +24,10 @@
 #include <AutoSave.h>
 #include <Core/Utils/EspinaException.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
+#include <App/Utils/UpdateCheck.h>
+
+// Qt
+#include <QToolButton>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -38,12 +42,13 @@ GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, Support::GeneralS
   setupUi(this);
 
   m_userName          ->setText(m_settings->userName());
-  m_autosavePath      ->setText(QDir::toNativeSeparators(m_autoSave.path().absolutePath()));
-  m_autosaveInterval  ->setValue(m_autoSave.interval());
-  m_autoSaveBackground->setChecked(autoSave.autoSaveInThread());
+  m_autosavePath      ->setText(m_autoSave.path().absolutePath());
+  m_autosaveInterval  ->setValue(static_cast<int>(m_autoSave.interval()));
+  m_autoSaveBackground->setChecked(m_autoSave.autoSaveInThread());
   m_loadSEGSettings   ->setChecked(m_settings->loadSEGfileSettings());
   m_temporalPath      ->setText(QDir::toNativeSeparators(m_settings->temporalPath()));
   m_doCheck           ->setChecked(m_settings->performAnalysisCheckOnLoad());
+  m_updateCombo       ->setCurrentIndex(static_cast<int>(m_settings->updateCheckPeriodicity()));
 
   auto isSystemTemporalPath = (m_settings->temporalPath() == QDir::tempPath());
   m_systemPathCheckbox->setChecked(isSystemTemporalPath);
@@ -54,13 +59,11 @@ GeneralSettingsPanel::GeneralSettingsPanel(AutoSave &autoSave, Support::GeneralS
   connect(m_browseDirButton, SIGNAL(clicked(bool)),
           this,              SLOT(onBrowseDirClicked()));
 
+  connect(m_browseSaveDirButton, SIGNAL(clicked(bool)),
+          this,                  SLOT(onBrowseDirClicked()));
+
   connect(m_systemPathCheckbox, SIGNAL(stateChanged(int)),
           this,                 SLOT(onTempDirCheckboxChangedState(int)));
-}
-
-//------------------------------------------------------------------------
-GeneralSettingsPanel::~GeneralSettingsPanel()
-{
 }
 
 //------------------------------------------------------------------------
@@ -70,26 +73,23 @@ void GeneralSettingsPanel::acceptChanges()
   m_settings->setLoadSEGfileSettings(m_loadSEGSettings->isChecked());
   m_settings->setTemporalPath(m_temporalPath->text());
   m_settings->setPerformAnalysisCheckOnLoad(m_doCheck->isChecked());
+  m_settings->setUpdateCheckPeriodicity(static_cast<Support::ApplicationSettings::UpdateCheckPeriodicity>(m_updateCombo->currentIndex()));
   m_autoSave.setPath(m_autosavePath->text());
   m_autoSave.setInterval(m_autosaveInterval->value());
   m_autoSave.setSaveInThread(m_autoSaveBackground->isChecked());
 }
 
 //------------------------------------------------------------------------
-void GeneralSettingsPanel::rejectChanges()
-{
-}
-
-//------------------------------------------------------------------------
 bool GeneralSettingsPanel::modified() const
 {
-  return m_userName->text()                != m_settings->userName()
-      || m_loadSEGSettings->isChecked()    != m_settings->loadSEGfileSettings()
-      || m_autosavePath->text()            != m_autoSave.path().absolutePath()
-      || m_autosaveInterval->value()       != static_cast<int>(m_autoSave.interval())
-      || m_temporalPath->text()            != m_settings->temporalPath()
-      || m_doCheck->isChecked()            != m_settings->performAnalysisCheckOnLoad()
-      || m_autoSaveBackground->isChecked() != m_autoSave.autoSaveInThread();
+  return (m_userName->text()                != m_settings->userName())
+      || (m_autosavePath->text()            != QDir::toNativeSeparators(m_autoSave.path().absolutePath()))
+      || (m_autosaveInterval->value()       != static_cast<int>(m_autoSave.interval()))
+      || (m_autoSaveBackground->isChecked() != m_autoSave.autoSaveInThread())
+      || (m_loadSEGSettings->isChecked()    != m_settings->loadSEGfileSettings())
+      || (m_temporalPath->text()            != QDir::toNativeSeparators(m_settings->temporalPath()))
+      || (m_doCheck->isChecked()            != m_settings->performAnalysisCheckOnLoad())
+      || (m_updateCombo->currentIndex()     != static_cast<int>(m_settings->updateCheckPeriodicity()));
 }
 
 //------------------------------------------------------------------------
@@ -101,35 +101,44 @@ SettingsPanelPtr GeneralSettingsPanel::clone()
 //------------------------------------------------------------------------
 void GeneralSettingsPanel::onBrowseDirClicked()
 {
-  QFileDialog dialog;
-  dialog.setFileMode(QFileDialog::Directory);
-  dialog.setOption(QFileDialog::ShowDirsOnly);
-
-  if(dialog.exec() == QFileDialog::Accepted)
+  auto button = qobject_cast<QPushButton *>(sender());
+  if(button)
   {
-    auto dir = dialog.selectedFiles().first();
+    QLineEdit *receiver = nullptr;
+    if(button == m_browseDirButton) receiver = m_temporalPath;
+    else                            receiver = m_autosavePath;
 
-    QFileInfo info(dir);
+    QFileDialog dialog;
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setOption(QFileDialog::ShowDirsOnly);
+    if(receiver && !receiver->text().isEmpty()) dialog.setDirectory(receiver->text());
 
-    if(!info.isDir())
+    if(dialog.exec() == QFileDialog::Accepted)
     {
-      DefaultDialogs::InformationMessage(tr("%1 isn't a directory!").arg(dir), shortDescription(), "", this);
-    }
-    else
-    {
-      if(!info.isWritable() || !info.isReadable())
+      auto dir = dialog.selectedFiles().first();
+
+      QFileInfo info(dir);
+
+      if(!info.isDir())
       {
-        DefaultDialogs::InformationMessage(QString("Invalid permissions, can't write on directory %1!").arg(dir), shortDescription(), "", this);
+        DefaultDialogs::InformationMessage(tr("%1 isn't a directory!").arg(dir), shortDescription(), "", this);
       }
       else
       {
-        if(!info.exists())
+        if(!info.isWritable() || !info.isReadable())
         {
-          DefaultDialogs::InformationMessage(QString("The directory %1 doesn't exists!").arg(dir), shortDescription(), "", this);
+          DefaultDialogs::InformationMessage(QString("Invalid permissions, can't write on directory %1!").arg(dir), shortDescription(), "", this);
         }
         else
         {
-          m_temporalPath->setText(dir);
+          if(!info.exists())
+          {
+            DefaultDialogs::InformationMessage(QString("The directory %1 doesn't exists!").arg(dir), shortDescription(), "", this);
+          }
+          else
+          {
+            receiver->setText(dir);
+          }
         }
       }
     }
@@ -149,4 +158,16 @@ void GeneralSettingsPanel::onTempDirCheckboxChangedState(int state)
   {
     m_temporalPath->setText(QDir::tempPath());
   }
+}
+
+//------------------------------------------------------------------------
+void GeneralSettingsPanel::showEvent(QShowEvent* e)
+{
+  QWidget::showEvent(e);
+
+  const auto labelWidth = m_intervalLabel->width();
+  m_pathLabel->setMinimumWidth(labelWidth);
+  m_temporalPathLabel->setMinimumWidth(labelWidth);
+  m_nameLabel->setMinimumWidth(labelWidth);
+  m_pathLabel->resize(labelWidth, m_pathLabel->height());
 }

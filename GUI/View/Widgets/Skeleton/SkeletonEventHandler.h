@@ -159,29 +159,29 @@ namespace ESPINA
                * \param[in] view view of the event.
                *
                */
-              void startTrack(const QPoint pos, RenderView *view);
+              void startTrack(const QPoint &pos, RenderView *view);
 
               /** \brief Called when a stroke is updated.
                * \param[in] pos track point 2D position.
                * \param[in] view view of the event.
                *
                */
-              void updateTrack(const QPoint pos, RenderView *view);
+              void updateTrack(const QPoint &pos, RenderView *view);
 
               /** \brief Interpolates p1 and p2 and generates extra points using the max distance.
-               * \param[in] p1 point 3D coordinates.
-               * \param[in] p2 point 3D coordinates.
+               * \param[in] point1 point 3D coordinates.
+               * \param[in] point2 point 3D coordinates.
                * \param[in] view view of the event.
                *
                */
-              Track interpolate(const QPoint p1, const QPoint p2, RenderView *view);
+              Track interpolate(const QPoint &point1, const QPoint &point2, RenderView *view);
 
               /** \brief Returns the squared distance between the two given points.
-               * \param[in] p1 point 3D coordinates.
-               * \param[in] p2 point 3D coordinates.
+               * \param[in] point1 point 3D coordinates.
+               * \param[in] point2 point 3D coordinates.
                *
                */
-              Nm distance2(const NmVector3 p1, const NmVector3 p2);
+              inline Nm distance2(const NmVector3 &point1, const NmVector3 &point2);
 
               bool        m_tracking;           /** true if tracking and false otherwise.                      */
               bool        m_interpolation;      /** true if interpolation is being made.                       */

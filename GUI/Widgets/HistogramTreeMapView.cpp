@@ -36,7 +36,6 @@ HistogramTreeMapView::HistogramTreeMapView(QWidget* parent)
 {
   setScene(new QGraphicsScene(this));
   scene()->setBackgroundBrush(QBrush{QColor::fromRgb(217, 229, 242)});
-  scale(1,-1);
 
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -65,6 +64,7 @@ void HistogramTreeMapView::rebuild()
 
   scene()->clear();
   scene()->invalidate(scene()->sceneRect());
+  viewport()->updateGeometry();
   scene()->setSceneRect(viewport()->rect());
 
   if(m_histogram.isEmpty())
@@ -74,7 +74,6 @@ void HistogramTreeMapView::rebuild()
     font.setBold(true);
     auto item = scene()->addText("Histogram not computed.", font);
     item->setPos(scene()->width()/2 - item->boundingRect().width()/2, scene()->height()/2 - item->boundingRect().height()/2);
-    item->scale(1, -1);
   }
   else
   {
@@ -115,7 +114,6 @@ void HistogramTreeMapView::setProgress(int progress)
   font.setBold(true);
   auto item = scene()->addText(tr("Histogram %1% computed.").arg(progress), font);
   item->setPos(scene()->width()/2 - item->boundingRect().width()/2, scene()->height()/2 - item->boundingRect().height()/2);
-  item->scale(1, -1);
 }
 
 //--------------------------------------------------------------------
@@ -123,17 +121,32 @@ void HistogramTreeMapView::resizeEvent(QResizeEvent* event)
 {
   QGraphicsView::resizeEvent(event);
 
-  scene()->setSceneRect(QRect{0,0,event->size().width(), event->size().height()});
   rebuild();
 }
 
 //--------------------------------------------------------------------
 void HistogramTreeMapView::insertElements(const std::vector<Element>& elements, QRect& area, unsigned long long &remaining)
 {
+  if(elements.empty()) return;
+
+  if(remaining == 0)
+  {
+    const auto element = elements.at(0);
+    auto item = scene()->addRect(area, QPen{Qt::black}, QBrush{QColor::fromRgb(element.value, element.value, element.value)});
+
+    QString tooltip;
+    std::for_each(elements.begin(), elements.end(), [&tooltip](const Element &e) { tooltip += tr("Value %1, count %2\n").arg(e.value).arg(e.count);});
+    item->setToolTip(tooltip);
+
+    return;
+  }
+
   unsigned long long sum = 0;
   std::for_each(elements.begin(), elements.end(), [&sum](const Element &element) { sum += element.count; });
-  const double percent = sum/static_cast<double>(remaining);
+  const double percent = std::min(1., static_cast<double>(sum)/remaining);
   remaining -= sum;
+
+  if(sum == 0) return;
 
   if(area.width() < area.height())
   {
@@ -144,7 +157,10 @@ void HistogramTreeMapView::insertElements(const std::vector<Element>& elements, 
     auto insertElement = [&usedArea, &area, &sum, this](const Element &element)
     {
       auto elementArea = usedArea;
-      double ratio = element.count / static_cast<double>(sum);
+      const double ratio = std::min(1., static_cast<double>(element.count)/sum);
+
+      if(ratio == 0) return;
+
       auto elementWidth = std::round(area.width() * ratio);
 
       elementArea.setWidth(elementWidth);
@@ -168,7 +184,10 @@ void HistogramTreeMapView::insertElements(const std::vector<Element>& elements, 
     auto insertElement = [&usedArea, &area, &sum, this](const Element &element)
     {
       auto elementArea = usedArea;
-      double ratio = element.count / static_cast<double>(sum);
+      const double ratio = std::min(1., static_cast<double>(element.count)/sum);
+
+      if(ratio == 0) return;
+
       auto elementHeight = std::round(area.height() * ratio);
 
       elementArea.setHeight(elementHeight);
@@ -191,6 +210,8 @@ int HistogramTreeMapView::optimalRatios(const std::vector<Element> &elements, co
   unsigned int result = 1;
   bool finished = false;
 
+  if(remaining == 0) return elements.size();
+
   const auto primary = std::min(area.width(), area.height());
   const auto secondary = std::max(area.width(), area.height());
   double previousRatios = std::numeric_limits<double>::max();
@@ -199,15 +220,13 @@ int HistogramTreeMapView::optimalRatios(const std::vector<Element> &elements, co
   {
     unsigned long long sum = 0;
     std::for_each(elements.begin(), elements.begin() + result, [&sum](const Element &element) { sum += element.count; });
-    const double percent = sum/static_cast<double>(remaining);
+    const double percent = std::min(1., static_cast<double>(sum)/remaining);
     auto newSecondary = secondary * percent;
-    Q_ASSERT(percent <= 1);
 
     double ratios = 0;
-    auto ratioOp = [&sum, &ratios, newSecondary, primary](const Element &element)
+    auto ratioOp = [&sum, &ratios, newSecondary, primary, remaining](const Element &element)
     {
-      auto elementCountRatio = element.count / static_cast<double>(sum);
-      Q_ASSERT(elementCountRatio <= 1);
+      const double elementCountRatio = std::min(1., static_cast<double>(element.count)/sum);
       auto newPrimary = primary * elementCountRatio;
       const auto ratio = newPrimary / static_cast<double>(newSecondary);
       ratios += ratio;

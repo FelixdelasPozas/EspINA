@@ -42,6 +42,7 @@
 #include <App/Dialogs/RawInformation/RawInformationDialog.h>
 #include <App/Dialogs/Dialog3D/Dialog3D.h>
 #include <App/Dialogs/IssueList/CheckAnalysis.h>
+#include <App/Dialogs/UpdateAnnouncementDialog/UpdateAnnouncementDialog.h>
 #include <App/Panels/StackExplorer/StackExplorer.h>
 #include <App/Panels/SegmentationExplorer/SegmentationExplorer.h>
 #include <App/Panels/SegmentationProperties/SegmentationProperties.h>
@@ -70,6 +71,7 @@
 #include <App/ToolGroups/Session/FileSaveTool.h>
 #include <App/ToolGroups/Session/LogTool.h>
 #include <App/ToolGroups/Session/UndoRedoTools.h>
+#include <App/Utils/UpdateCheck.h>
 #include <App/RecentDocuments.h>
 
 #if USE_METADONA
@@ -1597,6 +1599,18 @@ ToolSList EspinaMainWindow::availableTools() const
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::onUpdateCheckFinished()
+{
+  auto task = dynamic_cast<UpdateCheck *>(sender());
+  if(task && !task->isAborted() && !task->hasErrors() && task->hasNewerVersion())
+  {
+    UpdateAnnouncementDialog dialog;
+    dialog.setVersionInformation(task->versionString(), task->versionDescription());
+    dialog.exec();
+  }
+}
+
+//------------------------------------------------------------------------
 void EspinaMainWindow::initializeCrosshair()
 {
   auto coordinateSystem = m_context.viewState().coordinateSystem();
@@ -1611,13 +1625,12 @@ void EspinaMainWindow::delayedInitActions()
   try
   {
     checkAutoSavedAnalysis();
+    checkForUpdates();
   }
   catch(...)
   {
     // nothing
   }
-
-  // TODO: check espina version against a server and warn the user about a new version.
 }
 
 //------------------------------------------------------------------------
@@ -1630,4 +1643,14 @@ void EspinaMainWindow::saveSessionSettings()
     settings->setValue(ACTIVE_STACK_SETTINGS_KEY, activeStack->data(Qt::DisplayRole).toString());
     settings->sync();
   }
+}
+
+//------------------------------------------------------------------------
+void ESPINA::EspinaMainWindow::checkForUpdates()
+{
+  auto updateCheck = std::make_shared<UpdateCheck>(m_context.scheduler());
+
+  connect(updateCheck.get(), SIGNAL(finished()), this, SLOT(onUpdateCheckFinished()));
+
+  Task::submit(updateCheck);
 }

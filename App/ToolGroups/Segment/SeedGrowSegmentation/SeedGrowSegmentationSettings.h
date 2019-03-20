@@ -82,8 +82,8 @@ namespace ESPINA
       inline long long zSize() const
       { return m_zSize; }
 
-      /** \brief Sets apply category flag.
-       * \param[in] value true to use category ROI size values.
+      /** \brief Sets apply category ROI flag.
+       * \param[in] value true to use category ROI size values and false otherwise.
        *
        */
       void setApplyCategoryROI(bool value);
@@ -105,12 +105,12 @@ namespace ESPINA
       inline int bestPixelValue() const
       { return m_bestValue; }
 
-      /** \brief Sets the closing flag value.
-       * \param[in] value true to apply a morphological close operation after a seedgrow segmentation operation.
+      /** \brief Sets the closing operation radius.
+       * \param[in] value Numerical value in [1, N).
        */
       void setCloseRadius(int value);
 
-      /** \brief Returns true if a closing operation is applied after a seedgrow segmentation operation.
+      /** \brief Returns the close operation radius.
        *
        */
       inline int closeRadius() const

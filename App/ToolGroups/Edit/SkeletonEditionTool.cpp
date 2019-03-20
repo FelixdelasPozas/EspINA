@@ -648,12 +648,15 @@ void SkeletonEditionTool::onStrokeTypeChanged(int index)
     auto name         = segmentation->category()->classificationName();
 
     index = std::min(std::max(0,index), m_strokes.size() - 1);
+    const auto stroke = m_strokes.at(index);
     Q_ASSERT(index >= 0);
 
     for(auto widget: m_widgets)
     {
-      widget->setStroke(m_strokes.at(index));
+      widget->setStroke(stroke);
     }
+
+    m_eventHandler->setStroke(stroke);
   }
 }
 
@@ -733,12 +736,11 @@ void SkeletonEditionTool::onStrokeChanged(const Core::SkeletonStroke stroke)
 {
   if(m_item)
   {
-    auto segmentation = segmentationPtr(m_item);
-    auto name         = segmentation->category()->classificationName();
-
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->setCurrentIndex(m_strokes.indexOf(stroke));
     m_strokeCombo->blockSignals(false);
+
+    m_eventHandler->setStroke(stroke);
   }
 }
 
@@ -851,6 +853,8 @@ void SkeletonEditionTool::updateStrokes()
     {
       m_strokeCombo->setCurrentIndex(0);
     }
+
+    m_eventHandler->setStroke(m_strokes.at(m_strokeCombo->currentIndex()));
   }
 }
 

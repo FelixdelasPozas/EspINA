@@ -52,7 +52,8 @@ namespace ESPINA
       /** \brief GeneralSettingsPanel class virtual destructor.
        *
        */
-      virtual ~GeneralSettingsPanel();
+      virtual ~GeneralSettingsPanel()
+      {};
 
       virtual const QString shortDescription() override
       {return "Session";}
@@ -65,11 +66,15 @@ namespace ESPINA
 
       virtual void acceptChanges() override;
 
-      virtual void rejectChanges() override;
+      virtual void rejectChanges() override
+      {};
 
       virtual bool modified() const override;
 
       virtual Support::Settings::SettingsPanelPtr clone() override;
+
+    protected:
+      void showEvent(QShowEvent *e) override;
 
     private slots:
       /** \brief Disaplays the directory selection dialog an updates the internal values once the dialog has been closed.
