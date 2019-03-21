@@ -29,8 +29,7 @@ using namespace ESPINA::Extensions;
 
 //--------------------------------------------------------------------
 ESPINA::Extensions::StackHistogramFactory::StackHistogramFactory(CoreFactory *factory)
-: Core::StackExtensionFactory{nullptr}
-, m_factory{factory}
+: Core::StackExtensionFactory{factory}
 {
 }
 

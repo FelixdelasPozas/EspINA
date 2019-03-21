@@ -413,14 +413,6 @@ void SkeletonWidget2D::onMousePress(Qt::MouseButtons button, const QPoint &p, Re
                 break;
               }
 
-              if(m_points.contains(NmVector3{path.seen.first()->position}) ||
-                 m_points.contains(NmVector3{path.seen.last()->position}))
-              {
-                auto details = tr("Stroke has a connection and can't be truncated.");
-                DefaultDialogs::InformationMessage(message, title, details);
-                break;
-              }
-
               if((path.seen.first()->isTerminal()) && (path.seen.last()->isTerminal()))
               {
                 auto details = tr("Stroke is not connected.");
