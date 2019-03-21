@@ -273,6 +273,12 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
             auto otherNode = s_currentVertex->connections.keys().first();
             m_currentEdgeIndex = s_currentVertex->connections[otherNode];
             m_currentStrokeIndex = s_skeleton.edges.at(m_currentEdgeIndex).strokeIndex;
+
+            if(otherNode->flags != SkeletonNodeFlags())
+            {
+              node->flags = otherNode->flags;
+              otherNode->flags = SkeletonNodeFlags();
+            }
           }
           break;
         default:
@@ -516,6 +522,12 @@ void vtkSkeletonWidgetRepresentation::deleteNode(SkeletonNode *node)
   if (!node) return;
 
   auto connections = node->connections.keys();
+
+  if(connections.size() == 1 && node->flags != SkeletonNodeFlags())
+  {
+    connections.first()->flags = node->flags;
+  }
+
   connections.removeAll(node);
 
   s_skeleton.nodes.removeAll(node);
@@ -2407,14 +2419,15 @@ bool vtkSkeletonWidgetRepresentation::ToggleStrokeProperty(const Core::SkeletonN
 
   if(!node) return false;
 
-  auto paths = pathsOfNode(node);
+  const auto paths = pathsOfNode(node);
   if(paths.size() > 1) return false;
 
   {
     QMutexLocker lock(&s_skeletonMutex);
 
-    auto node1 = paths.first().seen.first();
-    auto node2 = paths.first().seen.last();
+    const auto path = paths.first();
+    const auto node1 = path.seen.first();
+    const auto node2 = path.seen.last();
 
     if(!node1->isTerminal() && !node2->isTerminal()) return false;
     if(node1->isTerminal() && node2->isTerminal())   return false;
