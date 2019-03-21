@@ -55,9 +55,6 @@ namespace ESPINA
                                                          const State                                  &state = State()) const;
 
         virtual Core::SegmentationExtension::TypeList providedExtensions() const;
-
-      private:
-        CoreFactory *m_factory; /** Core factory pointer. */
     };
   
   } // namespace Extensions

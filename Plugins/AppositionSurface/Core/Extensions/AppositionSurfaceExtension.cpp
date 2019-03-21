@@ -534,9 +534,6 @@ std::pair<Nm, AppositionSurfaceExtension::Shape> AppositionSurfaceExtension::com
 //------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> mesh) const
 {
-  double origin[3];
-  double normal[3]; // Normal's magnitude is 1
-
   if(!mesh || !mesh->GetPointData() || !mesh->GetPoints())
   {
     m_hasErrors = true;
@@ -554,6 +551,7 @@ vtkSmartPointer<vtkPolyData> AppositionSurfaceExtension::projectPolyDataToPlane(
       return nullptr;
     }
 
+    double origin[3], normal[3]; // Normal's magnitude is 1
     for (int i = 0; i < 3; ++i)
     {
       origin[i] = originArray->GetValue(i);
