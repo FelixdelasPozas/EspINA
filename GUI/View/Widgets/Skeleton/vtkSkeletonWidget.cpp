@@ -69,7 +69,7 @@ vtkSkeletonWidget::~vtkSkeletonWidget()
 
   if(WidgetRep && CurrentRenderer)
   {
-    reinterpret_cast<vtkSkeletonWidgetRepresentation*>(WidgetRep)->ClearRepresentation();
+    representation()->ClearRepresentation();
   }
 }
 
@@ -95,7 +95,7 @@ void vtkSkeletonWidget::SetEnabled(int enabling)
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::CreateDefaultRepresentation()
 {
-  if (WidgetRep == nullptr)
+  if (!WidgetRep)
   {
     auto rep = vtkSkeletonWidgetRepresentation::New();
     rep->SetOrientation(m_orientation);
@@ -124,10 +124,7 @@ void vtkSkeletonWidget::SetOrientation(Plane plane)
   {
     m_orientation = plane;
 
-    if (WidgetRep)
-    {
-      reinterpret_cast<vtkSkeletonWidgetRepresentation*>(WidgetRep)->SetOrientation(plane);
-    }
+    representation()->SetOrientation(plane);
   }
 }
 
@@ -136,7 +133,7 @@ void vtkSkeletonWidget::addPoint()
 {
   if(m_widgetState != vtkSkeletonWidget::Define) return;
 
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation*>(WidgetRep);
+  auto rep = representation();
 
   double worldPos[3];
   int X,Y;
@@ -174,7 +171,7 @@ void vtkSkeletonWidget::addPoint()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::movePoint()
 {
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  auto rep = representation();
 
   int X,Y;
   Interactor->GetEventPosition(X,Y);
@@ -216,7 +213,7 @@ void vtkSkeletonWidget::movePoint()
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidget::deletePoint()
 {
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  auto rep = representation();
   int X,Y;
   Interactor->GetEventPosition(X,Y);
 
@@ -234,7 +231,7 @@ bool vtkSkeletonWidget::deletePoint()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::stop()
 {
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  auto rep = representation();
 
   switch (m_widgetState)
   {
@@ -371,10 +368,12 @@ void vtkSkeletonWidget::changeSlice(Plane plane, Nm value)
 
   m_slice = value;
 
+  auto rep = representation();
+
   if (m_widgetState == vtkSkeletonWidget::Define)
   {
     double pos[3]{0,0,0};
-    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+
     if (rep->GetActiveNodeWorldPosition(pos))
     {
       pos[normalCoordinateIndex(m_orientation)] = value;
@@ -382,7 +381,6 @@ void vtkSkeletonWidget::changeSlice(Plane plane, Nm value)
     }
   }
 
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
   rep->SetSlice(value);
 
   if (Interactor != nullptr)
@@ -419,8 +417,7 @@ void vtkSkeletonWidget::changeSlice(Plane plane, Nm value)
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> vtkSkeletonWidget::getSkeleton()
 {
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-  return rep->GetRepresentationPolyData();
+  return representation()->GetRepresentationPolyData();
 }
 
 //-----------------------------------------------------------------------------
@@ -430,13 +427,7 @@ void vtkSkeletonWidget::SetShift(const Nm shift)
   {
     m_shift = shift;
 
-    if (WidgetRep == nullptr)
-    {
-      CreateDefaultRepresentation();
-      return;
-    }
-
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->SetShift(shift);
+    representation()->SetShift(shift);
   }
 }
 
@@ -449,7 +440,7 @@ void vtkSkeletonWidget::UpdateRepresentation()
     WidgetRep->SetRenderer(GetCurrentRenderer());
   }
 
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  auto rep = representation();
   rep->BuildRepresentation();
 
   m_widgetState = vtkSkeletonWidget::Define;
@@ -475,12 +466,7 @@ void vtkSkeletonWidget::SetSpacing(const NmVector3 &spacing)
   {
     m_spacing = spacing;
 
-    if(WidgetRep == nullptr)
-    {
-      CreateDefaultRepresentation();
-    }
-
-    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->SetSpacing(spacing);
+    representation()->SetSpacing(spacing);
   }
 }
 
@@ -491,11 +477,7 @@ void vtkSkeletonWidget::setCurrentOperationMode(const int mode)
   {
     m_widgetState = mode;
 
-    if(WidgetRep)
-    {
-      auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-      rep->DeactivateNode();
-    }
+    representation()->DeactivateNode();
 
     updateCursor();
   }
@@ -512,7 +494,7 @@ const unsigned int vtkSkeletonWidget::numberOfPoints() const
 {
   if(WidgetRep)
   {
-    return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->GetNumberOfNodes();
+    return reinterpret_cast<const vtkSkeletonWidgetRepresentation *>(WidgetRep)->GetNumberOfNodes();
   }
 
   return 0;
@@ -521,12 +503,12 @@ const unsigned int vtkSkeletonWidget::numberOfPoints() const
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidget::selectNode()
 {
-  if(WidgetRep)
+  if(WidgetRep && Interactor)
   {
     int X, Y;
     Interactor->GetEventPosition(X, Y);
 
-    auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+    auto rep = representation();
 
     if(rep->ActivateNode(X, Y))
     {
@@ -541,28 +523,39 @@ bool vtkSkeletonWidget::selectNode()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::updateCursor()
 {
-  int X, Y;
-  Interactor->GetEventPosition(X, Y);
+  if(WidgetRep && Interactor)
+  {
+    int X, Y;
+    Interactor->GetEventPosition(X, Y);
 
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-  rep->ComputeInteractionState(X, Y);
+    auto rep = representation();
+    rep->ComputeInteractionState(X, Y);
 
-  SetCursor(rep->GetInteractionState());
+    SetCursor(rep->GetInteractionState());
+  }
+  else
+  {
+    SetCursor(vtkSkeletonWidgetRepresentation::Outside);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::BuildRepresentation()
 {
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->BuildRepresentation();
+  if(!WidgetRep)
+  {
+    CreateDefaultRepresentation();
+  }
+  else
+  {
+    reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->BuildRepresentation();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setStroke(const Core::SkeletonStroke& stroke)
 {
-  CreateDefaultRepresentation();
-
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-  rep->setStroke(stroke);
+  representation()->setStroke(stroke);
 }
 
 //-----------------------------------------------------------------------------
@@ -582,8 +575,7 @@ const Core::SkeletonStroke vtkSkeletonWidget::stroke() const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::removeStroke(const Core::SkeletonStroke& stroke)
 {
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-  if(rep) rep->removeStroke(stroke);
+  representation()->removeStroke(stroke);
 }
 
 //-----------------------------------------------------------------------------
@@ -610,9 +602,7 @@ void vtkSkeletonWidget::ClearRepresentation()
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::createConnection(const Core::SkeletonStroke& stroke)
 {
-  if(!WidgetRep) return;
-
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->createConnection(stroke);
+  representation()->createConnection(stroke);
 }
 
 //-----------------------------------------------------------------------------
@@ -629,9 +619,7 @@ bool vtkSkeletonWidget::isStartNode(const NmVector3 &point) const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::changeStroke(const Core::SkeletonStroke& stroke)
 {
-  if(!WidgetRep) CreateDefaultRepresentation();
-
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
+  auto rep = representation();
 
   int X,Y;
   Interactor->GetEventPosition(X,Y);
@@ -668,46 +656,34 @@ void vtkSkeletonWidget::changeStroke(const Core::SkeletonStroke& stroke)
 //-----------------------------------------------------------------------------
 bool vtkSkeletonWidget::markAsTruncated()
 {
-  if(!WidgetRep) return false;
-
   int X,Y;
   Interactor->GetEventPosition(X,Y);
 
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-
-  return rep->ToggleStrokeProperty(Core::SkeletonNodeProperty::TRUNCATED, X,Y);
+  return representation()->ToggleStrokeProperty(Core::SkeletonNodeProperty::TRUNCATED, X,Y);
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setRepresentationWidth(const int width)
 {
-  if(!WidgetRep) CreateDefaultRepresentation();
-
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setWidth(width);
+  representation()->setWidth(width);
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setRepresentationShowText(bool value)
 {
-  if(!WidgetRep) CreateDefaultRepresentation();
-
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setShowLabels(value);
+  representation()->setShowLabels(value);
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setRepresentationTextSize(int size)
 {
-  if(!WidgetRep) CreateDefaultRepresentation();
-
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setLabelsSize(size);
+  representation()->setLabelsSize(size);
 }
 
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setRepresentationTextColor(const QColor &color)
 {
-  if(!WidgetRep) CreateDefaultRepresentation();
-
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setLabelsColor(color);
+  representation()->setLabelsColor(color);
 }
 
 //-----------------------------------------------------------------------------
@@ -729,9 +705,7 @@ const Core::PathList vtkSkeletonWidget::selectedPaths() const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::setStrokeHueModification(const bool value)
 {
-  if(!WidgetRep) CreateDefaultRepresentation();
-
-  reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep)->setChangeCoincidetHue(value);
+  representation()->setChangeCoincidetHue(value);
 }
 
 //-----------------------------------------------------------------------------
@@ -748,6 +722,13 @@ const bool vtkSkeletonWidget::strokeHueModification() const
 //-----------------------------------------------------------------------------
 void vtkSkeletonWidget::renameStroke(const QString& oldName, const QString& newName)
 {
-  auto rep = reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
-  if(rep) rep->renameStroke(oldName, newName);
+  representation()->renameStroke(oldName, newName);
+}
+
+//-----------------------------------------------------------------------------
+vtkSkeletonWidgetRepresentation* vtkSkeletonWidget::representation()
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
 }

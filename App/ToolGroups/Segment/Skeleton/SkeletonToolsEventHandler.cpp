@@ -95,7 +95,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
         auto spacing  = view->sceneResolution();
         for(auto i: {0,1,2}) point[i] = std::round(point[i]/spacing[i])*spacing[i];
 
-        if ((m_mode == SkeletonEventHandler::Mode::CREATE) && m_strokeMenu)
+        if ((m_mode == Mode::CREATE) && m_strokeMenu)
         {
           if(m_track.isEmpty())
           {
@@ -201,8 +201,8 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
                   m_operation = OperationMode::NORMAL;
                   updateTrack(me->pos(), view);
 
-                  emit stopped(view);
                   m_track.clear();
+                  emit stopped(view);
 
                   return true;
                 }
@@ -233,9 +233,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
 
   if(usedMenu)
   {
-    // if we've processed the event with the menu we need a mouse release event to interact correctly.
-    auto releaseEvent = new QMouseEvent(QEvent::MouseButtonRelease, me->pos(), me->button(), me->buttons(), me->modifiers());
-    result = SkeletonEventHandler::filterEvent(releaseEvent, view);
+    result = sendReleaseEvent(me, view);
   }
 
   return result;
@@ -438,4 +436,12 @@ void SkeletonToolsEventHandler::fixMenuPositionForView(const QMenu *menu, const 
   {
     position.setX(size.width() - hint.width() - 10);
   }
+}
+
+//------------------------------------------------------------------------
+inline bool SkeletonToolsEventHandler::sendReleaseEvent(const QMouseEvent *me, RenderView* view)
+{
+  // if we've processed the event with the menu we need a mouse release event to interact correctly.
+  auto releaseEvent = new QMouseEvent(QEvent::MouseButtonRelease, me->pos(), me->button(), me->buttons(), me->modifiers());
+  return SkeletonEventHandler::filterEvent(releaseEvent, view);
 }

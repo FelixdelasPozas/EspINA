@@ -274,10 +274,10 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
             m_currentEdgeIndex = s_currentVertex->connections[otherNode];
             m_currentStrokeIndex = s_skeleton.edges.at(m_currentEdgeIndex).strokeIndex;
 
-            if(otherNode->flags != SkeletonNodeFlags())
+            if(s_currentVertex->flags != SkeletonNodeFlags())
             {
-              node->flags = otherNode->flags;
-              otherNode->flags = SkeletonNodeFlags();
+              node->flags = s_currentVertex->flags;
+              s_currentVertex->flags = SkeletonNodeFlags();
             }
           }
           break;
@@ -626,6 +626,7 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
   else
   {
     {
+      // avoid loops of same stroke.
       QMutexLocker lock(&s_skeletonMutex);
       auto addedNode = s_skeleton.nodes[node_i];
       const auto nodeConn = addedNode->connections.keys();
@@ -1557,6 +1558,7 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
     return true;
   }
 
+  // avoid loops of same stroke.
   if(m_currentEdgeIndex != -1)
   {
     auto closestConnections = closestNode->connections.keys();
@@ -1578,6 +1580,9 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
       delete connectionNode;
     }
   }
+
+  // reset flags if joining
+  s_currentVertex->flags = closestNode->flags = SkeletonNodeFlags();
 
   auto &edge = s_skeleton.edges.at(m_currentEdgeIndex);
 
@@ -1644,9 +1649,12 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
     QMutexLocker lock(&s_skeletonMutex);
 
     // get the nodes involved in the party.
-    auto nodeA = s_skeleton.nodes.at(nodesNum-3);
-    auto connectionNode = s_skeleton.nodes.at(nodesNum-2);
     auto nodeB = s_skeleton.nodes.at(nodesNum-1);
+    if(nodeB->connections.size() != 1) return false;
+    auto connectionNode = nodeB->connections.keys().first();
+    if(connectionNode->connections.size() != 2) return false;
+    const auto nodes = connectionNode->connections.keys();
+    auto nodeA = nodes.first() == nodeB ? nodes.last() : nodes.first();
 
     // and the guest node.
     double positionNodeC[3];

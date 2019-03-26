@@ -47,6 +47,8 @@ namespace ESPINA
       {
         namespace Skeleton
         {
+          class vtkSkeletonWidgetRepresentation;
+
           /** \class vtkSkeletonWidget
            * \brief VTK widget for skeleton interactions.
            *
@@ -330,6 +332,11 @@ namespace ESPINA
                *
                */
               void operator=(const vtkSkeletonWidget&);
+
+              /** \brief Helper method to obtain the representation pointer.
+               *
+               */
+              vtkSkeletonWidgetRepresentation *representation();
 
               QCursor m_crossMinusCursor; /** cross minus cursor shown when deleting nodes.                                         */
               QCursor m_crossPlusCursor;  /** cross plus cursor shown when adding nodes between existing nodes.                     */

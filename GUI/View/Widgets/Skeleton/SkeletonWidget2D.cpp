@@ -212,7 +212,7 @@ void SkeletonWidget2D::connectSignals()
           this,            SLOT(onTrackUpdated(Track, RenderView *)));
 
   connect(m_handler.get(), SIGNAL(stopped(RenderView *)),
-           this,           SLOT(onStrokeEnded(RenderView *)));
+           this,           SLOT(onStrokeEnded(RenderView *)), Qt::DirectConnection);
 
   connect(m_handler.get(), SIGNAL(cursorPosition(const QPoint &, RenderView *)),
            this,           SLOT(onCursorPositionChanged(const QPoint &, RenderView *)));

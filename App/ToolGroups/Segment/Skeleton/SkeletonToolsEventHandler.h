@@ -37,6 +37,7 @@
 class QEvent;
 class QAction;
 class QMenu;
+class QMouseEvent;
 class vtkPolyData;
 
 namespace ESPINA
@@ -142,6 +143,13 @@ namespace ESPINA
        *
        */
       void fixMenuPositionForView(const QMenu *menu, const RenderView *view, QPoint &position) const;
+
+      /** \brief Helper method to send a release event, needed when the context menu have been used.
+       * \param[in] me Mouse event object pointer.
+       * \param[in] view View where the event happened.
+       *
+       */
+      inline bool sendReleaseEvent(const QMouseEvent *me, RenderView *view);
 
       using PointTemporalPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
 

@@ -307,6 +307,8 @@ void SkeletonEditionTool::onSkeletonWidgetCloned(GUI::Representations::Managers:
               this,                 SLOT(onStrokeChanged(const Core::SkeletonStroke)), Qt::DirectConnection);
 
       m_widgets << skeletonWidget;
+
+      updateWidgetsMode();
     }
   }
 }
