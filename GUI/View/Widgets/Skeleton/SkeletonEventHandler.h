@@ -137,6 +137,18 @@ namespace ESPINA
               Mode mode() const
               { return m_mode; }
 
+              /** \brief Sets the event handler to respond to modifier keyboard events or ignore them.
+               * \param[in] value True to respond to keyboard events and false to ignore them.
+               *
+               */
+              void setAllowModifiers(const bool value);
+
+              /** \brief Returns true if the handler responds to modifiers events or false if it does not.
+               *
+               */
+              const bool allowsModifiers() const
+              { return m_allowModifiers; }
+
             public slots:
               /** \brief Updates the widget's representations.
                *
@@ -183,15 +195,16 @@ namespace ESPINA
                */
               inline Nm distance2(const NmVector3 &point1, const NmVector3 &point2);
 
-              bool        m_tracking;           /** true if tracking and false otherwise.                      */
-              bool        m_interpolation;      /** true if interpolation is being made.                       */
-              Nm          m_maxDistance2;       /** max distance between points of the track (in view coords). */
-              Nm          m_minDistance2;       /** min distance between points of the track (in view coords). */
-              bool        m_distanceHasBeenSet; /** true if max distance has been set.                         */
-              Track       m_track;              /** track points group.                                        */
-              Track       m_updatedTrack;       /** group of points in the update track step.                  */
-              Mode        m_mode;               /** current operation mode.                                    */
-              RenderView *m_view;               /** current operation view, only valid in CREATE mode.         */
+              bool        m_tracking;           /** true if tracking and false otherwise.                                */
+              bool        m_interpolation;      /** true if interpolation is being made.                                 */
+              Nm          m_maxDistance2;       /** max distance between points of the track (in view coords).           */
+              Nm          m_minDistance2;       /** min distance between points of the track (in view coords).           */
+              bool        m_distanceHasBeenSet; /** true if max distance has been set.                                   */
+              Track       m_track;              /** track points group.                                                  */
+              Track       m_updatedTrack;       /** group of points in the update track step.                            */
+              Mode        m_mode;               /** current operation mode.                                              */
+              RenderView *m_view;               /** current operation view, only valid in CREATE mode.                   */
+              bool        m_allowModifiers;     /** true to allow modifiers (shift key events) and false to ignore them. */
 
               QList<SkeletonWidget2D *> m_widgets; /** list of widgets to observe events.                    */
           };

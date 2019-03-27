@@ -178,9 +178,6 @@ namespace ESPINA
               void updateRepresentation();
 
             protected:
-              virtual bool isEnabled()
-              { return true; };
-
               virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
               virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const

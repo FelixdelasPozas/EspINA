@@ -652,6 +652,7 @@ void SkeletonCreationTool::initEventHandler()
 {
   m_eventHandler = std::make_shared<SkeletonToolsEventHandler>(getContext());
   m_eventHandler->setInterpolation(true);
+  m_eventHandler->setAllowModifiers(false);
   m_eventHandler->setCursor(Qt::CrossCursor);
 
   connect(m_eventHandler.get(), SIGNAL(checkStartNode(const NmVector3 &)),
