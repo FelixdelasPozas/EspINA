@@ -2625,9 +2625,9 @@ const QColor vtkSkeletonWidgetRepresentation::computeCoincidentStrokeColor(const
       if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++position;
     }
 
-    while((position != 0) && (position < 9) && hueValues.contains(finalHue))
+    while((position > 0) && (position < 20) && hueValues.contains(finalHue))
     {
-      finalHue = (stroke.colorHue + (40*position)) % 360;
+      finalHue = (stroke.colorHue + (50*position)) % 360;
 
       ++position;
     }

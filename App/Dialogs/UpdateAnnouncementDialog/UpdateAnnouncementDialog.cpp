@@ -58,7 +58,7 @@ void UpdateAnnouncementDialog::setVersionInformation(const QString& version, con
 
   // Go to begin of the text.
   auto textCursor = m_releaseNotesText->textCursor();
-  textCursor.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor,1);
+  textCursor.movePosition(QTextCursor::Start);
   m_releaseNotesText->setTextCursor(textCursor);
   m_releaseNotesText->ensureCursorVisible();
 }

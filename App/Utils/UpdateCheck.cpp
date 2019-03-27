@@ -144,7 +144,7 @@ void UpdateCheck::run()
       if(xml.isStartElement() && xml.name() == DETAILS_ELEMENT && !newVersion.isEmpty())
       {
         const auto versionDescription = xml.readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
-        m_versionDescription += tr("<b>Version %1</b>\n").arg(newVersion) + versionDescription + QString("\n\n");
+        m_versionDescription += tr("<b><u>Version %1</u></b>\n").arg(newVersion) + versionDescription + QString("\n\n");
         newVersion.clear();
       }
 
