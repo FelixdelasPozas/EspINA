@@ -281,10 +281,10 @@ void vtkSkeletonWidgetRepresentation::AddNodeAtPosition(double worldPos[3])
             m_currentEdgeIndex = s_currentVertex->connections[otherNode];
             m_currentStrokeIndex = s_skeleton.edges.at(m_currentEdgeIndex).strokeIndex;
 
-            if(otherNode->flags != SkeletonNodeFlags())
+            if(s_currentVertex->flags != SkeletonNodeFlags())
             {
-              node->flags = otherNode->flags;
-              otherNode->flags = SkeletonNodeFlags();
+              node->flags = s_currentVertex->flags;
+              s_currentVertex->flags = SkeletonNodeFlags();
             }
           }
           break;
@@ -633,6 +633,7 @@ bool vtkSkeletonWidgetRepresentation::AddNodeOnContour(int X, int Y)
   else
   {
     {
+      // avoid loops of same stroke.
       QMutexLocker lock(&s_skeletonMutex);
       auto addedNode = s_skeleton.nodes[node_i];
       const auto nodeConn = addedNode->connections.keys();
@@ -904,7 +905,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
           currentCellsColors = dashedCellsColors;
         }
 
-        auto qcolor = computeCoincidentStrokeColor(stroke);
+        const auto qcolor = computeCoincidentStrokeColor(stroke);
         unsigned char color[3]{static_cast<unsigned char>(qcolor.red()), static_cast<unsigned char>(qcolor.green()), static_cast<unsigned char>(qcolor.blue())};
         currentCellsColors->InsertNextTypedTuple(color);
       }
@@ -967,7 +968,7 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
             currentCellsColors = dashedCellsColors;
           }
 
-          auto qcolor = computeCoincidentStrokeColor(stroke);
+          const auto qcolor = computeCoincidentStrokeColor(stroke);
           unsigned char color[3]{static_cast<unsigned char>(qcolor.red()), static_cast<unsigned char>(qcolor.green()), static_cast<unsigned char>(qcolor.blue())};
           currentCellsColors->InsertNextTypedTuple(color);
 
@@ -1559,6 +1560,7 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
     return true;
   }
 
+  // avoid loops of same stroke.
   if(m_currentEdgeIndex != -1)
   {
     auto closestConnections = closestNode->connections.keys();
@@ -1580,6 +1582,9 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
       delete connectionNode;
     }
   }
+
+  // reset flags if joining
+  s_currentVertex->flags = closestNode->flags = SkeletonNodeFlags();
 
   auto &edge = s_skeleton.edges.at(m_currentEdgeIndex);
 
@@ -1610,7 +1615,7 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
     }
   }
 
-  auto edgeValue = candidate != -1 ? candidate : nonPrioritary;
+  const auto edgeValue = candidate != -1 ? candidate : nonPrioritary;
 
   if (edge.parentEdge == -1)
   {
@@ -1620,8 +1625,8 @@ bool vtkSkeletonWidgetRepresentation::TryToJoin(int X, int Y)
   {
     if (edgeValue != -1)
     {
-      auto &candidateEdge = s_skeleton.edges.at(edgeValue);
-      auto &candidateStroke = s_skeleton.strokes.at(candidateEdge.strokeIndex);
+      const auto &candidateEdge = s_skeleton.edges.at(edgeValue);
+      const auto &candidateStroke = s_skeleton.strokes.at(candidateEdge.strokeIndex);
       if (candidateStroke.name.startsWith("Shaft"))
       {
         s_skeleton.edges[m_currentEdgeIndex].parentEdge = edgeValue;
@@ -1646,9 +1651,12 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
     QMutexLocker lock(&s_skeletonMutex);
 
     // get the nodes involved in the party.
-    auto nodeA = s_skeleton.nodes.at(nodesNum-3);
-    auto connectionNode = s_skeleton.nodes.at(nodesNum-2);
-    auto nodeB = s_skeleton.nodes.at(nodesNum-1);
+    const auto nodeB = s_skeleton.nodes.at(nodesNum-1);
+    if(nodeB->connections.size() != 1) return false;
+    const auto connectionNode = nodeB->connections.keys().first();
+    if(connectionNode->connections.size() != 2) return false;
+    const auto nodes = connectionNode->connections.keys();
+    auto nodeA = nodes.first() == nodeB ? nodes.last() : nodes.first();
 
     // and the guest node.
     double positionNodeC[3];
@@ -1681,10 +1689,10 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
       (*it).useMeasure = stroke.useMeasure;
       (*it).type       = stroke.type;
 
-      auto countKeys = s_skeleton.count.keys();
-      auto cIt = std::find_if(countKeys.begin(), countKeys.end(), equalNameOp);
+      const auto countKeys = s_skeleton.count.keys();
+      const auto cIt = std::find_if(countKeys.constBegin(), countKeys.constEnd(), equalNameOp);
       Q_ASSERT(cIt != countKeys.end());
-      auto count = s_skeleton.count[*cIt];
+      const auto count = s_skeleton.count[*cIt];
       s_skeleton.count.remove(*cIt);
       s_skeleton.count.insert(stroke, count);
     }
@@ -1697,7 +1705,7 @@ bool vtkSkeletonWidgetRepresentation::createConnection(const Core::SkeletonStrok
     edge.parentEdge   = m_currentEdgeIndex;
     s_skeleton.edges << edge;
 
-    auto edgeIndex = s_skeleton.edges.indexOf(edge);
+    const auto edgeIndex = s_skeleton.edges.indexOf(edge);
 
     if(std::memcmp(nodeA->position, node->position, 3*sizeof(double)) == 0)
     {
@@ -2584,8 +2592,8 @@ void vtkSkeletonWidgetRepresentation::renameStroke(const QString &oldName, const
 
     if(it != s_skeleton.strokes.end())
     {
-      SkeletonStroke oldStroke = *it;
-      auto count = s_skeleton.count[oldStroke];
+      const SkeletonStroke oldStroke = *it;
+      const auto count = s_skeleton.count[oldStroke];
       s_skeleton.count.remove(oldStroke);
       (*it).name = newName;
       s_skeleton.count.insert(*it, count);
@@ -2600,32 +2608,10 @@ void vtkSkeletonWidgetRepresentation::renameStroke(const QString &oldName, const
 //--------------------------------------------------------------------
 const QColor vtkSkeletonWidgetRepresentation::computeCoincidentStrokeColor(const Core::SkeletonStroke &stroke)
 {
-  auto finalHue = stroke.colorHue;
-
   if(m_changeCoincidentHue)
   {
-    int position = 0;
-    QSet<int> hueValues;
-
-    for(int i = 0; i < s_skeleton.strokes.size(); ++i)
-    {
-      auto &otherStroke = s_skeleton.strokes.at(i);
-
-      hueValues << otherStroke.colorHue;
-
-      if(otherStroke == stroke) continue;
-
-      // alphabetic to keep certain order, but can be altered by introducing more strokes.
-      if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++position;
-    }
-
-    while((position != 0) && (position < 9) && hueValues.contains(finalHue))
-    {
-      finalHue = (stroke.colorHue + (40*position)) % 360;
-
-      ++position;
-    }
+    return Core::alternateStrokeColor(s_skeleton.strokes, s_skeleton.strokes.indexOf(stroke));
   }
 
-  return QColor::fromHsv(finalHue, 255, 255);
+  return QColor::fromHsv(stroke.colorHue, 255, 255);
 }

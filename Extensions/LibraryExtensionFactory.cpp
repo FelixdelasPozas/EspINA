@@ -21,29 +21,29 @@
 
 // ESPINA
 #include <Core/Utils/EspinaException.h>
-#include "LibraryExtensionFactory.h"
-#include "EdgeDistances/ChannelEdges.h"
-#include "EdgeDistances/ChannelEdgesFactory.h"
-#include "EdgeDistances/EdgeDistance.h"
-#include "EdgeDistances/EdgeDistanceFactory.h"
-#include "Issues/SegmentationIssues.h"
-#include "Issues/SegmentationIssuesFactory.h"
-#include "Morphological/MorphologicalInformation.h"
-#include "Morphological/MorphologicalInformationFactory.h"
-#include "Notes/SegmentationNotes.h"
-#include "Notes/SegmentationNotesFactory.h"
-#include "Tags/SegmentationTags.h"
-#include "Tags/SegmentationTagsFactory.h"
-#include "Extensions/SkeletonInformation/DendriteInformation.h"
-#include "Extensions/SkeletonInformation/AxonInformation.h"
-#include "Extensions/SkeletonInformation/SynapseInformation.h"
-#include "SkeletonInformation/SkeletonInformationFactory.h"
-#include "SLIC/StackSLIC.h"
-#include "SLIC/StackSLICFactory.h"
-#include "BasicInformation/BasicSegmentationInformation.h"
-#include "BasicInformation/BasicSegmentationInformationFactory.h"
-#include "Histogram/StackHistogram.h"
-#include "Histogram/StackHistogramFactory.h"
+#include <Extensions/Issues/IssuesFactory.h>
+#include <Extensions/Issues/ItemIssues.h>
+#include <Extensions/LibraryExtensionFactory.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/EdgeDistances/ChannelEdgesFactory.h>
+#include <Extensions/EdgeDistances/EdgeDistance.h>
+#include <Extensions/EdgeDistances/EdgeDistanceFactory.h>
+#include <Extensions/Morphological/MorphologicalInformation.h>
+#include <Extensions/Morphological/MorphologicalInformationFactory.h>
+#include <Extensions/Notes/SegmentationNotes.h>
+#include <Extensions/Notes/SegmentationNotesFactory.h>
+#include <Extensions/Tags/SegmentationTags.h>
+#include <Extensions/Tags/SegmentationTagsFactory.h>
+#include <Extensions/SkeletonInformation/DendriteInformation.h>
+#include <Extensions/SkeletonInformation/AxonInformation.h>
+#include <Extensions/SkeletonInformation/SynapseInformation.h>
+#include <Extensions/SkeletonInformation/SkeletonInformationFactory.h>
+#include <Extensions/SLIC/StackSLIC.h>
+#include <Extensions/SLIC/StackSLICFactory.h>
+#include <Extensions/BasicInformation/BasicSegmentationInformation.h>
+#include <Extensions/BasicInformation/BasicSegmentationInformationFactory.h>
+#include <Extensions/Histogram/StackHistogram.h>
+#include <Extensions/Histogram/StackHistogramFactory.h>
 
 // C++
 #include <memory>
@@ -60,6 +60,7 @@ LibraryStackExtensionFactory::LibraryStackExtensionFactory(CoreFactory* factory)
   m_factories.insert(ChannelEdges::TYPE,   std::make_shared<ChannelEdgesFactory>(factory));
   m_factories.insert(StackSLIC::TYPE,      std::make_shared<StackSLICFactory>(factory));
   m_factories.insert(StackHistogram::TYPE, std::make_shared<StackHistogramFactory>(factory));
+  m_factories.insert(StackIssues::TYPE,    std::make_shared<StackIssuesFactory>());
 }
 
 //-----------------------------------------------------------------------
@@ -133,7 +134,7 @@ Core::SegmentationExtensionSPtr ESPINA::LibrarySegmentationExtensionFactory::cre
     }
     catch(...)
     {
-      // emtpy
+      // empty
     }
   }
 

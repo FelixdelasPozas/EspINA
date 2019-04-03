@@ -42,6 +42,7 @@ SkeletonEventHandler::SkeletonEventHandler()
 , m_distanceHasBeenSet{false}
 , m_mode              {Mode::CREATE}
 , m_view              {nullptr}
+, m_allowModifiers    {true}
 {
 }
 
@@ -131,14 +132,14 @@ bool SkeletonEventHandler::filterEvent(QEvent* e, RenderView* view)
       }
       break;
     case QEvent::KeyPress:
-      if(ke && (ke->key() == Qt::Key_Shift))
+      if(m_allowModifiers && ke && (ke->key() == Qt::Key_Shift))
       {
         emit modifier(true);
         return true;
       }
       break;
     case QEvent::KeyRelease:
-      if(ke && (ke->key() == Qt::Key_Shift))
+      if(m_allowModifiers && ke && (ke->key() == Qt::Key_Shift))
       {
         emit modifier(false);
         return true;
@@ -296,6 +297,14 @@ void SkeletonEventHandler::removeWidget(SkeletonWidget2D *widget)
 }
 
 //------------------------------------------------------------------------
+void SkeletonEventHandler::setAllowModifiers(const bool value)
+{
+  if(m_allowModifiers && !value && m_mode != Mode::CREATE) setMode(Mode::CREATE);
+
+  m_allowModifiers = value;
+}
+
+//------------------------------------------------------------------------
 inline Nm SkeletonEventHandler::distance2(const NmVector3 &p1, const NmVector3 &p2)
 {
   double point1[3] = { p1[0], p1[1], p1[2] };
@@ -320,7 +329,7 @@ void SkeletonEventHandler::updateRepresentations()
 //------------------------------------------------------------------------
 void SkeletonEventHandler::setMode(Mode mode)
 {
-  if(m_mode != mode)
+  if(m_allowModifiers && m_mode != mode)
   {
     m_tracking = false;
     m_track.clear();

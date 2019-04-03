@@ -32,6 +32,105 @@
 
 namespace ESPINA
 {
+  /** \class NeuroItemIssue
+   * \brief Issue for a neuro item object.
+   *
+   */
+  class StackIssue
+  : public Extensions::Issue
+  {
+    public:
+      /** \brief StackIssue class constructor.
+       * \param[in] item Stack item pointer.
+       * \param[in] severity Severity of the issue.
+       * \param[in] description Description of the issue.
+       * \param[in] suggestion Suggestion of how to fix the issue.
+       *
+       */
+      explicit StackIssue(ChannelAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion = QString());
+
+      /** \brief StackIssue class virtual destructor.
+       *
+       */
+      virtual ~StackIssue()
+      {};
+  };
+
+  /** \class SegmentationIssue
+   * \brief Issue for segmentation objects.
+   *
+   */
+  class SegmentationIssue
+  : public Extensions::Issue
+  {
+    public:
+      /** \brief SegmentationIssue class constructor.
+       * \param[in] segmentation Segmentation pointer of the segmentation with an issue.
+       * \param[in] severity Severity of the issue.
+       * \param[in] description Description of the issue.
+       * \param[in] suggestion Suggestion of how to fix the issue.
+       *
+       */
+      explicit SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion = QString());
+
+      /** \brief SegmentationIssue class virtual destructor.
+       *
+       */
+      virtual ~SegmentationIssue()
+      {};
+
+    protected:
+      /** \brief Adds the tag of the issue to the tags of the segmentation.
+       * \param[in] segmentation Segmentation object pointer.
+       * \param[in] tags List of tags to add to the segmentation.
+       *
+       */
+      void addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const;
+
+    private:
+      /** \brief Helper method to add the severity tag to the segmentation tags extension.
+       * \param[in] segmentation Segmentation object pointer.
+       * \param[in] severity Severity of the segmentation issue.
+       *
+       */
+      void addSeverityTag(SegmentationAdapterPtr segmentation, const Severity severity);
+  };
+
+  /** \class DuplicatedIssue
+   * \brief Issue for duplicated segmentations.
+   *
+   */
+  class DuplicatedIssue
+  : public SegmentationIssue
+  {
+    public:
+      /** \brief DuplicatedIssue class constructor.
+       * \param[in] original Original segmentation pointer.
+       * \param[in] duplicated Duplicated segmentation pointer.
+       * \param[in] duplicatedVoxels Number of common voxels in both segmentations.
+       *
+       */
+      explicit DuplicatedIssue(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated, const unsigned long long duplicatedVoxels);
+
+      /** \brief DuplicatedIssue class virtual destructor.
+       *
+       */
+      virtual ~DuplicatedIssue()
+      {};
+    private:
+      /** \brief Issue description.
+       * \param[in] duplicated Duplicated segmentation pointer.
+       * \param[in] duplicatedVoxels Number of common voxels in both segmentations.
+       *
+       */
+      static const QString description(const SegmentationAdapterPtr segmentation, const unsigned long long duplicatedVoxels);
+
+      /** \brief Duplicated segmentation suggestion.
+       *
+       */
+      static const QString suggestion();
+  };
+
   /** \class CheckTask
    * \brief Class to make some item checks on a separate thread.
    *

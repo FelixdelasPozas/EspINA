@@ -29,6 +29,9 @@
 // VTK
 #include <vtkActor.h>
 
+// Qt
+#include <QPixmap>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
@@ -38,14 +41,15 @@ SkeletonInspectorTreeModel::SkeletonInspectorTreeModel(const SegmentationAdapter
                                                        ModelAdapterSPtr              model,
                                                        QList<struct StrokeInfo>     &strokes,
                                                        QObject                      *parent)
-: QAbstractItemModel {parent}
-, m_StrokesTree      {nullptr}
-, m_ConnectTree      {nullptr}
-, m_segmentation     {segmentation}
-, m_model            {model}
-, m_strokes          (strokes)
-, m_useRandomColoring{false}
-, m_connectionLevel  {0}
+: QAbstractItemModel    {parent}
+, m_StrokesTree         {nullptr}
+, m_ConnectTree         {nullptr}
+, m_segmentation        {segmentation}
+, m_model               {model}
+, m_strokes             (strokes)
+, m_useRandomColoring   {false}
+, m_useHierarchyColoring{false}
+, m_connectionLevel     {0}
 {
   computeStrokesTree();
 
@@ -129,8 +133,9 @@ QVariant SkeletonInspectorTreeModel::data(const QModelIndex& index, int role) co
           {
             auto stroke = node->stroke();
             QPixmap icon(3, 16);
-            auto hue = m_useRandomColoring ? stroke->randomHue : stroke->hue;
-            hue = m_useHierarchyColoring ? stroke->hierarchyHue : stroke->hue;
+            auto hue = stroke->hue;
+            hue = m_useRandomColoring    ? stroke->randomHue    : hue;
+            hue = m_useHierarchyColoring ? stroke->hierarchyHue : hue;
             icon.fill(QColor::fromHsv(hue, 255, 255));
 
             return icon;
@@ -544,7 +549,7 @@ void SkeletonInspectorTreeModel::setRandomTreeColoring(const bool enabled)
   {
     emit layoutAboutToBeChanged();
     m_useRandomColoring    = enabled;
-    m_useHierarchyColoring = !enabled;
+    if(enabled && m_useHierarchyColoring) m_useHierarchyColoring = false;
     emit layoutChanged();
   }
 }
@@ -556,7 +561,7 @@ void SkeletonInspectorTreeModel::setHierarchyTreeColoring(const bool enabled)
   {
     emit layoutAboutToBeChanged();
     m_useHierarchyColoring = enabled;
-    m_useRandomColoring    = !enabled;
+    if(enabled && m_useRandomColoring) m_useRandomColoring = false;
     emit layoutChanged();
   }
 }

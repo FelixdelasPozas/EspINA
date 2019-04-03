@@ -22,12 +22,15 @@
 // ESPINA
 #include "ChannelAdapter.h"
 #include <Core/Analysis/Channel.h>
+#include <Extensions/Issues/ItemIssues.h>
+#include <GUI/Utils/MiscUtils.h>
 
 // Qt
 #include <QPixmap>
 #include <QColor>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //------------------------------------------------------------------------
 ChannelAdapter::ChannelAdapter(ChannelSPtr channel)
@@ -52,18 +55,40 @@ QVariant ChannelAdapter::data(int role) const
       return isVisible()?Qt::Checked:Qt::Unchecked;
     case Qt::DecorationRole:
     {
+      QPixmap icon(0, 16);
+      icon.fill(Qt::transparent);
+      bool usesIcon = false;
+
       if(hue() != -1)
       {
-        QPixmap channelIcon(16, 16);
         auto color = QColor::fromHsv(hue()*359,255,255,255);
-        channelIcon.fill(color);
+        icon = QPixmap(16,16);
+        icon.fill(color);
+        usesIcon = true;
+      }
 
-        return channelIcon;
-      }
-      else
+      // We should let the extensions decorate
+      if (readOnlyExtensions()->hasExtension(StackIssues::TYPE))
       {
-        return QVariant();
+        auto extension = readOnlyExtensions()->get<StackIssues>();
+
+        if (extension->information(StackIssues::CRITICAL).toInt() > 0)
+        {
+          icon = GUI::Utils::appendImage(icon, StackIssues::severityIcon(Issue::Severity::CRITICAL, true), true);
+        }
+        else if (extension->information(StackIssues::WARNING).toInt() > 0)
+        {
+          icon = GUI::Utils::appendImage(icon, StackIssues::severityIcon(Issue::Severity::WARNING, true), true);
+        }
+
+        usesIcon = true;
       }
+
+      if(usesIcon)
+      {
+        return icon;
+      }
+      return QVariant();
     }
     case Qt::ToolTipRole:
     {

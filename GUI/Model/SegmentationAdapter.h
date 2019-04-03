@@ -29,11 +29,6 @@
 #include <Core/Analysis/Extensible.hxx>
 #include <Core/Analysis/Extensions.h>
 
-// Qt
-#include <QPixmap>
-
-class QIcon;
-
 namespace ESPINA
 {
   /** class SegmentationAdapter.
@@ -151,8 +146,6 @@ namespace ESPINA
      *
      */
     explicit SegmentationAdapter(SegmentationSPtr segmentation);
-
-    QPixmap appendImage(const QPixmap& original, const QString& image, bool slim = false) const;
 
   private:
     SegmentationSPtr                   m_segmentation; /** adapted segmentation object.                                         */

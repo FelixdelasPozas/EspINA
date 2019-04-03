@@ -536,6 +536,13 @@ namespace ESPINA
      */
     void EspinaCore_EXPORT mergeSamePositionNodes(SkeletonNodes &nodes);
 
+    /** \brief Returns the alternate hue of the given stroke index if it matches with the hue of other strokes.
+     * \param[in] strokes Stroke list.
+     * \param[in] index Index of the stroke to compute hue.
+     *
+     */
+    const QColor EspinaCore_EXPORT alternateStrokeColor(const SkeletonStrokes &strokes, int index);
+
   } // namespace Core
 } // namespace ESPINA
 

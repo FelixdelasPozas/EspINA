@@ -161,34 +161,6 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     return value;
   };
 
-  auto hierarchyColor = [&strokes](const SkeletonStroke &stroke)
-  {
-    int position = 0;
-    QSet<int> hueValues;
-
-    for(int i = 0; i < strokes.size(); ++i)
-    {
-      auto &otherStroke = strokes.at(i);
-
-      hueValues << otherStroke.colorHue;
-
-      if(otherStroke == stroke) continue;
-
-      // alphabetic to keep certain order, but can be altered by introducing more strokes.
-      if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++position;
-    }
-
-    int finalHue = stroke.colorHue;
-    while((position != 0) && (position < 9) && hueValues.contains(finalHue))
-    {
-      finalHue = (stroke.colorHue + (40*position)) % 360;
-
-      ++position;
-    }
-
-    return finalHue;
-  };
-
   for(auto i = 0; i < pathList.size(); ++i)
   {
     auto path = pathList.at(i);
@@ -201,7 +173,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     info.used         = strokes.at(path.stroke).useMeasure;
     info.hue          = strokes.at(path.stroke).colorHue;
     info.randomHue    = assignRandomFromHue(info.hue);
-    info.hierarchyHue = hierarchyColor(strokes.at(path.stroke));
+    info.hierarchyHue = Core::alternateStrokeColor(strokes, path.stroke).hue();
 
     auto points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(path.seen.size());
