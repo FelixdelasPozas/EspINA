@@ -32,6 +32,7 @@
 #include <QMap>
 #include <QSet>
 #include <QStack>
+#include <QColor>
 
 // VTK
 #include <vtkPolyData.h>
@@ -1208,4 +1209,40 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
     nodes.removeAll(node);
     delete node;
   }
+}
+
+//--------------------------------------------------------------------
+const QColor ESPINA::Core::alternateStrokeColor(const SkeletonStrokes& strokes, int index)
+{
+  if(index < 0 || index >= strokes.size())
+  {
+    return QColor();
+  }
+
+  const auto &stroke = strokes.at(index);
+  auto finalHue = stroke.colorHue;
+
+  int position = 0;
+  QSet<int> hueValues;
+
+  for(int i = 0; i < strokes.size(); ++i)
+  {
+    if(i == index) continue;
+
+    const auto &otherStroke = strokes.at(i);
+
+    hueValues << otherStroke.colorHue;
+
+    // alphabetic to keep certain order, but can be altered by introducing more strokes.
+    if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++position;
+  }
+
+  while((position > 0) && (position < 20) && hueValues.contains(finalHue))
+  {
+    finalHue = (stroke.colorHue + (50*position)) % 360;
+
+    ++position;
+  }
+
+  return QColor::fromHsv(finalHue, 255, 255);
 }

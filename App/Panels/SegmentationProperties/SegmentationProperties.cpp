@@ -20,14 +20,14 @@
 // ESPINA
 #include "ui_SegmentationProperties.h"
 #include "SegmentationProperties.h"
+#include "NoFilterRefiner.h"
 #include <App/Utils/TagUtils.h>
 #include <Core/Analysis/Segmentation.h>
-#include "NoFilterRefiner.h"
 #include <Support/FilterRefiner.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
-#include <Extensions/Notes/SegmentationNotes.h>
 #include <Extensions/Issues/SegmentationIssues.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 
 // Qt
 #include <QLayout>
