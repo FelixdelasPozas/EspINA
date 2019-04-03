@@ -28,8 +28,8 @@
 #include <Core/Utils/EspinaException.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
-#include <Extensions/Issues/SegmentationIssues.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
+#include <Extensions/Issues/SegmentationIssues.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
@@ -41,82 +41,68 @@ using namespace ESPINA::GUI::Model::Utils;
 const QString DUPLICATED_TAG = "duplicated";
 
 //------------------------------------------------------------------------
-class NeuroItemIssue
-: public Issue
+NeuroItemIssue::NeuroItemIssue(NeuroItemAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion)
+: Issue(item->data(Qt::DisplayRole).toString(), severity, description, suggestion)
 {
-  public:
-    explicit NeuroItemIssue(NeuroItemAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion = QString())
-    : Issue(item->data(Qt::DisplayRole).toString(), severity, description, suggestion)
-    {}
-};
+}
 
 //------------------------------------------------------------------------
-class SegmentationIssue
-: public NeuroItemIssue
+SegmentationIssue::SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion)
+: NeuroItemIssue(segmentation, severity, description, suggestion)
 {
-  public:
-    explicit SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion = QString())
-    : NeuroItemIssue(segmentation, severity, description, suggestion)
-    {
-      addSeverityTag(segmentation, severity);
-    }
-
-  protected:
-    void addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const
-    {
-      auto tagExtensions = retrieveExtension<SegmentationTags>(segmentation->extensions());
-
-      for (auto tag : tags)
-      {
-        tagExtensions->addTag(tag);
-      }
-    }
-
-  private:
-    void addSeverityTag(SegmentationAdapterPtr segmentation, const Severity severity)
-    {
-      switch(severity)
-      {
-        case Severity::CRITICAL:
-          addIssueTag(segmentation, { Issue::CRITICAL_TAG });
-          break;
-        case Severity::WARNING:
-          addIssueTag(segmentation, { Issue::WARNING_TAG });
-          break;
-        case Severity::INFORMATION:
-          addIssueTag(segmentation, { Issue::INFORMATION_TAG });
-          break;
-        default:
-          break;
-      }
-    }
-};
+  addSeverityTag(segmentation, severity);
+}
 
 //------------------------------------------------------------------------
-class DuplicatedIssue
-: public SegmentationIssue
+void SegmentationIssue::addIssueTag(SegmentationAdapterPtr segmentation, const QStringList tags) const
 {
-  public:
-    explicit DuplicatedIssue(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated, const unsigned long long duplicatedVoxels)
-    : SegmentationIssue(original, Severity::WARNING, description(duplicated, duplicatedVoxels), suggestion())
-    {
-      addIssueTag(original, { DUPLICATED_TAG });
-    }
+  auto tagExtensions = retrieveExtension<SegmentationTags>(segmentation->extensions());
 
-  private:
-    static QString description(const SegmentationAdapterPtr segmentation, const unsigned long long duplicatedVoxels)
-    {
-      return QObject::tr("Possible duplicated segmentation of %1. Both have %2 voxel%3 in common.").arg(segmentation->data(Qt::DisplayRole).toString())
-                                                                                                   .arg(duplicatedVoxels)
-                                                                                                   .arg((duplicatedVoxels > 1) ? "s" : "");
-    }
+  for (auto tag : tags)
+  {
+    tagExtensions->addTag(tag);
+  }
+}
 
-    static QString suggestion()
-    {
-      return QObject::tr("Delete one or edit both segmentations to avoid common voxels.");
-    }
+//------------------------------------------------------------------------
+void SegmentationIssue::addSeverityTag(SegmentationAdapterPtr segmentation, const Severity severity)
+{
+  switch (severity)
+  {
+    case Severity::CRITICAL:
+      addIssueTag(segmentation, { Issue::CRITICAL_TAG });
+      break;
+    case Severity::WARNING:
+      addIssueTag(segmentation, { Issue::WARNING_TAG });
+      break;
+    case Severity::INFORMATION:
+      addIssueTag(segmentation, { Issue::INFORMATION_TAG });
+      break;
+    default:
+      break;
+  }
+}
 
-};
+//------------------------------------------------------------------------
+DuplicatedIssue::DuplicatedIssue(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated, const unsigned long long duplicatedVoxels)
+: SegmentationIssue(original, Severity::WARNING, description(duplicated, duplicatedVoxels), suggestion())
+{
+  addIssueTag(original, { DUPLICATED_TAG });
+}
+
+//------------------------------------------------------------------------
+const QString DuplicatedIssue::description(const SegmentationAdapterPtr segmentation, const unsigned long long duplicatedVoxels)
+{
+  return QObject::tr("Possible duplicated segmentation of %1. Both have %2 voxel%3 in common.").arg(segmentation->data(Qt::DisplayRole).toString())
+                                                                                               .arg(duplicatedVoxels)
+                                                                                               .arg((duplicatedVoxels > 1) ? "s" : "");
+}
+
+//------------------------------------------------------------------------
+const QString DuplicatedIssue::suggestion()
+{
+  return QObject::tr("Delete one or edit both segmentations to avoid common voxels.");
+}
 
 //------------------------------------------------------------------------
 void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
@@ -337,12 +323,12 @@ void CheckAnalysis::removePreviousIssues(ModelAdapterSPtr model)
 //------------------------------------------------------------------------
 void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 {
-  auto output = viewItem->output();
-  auto filter = viewItem->filter();
+  const auto output = viewItem->output();
+  const auto filter = viewItem->filter();
 
   if (output == nullptr)
   {
-    auto description = tr("Item does not have an output.");
+    const auto description = tr("Item does not have an output.");
 
     reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
@@ -363,15 +349,15 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     if(hasVolumetricData(output) && hasMeshData(output) && isSegmentation(viewItem.get()))
     {
-      auto segmentation = segmentationPtr(viewItem.get());
-      auto category     = segmentation->category()->classificationName();
-      auto isSAS        = category.startsWith("SAS/") || category.compare("SAS") == 0;
+      const auto segmentation = segmentationPtr(viewItem.get());
+      const auto category     = segmentation->category()->classificationName();
+      const auto isSAS        = category.startsWith("SAS/") || category.compare("SAS") == 0;
 
       if(!isSAS)
       {
-        auto segMesh = readLockMesh(output)->mesh();
-        auto mMesh   = std::make_shared<MarchingCubesMesh>(output.get());
-        auto newMesh = mMesh->mesh();
+        const auto segMesh = readLockMesh(output)->mesh();
+        const auto mMesh   = std::make_shared<MarchingCubesMesh>(output.get());
+        const auto newMesh = mMesh->mesh();
 
         // current mesh & new mesh should be identical.
         if((segMesh->GetNumberOfCells()  != newMesh->GetNumberOfCells()) ||
@@ -392,7 +378,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
     if (numberOfDatas == 0)
     {
-      auto description = tr("Item does not have any data at all.");
+      const auto description = tr("Item does not have any data at all.");
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
@@ -400,7 +386,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
     auto spacing = output->spacing();
     if (spacing[0] == 0 || spacing[1] == 0 || spacing[2] == 0)
     {
-      auto description = tr("Invalid output spacing.");
+      const auto description = tr("Invalid output spacing.");
 
       reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
     }
@@ -408,7 +394,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 
   if (filter == nullptr)
   {
-    auto description = tr("Can't find the origin of the item.");
+    const auto description = tr("Can't find the origin of the item.");
 
     reportIssue(viewItem, Issue::Severity::CRITICAL, description, deleteHint(viewItem));
   }
@@ -452,7 +438,7 @@ void CheckSegmentationTask::checkVolumeIsEmpty() const
   auto volume = readLockVolume(m_segmentation->output());
   if (volume->isEmpty())
   {
-    auto description = tr("Segmentation has a volume associated but is empty");
+    const auto description = tr("Segmentation has a volume associated but is empty");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
@@ -469,7 +455,7 @@ void CheckSegmentationTask::checkMeshIsEmpty() const
 
   if (mesh->mesh() == nullptr || mesh->mesh()->GetNumberOfPoints() == 0)
   {
-    auto description = tr("Segmentation has a mesh associated but is empty");
+    const auto description = tr("Segmentation has a mesh associated but is empty");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
@@ -486,7 +472,7 @@ void CheckSegmentationTask::checkSkeletonIsEmpty() const
 
   if (!skeleton->isValid())
   {
-    auto description = tr("Segmentation has a skeleton associated but is empty");
+    const auto description = tr("Segmentation has a skeleton associated but is empty");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
@@ -518,11 +504,11 @@ void CheckSegmentationTask::checkExtensionsValidity() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkRelations() const
 {
-  auto relations = m_context.model()->relations(m_segmentation.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
+  const auto relations = m_context.model()->relations(m_segmentation.get(), RelationType::RELATION_INOUT, Sample::CONTAINS);
 
   if(relations.empty())
   {
-    auto description = tr("Segmentation is not related to any sample");
+    const auto description = tr("Segmentation is not related to any sample");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
@@ -535,7 +521,7 @@ void CheckSegmentationTask::checkHasChannel() const
 
   if(channels.empty())
   {
-    auto description = tr("Segmentation is not related to any stack");
+    const auto description = tr("Segmentation is not related to any stack");
 
     reportIssue(m_segmentation, Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
@@ -543,7 +529,7 @@ void CheckSegmentationTask::checkHasChannel() const
   {
     if (channels.size() > 1)
     {
-      auto description = tr("Segmentation is related to several stacks");
+      const auto description = tr("Segmentation is related to several stacks");
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, deleteHint(m_item));
     }
@@ -559,7 +545,7 @@ void CheckSegmentationTask::checkIsInsideChannel(ChannelAdapterPtr channel) cons
 {
   if (!contains(channel->output()->bounds(), m_segmentation->output()->bounds(), channel->output()->spacing()))
   {
-    auto description = tr("Segmentation is partially outside its stack");
+    const auto description = tr("Segmentation is partially outside its stack");
 
     reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
   }
@@ -570,27 +556,25 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 {
   if(m_segmentation->output()->hasData(SkeletonData::TYPE))
   {
-    auto skeleton   = readLockSkeleton(m_segmentation->output())->skeleton();
-    auto definition = Core::toSkeletonDefinition(skeleton);
-    auto nodes      = definition.nodes;
-    auto components = Core::connectedComponents(nodes);
+    const auto skeleton   = readLockSkeleton(m_segmentation->output())->skeleton();
+    auto definition       = Core::toSkeletonDefinition(skeleton);
+    const auto nodes      = definition.nodes;
+    const auto components = Core::connectedComponents(nodes);
 
     if(components.size() != 1)
     {
-      auto description = tr("Segmentation is not fully connected, has %1 components.").arg(components.size());
+      const auto description = tr("Segmentation is not fully connected, has %1 components.").arg(components.size());
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
 
     int numLoops = 0;
-    for(auto component: components)
-    {
-      numLoops += Core::loops(component).size();
-    }
+    auto countLoops = [&numLoops](const Core::SkeletonNodes &component) { numLoops += Core::loops(component).size(); };
+    std::for_each(components.constBegin(), components.constEnd(), countLoops);
 
     if(numLoops != 0)
     {
-      auto description = tr("Segmentation has %1 loop%2.").arg(numLoops).arg(numLoops > 1 ? "s" : "");
+      const auto description = tr("Segmentation has %1 loop%2.").arg(numLoops).arg(numLoops > 1 ? "s" : "");
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
@@ -599,7 +583,7 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 
     if(isolated != 0)
     {
-      auto description = tr("Segmentation has %1 isolated node%2.").arg(isolated).arg(isolated > 1 ? "s" : "");
+      const auto description = tr("Segmentation has %1 isolated node%2.").arg(isolated).arg(isolated > 1 ? "s" : "");
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
@@ -611,16 +595,16 @@ void CheckSegmentationTask::checkSkeletonProblems() const
 //------------------------------------------------------------------------
 void CheckSegmentationTask::checkConnections()
 {
-  auto category = m_segmentation->category();
+  const auto category = m_segmentation->category();
   if(category && category->classificationName().startsWith("Synapse", Qt::CaseInsensitive))
   {
-    auto connectionsNumber = m_segmentation->model()->connections(m_segmentation).size();
+    const auto connectionsNumber = m_segmentation->model()->connections(m_segmentation).size();
 
     if(connectionsNumber > 2)
     {
-      auto plural      = connectionsNumber > 3 ? "s":"";
-      auto description = tr("Segmentation is erroneously connected, it has %1 connections.").arg(connectionsNumber);
-      auto hint        = tr("Modify the involved axons/dendrites to remove the invalid synaptic connection%1.").arg(plural);
+      const auto plural      = connectionsNumber > 3 ? "s":"";
+      const auto description = tr("Segmentation is erroneously connected, it has %1 connections.").arg(connectionsNumber);
+      const auto hint        = tr("Modify the involved axons/dendrites to remove the invalid synaptic connection%1.").arg(plural);
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, hint);
     }
@@ -639,10 +623,10 @@ void CheckStackTask::checkVolumeIsEmpty() const
 {
   if(hasVolumetricData(m_stack->output()))
   {
-    auto volume = readLockVolume(m_stack->output());
+    const auto volume = readLockVolume(m_stack->output());
     if(volume->isEmpty())
     {
-      auto description = tr("Stack has a volume associated but it's empty");
+      const auto description = tr("Stack has a volume associated but it's empty");
 
       reportIssue(m_stack, Issue::Severity::CRITICAL, description, deleteHint(m_item));
     }
@@ -727,15 +711,15 @@ void CheckDuplicatedSegmentationsTask::run()
 {
   for (int i = 0; i < m_segmentations.size(); ++i)
   {
-    auto seg_i    = m_segmentations[i].get();
+    const auto seg_i    = m_segmentations[i].get();
     if(!hasVolumetricData(seg_i->output())) continue;
-    auto bounds_i = readLockVolume(seg_i->output())->bounds();
+    const auto bounds_i = readLockVolume(seg_i->output())->bounds();
 
     for (int j = i + 1; j < m_segmentations.size(); ++j)
     {
-      auto seg_j    = m_segmentations[j].get();
+      const auto seg_j    = m_segmentations[j].get();
       if(!hasVolumetricData(seg_j->output())) continue;
-      auto bounds_j = readLockVolume(seg_j->output())->bounds();
+      const auto bounds_j = readLockVolume(seg_j->output())->bounds();
 
       if(!canExecute()) return;
 
@@ -743,12 +727,12 @@ void CheckDuplicatedSegmentationsTask::run()
       {
         if(intersect(bounds_i, bounds_j))
         {
-          auto commonBounds = intersection(bounds_i, bounds_j);
+          const auto commonBounds = intersection(bounds_i, bounds_j);
           if(commonBounds.areValid())
           {
-            auto image1     = readLockVolume(seg_i->output())->itkImage(commonBounds);
-            auto image2     = readLockVolume(seg_j->output())->itkImage(commonBounds);
-            auto duplicated = compare_images<itkVolumeType>(image1, image2, commonBounds);
+            const auto image1 = readLockVolume(seg_i->output())->itkImage(commonBounds);
+            const auto image2 = readLockVolume(seg_j->output())->itkImage(commonBounds);
+            auto duplicated   = compare_images<itkVolumeType>(image1, image2, commonBounds);
 
             if(duplicated > 0)
             {
@@ -785,7 +769,7 @@ template<typename T> void CheckDataTask::checkDataBounds(Output::ReadLockData<T>
 {
   if (!data->bounds().areValid())
   {
-    auto description = tr("%1 has invalid bounds.").arg(data->type());
+    const auto description = tr("%1 has invalid bounds.").arg(data->type());
 
     reportIssue(m_item, Extensions::Issue::Severity::CRITICAL, description, deleteHint(m_item));
   }
