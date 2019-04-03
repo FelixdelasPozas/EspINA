@@ -25,12 +25,12 @@
 #include <GUI/Model/CategoryAdapter.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <Extensions/Issues/Issues.h>
-#include <Extensions/Issues/SegmentationIssues.h>
+#include <Extensions/Issues/ItemIssues.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Utils/MiscUtils.h>
 
 // Qt
 #include <QPixmap>
-#include <QPainter>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -133,17 +133,17 @@ QVariant SegmentationAdapter::data(int role) const
       {
         if (information(SegmentationIssues::CRITICAL).toInt() > 0)
         {
-          icon = appendImage(icon, SegmentationIssues::severityIcon(Issue::Severity::CRITICAL, true), true);
+          icon = GUI::Utils::appendImage(icon, SegmentationIssues::severityIcon(Issue::Severity::CRITICAL, true), true);
         }
         else if (information(SegmentationIssues::WARNING).toInt() > 0)
         {
-          icon = appendImage(icon, SegmentationIssues::severityIcon(Issue::Severity::WARNING, true), true);
+          icon = GUI::Utils::appendImage(icon, SegmentationIssues::severityIcon(Issue::Severity::WARNING, true), true);
         }
       }
 
       if (!information(SegmentationNotes::NOTES).toString().isEmpty())
       {
-        icon = appendImage(icon, ":/espina/note.svg");
+        icon = GUI::Utils::appendImage(icon, ":/espina/note.svg");
       }
 
       return icon;
@@ -279,25 +279,6 @@ bool SegmentationAdapter::setData(const QVariant& value, int role)
 QStringList SegmentationAdapter::users() const
 {
   return m_segmentation->users();
-}
-
-//------------------------------------------------------------------------
-QPixmap SegmentationAdapter::appendImage(const QPixmap& original, const QString& image, bool slim) const
-{
-  QPixmap pixmap(image);
-
-  pixmap = pixmap.scaled(slim?8:16, 16, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-
-  const unsigned char SP = 5;
-
-  QPixmap tmpPixmap(original.width() + SP + pixmap.width(),16);
-  tmpPixmap.fill(Qt::transparent);
-
-  QPainter painter(&tmpPixmap);
-  painter.drawPixmap(0,0, original);
-  painter.drawPixmap(original.width() + SP,0, pixmap);
-
-  return tmpPixmap;
 }
 
 //------------------------------------------------------------------------

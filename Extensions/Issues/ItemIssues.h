@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef ESPINA_SEGMENTATION_ISSUES_H
-#define ESPINA_SEGMENTATION_ISSUES_H
+#ifndef ESPINA_ITEM_ISSUES_H
+#define ESPINA_ITEM_ISSUES_H
 
 #include "Extensions/EspinaExtensions_Export.h"
 
@@ -30,19 +30,23 @@ namespace ESPINA
 {
   namespace Extensions
   {
+    /** \class SegmentationIssues
+     * \brief Extension that adds issues information to segmentations.
+     *
+     */
     class EspinaExtensions_EXPORT SegmentationIssues
     : public Core::SegmentationExtension
     {
       public:
         static const Type TYPE;
 
-        // Stores the number of issues of a segmentation
+        // Stores the number of issues of a segmentation.
         static const InformationKey ISSUES;
 
-        // Stores the number of warnings
+        // Stores the number of warnings.
         static const InformationKey WARNING;
 
-        // Stores the number of critical warnings
+        // Stores the number of critical warnings.
         static const InformationKey CRITICAL;
 
       public:
@@ -118,7 +122,95 @@ namespace ESPINA
 
         friend class SegmentationIssuesFactory;
     };
+
+    /** \class StackIssues
+     * \brief Extension that adds issues information to stacks.
+     *
+     */
+    class EspinaExtensions_EXPORT StackIssues
+    : public Core::StackExtension
+    {
+      public:
+        static const Type TYPE;
+
+        // Stores the number of issues of a stack.
+        static const InformationKey ISSUES;
+
+        // Stores the number of warnings.
+        static const InformationKey WARNING;
+
+        // Stores the number of critical warnings.
+        static const InformationKey CRITICAL;
+
+      public:
+        /** \brief StackIssues class virtual destructor.
+         *
+         */
+        virtual ~StackIssues()
+        {}
+
+        virtual Type type() const override
+        { return TYPE; }
+
+        virtual bool invalidateOnChange() const override
+        { return false; }
+
+        virtual State state() const override
+        { return State(); }
+
+        virtual Snapshot snapshot() const override
+        { return Snapshot(); }
+
+        virtual const TypeList dependencies() const override
+        { return TypeList(); }
+
+        virtual const InformationKeyList availableInformation() const override;
+
+        virtual const QString toolTipText() const override;
+
+        /** \brief Adds an issue to the list of issues.
+         * \param[in] issue issue to add.
+         *
+         */
+        void addIssue(IssueSPtr issue);
+
+        /** \brief Returns the list of issues.
+         *
+         */
+        IssueList issues() const
+        { return m_issues; }
+
+        /** \brief Returns the highest severity level of the list of issues.
+         *
+         */
+        Issue::Severity highestSeverity() const;
+
+        /** \brief Returns the icon to the given issue level.
+         * \param[in] severity issue severity level.
+         * \param[in] slim true to return the slim icon and false to return the normal one.
+         *
+         */
+        static QString severityIcon(const Issue::Severity severity, bool slim = false);
+
+      protected:
+        virtual void onExtendedItemSet(ChannelPtr item) override
+        {}
+
+        virtual QVariant cacheFail(const InformationKey& key) const override;
+
+      private:
+        /** \brief StackIssues class constructor.
+         * \param[in] infoCache cache object.
+         *
+         */
+        explicit StackIssues(const InfoCache& infoCache = InfoCache());
+
+        IssueList m_issues; /** list of found issues for the stack. */
+
+        friend class StackIssuesFactory;
+    };
+
   } // namespace Extensions
 } // namespace ESPINA
 
-#endif // ESPINA_SEGMENTATION_ISSUES_H
+#endif // ESPINA_ITEM_ISSUES_H

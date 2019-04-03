@@ -19,9 +19,9 @@
  
  */
 
-#include <Extensions/Issues/SegmentationIssuesFactory.h>
-#include <Extensions/Issues/SegmentationIssues.h>
 #include <Core/Utils/EspinaException.h>
+#include <Extensions/Issues/IssuesFactory.h>
+#include <Extensions/Issues/ItemIssues.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -31,11 +31,6 @@ using namespace ESPINA::Extensions;
 //--------------------------------------------------------------------
 SegmentationIssuesFactory::SegmentationIssuesFactory()
 : SegmentationExtensionFactory{nullptr}
-{
-}
-
-//--------------------------------------------------------------------
-SegmentationIssuesFactory::~SegmentationIssuesFactory()
 {
 }
 
@@ -67,6 +62,43 @@ SegmentationExtension::TypeList ESPINA::Extensions::SegmentationIssuesFactory::p
 {
   SegmentationExtension::TypeList list;
   list << SegmentationIssues::TYPE;
+
+  return list;
+}
+
+//--------------------------------------------------------------------
+ESPINA::Extensions::StackIssuesFactory::StackIssuesFactory()
+: StackExtensionFactory{nullptr}
+{
+}
+
+//--------------------------------------------------------------------
+Core::StackExtensionSPtr ESPINA::Extensions::StackIssuesFactory::createExtension(const Core::StackExtension::Type& type,
+    const Core::StackExtension::InfoCache& cache, const State& state) const
+{
+  StackExtensionSPtr extension = nullptr;
+
+  if(type == StackIssues::TYPE)
+  {
+    extension = StackExtensionSPtr{new StackIssues(cache)};
+  }
+
+  if(!extension || !extension.get())
+  {
+    auto message = QObject::tr("Unknown extension type: %1").arg(type);
+    auto details = QObject::tr("StackIssuesFactory::createExtension() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
+  return extension;
+}
+
+//--------------------------------------------------------------------
+Core::StackExtension::TypeList ESPINA::Extensions::StackIssuesFactory::providedExtensions() const
+{
+  StackExtension::TypeList list;
+  list << StackIssues::TYPE;
 
   return list;
 }

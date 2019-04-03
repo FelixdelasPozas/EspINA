@@ -36,23 +36,23 @@ namespace ESPINA
    * \brief Issue for a neuro item object.
    *
    */
-  class NeuroItemIssue
+  class StackIssue
   : public Extensions::Issue
   {
     public:
-      /** \brief NeuroItemIssue class constructor.
-       * \param[in] item Neuro item pointer.
+      /** \brief StackIssue class constructor.
+       * \param[in] item Stack item pointer.
        * \param[in] severity Severity of the issue.
        * \param[in] description Description of the issue.
-       * \param[in] suggestion Suggestio of how to fix the issue.
+       * \param[in] suggestion Suggestion of how to fix the issue.
        *
        */
-      explicit NeuroItemIssue(NeuroItemAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion = QString());
+      explicit StackIssue(ChannelAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion = QString());
 
-      /** \brief NeuroItemIssue class virtual destructor.
+      /** \brief StackIssue class virtual destructor.
        *
        */
-      virtual ~NeuroItemIssue()
+      virtual ~StackIssue()
       {};
   };
 
@@ -61,14 +61,14 @@ namespace ESPINA
    *
    */
   class SegmentationIssue
-  : public NeuroItemIssue
+  : public Extensions::Issue
   {
     public:
       /** \brief SegmentationIssue class constructor.
        * \param[in] segmentation Segmentation pointer of the segmentation with an issue.
        * \param[in] severity Severity of the issue.
        * \param[in] description Description of the issue.
-       * \param[in] suggestion Suggestio of how to fix the issue.
+       * \param[in] suggestion Suggestion of how to fix the issue.
        *
        */
       explicit SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion = QString());

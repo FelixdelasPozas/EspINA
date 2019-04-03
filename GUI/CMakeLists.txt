@@ -179,6 +179,7 @@ set (GUI_SOURCES
   Utils/RepresentationUtils.cpp
   Utils/Timer.cpp
   Utils/EventUtils.cpp
+  Utils/MiscUtils.cpp
   EventHandlers/Brush.cpp
   EventHandlers/CircularBrush.cpp
   EventHandlers/SphericalBrush.cpp

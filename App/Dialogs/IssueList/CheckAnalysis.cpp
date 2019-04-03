@@ -29,9 +29,13 @@
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
 #include <Dialogs/IssueList/CheckAnalysis.h>
-#include <Extensions/Issues/SegmentationIssues.h>
+#include <Extensions/Issues/ItemIssues.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Model/ViewItemAdapter.h>
+#include <GUI/Model/ChannelAdapter.h>
+#include <GUI/View/ViewState.h>
+#include <GUI/View/CoordinateSystem.h>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -41,14 +45,14 @@ using namespace ESPINA::GUI::Model::Utils;
 const QString DUPLICATED_TAG = "duplicated";
 
 //------------------------------------------------------------------------
-NeuroItemIssue::NeuroItemIssue(NeuroItemAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion)
+StackIssue::StackIssue(ChannelAdapterPtr item, const Severity severity, const QString& description, const QString& suggestion)
 : Issue(item->data(Qt::DisplayRole).toString(), severity, description, suggestion)
 {
 }
 
 //------------------------------------------------------------------------
 SegmentationIssue::SegmentationIssue(SegmentationAdapterPtr segmentation, const Severity severity, const QString& description, const QString& suggestion)
-: NeuroItemIssue(segmentation, severity, description, suggestion)
+: Issue(segmentation->data(Qt::DisplayRole).toString(), severity, description, suggestion)
 {
   addSeverityTag(segmentation, severity);
 }
@@ -125,7 +129,19 @@ void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
     }
     else
     {
-     issue = std::make_shared<NeuroItemIssue>(item.get(), severity, description, suggestion);
+      if(isChannel(item.get()))
+      {
+        auto stack = channelPtr(item.get());
+
+        issue = std::make_shared<StackIssue>(stack, severity, description, suggestion);
+      }
+      else
+      {
+        const auto message = tr("Unidentified item reporting an issue.");
+        const auto details = tr("CheckTask::reportIssue() -> ") + message;
+
+        throw EspinaException(message, details);
+      }
     }
 
     reportIssue(item.get(), issue);
@@ -135,12 +151,31 @@ void CheckTask::reportIssue(NeuroItemAdapterSPtr item,
 //------------------------------------------------------------------------
 void CheckTask::reportIssue(NeuroItemAdapterPtr item, IssueSPtr issue) const
 {
-  if (item && isSegmentation(item))
+  if (item && issue)
   {
-    auto segmentation   = segmentationPtr(item);
+    if(isSegmentation(item))
+    {
+      auto segmentation = segmentationPtr(item);
 
-    auto issueExtension = retrieveOrCreateSegmentationExtension<SegmentationIssues>(segmentation, m_context.factory());
-    issueExtension->addIssue(issue);
+      auto issueExtension = retrieveOrCreateSegmentationExtension<SegmentationIssues>(segmentation, m_context.factory());
+      issueExtension->addIssue(issue);
+    }
+    else
+    {
+      if(isChannel(item))
+      {
+        auto stack = channelPtr(item);
+        auto issueExtension = retrieveOrCreateStackExtension<StackIssues>(stack, m_context.factory());
+        issueExtension->addIssue(issue);
+      }
+      else
+      {
+        const auto message = tr("Unable to identify item adding an issue.");
+        const auto details = tr("CheckTask::reportIssue() -> ") + message;
+
+        throw EspinaException(message, details);
+      }
+    }
   }
 
   emit issueFound(issue);
@@ -309,9 +344,13 @@ void CheckAnalysis::removePreviousIssues(ModelAdapterSPtr model)
     }
   }
 
-  for(auto channel: model->channels())
+  for(auto stack: model->channels())
   {
-    // TODO: implement ChannelIssues channel extension
+    auto extensions = stack->extensions();
+    if(extensions->hasExtension(StackIssues::TYPE))
+    {
+      extensions->remove(StackIssues::TYPE);
+    }
   }
 
   for(auto sample: model->samples())
@@ -778,7 +817,7 @@ template<typename T> void CheckDataTask::checkDataBounds(Output::ReadLockData<T>
 //------------------------------------------------------------------------
 CheckStacksSizes::CheckStacksSizes(const ChannelAdapterSList stacks, Support::Context& context)
 : CheckTask{context}
-, m_stacks{stacks}
+, m_stacks {stacks}
 {
   setDescription(tr("Checking stacks sizes."));
 }
@@ -786,18 +825,17 @@ CheckStacksSizes::CheckStacksSizes(const ChannelAdapterSList stacks, Support::Co
 //------------------------------------------------------------------------
 void CheckStacksSizes::run()
 {
-  QSet<QString> stacksBounds;
-  auto accumulateBoundsOp = [&stacksBounds] (const ChannelAdapterSPtr stack) { stacksBounds << stack->bounds().toString(); };
-  std::for_each(m_stacks.constBegin(), m_stacks.constEnd(), accumulateBoundsOp);
+  const auto currentBounds = m_context.viewState().coordinateSystem()->bounds();
 
-  if(stacksBounds.count() != 1)
+  auto checkBoundsOp = [this, &currentBounds](const ChannelAdapterSPtr item)
   {
-    for(const auto stack: m_stacks)
+    if(item->bounds() != currentBounds)
     {
-      const auto description = tr("Stacks have different sizes!");
+      const auto description = tr("Stack bounds differs from session bounds!");
       const auto hint = tr("Check that stack files on disk are complete and the spacing of all stacks are equivalent.");
 
-      reportIssue(stack, Issue::Severity::WARNING, description, hint);
+      reportIssue(item, Issue::Severity::WARNING, description, hint);
     }
-  }
+  };
+  std::for_each(m_stacks.constBegin(), m_stacks.constEnd(), checkBoundsOp);
 }

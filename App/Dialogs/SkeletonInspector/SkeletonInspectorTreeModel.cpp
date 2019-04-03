@@ -29,6 +29,9 @@
 // VTK
 #include <vtkActor.h>
 
+// Qt
+#include <QPixmap>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;

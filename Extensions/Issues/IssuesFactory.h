@@ -19,8 +19,8 @@
  
  */
 
-#ifndef EXTENSIONS_ISSUES_SEGMENTATIONISSUESFACTORY_H_
-#define EXTENSIONS_ISSUES_SEGMENTATIONISSUESFACTORY_H_
+#ifndef EXTENSIONS_ISSUES_ISSUESFACTORY_H_
+#define EXTENSIONS_ISSUES_ISSUESFACTORY_H_
 
 #include <Extensions/EspinaExtensions_Export.h>
 
@@ -49,7 +49,8 @@ namespace ESPINA
         /** \brief SegmentationIssuesFactory class virtual destructor.
          *
          */
-        virtual ~SegmentationIssuesFactory();
+        virtual ~SegmentationIssuesFactory()
+        {};
 
         virtual Core::SegmentationExtensionSPtr createExtension(const Core::SegmentationExtension::Type      &type,
                                                                 const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache() ,
@@ -60,8 +61,37 @@ namespace ESPINA
 
     using SegmentationIssuesFactoryPtr  = SegmentationIssuesFactory *;
     using SegmentationIssuesFactorySPtr = std::shared_ptr<SegmentationIssuesFactory>;
-  
+
+    /** \class StackIssuesFactory.
+     * \brief Factory for StackIssues extensions.
+     *
+     */
+    class EspinaExtensions_EXPORT StackIssuesFactory
+    : public Core::StackExtensionFactory
+    {
+      public:
+        /** \brief StackIssuesFactory class constructor.
+         *
+         */
+        explicit StackIssuesFactory();
+
+        /** \brief StackIssuesFactory class virtual destructor.
+         *
+         */
+        virtual ~StackIssuesFactory()
+        {};
+
+        virtual Core::StackExtensionSPtr createExtension(const Core::StackExtension::Type      &type,
+                                                         const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache() ,
+                                                         const State                           &state = State()) const;
+
+        virtual Core::StackExtension::TypeList providedExtensions() const;
+    };
+
+    using StackIssuesFactoryPtr  = StackIssuesFactory *;
+    using StackIssuesFactorySPtr = std::shared_ptr<StackIssuesFactory>;
+
   } // namespace Extensions
 } // namespace ESPINA
 
-#endif // EXTENSIONS_ISSUES_SEGMENTATIONISSUESFACTORY_H_
+#endif // EXTENSIONS_ISSUES_ISSUESFACTORY_H_

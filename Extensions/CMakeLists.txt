@@ -26,8 +26,8 @@ set (EXTENSIONS_SOURCES
   Histogram/StackHistogram.cpp
   Histogram/StackHistogramFactory.cpp
   Issues/Issues.cpp
-  Issues/SegmentationIssues.cpp
-  Issues/SegmentationIssuesFactory.cpp
+  Issues/ItemIssues.cpp
+  Issues/IssuesFactory.cpp
   EdgeDistances/AdaptiveEdgesCreator.cpp
   EdgeDistances/EdgesAnalyzer.cpp
   EdgeDistances/EdgeDistance.cpp

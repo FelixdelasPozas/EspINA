@@ -122,7 +122,7 @@ target_link_libraries(EspinaFiltersTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 # Extensions
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_DIR}/Issues/Issues.cpp
-  ${EXTENSIONS_DIR}/Issues/SegmentationIssues.cpp
+  ${EXTENSIONS_DIR}/Issues/ItemIssues.cpp
   ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
 )
 add_library(EspinaExtensionsTesting SHARED ${EXTENSIONS_SOURCES})
@@ -165,6 +165,7 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/Utils/DBVH.cpp
   ${GUI_DIR}/Representations/Frame.cpp
   ${GUI_DIR}/Utils/Timer.cpp
+  ${GUI_DIR}/Utils/MiscUtils.cpp
   ${GUI_DIR}/View/CoordinateSystem.cpp
   ${GUI_DIR}/View/EventHandler.cpp
   ${GUI_DIR}/View/Selection.cpp

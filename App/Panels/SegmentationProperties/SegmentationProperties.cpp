@@ -26,7 +26,7 @@
 #include <Support/FilterRefiner.h>
 #include <Extensions/Tags/SegmentationTags.h>
 #include <Extensions/ExtensionUtils.h>
-#include <Extensions/Issues/SegmentationIssues.h>
+#include <Extensions/Issues/ItemIssues.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 
 // Qt
