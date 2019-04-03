@@ -148,7 +148,7 @@ void SpinesInformationDialog::connectSignals()
 void SpinesInformationDialog::onExportButtonClicked()
 {
   auto title        = tr("Export spines information");
-  auto suggestion   = QString("%spines-information.xls");
+  auto suggestion   = tr("Spines-information.xls");
   auto formats      = SupportedFormats().addExcelFormat().addCSVFormat();
   auto fileName     = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
 
@@ -401,7 +401,7 @@ void SpinesInformationDialog::saveToXLS(const QString& filename)
   {
     for (int c = 0; c < m_table->columnCount(); ++c)
     {
-      createCell(excelSheet, r, c, m_table->item(r, c)->data(Qt::DisplayRole).toString().remove('\''));
+      createCell(excelSheet, r+1, c, m_table->item(r, c)->data(Qt::DisplayRole).toString().remove('\''));
     }
   }
 
