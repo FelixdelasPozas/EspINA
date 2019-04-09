@@ -19,13 +19,13 @@
  */
 
 // ESPINA
+#include <App/ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
+#include <App/ToolGroups/Visualize/Representations/Switches/CrosshairSwitch.h>
 #include <GUI/Representations/Managers/CrosshairManager.h>
 #include <GUI/View/ViewTypeFlags.h>
-#include <Support/Representations/BasicRepresentationSwitch.h>
-#include <ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.h>
 
 using namespace ESPINA;
-using ESPINA::GUI::Representations::Managers::CrosshairManager;
+using namespace ESPINA::GUI::Representations::Managers;
 
 //----------------------------------------------------------------------------
 Representation CrosshairRepresentationFactory::doCreateRepresentation(Support::Context &context, ViewTypeFlags supportedViews) const
@@ -80,7 +80,7 @@ void CrosshairRepresentationFactory::createCrosshair(const QString   &icon,
   crossManager->setIcon(QIcon(icon));
   crossManager->setDescription(description);
 
-  auto crossSwitch  = std::make_shared<BasicRepresentationSwitch>("DisplayCrosshair", crossManager, flags, context);
+  auto crossSwitch  = std::make_shared<CrosshairSwitch>(crossManager, flags, context);
   crossSwitch->setOrder("0", "2-Display");
 
   if(flags.testFlag(ViewType::VIEW_2D))

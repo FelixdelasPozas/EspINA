@@ -55,7 +55,6 @@ ConnectionsColorEngineSwitch::ConnectionsColorEngineSwitch(Support::Context& con
 , m_unconnectedHue {QColor{Qt::yellow}.hue()}
 {
   createWidgets();
-
 }
 
 //--------------------------------------------------------------------

@@ -156,5 +156,6 @@
     <file>connectionGradient.svg</file>
     <file>weight-balance.svg</file>
     <file>ruler-max.svg</file>
+    <file>display_crosshairs_intersections.svg</file>
   </qresource>
 </RCC>

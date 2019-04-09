@@ -49,7 +49,7 @@ namespace ESPINA
     /** \brief Returns the flags of the supported views of the managers.
      *
      */
-    virtual ViewTypeFlags supportedViews() = 0;
+    virtual ViewTypeFlags supportedViews() const = 0;
 
     /** \brief Shows the managed representations on the view.
      *

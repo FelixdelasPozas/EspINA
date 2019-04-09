@@ -40,7 +40,7 @@ BasicRepresentationSwitch::BasicRepresentationSwitch(const QString            &i
 }
 
 //----------------------------------------------------------------------------
-ESPINA::ViewTypeFlags BasicRepresentationSwitch::supportedViews()
+ESPINA::ViewTypeFlags BasicRepresentationSwitch::supportedViews() const
 {
   return m_flags;
 }

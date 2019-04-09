@@ -47,14 +47,12 @@ namespace ESPINA
        * \param[in] meshManager manager of mesh representations.
        * \param[in] smoothedMeshManager manager of smoothed mesh representations.
        * \param[in] settings representation settings.
-       * \param[in] supportedViews flags of the supported views of the manager.
        * \param[in] context session context.
        *
        */
       explicit SegmentationMeshSwitch(GUI::Representations::RepresentationManagerSPtr  meshManager,
                                       GUI::Representations::RepresentationManagerSPtr  smoothedMeshManager,
                                       std::shared_ptr<SegmentationMeshPoolSettings>    settings,
-                                      ViewTypeFlags                                    supportedViews,
                                       Support::Context                                &context);
 
       /** \brief SegmentationMeshSwitch class virtual destructor.
@@ -62,7 +60,7 @@ namespace ESPINA
        */
       virtual ~SegmentationMeshSwitch();
 
-      virtual ViewTypeFlags supportedViews() override;
+      virtual ViewTypeFlags supportedViews() const override;
 
       virtual void showRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
@@ -116,7 +114,6 @@ namespace ESPINA
       GUI::Representations::RepresentationManagerSPtr m_meshManager;         /** simple mesh representation manager.                     */
       GUI::Representations::RepresentationManagerSPtr m_smoothedMeshManager; /** smoothed mesh representatio manager.                    */
       std::shared_ptr<SegmentationMeshPoolSettings>   m_settings;            /** mesh representation settings.                           */
-      ViewTypeFlags                                   m_flags;               /** supported views flags.                                  */
       GUI::Widgets::NumericalInput                   *m_smooth;              /** smooth value selector widget.                           */
       bool                                            m_smoothEnabled;       /** true if smooth manager is selected and false othrewise. */
   };
