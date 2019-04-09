@@ -100,6 +100,7 @@ SkeletonInspector::SkeletonInspector(Support::Context& context)
 , Support::WithContext (context)
 , m_view               {getViewState(), false, this}
 , m_segmentationSources(getViewState())
+, m_strokes            {nullptr}
 , m_temporalPipeline   {nullptr}
 {
   setupUi(this);
@@ -118,6 +119,8 @@ SkeletonInspector::SkeletonInspector(Support::Context& context)
 //--------------------------------------------------------------------
 void SkeletonInspector::closeEvent(QCloseEvent *event)
 {
+  const auto validCategory = m_segmentation->category()->classificationName().startsWith("Dendrite");
+
   ESPINA_SETTINGS(settings);
 
   settings.beginGroup(SETTINGS_GROUP);
@@ -125,27 +128,39 @@ void SkeletonInspector::closeEvent(QCloseEvent *event)
   settings.setValue("pos", pos());
   settings.setValue("size1", m_splitter->sizes().at(0));
   settings.setValue("size2", m_splitter->sizes().at(1));
-  settings.setValue("tableEnabled", m_spinesButton->isChecked());
+  if(validCategory) settings.setValue("tableEnabled", m_spinesButton->isChecked());
   settings.endGroup();
 
   QDialog::closeEvent(event);
 
-  m_segmentation->clearTemporalRepresentation();
-  for(auto &stroke: m_strokes) stroke.actors.clear();
-  m_strokes.clear();
-  m_definition.clear();
+  const auto segmentations = m_segDefinitions.keys();
+  auto clearDataOp = [this](const ViewItemAdapterPtr item)
+  {
+    item->clearTemporalRepresentation();
+    m_segDefinitions[item].clear();
+    m_segDefinitions.remove(item);
+    m_segStrokes[item].clear();
+    m_segStrokes.remove(item);
+  };
+  std::for_each(segmentations.constBegin(), segmentations.constEnd(), clearDataOp);
 }
 
 //--------------------------------------------------------------------
-void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segmentation)
+void SkeletonInspector::createSkeletonActors(const SegmentationAdapterPtr segmentation)
 {
+  if(m_segDefinitions.contains(segmentation)) return;
+
+  QList<struct StrokeInfo> strokesInfo;
+
   Q_ASSERT(hasSkeletonData(segmentation->output()));
 
-  const auto skeleton    = readLockSkeleton(segmentation->output())->skeleton();
-  m_definition           = toSkeletonDefinition(skeleton);
-  const auto pathList    = paths(m_definition.nodes, m_definition.edges, m_definition.strokes);
-  const auto strokes     = m_definition.strokes;
-  const auto connections = getModel()->connections(segmentation);
+  const auto skeleton = readLockSkeleton(segmentation->output())->skeleton();
+  m_segDefinitions.insert(segmentation, toSkeletonDefinition(skeleton));
+
+  auto &definition       = m_segDefinitions[segmentation];
+  const auto pathList    = paths(definition.nodes, definition.edges, definition.strokes);
+  const auto strokes     = definition.strokes;
+  const auto connections = getModel()->connections(getModel()->smartPointer(segmentation));
 
   auto seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::minstd_rand0 rngenerator(seed);
@@ -168,7 +183,7 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     struct StrokeInfo info;
     info.name         = path.note;
     info.path         = path;
-    info.selected     = true;
+    info.selected     = false;
     info.length       = path.length();
     info.used         = strokes.at(path.stroke).useMeasure;
     info.hue          = strokes.at(path.stroke).colorHue;
@@ -227,14 +242,14 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputData(polyData);
 
-    auto hue   = m_definition.strokes.at(path.stroke).colorHue;
+    auto hue   = definition.strokes.at(path.stroke).colorHue;
     auto color = QColor::fromHsv(hue, 255,255);
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
     actor->GetProperty()->SetLineWidth(1);
     actor->SetPickable(false);
-    if(m_definition.strokes.at(path.stroke).type != 0)
+    if(definition.strokes.at(path.stroke).type != 0)
     {
       actor->GetProperty()->SetLineStipplePattern(0xFF00);
     }
@@ -285,10 +300,12 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterSPtr segme
       }
     }
 
-    m_strokes << info;
+    strokesInfo << info;
   }
 
-  qSort(m_strokes);
+  qSort(strokesInfo);
+
+  m_segStrokes.insert(segmentation, strokesInfo);
 }
 
 //--------------------------------------------------------------------
@@ -318,9 +335,12 @@ void SkeletonInspector::restoreGeometry()
   QList<int> pixelSizes;
   pixelSizes << settings.value("size1", 300).toInt() << settings.value("size2", 800).toInt();
   m_splitter->setSizes(pixelSizes);
+
+  const auto validCategory = m_segmentation->category()->classificationName().startsWith("Dendrite");
+
   auto spinesTableVisible = settings.value("tableEnabled", false).toBool();
-  m_spinesButton->setChecked(spinesTableVisible);
-  m_tabWidget->setVisible(spinesTableVisible);
+  m_spinesButton->setChecked(spinesTableVisible && validCategory);
+  m_tabWidget->setVisible(spinesTableVisible && validCategory);
   settings.endGroup();
 }
 
@@ -428,11 +448,13 @@ void SkeletonInspector::addInitialSegmentations()
   auto model     = getModel();
   m_segmentation = model->smartPointer(selection.first());
 
-  createSkeletonActors(m_segmentation);
+  createSkeletonActors(m_segmentation.get());
+  m_strokes = &m_segStrokes[m_segmentation.get()];
+  std::for_each(m_strokes->begin(), m_strokes->end(), [](StrokeInfo &info){ info.selected = true; });
 
   auto connections = model->connections(m_segmentation);
 
-  ViewItemAdapterList segmentations;
+  SegmentationAdapterList segmentations;
   segmentations << m_segmentation.get();
 
   for(auto connection: connections)
@@ -455,17 +477,16 @@ void SkeletonInspector::addInitialSegmentations()
 
   updateWindowTitle(m_segmentation->data().toString());
 
-  auto frame = getViewState().createFrame();
-  m_segmentationSources.addSource(segmentations, frame);
-
-  m_temporalPipeline = std::make_shared<SkeletonInspectorPipeline>(m_strokes);
+  m_temporalPipeline = std::make_shared<SkeletonInspectorPipeline>(*m_strokes);
   m_segmentation->setTemporalRepresentation(m_temporalPipeline);
+
+  addSegmentations(segmentations);
 }
 
 //--------------------------------------------------------------------
 void SkeletonInspector::initTreeView()
 {
-  auto model = new SkeletonInspectorTreeModel(m_segmentation, getModel(), m_strokes, m_treeView);
+  auto model = new SkeletonInspectorTreeModel(m_segmentation, getModel(), *m_strokes, m_treeView);
   m_treeView->setModel(model);
   m_treeView->setHeaderHidden(true);
   m_treeView->update();
@@ -480,7 +501,7 @@ void SkeletonInspector::initTreeView()
           this,  SLOT(onRepresentationsInvalidated(ViewItemAdapterList)));
 
   connect(model, SIGNAL(segmentationsShown(const SegmentationAdapterList)),
-          this,  SLOT(onSegmentationsShown(const SegmentationAdapterList)));
+          this,  SLOT(onSegmentationsShown(const SegmentationAdapterList)), Qt::DirectConnection);
 
   connect(m_conDistance, SIGNAL(valueChanged(int)),
           this,          SLOT(onDistanceChanged(int)));
@@ -534,9 +555,9 @@ void SkeletonInspector::focusOnActor(int row)
   Bounds focusBounds;
   auto name = m_table->item(row, 0)->data(Qt::DisplayRole);
   auto equalOp = [&name](const StrokeInfo &stroke) {return (stroke.name == name); };
-  auto it = std::find_if(m_strokes.constBegin(), m_strokes.constEnd(), equalOp);
+  auto it = std::find_if(m_strokes->constBegin(), m_strokes->constEnd(), equalOp);
 
-  if(it != m_strokes.constEnd())
+  if(it != m_strokes->constEnd())
   {
     auto focusBounds = Bounds{(*it).actors.first()->GetBounds()};
 
@@ -559,7 +580,7 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
       case SkeletonInspectorTreeModel::TreeNode::Type::ROOT:
         if(previous.row() == 0)
         {
-          for(auto &stroke: m_strokes) stroke.selected = false;
+          for(auto &stroke: *m_strokes) stroke.selected = false;
           invalidated = true;
           selection.removeAll(m_segmentation.get());
         }
@@ -589,7 +610,7 @@ void SkeletonInspector::onCurrentChanged(const QModelIndex& current, const QMode
       case SkeletonInspectorTreeModel::TreeNode::Type::ROOT:
         if(current.row() == 0)
         {
-          for(auto &stroke: m_strokes) stroke.selected = true;
+          for(auto &stroke: *m_strokes) stroke.selected = true;
           invalidated = true;
           selection << m_segmentation.get();
         }
@@ -637,37 +658,63 @@ void SkeletonInspector::onRepresentationsInvalidated(ViewItemAdapterList segment
 //--------------------------------------------------------------------
 void SkeletonInspector::onColoringEnabled(bool value)
 {
-  if(m_temporalPipeline)
-  {
-    m_temporalPipeline->setHierarchyColors(value);
-
-    m_segmentation->invalidateRepresentations();
-    m_view.refresh();
-  }
-
   auto treeModel = dynamic_cast<SkeletonInspectorTreeModel *>(m_treeView->model());
   if(treeModel) treeModel->setHierarchyTreeColoring(value);
+
+  ViewItemAdapterList modified;
+
+  for(auto seg: m_segmentationSources.sources(ItemAdapter::Type::SEGMENTATION))
+  {
+    if(hasSkeletonData(seg->output()))
+    {
+      auto representation = std::dynamic_pointer_cast<SkeletonInspectorPipeline>(seg->temporalRepresentation());
+      if(representation)
+      {
+        representation->setHierarchyColors(value);
+        modified << seg;
+      }
+    }
+  }
+
+  if(!modified.isEmpty())
+  {
+    getViewState().invalidateRepresentations(modified);
+    m_view.refresh();
+  }
 }
 
 //--------------------------------------------------------------------
 void SkeletonInspector::onRandomColoringEnabled(bool value)
 {
-  if(m_temporalPipeline)
-  {
-    m_temporalPipeline->setRandomColors(value);
-
-    m_segmentation->invalidateRepresentations();
-    m_view.refresh();
-  }
-
   auto treeModel = dynamic_cast<SkeletonInspectorTreeModel *>(m_treeView->model());
   if(treeModel) treeModel->setRandomTreeColoring(value);
+
+  ViewItemAdapterList modified;
+
+  for(auto seg: m_segmentationSources.sources(ItemAdapter::Type::SEGMENTATION))
+  {
+    if(hasSkeletonData(seg->output()))
+    {
+      auto representation = std::dynamic_pointer_cast<SkeletonInspectorPipeline>(seg->temporalRepresentation());
+      if(representation)
+      {
+        representation->setRandomColors(value);
+        modified << seg;
+      }
+    }
+  }
+
+  if(!modified.isEmpty())
+  {
+    getViewState().invalidateRepresentations(modified);
+    m_view.refresh();
+  }
 }
 
 //--------------------------------------------------------------------
 SkeletonInspector::SkeletonInspectorPipeline::SkeletonInspectorPipeline(QList<struct StrokeInfo>& strokes)
 : SegmentationSkeleton3DPipeline(std::make_shared<CategoryColorEngine>())
-, m_strokes(strokes)
+, m_strokes          (strokes)
 , m_randomColoring   {false}
 , m_hierarchyColoring{false}
 {
@@ -736,6 +783,8 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 
   RepresentationPipeline::ActorList actors;
 
+  if(!item->isVisible()) return actors;
+
   // line actors.
   for(auto &stroke: m_strokes)
   {
@@ -777,64 +826,62 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
   }
 
   // label actors
-  if(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected())
+  auto color       = m_colorEngine->color(segmentation);
+  auto labelPoints = vtkSmartPointer<vtkPoints>::New();
+  auto labelText   = vtkSmartPointer<vtkStringArray>::New();
+  labelText->SetName("Labels");
+
+  auto labelsData = vtkSmartPointer<vtkPolyData>::New();
+  labelsData->SetPoints(labelPoints);
+  labelsData->GetPointData()->AddArray(labelText);
+
+  auto textSize = SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
+
+  auto property = vtkSmartPointer<vtkTextProperty>::New();
+  property->SetBold(true);
+  property->SetFontFamilyToArial();
+  property->SetFontSize(textSize);
+  property->SetJustificationToCentered();
+
+  auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
+  labelFilter->SetInputData(labelsData);
+  labelFilter->SetLabelArrayName("Labels");
+  labelFilter->GetTextProperty()->SetFontSize(textSize);
+  labelFilter->GetTextProperty()->SetBold(true);
+  labelFilter->Update();
+
+  auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
+  strategy->SetDefaultTextProperty(property);
+
+  auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
+  labelMapper->SetInputConnection(labelFilter->GetOutputPort());
+  labelMapper->SetGeneratePerturbedLabelSpokes(true);
+  labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
+  labelMapper->SetBackgroundOpacity(0.5);
+  labelMapper->SetPlaceAllLabels(true);
+  labelMapper->SetShapeToRoundedRect();
+  labelMapper->SetStyleToFilled();
+
+  auto labelActor = vtkSmartPointer<vtkActor2D>::New();
+  labelActor->SetMapper(labelMapper);
+  labelActor->SetVisibility(true);
+
+  for(auto &stroke: m_strokes)
   {
-    auto color       = m_colorEngine->color(segmentation);
-    auto labelPoints = vtkSmartPointer<vtkPoints>::New();
-    auto labelText   = vtkSmartPointer<vtkStringArray>::New();
-    labelText->SetName("Labels");
+    if(!stroke.actors.first()->GetVisibility()) continue;
 
-    auto labelsData = vtkSmartPointer<vtkPolyData>::New();
-    labelsData->SetPoints(labelPoints);
-    labelsData->GetPointData()->AddArray(labelText);
+    labelPoints->InsertNextPoint(stroke.labelPoint[0], stroke.labelPoint[1], stroke.labelPoint[2]);
+    labelText->InsertNextValue(stroke.name.toStdString().c_str());
+  }
 
-    auto textSize = SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
-
-    auto property = vtkSmartPointer<vtkTextProperty>::New();
-    property->SetBold(true);
-    property->SetFontFamilyToArial();
-    property->SetFontSize(textSize);
-    property->SetJustificationToCentered();
-
-    auto labelFilter = vtkSmartPointer<vtkPointSetToLabelHierarchy>::New();
-    labelFilter->SetInputData(labelsData);
-    labelFilter->SetLabelArrayName("Labels");
-    labelFilter->GetTextProperty()->SetFontSize(textSize);
-    labelFilter->GetTextProperty()->SetBold(true);
+  if(labelPoints->GetNumberOfPoints() > 0)
+  {
+    labelsData->Modified();
     labelFilter->Update();
-
-    auto strategy = vtkSmartPointer<vtkFreeTypeLabelRenderStrategy>::New();
-    strategy->SetDefaultTextProperty(property);
-
-    auto labelMapper = vtkSmartPointer<vtkLabelPlacementMapper>::New();
-    labelMapper->SetInputConnection(labelFilter->GetOutputPort());
-    labelMapper->SetGeneratePerturbedLabelSpokes(true);
-    labelMapper->SetBackgroundColor(color.redF()*0.6, color.greenF()*0.6, color.blueF()*0.6);
-    labelMapper->SetBackgroundOpacity(0.5);
-    labelMapper->SetPlaceAllLabels(true);
-    labelMapper->SetShapeToRoundedRect();
-    labelMapper->SetStyleToFilled();
-
-    auto labelActor = vtkSmartPointer<vtkActor2D>::New();
-    labelActor->SetMapper(labelMapper);
-    labelActor->SetVisibility(true);
-
-    for(auto &stroke: m_strokes)
-    {
-      if(!stroke.actors.first()->GetVisibility()) continue;
-
-      labelPoints->InsertNextPoint(stroke.labelPoint[0], stroke.labelPoint[1], stroke.labelPoint[2]);
-      labelText->InsertNextValue(stroke.name.toStdString().c_str());
-    }
-
-    if(labelPoints->GetNumberOfPoints() > 0)
-    {
-      labelsData->Modified();
-      labelFilter->Update();
-      labelMapper->Update();
-      labelActor->Modified();
-      actors << labelActor;
-    }
+    labelMapper->Update();
+    labelActor->Modified();
+    labelActor->SetVisibility(SegmentationSkeletonPoolSettings::getShowAnnotations(state) && item->isSelected());
+    actors << labelActor;
   }
 
   return actors;
@@ -854,7 +901,7 @@ void SkeletonInspector::onSpineSelected(const QModelIndex& index)
   auto row = index.row();
   auto name = m_table->item(row, 0)->data(Qt::DisplayRole).toString();
 
-  for(auto &stroke: m_strokes)
+  for(auto &stroke: *m_strokes)
   {
     stroke.selected = (stroke.name == name);
   }
@@ -925,7 +972,7 @@ void SkeletonInspector::emitSegmentationConnectionSignals()
 
 //--------------------------------------------------------------------
 SkeletonInspector::SkeletonInspectorRepresentationSwitch::SkeletonInspectorRepresentationSwitch(RepresentationManagerSPtr manager, SkeletonPoolSettingsSPtr settings, Support::Context &context)
-: SegmentationSkeletonSwitch{"SkeletonInspectorRepresentationSwitch", manager, settings, ViewType::VIEW_3D, context}
+: SegmentationSkeletonSwitch("SkeletonInspectorRepresentationSwitch", manager, settings, ViewType::VIEW_3D, context)
 {
   m_coloring = Styles::createToolButton(":/espina/skeletonColors.svg", QObject::tr("Enable/Disable hierarchy stroke coloring."));
   m_coloring->setCheckable(true);
@@ -1007,22 +1054,58 @@ void SkeletonInspector::addSegmentations(const SegmentationAdapterList &segmenta
   auto currentSources = m_segmentationSources.sources(ItemAdapter::Type::SEGMENTATION);
   currentSources.removeOne(m_segmentation.get());
 
-  ViewItemAdapterList addedSegmentations;
+  SegmentationAdapterList addedSegmentations;
 
-  for(auto segmentation: segmentations)
+  auto filterSegmentationsOp = [&currentSources, &addedSegmentations](SegmentationAdapterPtr item)
   {
-    if(currentSources.contains(segmentation))
+    if(currentSources.contains(item))
     {
-      currentSources.removeOne(segmentation);
+      currentSources.removeOne(item);
     }
     else
     {
-      addedSegmentations << segmentation;
+      addedSegmentations << item;
     }
+  };
+  std::for_each(segmentations.constBegin(), segmentations.constEnd(), filterSegmentationsOp);
+
+
+  if(!addedSegmentations.isEmpty())
+  {
+    auto addTemporalRepresentationOp = [this](SegmentationAdapterPtr item)
+    {
+      if(hasSkeletonData(item->output()) && item->temporalRepresentation() == nullptr)
+      {
+        createSkeletonActors(item);
+
+        auto temporalPipeline = std::make_shared<SkeletonInspectorPipeline>(m_segStrokes[item]);
+        temporalPipeline->setRandomColors(m_temporalPipeline->randomColors());
+        temporalPipeline->setHierarchyColors(m_temporalPipeline->hierarchyColors());
+        item->setTemporalRepresentation(temporalPipeline);
+      }
+    };
+    std::for_each(addedSegmentations.begin(), addedSegmentations.end(), addTemporalRepresentationOp);
+
+    m_segmentationSources.addSource(toList<ViewItemAdapter>(addedSegmentations), getViewState().createFrame());
   }
 
-  if(!addedSegmentations.isEmpty()) m_segmentationSources.addSource(addedSegmentations, getViewState().createFrame());
-  if(!currentSources.isEmpty())     m_segmentationSources.removeSource(currentSources, getViewState().createFrame());
+  if(!currentSources.isEmpty())
+  {
+    m_segmentationSources.removeSource(currentSources, getViewState().createFrame());
+
+    auto removeTemporalRepresentationsOp = [this](ViewItemAdapterPtr &item)
+    {
+      if(hasSkeletonData(item->output()) && item->temporalRepresentation() != nullptr)
+      {
+        item->clearTemporalRepresentation();
+        m_segDefinitions[item].clear();
+        m_segDefinitions.remove(item);
+        m_segStrokes[item].clear();
+        m_segStrokes.remove(item);
+      }
+    };
+    std::for_each(currentSources.begin(), currentSources.end(), removeTemporalRepresentationsOp);
+  }
 
   if(!addedSegmentations.isEmpty() || !currentSources.isEmpty())
   {

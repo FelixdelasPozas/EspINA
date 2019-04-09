@@ -150,7 +150,7 @@ namespace ESPINA
        * \param[in] segmentation Skeleton segmentation object.
        *
        */
-      void createSkeletonActors(const SegmentationAdapterSPtr segmentation);
+      void createSkeletonActors(const SegmentationAdapterPtr segmentation);
 
       /** \brief Updates the window title with the name of the inspected skeleton segmentation.
        * \param[in] segmentationName Skeleton segmentation name.
@@ -310,13 +310,15 @@ namespace ESPINA
 
       using TemporalPipelineSPtr = std::shared_ptr<SkeletonInspectorPipeline>;
 
-      SegmentationAdapterSPtr  m_segmentation;        /** skeleton segmentation.                                 */
-      View3D                   m_view;                /** 3D view.                                               */
-      ManualPipelineSources    m_segmentationSources; /** list of channels as sources for pipelines.             */
-      RepresentationList       m_representations;     /** list of view's representations factories and switches. */
-      QList<struct StrokeInfo> m_strokes;             /** list of stroke information.                            */
-      TemporalPipelineSPtr     m_temporalPipeline;    /** segmentation temporal representation.                  */
-      Core::SkeletonDefinition m_definition;          /** skeleton definition struct.                            */
+      SegmentationAdapterSPtr   m_segmentation;        /** skeleton segmentation.                                 */
+      View3D                    m_view;                /** 3D view.                                               */
+      ManualPipelineSources     m_segmentationSources; /** list of channels as sources for pipelines.             */
+      RepresentationList        m_representations;     /** list of view's representations factories and switches. */
+      QList<struct StrokeInfo> *m_strokes;             /** list of stroke information.                            */
+      TemporalPipelineSPtr      m_temporalPipeline;    /** segmentation temporal representation.                  */
+
+      QMap<ViewItemAdapterPtr, Core::SkeletonDefinition> m_segDefinitions; /** skeleton definitions of view's segmentations. */
+      QMap<ViewItemAdapterPtr, QList<struct StrokeInfo>> m_segStrokes;     /** strokes info of view's segmentations.         */
   };
 
   /** \class SkeletonInspectorRepresentationSwitch

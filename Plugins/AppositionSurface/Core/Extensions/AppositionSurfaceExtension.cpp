@@ -490,7 +490,6 @@ std::pair<Nm, AppositionSurfaceExtension::Shape> AppositionSurfaceExtension::com
         ++discarded;
 
         if(perimeter.added) --added;
-
       }
     }
 
