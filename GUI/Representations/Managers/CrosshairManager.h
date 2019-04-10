@@ -62,6 +62,12 @@ namespace ESPINA
           virtual ~CrosshairManager()
           {};
 
+          /** \brief Enables/Disables the plane intersection lines in 3D views.
+           * \param[in] value True to show intersections, false otherwise.
+           *
+           */
+          void setShowIntersections(const bool value);
+
           virtual ViewItemAdapterList pick(const NmVector3 &point, vtkProp *actor) const override;
 
         private:
@@ -113,11 +119,15 @@ namespace ESPINA
           void updateCrosshairs(const FrameCSPtr frame);
 
         private:
-          vtkSmartPointer<vtkPoints>         m_points[3];
-          vtkSmartPointer<vtkCellArray>      m_cells[3];
-          vtkSmartPointer<vtkPolyData>       m_datas[3];
-          vtkSmartPointer<vtkPolyDataMapper> m_mappers[3];
-          vtkSmartPointer<vtkActor>          m_actors[3];
+          vtkSmartPointer<vtkPoints>         m_points[3];          /** actor points.                                            */
+          vtkSmartPointer<vtkCellArray>      m_cells[3];           /** actor cells.                                             */
+          vtkSmartPointer<vtkPolyData>       m_datas[3];           /** actor polydatas.                                         */
+          vtkSmartPointer<vtkPolyDataMapper> m_mappers[3];         /** actor mappers.                                           */
+          vtkSmartPointer<vtkActor>          m_actors[3];          /** actors.                                                  */
+          vtkSmartPointer<vtkPolyData>       m_intersectionData;   /** intersection actor polydatas.                            */
+          vtkSmartPointer<vtkPolyDataMapper> m_intersectionMapper; /** intersection actor mappers.                              */
+          vtkSmartPointer<vtkActor>          m_intersectionActor;  /** intersection actors.                                     */
+          bool                               m_showIntersections;  /** true to show plane intersections in 3d, false otherwise. */
         };
       }
     }

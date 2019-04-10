@@ -54,7 +54,7 @@ SegmentationVolumetricSwitch::~SegmentationVolumetricSwitch()
 }
 
 //--------------------------------------------------------------------
-ViewTypeFlags SegmentationVolumetricSwitch::supportedViews()
+ViewTypeFlags SegmentationVolumetricSwitch::supportedViews() const
 {
   return ViewTypeFlags{ViewType::VIEW_3D};
 }

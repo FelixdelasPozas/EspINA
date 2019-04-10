@@ -136,7 +136,8 @@ namespace ESPINA
       /** \brief ModelAdapter class destructor.
        *
        */
-      virtual ~ModelAdapter();
+      virtual ~ModelAdapter()
+      {};
 
       /** \brief Sets the analysis this model adapts and a model factory.
        * \param[in] analysis analysis smart pointer.
@@ -146,10 +147,10 @@ namespace ESPINA
        */
       void setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory);
 
-       /** \brief Returns true if the model doesn't contains at least
-        *         one samples, channel or segmentation
-        */
-       bool isEmpty() const;
+      /** \brief Returns true if the model doesn't contains at least
+       *         one samples, channel or segmentation
+       */
+      bool isEmpty() const;
 
       /** \brief Clears current analysis items and reset views
        *

@@ -264,7 +264,7 @@ void SegmentationRepresentationFactory::createMeshRepresentation(Representation 
 
   smoothedMeshManager->setName("DisplaySmoothedSegmentationMesh");
 
-  auto meshSwitch = std::make_shared<SegmentationMeshSwitch>(meshManager, smoothedMeshManager, meshesSettings, ViewType::VIEW_3D, context);
+  auto meshSwitch = std::make_shared<SegmentationMeshSwitch>(meshManager, smoothedMeshManager, meshesSettings, context);
   groupSwitch("1-1", meshSwitch);
 
   representation.Pools    << poolMesh << poolSmoothedMesh;

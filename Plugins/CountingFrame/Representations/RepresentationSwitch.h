@@ -50,7 +50,7 @@ namespace ESPINA
          *
          */
         explicit CFRepresentationSwitch(GUI::Representations::RepresentationManagerSPtr manager,
-                                      Support::Context                                 &context);
+                                        Support::Context                               &context);
 
         /** \brief RepresentationSwitch class virtual destructor.
          *

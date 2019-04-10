@@ -39,40 +39,67 @@ DataSPtr RawDataFactory::createData(OutputSPtr           output,
   const Data::Type requestedType = info.value("type").toString();
   const VolumeBounds bounds(Bounds(info.value("bounds").toString()), output->spacing());
 
-  if (!output->hasData(requestedType))
+  if(VolumetricData<itkVolumeType>::TYPE == requestedType)
   {
-    if(VolumetricData<itkVolumeType>::TYPE == requestedType)
-    {
-      data = std::make_shared<SparseVolume<itkVolumeType>>(bounds);
-    }
-    else
-    {
-      if(MeshData::TYPE == requestedType)
-      {
-        data = std::make_shared<RawMesh>();
-      }
-      else
-      {
-        if(SkeletonData::TYPE == requestedType)
-        {
-          data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
-        }
-        else
-        {
-          auto message = QObject::tr("Unknown data type for RawDataFactory: %1").arg(requestedType);
-          auto details = QObject::tr("RawDataFactory::createData() -> ") + message;
+    data = createVolumetricData(output, storage, path, bounds);
+  }
+  else if(MeshData::TYPE == requestedType)
+  {
+    data = createMeshData(output, storage, path, bounds);
+  }
+  else if(SkeletonData::TYPE == requestedType)
+  {
+    data = createSkeletonData(output, storage, path, bounds);
+  }
+  else
+  {
+    auto message = QObject::tr("Unknown data type for data factory: %1").arg(requestedType);
+    auto details = QObject::tr("RawDataFactory::createData() -> ") + message;
 
-          throw EspinaException(message, details);
-        }
-      }
-    }
-
-    if (data)
-    {
-      data->setFetchContext(storage, path, QString::number(output->id()), bounds);
-      output->setData(data);
-    }
+    throw EspinaException(message, details);
   }
 
   return data;
+}
+
+//----------------------------------------------------------------------------
+DefaultVolumetricDataSPtr ESPINA::RawDataFactory::createVolumetricData(OutputSPtr          output,
+                                                                       TemporalStorageSPtr storage,
+                                                                       const QString      &path,
+                                                                       const VolumeBounds &bounds)
+{
+  if (!hasVolumetricData(output))
+  {
+    auto data = std::make_shared<SparseVolume<itkVolumeType>>(bounds);
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+    output->setData(data);
+  }
+
+  return writeLockVolume(output, DataUpdatePolicy::Ignore);
+}
+
+//----------------------------------------------------------------------------
+MeshDataSPtr ESPINA::RawDataFactory::createMeshData(OutputSPtr output, TemporalStorageSPtr storage, const QString& path, const VolumeBounds& bounds)
+{
+  if(!hasMeshData(output))
+  {
+    auto data = std::make_shared<RawMesh>();
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+    output->setData(data);
+  }
+
+  return writeLockMesh(output, DataUpdatePolicy::Ignore);
+}
+
+//----------------------------------------------------------------------------
+SkeletonDataSPtr ESPINA::RawDataFactory::createSkeletonData(OutputSPtr output, TemporalStorageSPtr storage, const QString& path, const VolumeBounds& bounds)
+{
+  if(!hasSkeletonData(output))
+  {
+    auto data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+    output->setData(data);
+  }
+
+  return writeLockSkeleton(output, DataUpdatePolicy::Ignore);
 }

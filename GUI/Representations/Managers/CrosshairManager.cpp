@@ -29,10 +29,12 @@
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkCellArray.h>
+#include <vtkCellData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkActor.h>
 #include <vtkLine.h>
 #include <vtkProperty.h>
+#include <vtkUnsignedCharArray.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::Representations;
@@ -40,40 +42,54 @@ using namespace ESPINA::GUI::Representations::Managers;
 
 //-----------------------------------------------------------------------------
 CrosshairManager::CrosshairManager(ViewTypeFlags supportedViews)
-: RepresentationManager{supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS}
+: RepresentationManager(supportedViews, RepresentationManager::EXPORTS_3D|RepresentationManager::NEEDS_ACTORS)
+, m_showIntersections{false}
 {
   double colors[3][3]{ { 0, 1, 1 }, { 0, 0, 1 },  { 1, 0, 1 } };
 
-  double point[3]{0.0,0.0,0.0};
+  const double point[3]{0.0,0.0,0.0};
   for(auto index: {0,1,2})
   {
-    m_points[index]  = vtkSmartPointer<vtkPoints>::New();
+    m_points[index] = vtkSmartPointer<vtkPoints>::New();
     m_points[index]->SetNumberOfPoints(2);
     m_points[index]->SetPoint(0, point);
     m_points[index]->SetPoint(1, point);
     m_points[index]->Modified();
 
-    m_cells[index]   = vtkSmartPointer<vtkCellArray>::New();
+    m_cells[index] = vtkSmartPointer<vtkCellArray>::New();
     auto line = vtkSmartPointer<vtkLine>::New();
     line->GetPointIds()->SetId(0, 0);
     line->GetPointIds()->SetId(1, 1);
     m_cells[index]->InsertNextCell(line);
     m_cells[index]->Modified();
 
-    m_datas[index]   = vtkSmartPointer<vtkPolyData>::New();
+    m_datas[index] = vtkSmartPointer<vtkPolyData>::New();
     m_datas[index]->SetPoints(m_points[index]);
     m_datas[index]->SetLines(m_cells[index]);
 
     m_mappers[index] = vtkSmartPointer<vtkPolyDataMapper>::New();
     m_mappers[index]->SetInputData(m_datas[index]);
 
+    const bool is3D = supportedViews.testFlag(ViewType::VIEW_3D);
+
     m_actors[index]  = vtkSmartPointer<vtkActor>::New();
     m_actors[index]->SetMapper(m_mappers[index]);
     m_actors[index]->GetProperty()->SetPointSize(2);
-    m_actors[index]->GetProperty()->SetLineWidth(1);
+    m_actors[index]->GetProperty()->SetLineWidth(is3D ? 2 : 1);
     m_actors[index]->GetProperty()->SetColor(colors[index]);
     m_actors[index]->SetPickable(false);
   }
+
+  m_intersectionData = vtkSmartPointer<vtkPolyData>::New();
+
+  m_intersectionMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_intersectionMapper->SetInputData(m_intersectionData);
+
+  m_intersectionActor = vtkSmartPointer<vtkActor>::New();
+  m_intersectionActor->SetMapper(m_intersectionMapper);
+  m_intersectionActor->GetProperty()->SetLineWidth(4);
+  m_intersectionActor->GetProperty()->SetPointSize(2);
+  m_intersectionActor->SetPickable(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -128,6 +144,11 @@ void CrosshairManager::displayRepresentations(const FrameCSPtr frame)
     m_view->addActor(m_actors[0]);
     m_view->addActor(m_actors[1]);
     m_view->addActor(m_actors[2]);
+
+    if(isView3D(m_view) && m_showIntersections)
+    {
+      m_view->addActor(m_intersectionActor);
+    }
   }
 }
 
@@ -138,6 +159,8 @@ void CrosshairManager::hideRepresentations(const FrameCSPtr frame)
   m_view->removeActor(m_actors[0]);
   m_view->removeActor(m_actors[1]);
   m_view->removeActor(m_actors[2]);
+
+  if(isView3D(m_view) && m_showIntersections) m_view->removeActor(m_intersectionActor);
 }
 
 //-----------------------------------------------------------------------------
@@ -229,6 +252,10 @@ void CrosshairManager::configure3DActors(const NmVector3 &crosshair)
 {
   auto sceneBounds = m_view->sceneBounds();
 
+  auto lines = vtkSmartPointer<vtkCellArray>::New();
+  auto points = vtkSmartPointer<vtkPoints>::New();
+  points->SetNumberOfPoints(6);
+
   for(auto index: {0,1,2})
   {
     auto reslicePoint = crosshair[index];
@@ -276,7 +303,40 @@ void CrosshairManager::configure3DActors(const NmVector3 &crosshair)
       m_mappers[index]->Update();
       m_actors[index]->Modified();
     }
+
+    double p1[3]{ crosshair[0], crosshair[1], crosshair[2]};
+    double p2[3]{ crosshair[0], crosshair[1], crosshair[2]};
+    p1[index] = sceneBounds[2*index];
+    p2[index] = sceneBounds[(2*index)+1];
+
+    points->SetPoint(2*index, p1);
+    points->SetPoint((2*index)+1, p2);
+
+    auto line = vtkSmartPointer<vtkLine>::New();
+    line->GetPoints()->SetNumberOfPoints(2);
+    line->GetPointIds()->SetId(0,2*index);
+    line->GetPointIds()->SetId(1,(2*index)+1);
+
+    lines->InsertNextCell(line);
   }
+
+  const unsigned char intersections[3][3]{ { 128, 0, 255 }, { 128, 128, 255 },  { 0, 128, 255 } };
+
+  auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colors->SetNumberOfComponents(3);
+  colors->InsertNextTupleValue(intersections[0]);
+  colors->InsertNextTupleValue(intersections[1]);
+  colors->InsertNextTupleValue(intersections[2]);
+
+  lines->Modified();
+  points->Modified();
+
+  m_intersectionData->SetLines(lines);
+  m_intersectionData->SetPoints(points);
+  m_intersectionData->GetCellData()->SetScalars(colors);
+  m_intersectionData->Modified();
+  m_intersectionMapper->Update();
+  m_intersectionActor->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -296,7 +356,7 @@ void CrosshairManager::updateCrosshairs(const FrameCSPtr frame)
 {
   if(m_view)
   {
-    if (view3D_cast(m_view))
+    if (isView3D(m_view))
     {
       configure3DActors(frame->crosshair);
     }
@@ -304,5 +364,38 @@ void CrosshairManager::updateCrosshairs(const FrameCSPtr frame)
     {
       configure2DActors(frame->crosshair);
     }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void CrosshairManager::setShowIntersections(const bool value)
+{
+  auto enableIntersectionsOp = [value](RepresentationManager *manager)
+  {
+    auto cManager = dynamic_cast<CrosshairManager *>(manager);
+    if(cManager) cManager->setShowIntersections(value);
+  };
+  std::for_each(m_childs.constBegin(), m_childs.constEnd(), enableIntersectionsOp);
+
+  if(!m_view || !isView3D(m_view)) return;
+
+  if(value != m_showIntersections)
+  {
+    m_showIntersections = value;
+
+    if(hasActors())
+    {
+      switch(m_showIntersections)
+      {
+        case true:
+          m_view->addActor(m_intersectionActor);
+          break;
+        default:
+          m_view->removeActor(m_intersectionActor);
+          break;
+      }
+    }
+
+    m_view->refresh();
   }
 }

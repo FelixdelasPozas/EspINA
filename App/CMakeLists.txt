@@ -99,6 +99,7 @@ qt5_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/FullscreenTool.h
+  ToolGroups/Visualize/Representations/Switches/CrosshairSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
@@ -261,6 +262,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/Representations/StackRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/Switches/CrosshairSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.cpp
   ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.cpp

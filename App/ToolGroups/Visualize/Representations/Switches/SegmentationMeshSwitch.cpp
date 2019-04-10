@@ -32,13 +32,11 @@ const QString SEGMENTATION_MESH_SMOOTH_VALUE_KEY = "Smooth Value";
 SegmentationMeshSwitch::SegmentationMeshSwitch(GUI::Representations::RepresentationManagerSPtr meshManager,
                                                GUI::Representations::RepresentationManagerSPtr smoothedMeshManager,
                                                std::shared_ptr<SegmentationMeshPoolSettings>   settings,
-                                               ViewTypeFlags                                   supportedViews,
                                                Support::Context                               &context)
 : RepresentationSwitch ("SegmentationMeshSwitch", meshManager->icon(), meshManager->description(), context)
 , m_meshManager        {meshManager}
 , m_smoothedMeshManager{smoothedMeshManager}
 , m_settings           {settings}
-, m_flags              {supportedViews}
 , m_smoothEnabled      {false}
 {
   initWidgets();
@@ -61,9 +59,9 @@ SegmentationMeshSwitch::~SegmentationMeshSwitch()
 }
 
 //----------------------------------------------------------------------------
-ViewTypeFlags SegmentationMeshSwitch::supportedViews()
+ViewTypeFlags SegmentationMeshSwitch::supportedViews() const
 {
-  return m_flags;
+  return ViewTypeFlags{ViewType::VIEW_3D};
 }
 
 //----------------------------------------------------------------------------

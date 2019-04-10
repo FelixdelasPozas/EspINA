@@ -53,7 +53,7 @@ namespace ESPINA
        */
       virtual ~SegmentationVolumetricSwitch();
 
-      virtual ViewTypeFlags supportedViews() override;
+      virtual ViewTypeFlags supportedViews() const override;
 
       virtual void showRepresentations(const GUI::Representations::FrameCSPtr frame) override;
 
