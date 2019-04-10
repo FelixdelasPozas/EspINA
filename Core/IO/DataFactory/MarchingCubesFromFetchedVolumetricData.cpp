@@ -24,23 +24,38 @@
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 #include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
+#include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //----------------------------------------------------------------------------
 DataSPtr MarchingCubesFromFetchedVolumetricData::createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info)
 {
   DataSPtr data;
 
+  const Data::Type requestedType = info.value("type").toString();
   VolumeBounds bounds(Bounds(info.value("bounds").toString()), output->spacing());
 
-  if ("VolumetricData" == info.value("type"))
+  if (VolumetricData<itkVolumeType>::TYPE == requestedType)
   {
     data = createVolumetricData(output, storage, path, bounds);
   }
-  else if ("MeshData" == info.value("type"))
+  else if (MeshData::TYPE == requestedType)
   {
     data = createMeshData(output, storage, path, bounds);
+  }
+  else if(SkeletonData::TYPE == requestedType)
+  {
+    data = createSkeletonData(output, storage, path, bounds);
+  }
+  else
+  {
+    auto message = QObject::tr("Unknown data type for data factory: %1").arg(requestedType);
+    auto details = QObject::tr("MarchingCubesFromFetchedVolumetricData::createData() -> ") + message;
+
+    throw EspinaException(message, details);
   }
 
   return data;
@@ -82,4 +97,21 @@ MeshDataSPtr MarchingCubesFromFetchedVolumetricData::createMeshData(OutputSPtr  
   }
 
   return writeLockMesh(output, DataUpdatePolicy::Ignore);
+}
+
+//----------------------------------------------------------------------------
+SkeletonDataSPtr MarchingCubesFromFetchedVolumetricData::createSkeletonData(OutputSPtr          output,
+                                                                            TemporalStorageSPtr storage,
+                                                                            const QString      &path,
+                                                                            const VolumeBounds &bounds)
+{
+  if(!output->hasData(SkeletonData::TYPE))
+  {
+    auto data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+
+    output->setData(data);
+  }
+
+  return writeLockSkeleton(output, DataUpdatePolicy::Ignore);
 }
