@@ -46,6 +46,8 @@ SegmentationFilterProxyModel::SegmentationFilterProxyModel(QObject *parent)
 : QSortFilterProxyModel{parent}
 {
   setFilterCaseSensitivity(Qt::CaseInsensitive);
+  setSortRole(Qt::DisplayRole);
+  setSortLocaleAware(true);
 }
 
 //------------------------------------------------------------------------
