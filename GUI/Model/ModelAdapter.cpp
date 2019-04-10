@@ -46,12 +46,6 @@ ModelAdapter::ModelAdapter()
 }
 
 //------------------------------------------------------------------------
-ModelAdapter::~ModelAdapter()
-{
-//   qDebug() << "Destroying Model Adapter";
-}
-
-//------------------------------------------------------------------------
 void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 {
   emit modelChanged();
@@ -75,28 +69,22 @@ void ModelAdapter::setAnalysis(AnalysisSPtr analysis, ModelFactorySPtr factory)
 
   // NOTE: channels depends on samples and samples on channels in the ChannelProxy...
   // thats why the begin-endInsertRows are done later. If not, the find(PersistenSPtr) called
-  // by the ChannelProxy will fail and potentially crash Espina.
+  // by the ChannelProxy will fail and potentially crash the application.
 
-  if (!analysis->samples().isEmpty())
+  // Adapt Samples first
+  for(auto sample: analysis->samples())
   {
-    // Adapt Samples first
-    for(auto sample : analysis->samples())
-    {
-      auto adapted = factory->adaptSample(sample);
-      m_samples << adapted;
-      adapted->setModel(this);
-    }
+    auto adapted = factory->adaptSample(sample);
+    m_samples << adapted;
+    adapted->setModel(this);
   }
 
-  if (!analysis->channels().isEmpty())
+  // Adapt channels --> adapt non adapted filters
+  for(auto channel : analysis->channels())
   {
-    // Adapt channels --> adapt non adapted filters
-    for(auto channel : analysis->channels())
-    {
-      auto adapted = factory->adaptChannel(channel);
-      m_channels << adapted;
-      adapted->setModel(this);
-    }
+    auto adapted = factory->adaptChannel(channel);
+    m_channels << adapted;
+    adapted->setModel(this);
   }
 
   ViewItemAdapterSList addedItems;
@@ -1107,20 +1095,29 @@ ItemAdapterSPtr ModelAdapter::find(PersistentSPtr item)
 //------------------------------------------------------------------------
 CategoryAdapterSPtr ModelAdapter::smartPointer(CategoryAdapterPtr category)
 {
+  CategoryAdapterSPtr result{nullptr};
+
   if (category == m_classification->root().get())
   {
-    return m_classification->root();
+    result = m_classification->root();
+  }
+  else
+  {
+    const auto parent = category->parent();
+
+    if(parent)
+    {
+      result = parent->subCategory(category->name());
+    }
   }
 
-  auto parent = category->parent();
-
-  return parent->subCategory(category->name());
+  return result;
 }
 
 //------------------------------------------------------------------------
 SampleAdapterSPtr ModelAdapter::smartPointer(SampleAdapterPtr sample)
 {
-  SampleAdapterSPtr pointer;
+  SampleAdapterSPtr pointer{nullptr};
 
   int i=0;
   while (!pointer && i < m_samples.size())
