@@ -51,148 +51,237 @@ namespace ESPINA
           class EspinaGUI_EXPORT vtkOrthogonalRepresentation2D
           : public vtkWidgetRepresentation
           {
-            //BTX
-            enum EDGE {LEFT, TOP, RIGHT, BOTTOM};
-            //ETX
+            public:
+              static vtkOrthogonalRepresentation2D *New();
 
-          public:
-            // Description:
-            // Instantiate the class.
-            static vtkOrthogonalRepresentation2D *New();
+              vtkTypeMacro(vtkOrthogonalRepresentation2D,vtkWidgetRepresentation);
+              void PrintSelf(ostream& os, vtkIndent indent);
 
-            // Description:
-            // Standard methods for the class.
-            vtkTypeMacro(vtkOrthogonalRepresentation2D,vtkWidgetRepresentation);
-            void PrintSelf(ostream& os, vtkIndent indent);
+              /** \brief Sets the representation depth in the plane it is visible.
+               * \param[in] depth Depth in Nm.
+               *
+               */
+              void SetDepth(const double depth);
 
-            void reset();
+              /** \brief Sets the plane of the view the representation will be shown.
+               * \param[in] plane Plane enum value.
+               *
+               */
+              void SetPlane(const Plane plane);
 
-            // Description:
-            // Get the view type properties. In which plane it is been shown
-            // and which slice (in case of planar views) is selected
-            void SetDepth(double depth);
-            void SetPlane(Plane plane);
-            void SetSlice(Nm pos);
-            void SetOrthogonalBounds(double bounds[6]);
-            void GetOrthogonalBounds(double bounds[6]);
+              /** \brief Sets the slice of the representation in the planar view.
+               * \param[in] pos Position in Nm.
+               *
+               */
+              void SetSlice(Nm pos);
 
-            // Description:
-            // These are methods that satisfy vtkWidgetRepresentation's API.
-            virtual void PlaceWidget(double bounds[6]);
-            virtual void BuildRepresentation();
-            virtual int  ComputeInteractionState(int X, int Y, int modify=0);
-            virtual void StartWidgetInteraction(double e[2]);
-            virtual void WidgetInteraction(double e[2]);
-            virtual double *GetBounds();
+              /** \brief Sets the bounds of the representation.
+               * \param[in] bounds Bounds in Nm.
+               *
+               */
+              void SetOrthogonalBounds(double bounds[6]);
 
-            // Description:
+              /** \brief Returns the representation bounds in the given array.
+               * \param[out] bounds Bounds in Nm.
+               *
+               */
+              void GetOrthogonalBounds(double bounds[6]);
 
-            // Methods supporting, and required by, the rendering process.
-            virtual void ReleaseGraphicsResources(vtkWindow*);
-            virtual int  RenderOpaqueGeometry(vtkViewport*);
-            virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*);
-            virtual int  HasTranslucentPolygonalGeometry();
+              virtual void PlaceWidget(double bounds[6]);
+              virtual void BuildRepresentation();
+              virtual int  ComputeInteractionState(int X, int Y, int modify=0);
+              virtual void StartWidgetInteraction(double e[2]);
+              virtual void WidgetInteraction(double e[2]);
+              virtual double *GetBounds();
+
+              virtual void ReleaseGraphicsResources(vtkWindow*);
+              virtual int  RenderOpaqueGeometry(vtkViewport*);
+              virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*);
+              virtual int  HasTranslucentPolygonalGeometry();
 
 
-            //BTX - used to manage the state of the widget
-            enum {Outside=0, Inside,
-                  MoveLeft,  MoveRight,
-                  MoveTop,   MoveBottom,
-                  Translating
-            };
+              //BTX - used to manage the state of the widget
+              enum {Outside=0, Inside,
+                    MoveLeft,  MoveRight,
+                    MoveTop,   MoveBottom,
+                    Translating
+              };
 
-            //ETX
+              //ETX
 
-            // Description:
-            // The interaction state may be set from a widget (e.g., vtkBoxWidget2) or
-            // other object. This controls how the interaction with the widget
-            // proceeds. Normally this method is used as part of a handshaking
-            // process with the widget: First ComputeInteractionState() is invoked that
-            // returns a state based on geometric considerations (i.e., cursor near a
-            // widget feature), then based on events, the widget may modify this
-            // further.
-            void SetInteractionState(int state);
+              /** \brief The interaction state may be set from a widget (e.g., vtkBoxWidget2) or
+               * other object. This controls how the interaction with the widget
+               * proceeds. Normally this method is used as part of a handshaking
+               * process with the widget: First ComputeInteractionState() is invoked that
+               * returns a state based on geometric considerations (i.e., cursor near a
+               * widget feature), then based on events, the widget may modify this
+               * further.
+               * \param[in] state Representation state value in state enum.
+               */
+              void SetInteractionState(const int state);
 
-            // modify representation methods
-            void setRepresentationColor(double *);
-            void setRepresentationPattern(int);
+              /** \brief Sets the representation color.
+               * \param[in] color Color rgb values array.
+               *
+               */
+              void setRepresentationColor(const double *color);
 
-          protected:
-            vtkOrthogonalRepresentation2D();
-            ~vtkOrthogonalRepresentation2D();
+              /** \brief Sets the representation pattern.
+               * \param[in] patter Pattern value.
+               *
+               */
+              void setRepresentationPattern(const int pattern);
 
-            // Manage how the representation appears
-            double LastEventPosition[3];
+            protected:
+              /** \brief vtkOrthogonalRepresentation2D class constructor.
+               *
+               */
+              vtkOrthogonalRepresentation2D();
 
-            // Counting Region Edge
-            vtkSmartPointer<vtkActor>          EdgeActor[4];
-            vtkSmartPointer<vtkPolyDataMapper> EdgeMapper[4];
-            vtkSmartPointer<vtkPolyData>       EdgePolyData[4];
-            vtkSmartPointer<vtkPoints>         Vertex;
+              /** \brief vtkOrthogonalRepresentation2D class virtual destructor.
+               *
+               */
+              virtual ~vtkOrthogonalRepresentation2D();
 
-            void HighlightEdge(vtkSmartPointer<vtkActor> actor);
-            void Highlight();
+              double LastEventPosition[3]; /** position of the last event. */
 
-            // Do the picking
-            vtkSmartPointer<vtkCellPicker> EdgePicker;
-            vtkSmartPointer<vtkCellPicker> LastPicker;
-            vtkSmartPointer<vtkActor>      CurrentEdge;
+              // Counting Region Edge
+              vtkSmartPointer<vtkActor>          EdgeActor[4];    /** edges actors.           */
+              vtkSmartPointer<vtkPolyDataMapper> EdgeMapper[4];   /** edges polydata mappers. */
+              vtkSmartPointer<vtkPolyData>       EdgePolyData[4]; /** edges polydata.         */
+              vtkSmartPointer<vtkPoints>         Vertex;          /** representation points.  */
 
-            // Properties used to control the appearance of selected objects and
-            // the manipulator in general.
-            vtkSmartPointer<vtkProperty> EdgeProperty;
-            vtkSmartPointer<vtkProperty> SelectedEdgeProperty;
-            vtkSmartPointer<vtkProperty> InvisibleProperty;
+              /** \brief Changes the property of the given actor to highlight it.
+               * \param[in] actor Edge actor to modify.
+               *
+               */
+              void HighlightEdge(vtkSmartPointer<vtkActor> actor);
 
-            virtual void CreateDefaultProperties();
+              /** \brief Highlights all edges.
+               *
+               */
+              void Highlight();
 
-          private:
-            int hCoord() const {return Plane::YZ == m_plane?2:0;}
-            int vCoord() const {return Plane::XZ == m_plane?2:1;}
+              // Do the picking
+              vtkSmartPointer<vtkCellPicker> EdgePicker;  /** edge picker.                             */
+              vtkSmartPointer<vtkCellPicker> LastPicker;  /** edge picker of last interaction or null. */
+              vtkSmartPointer<vtkActor>      CurrentEdge; /** edge actor of the current interaction.   */
 
-            // Helper methods to create face representations
-            void CreateRegion();
-            void UpdateRegion();
-            void UpdateXYFace();
-            void UpdateYZFace();
-            void UpdateXZFace();
+              vtkSmartPointer<vtkProperty> EdgeProperty;         /** edge actor property.                  */
+              vtkSmartPointer<vtkProperty> SelectedEdgeProperty; /** edge actor property when selected.    */
+              vtkSmartPointer<vtkProperty> InvisibleProperty;    /** edge actor property when not visible. */
 
-            // Helper methods
-            void MoveLeftEdge(double *p1, double *p2);
-            void MoveRightEdge(double *p1, double *p2);
-            void MoveTopEdge(double *p1, double *p2);
-            void MoveBottomEdge(double *p1, double *p2);
-            void Translate(double *p1, double *p2);
+              /** \brief Helper method to create the edge actors properties.
+               *
+               */
+              virtual void CreateDefaultProperties();
 
-            double sliceDepth() const;
+            private:
+              /** \brief Helper method that returns the index of the horizontal coordinate in the view.
+               *
+               */
+              const int hCoord() const {return Plane::YZ == m_plane?2:0;}
 
-            void updateEdgeColor  (vtkProperty *edge);
+              /** \brief Helper method that returns the index of the vertical coordinate in the view.
+               *
+               */
+              const int vCoord() const {return Plane::XZ == m_plane?2:1;}
 
-            void updateEdgePattern(vtkProperty *edge);
+              /** \brief Helper method to create the orthogonal region.
+               *
+               */
+              void CreateRegion();
 
-          private:
-            vtkOrthogonalRepresentation2D(const vtkOrthogonalRepresentation2D&);  //Not implemented
-            void operator=(const vtkOrthogonalRepresentation2D&);  //Not implemented
+              /** \brief Updates the region representation.
+               *
+               */
+              void UpdateRegion();
 
-            Plane  m_plane;
-            Nm     m_slice;
+              /** \brief Updates the region representation for a XY planar view.
+               *
+               */
+              void UpdateXYFace();
 
-            double m_bounds[6];
+              /** \brief Updates the region representation for a YZ planar view.
+               *
+               */
+              void UpdateYZFace();
 
-            int NumPoints;
-            int NumSlices;
-            int NumVertex;
+              /** \brief Updates the region representation for a XZ planar view.
+               *
+               */
+              void UpdateXZFace();
 
-            double m_repBounds[6];
+              /** \brief Helper method to move the left edge.
+               * \param[in] from Initial point of the movement.
+               * \param[in] to Final point of the movement.
+               *
+               */
+              void MoveLeftEdge(double *from, double *to);
 
-            double LeftEdge;
-            double TopEdge;
-            double RightEdge;
-            double BottomEdge;
+              /** \brief Helper method to move the right edge.
+               * \param[in] from Initial point of the movement.
+               * \param[in] to Final point of the movement.
+               *
+               */
+              void MoveRightEdge(double *from, double *to);
 
-            double m_depth;
-            double m_color[3];
-            int    m_pattern;
+              /** \brief Helper method to move the top edge.
+               * \param[in] from Initial point of the movement.
+               * \param[in] to Final point of the movement.
+               *
+               */
+              void MoveTopEdge(double *from, double *to);
+
+              /** \brief Helper method to move the bottom edge.
+               * \param[in] from Initial point of the movement.
+               * \param[in] to Final point of the movement.
+               *
+               */
+              void MoveBottomEdge(double *from, double *to);
+
+              /** \brief Helper method to translate all edges.
+               * \param[in] from Initial point of the movement.
+               * \param[in] to Final point of the movement.
+               *
+               */
+              void Translate(double *from, double *to);
+
+              /** \brief Returns the depth of the representation in the current view.
+               *
+               */
+              const double sliceDepth() const;
+
+              /** \brief Updates the color of the given property.
+               * \param[in] property Edge actor property.
+               *
+               */
+              void updateEdgeColor  (vtkProperty *property);
+
+              /** \brief Updates the pattern of the given property.
+               * \param[in] property Edge actor property.
+               *
+               */
+              void updateEdgePattern(vtkProperty *property);
+
+            private:
+              /** Edge enum */
+              enum class Edge: char {LEFT = 0, TOP, RIGHT, BOTTOM};
+
+              vtkOrthogonalRepresentation2D(const vtkOrthogonalRepresentation2D&);  // copy constructor not implemented
+              void operator=(const vtkOrthogonalRepresentation2D&);  // assign operator not implemented
+
+              Plane  m_plane;        /** plane of the representation.                     */
+              Nm     m_slice;        /** current slice of the representation.             */
+              double m_bounds[6];    /** representation bounds in 3D.                     */
+              double m_repBounds[6]; /** bounds of the representation in the planar view. */
+              double LeftEdge;       /** left edge position.                              */
+              double TopEdge;        /** top edge position.                               */
+              double RightEdge;      /** right edge position.                             */
+              double BottomEdge;     /** bottom edge position.                            */
+              double m_depth;        /** depth of the representation in the planar view.  */
+              double m_color[3];     /** rgb values of the color of the representation.   */
+              int    m_pattern;      /** pattern value of the representation.             */
           };
         }
       }

@@ -66,12 +66,12 @@ vtkOrthogonalWidget2D::vtkOrthogonalWidget2D()
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::Select,
                                           this, vtkOrthogonalWidget2D::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
-                                          0, 0, NULL,
+                                          0, 0, nullptr,
                                           vtkWidgetEvent::EndSelect,
                                           this, vtkOrthogonalWidget2D::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonPressEvent,
@@ -90,12 +90,6 @@ vtkOrthogonalWidget2D::vtkOrthogonalWidget2D()
   m_color[0] = m_color[1] = 1;
   m_color[2] = 0;
 }
-
-//----------------------------------------------------------------------------
-vtkOrthogonalWidget2D::~vtkOrthogonalWidget2D()
-{
-}
-
 
 //----------------------------------------------------------------------
 void vtkOrthogonalWidget2D::ensureRepresentationIsAvailable()
@@ -118,19 +112,19 @@ void vtkOrthogonalWidget2D::updateRepresentation()
 void vtkOrthogonalWidget2D::SelectAction(vtkAbstractWidget *w)
 {
   // We are in a static method, cast to ourself
-  vtkOrthogonalWidget2D *self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
+  auto self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
 
   // Get the event position
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
+  const int X = self->Interactor->GetEventPosition()[0];
+  const int Y = self->Interactor->GetEventPosition()[1];
 
   // Okay, make sure that the pick is in the current renderer
-  if ( !self->CurrentRenderer || 
-       !self->CurrentRenderer->IsInViewport(X,Y) )
-    {
+  if(!self->CurrentRenderer ||
+     !self->CurrentRenderer->IsInViewport(X,Y))
+  {
     self->WidgetState = vtkOrthogonalWidget2D::Start;
     return;
-    }
+  }
 
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
@@ -139,18 +133,17 @@ void vtkOrthogonalWidget2D::SelectAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState <= vtkOrthogonalRepresentation2D::Inside )
-    {
+  if(interactionState <= vtkOrthogonalRepresentation2D::Inside)
+  {
     return;
-    }
+  }
 
   // We are definitely selected
   self->WidgetState = vtkOrthogonalWidget2D::Active;
   self->GrabFocus(self->EventCallbackCommand);
 
   // The SetInteractionState has the side effect of highlighting the widget
-  reinterpret_cast<vtkOrthogonalRepresentation2D*>(self->WidgetRep)->
-    SetInteractionState(interactionState);
+  reinterpret_cast<vtkOrthogonalRepresentation2D*>(self->WidgetRep)->SetInteractionState(interactionState);
 
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -163,21 +156,21 @@ void vtkOrthogonalWidget2D::SelectAction(vtkAbstractWidget *w)
 void vtkOrthogonalWidget2D::TranslateAction(vtkAbstractWidget *w)
 {
   // We are in a static method, cast to ourself
-  vtkOrthogonalWidget2D *self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
+  auto self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
 
   // Get the event position
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
+  const int X = self->Interactor->GetEventPosition()[0];
+  const int Y = self->Interactor->GetEventPosition()[1];
 
   // Okay, make sure that the pick is in the current renderer
-  if ( !self->CurrentRenderer || 
-       !self->CurrentRenderer->IsInViewport(X,Y) )
+  if(!self->CurrentRenderer ||
+     !self->CurrentRenderer->IsInViewport(X,Y) )
   {
     self->WidgetState = vtkOrthogonalWidget2D::Start;
     return;
   }
 
-  if (!self->Interactor->GetControlKey())
+  if(!self->Interactor->GetControlKey())
   {
     self->WidgetState = vtkOrthogonalWidget2D::Start;
     return;
@@ -191,14 +184,15 @@ void vtkOrthogonalWidget2D::TranslateAction(vtkAbstractWidget *w)
   self->WidgetRep->StartWidgetInteraction(e);
   // Translate only if we are inside the representation
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState != vtkOrthogonalRepresentation2D::Inside )
+  if (interactionState != vtkOrthogonalRepresentation2D::Inside)
+  {
     return;
+  }
 
   // We are definitely selected
   self->WidgetState = vtkOrthogonalWidget2D::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  reinterpret_cast<vtkOrthogonalRepresentation2D*>(self->WidgetRep)->
-    SetInteractionState(vtkOrthogonalRepresentation2D::Translating);
+  reinterpret_cast<vtkOrthogonalRepresentation2D*>(self->WidgetRep)->SetInteractionState(vtkOrthogonalRepresentation2D::Translating);
   self->SetCursor(vtkOrthogonalRepresentation2D::Translating);
 
   // start the interaction
@@ -209,7 +203,7 @@ void vtkOrthogonalWidget2D::TranslateAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkOrthogonalWidget2D::SetDepth(double depth)
+void vtkOrthogonalWidget2D::SetDepth(const Nm depth)
 {
   ensureRepresentationIsAvailable();
 
@@ -220,20 +214,20 @@ void vtkOrthogonalWidget2D::SetDepth(double depth)
 //----------------------------------------------------------------------
 void vtkOrthogonalWidget2D::MoveAction(vtkAbstractWidget *w)
 {
-  vtkOrthogonalWidget2D *self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
+  auto self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
 
   // compute some info we need for all cases
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
+  const int X = self->Interactor->GetEventPosition()[0];
+  const int Y = self->Interactor->GetEventPosition()[1];
 
   // See whether we're active
-  if ( self->WidgetState == vtkOrthogonalWidget2D::Start )
+  if(self->WidgetState == vtkOrthogonalWidget2D::Start)
   {
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
 
-    if (vtkOrthogonalRepresentation2D::Inside < stateAfter)
+    if(vtkOrthogonalRepresentation2D::Inside < stateAfter)
     {
       self->EventCallbackCommand->SetAbortFlag(1);
     }
@@ -282,16 +276,15 @@ void vtkOrthogonalWidget2D::SetCursor(int state)
 //----------------------------------------------------------------------
 void vtkOrthogonalWidget2D::EndSelectAction(vtkAbstractWidget *w)
 {
-  vtkOrthogonalWidget2D *self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
-  if ( self->WidgetState == vtkOrthogonalWidget2D::Start )
+  auto self = reinterpret_cast<vtkOrthogonalWidget2D*>(w);
+  if(self->WidgetState == vtkOrthogonalWidget2D::Start)
   {
     return;
   }
 
   // Return state to not active
   self->WidgetState = vtkOrthogonalWidget2D::Start;
-  reinterpret_cast<vtkOrthogonalRepresentation2D*>(self->WidgetRep)->
-    SetInteractionState(vtkOrthogonalRepresentation2D::Outside);
+  reinterpret_cast<vtkOrthogonalRepresentation2D*>(self->WidgetRep)->SetInteractionState(vtkOrthogonalRepresentation2D::Outside);
   self->ReleaseFocus();
 
   self->EventCallbackCommand->SetAbortFlag(0);
@@ -301,7 +294,7 @@ void vtkOrthogonalWidget2D::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkOrthogonalWidget2D::SetPlane(Plane plane)
+void vtkOrthogonalWidget2D::SetPlane(const Plane plane)
 {
   ensureRepresentationIsAvailable();
 
@@ -312,7 +305,7 @@ void vtkOrthogonalWidget2D::SetPlane(Plane plane)
 }
 
 //----------------------------------------------------------------------
-void vtkOrthogonalWidget2D::SetSlice(Nm pos)
+void vtkOrthogonalWidget2D::SetSlice(const Nm pos)
 {
   ensureRepresentationIsAvailable();
 
@@ -322,7 +315,7 @@ void vtkOrthogonalWidget2D::SetSlice(Nm pos)
 }
 
 //----------------------------------------------------------------------
-void vtkOrthogonalWidget2D::SetBounds(Bounds bounds)
+void vtkOrthogonalWidget2D::SetBounds(const Bounds bounds)
 {
   ensureRepresentationIsAvailable();
 
@@ -334,7 +327,7 @@ void vtkOrthogonalWidget2D::SetBounds(Bounds bounds)
 }
 
 //----------------------------------------------------------------------
-Bounds vtkOrthogonalWidget2D::GetBounds()
+const Bounds vtkOrthogonalWidget2D::GetBounds()
 {
   ensureRepresentationIsAvailable();
 
@@ -357,7 +350,7 @@ Bounds vtkOrthogonalWidget2D::GetBounds()
 //----------------------------------------------------------------------
 void vtkOrthogonalWidget2D::CreateDefaultRepresentation()
 {
-  if (!this->WidgetRep)
+  if(!this->WidgetRep)
   {
     this->WidgetRep = vtkOrthogonalRepresentation2D::New();
 
@@ -372,29 +365,29 @@ void vtkOrthogonalWidget2D::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalWidget2D::setRepresentationColor(double *color)
+void vtkOrthogonalWidget2D::setRepresentationColor(const double *color)
 {
-  if (0 == memcmp(m_color, color, sizeof(double)*3))
-    return;
-
-  memcpy(m_color, color, 3*sizeof(double));
-
-  if (this->WidgetRep)
+  if (0 != std::memcmp(m_color, color, sizeof(double)*3))
   {
-    updateRepresentation();
+    std::memcpy(m_color, color, 3*sizeof(double));
+
+    if (this->WidgetRep)
+    {
+      updateRepresentation();
+    }
   }
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalWidget2D::setRepresentationPattern(int pattern)
+void vtkOrthogonalWidget2D::setRepresentationPattern(const int pattern)
 {
-  if (m_pattern == pattern)
-    return;
-
-  m_pattern = pattern;
-
-  if (this->WidgetRep)
+  if (m_pattern != pattern)
   {
-    updateRepresentation();
+    m_pattern = pattern;
+
+    if (this->WidgetRep)
+    {
+      updateRepresentation();
+    }
   }
 }

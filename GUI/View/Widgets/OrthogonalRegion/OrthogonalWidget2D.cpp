@@ -75,7 +75,7 @@ OrthogonalWidget2D::OrthogonalWidget2D(OrthogonalRepresentationSPtr representati
 : m_representation{representation}
 , m_widget        {vtkSmartPointer<vtkOrthogonalWidget2D>::New()}
 , m_command       {vtkSmartPointer<Command>::New()}
-, m_index         {0}
+, m_index         {-1}
 , m_slice         {0}
 , m_resolution    {1}
 {
@@ -83,16 +83,21 @@ OrthogonalWidget2D::OrthogonalWidget2D(OrthogonalRepresentationSPtr representati
 }
 
 //----------------------------------------------------------------------------
-void OrthogonalWidget2D::setPlane(Plane plane)
+void OrthogonalWidget2D::setPlane(const Plane plane)
 {
-  m_index = normalCoordinateIndex(plane);
+  const auto index = normalCoordinateIndex(plane);
+  if(m_index != index || m_index == -1)
+  {
+    m_index = index;
 
-  m_widget->SetPlane(plane);
+    m_widget->SetPlane(plane);
+  }
 }
 
 //----------------------------------------------------------------------------
 void OrthogonalWidget2D::setRepresentationDepth(Nm depth)
 {
+  m_widget->SetDepth(depth);
 }
 
 //----------------------------------------------------------------------------

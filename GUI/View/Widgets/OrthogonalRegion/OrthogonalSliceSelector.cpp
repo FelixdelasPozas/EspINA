@@ -32,7 +32,7 @@ using namespace ESPINA::GUI::View::Widgets::OrthogonalRegion;
 
 //----------------------------------------------------------------------------
 OrthogonalSliceSelector::OrthogonalSliceSelector(OrthogonalRepresentationSPtr region, QWidget *parent)
-: m_representation(region)
+: m_representation{region}
 , m_view          {nullptr}
 , m_plane         {Plane::UNDEFINED}
 , m_lowerWidget   {RenderView::createButton(":/espina/from_slice.svg", "Set lower slice of range", parent)}
@@ -149,7 +149,7 @@ void OrthogonalSliceSelector::moveEdge(Edge edge)
 }
 
 //----------------------------------------------------------------------------
-QString OrthogonalSliceSelector::lowerLabel() const
+const QString OrthogonalSliceSelector::lowerLabel() const
 {
   switch (m_plane)
   {
@@ -165,7 +165,7 @@ QString OrthogonalSliceSelector::lowerLabel() const
 }
 
 //----------------------------------------------------------------------------
-QString OrthogonalSliceSelector::upperLabel() const
+const QString OrthogonalSliceSelector::upperLabel() const
 {
   switch (m_plane)
   {
@@ -181,37 +181,37 @@ QString OrthogonalSliceSelector::upperLabel() const
 }
 
 //----------------------------------------------------------------------------
-int OrthogonalSliceSelector::normalIndex() const
+const int OrthogonalSliceSelector::normalIndex() const
 {
   return normalCoordinateIndex(m_plane);
 }
 
 //----------------------------------------------------------------------------
-Nm OrthogonalSliceSelector::voxelCenter() const
+const Nm OrthogonalSliceSelector::voxelCenter() const
 {
   return m_view->crosshair()[normalIndex()];
 }
 
 //----------------------------------------------------------------------------
-Nm OrthogonalSliceSelector::voxelSize() const
+const Nm OrthogonalSliceSelector::voxelSize() const
 {
   return m_view->sceneResolution()[normalIndex()];
 }
 
 //----------------------------------------------------------------------------
-Nm OrthogonalSliceSelector::halfVoxelSize() const
+const Nm OrthogonalSliceSelector::halfVoxelSize() const
 {
   return voxelSize()/2;
 }
 
 //----------------------------------------------------------------------------
-Nm OrthogonalSliceSelector::lowerSlice() const
+const Nm OrthogonalSliceSelector::lowerSlice() const
 {
   return voxelCenter() - halfVoxelSize();
 }
 
 //----------------------------------------------------------------------------
-Nm OrthogonalSliceSelector::upperSlice() const
+const Nm OrthogonalSliceSelector::upperSlice() const
 {
   return voxelCenter() + halfVoxelSize();
 }
