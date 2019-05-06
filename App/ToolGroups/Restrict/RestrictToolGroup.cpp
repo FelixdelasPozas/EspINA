@@ -184,6 +184,8 @@ RestrictToolGroup::RestrictToolGroup(ROISettings *settings, Support::Context &co
 , m_deleteROI    {new DeleteROITool(context, this)}
 , m_visible      {true}
 , m_color        {Qt::yellow}
+, m_accumulator  {nullptr}
+, m_roiPrototypes{nullptr}
 {
   setColor(m_color);
 
@@ -216,11 +218,12 @@ RestrictToolGroup::~RestrictToolGroup()
 
   m_freehandROI->disconnect();
   m_orthogonalROI->disconnect();
+  m_deleteROI->disconnect();
 
   setCurrentROI(nullptr);
 
-  m_orthogonalROI = nullptr;
-  m_freehandROI = nullptr;
+  m_accumulator = nullptr;
+  m_roiPrototypes = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -228,13 +231,16 @@ void RestrictToolGroup::setCurrentROI(ROISPtr roi)
 {
   if(m_accumulator)
   {
-    if(m_context.viewState().hasTemporalRepresentation(m_roiPrototypes))
+    if(m_roiPrototypes)
     {
-      m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
+      if(m_context.viewState().hasTemporalRepresentation(m_roiPrototypes))
+      {
+        m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
+      }
     }
 
-    m_accumulator  .reset();
-    m_roiPrototypes.reset();
+    m_accumulator.reset();
+    if(m_roiPrototypes) m_roiPrototypes.reset();
   }
 
   if (roi && roi->isOrthogonal())
@@ -312,11 +318,19 @@ void RestrictToolGroup::setVisible(bool visible)
   {
     if (visible)
     {
+      if(!m_roiPrototypes)
+      {
+        auto roi2D = std::make_shared<ROIWidget>(m_accumulator);
+        roi2D->setColor(m_color);
+
+        m_roiPrototypes = std::make_shared<TemporalPrototypes>(roi2D, TemporalRepresentation3DSPtr(), QString("ManualROI"));
+      }
+
       m_context.viewState().addTemporalRepresentations(m_roiPrototypes);
     }
     else
     {
-      m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
+      if(m_roiPrototypes) m_context.viewState().removeTemporalRepresentations(m_roiPrototypes);
     }
   }
 
