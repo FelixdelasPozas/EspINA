@@ -74,11 +74,9 @@ DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
   createExportEntry();
   createDeleteEntry();
   createColorEntry();
-}
 
-//------------------------------------------------------------------------
-DefaultContextualMenu::~DefaultContextualMenu()
-{
+  // to comment in production
+  // createFixesEntry();
 }
 
 //------------------------------------------------------------------------
@@ -508,5 +506,19 @@ void DefaultContextualMenu::createColorEntry()
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(changeSegmentationsColorEngine()));
+}
 
+//------------------------------------------------------------------------
+void ESPINA::DefaultContextualMenu::createFixesEntry()
+{
+  auto action = addAction(tr("Apply &fixes"));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(doFixes()));
+}
+
+//------------------------------------------------------------------------
+void ESPINA::DefaultContextualMenu::doFixes()
+{
+  // FIXES
 }
