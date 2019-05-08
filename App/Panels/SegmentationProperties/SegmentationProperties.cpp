@@ -387,6 +387,10 @@ void SegmentationProperties::showConnections()
   if(!connections.isEmpty())
   {
     auto layout = m_gui->connectionsGroup->layout();
+
+    QStringList connectionLabels;
+    QStringList names;
+
     for(auto connection: connections)
     {
       const auto color   = connection.item2->category() ? connection.item2->category()->color().name() : "black";
@@ -395,7 +399,73 @@ void SegmentationProperties::showConnections()
       const auto text    = tr("<b><a href=\"A%1\" style=\"color: %2;\">%3</a></b> at point <a href=\"B%4\">%4</a>")
                               .arg(pointer).arg(color).arg(name).arg(connection.point.toString());
 
-      auto label = new QLabel{text};
+      connectionLabels << text;
+      names << name;
+    }
+
+    auto qstringLessThan = [](const QString &lhs, const QString &rhs)
+    {
+      auto lparts = lhs.split(' ');
+      auto rparts = rhs.split(' ');
+
+      // check same category
+      if(lparts[0] != rparts[0])
+      {
+        return lhs < rhs;
+      }
+
+      // same category, check numbers
+      QRegExp numExtractor("(\\d+)");
+      numExtractor.setMinimal(false);
+
+      if ((numExtractor.indexIn(lhs) == -1) || (numExtractor.indexIn(rhs) == -1))
+      {
+        return lhs < rhs;
+      }
+
+      // use the last number, we can't be sure that there is only one
+      int pos      = 0;
+      int numLeft  = 0;
+      int numRight = 0;
+
+      while ((pos = numExtractor.indexIn(lhs, pos)) != -1)
+      {
+        numLeft = numExtractor.cap(1).toInt();
+        pos += numExtractor.matchedLength();
+      }
+
+      pos = 0;
+      while ((pos = numExtractor.indexIn(rhs, pos)) != -1)
+      {
+        numRight = numExtractor.cap(1).toInt();
+        pos += numExtractor.matchedLength();
+      }
+
+      if (numLeft == numRight)
+      {
+        return lhs < rhs;
+      }
+
+      return numLeft < numRight;
+    };
+
+    qSort(names.constBegin(), names.constEnd(), qstringLessThan);
+
+    for(const auto name: names)
+    {
+      QString labelText;
+
+      for(auto text: connectionLabels)
+      {
+        if(text.contains(name))
+        {
+          labelText = text;
+          break;
+        }
+      }
+
+      Q_ASSERT(!labelText.isEmpty());
+      auto label = new QLabel{labelText};
       label->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
       label->setOpenExternalLinks(false);
       label->setTextFormat(Qt::RichText);

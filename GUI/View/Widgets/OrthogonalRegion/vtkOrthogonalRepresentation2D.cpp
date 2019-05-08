@@ -56,9 +56,6 @@ vtkOrthogonalRepresentation2D::vtkOrthogonalRepresentation2D()
 , InvisibleProperty   {nullptr}
 , m_plane             {Plane::UNDEFINED}
 , m_slice             {0}
-, NumPoints           {4}
-, NumSlices           {1}
-, NumVertex           {0}
 , LeftEdge            {0}
 , TopEdge             {0}
 , RightEdge           {1}
@@ -69,8 +66,8 @@ vtkOrthogonalRepresentation2D::vtkOrthogonalRepresentation2D()
   // The initial state
   InteractionState = vtkOrthogonalRepresentation2D::Outside;
 
-  memset(m_bounds, 0, sizeof(double)*6);
-  memset(m_repBounds, 0, sizeof(double)*6);
+  std::memset(m_bounds, 0, sizeof(double)*6);
+  std::memset(m_repBounds, 0, sizeof(double)*6);
 
   // default representation color
   m_color[0] = m_color[1] = 1.0;
@@ -87,7 +84,7 @@ vtkOrthogonalRepresentation2D::vtkOrthogonalRepresentation2D()
   Vertex = vtkSmartPointer<vtkPoints>::New();
   Vertex->SetDataTypeToDouble();
   Vertex->SetNumberOfPoints(4);//line sides;
-  for (EDGE i=LEFT; i<=BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     EdgePolyData[i] = vtkSmartPointer<vtkPolyData>::New();
     EdgeMapper[i]   = vtkSmartPointer<vtkPolyDataMapper>::New();
@@ -112,7 +109,7 @@ vtkOrthogonalRepresentation2D::vtkOrthogonalRepresentation2D()
 //----------------------------------------------------------------------------
 vtkOrthogonalRepresentation2D::~vtkOrthogonalRepresentation2D()
 {
-  for(int i=0; i<4; i++)
+  for(int i = 0; i < 4; ++i)
   {
     EdgeActor[i] = nullptr;
     EdgeMapper[i] = nullptr;
@@ -123,12 +120,6 @@ vtkOrthogonalRepresentation2D::~vtkOrthogonalRepresentation2D()
   EdgeProperty = nullptr;
   SelectedEdgeProperty = nullptr;
   InvisibleProperty = nullptr;
-}
-
-//----------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::reset()
-{
-  CreateRegion();
 }
 
 //----------------------------------------------------------------------
@@ -151,17 +142,15 @@ void vtkOrthogonalRepresentation2D::StartWidgetInteraction(double e[2])
 void vtkOrthogonalRepresentation2D::WidgetInteraction(double e[2])
 {
   // Convert events to appropriate coordinate systems
-  vtkCamera *camera = Renderer->GetActiveCamera();
-  if ( !camera )
-    return;
+  auto camera = Renderer->GetActiveCamera();
+  if (!camera) return;
 
-  double focalPoint[4], pickPoint[4], prevPickPoint[4];
-  double z, vpn[3];
+  double focalPoint[3], pickPoint[4], prevPickPoint[4], z, vpn[3];
   camera->GetViewPlaneNormal(vpn);
 
   // Compute the two points defining the motion vector
   double pos[3];
-  if ( LastPicker == EdgePicker )
+  if(LastPicker == EdgePicker)
   {
     EdgePicker->GetPickPosition(pos);
   }
@@ -205,40 +194,40 @@ void vtkOrthogonalRepresentation2D::WidgetInteraction(double e[2])
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::MoveLeftEdge(double* p1, double* p2)
+void vtkOrthogonalRepresentation2D::MoveLeftEdge(double* from, double* to)
 {
-  double shift = p2[hCoord()] - p1[hCoord()];
-  LeftEdge     += shift;
+  LeftEdge += to[hCoord()] - from[hCoord()];
+
   UpdateRegion();
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::MoveRightEdge(double* p1, double* p2)
+void vtkOrthogonalRepresentation2D::MoveRightEdge(double* from, double* to)
 {
-  double shift = p2[hCoord()] - p1[hCoord()];
-  RightEdge   += shift;
+  RightEdge += to[hCoord()] - from[hCoord()];
+
   UpdateRegion();
 }
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::MoveTopEdge(double* p1, double* p2)
+void vtkOrthogonalRepresentation2D::MoveTopEdge(double* from, double* to)
 {
-  double shift = p2[vCoord()] - p1[vCoord()];
-  TopEdge     += shift;
+  TopEdge += to[vCoord()] - from[vCoord()];
+
   UpdateRegion();
 }
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::MoveBottomEdge(double* p1, double* p2)
+void vtkOrthogonalRepresentation2D::MoveBottomEdge(double* from, double* to)
 {
-  double shift = p2[vCoord()] - p1[vCoord()];
-  BottomEdge  += shift;
+  BottomEdge += to[vCoord()] - from[vCoord()];
+
   UpdateRegion();
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::Translate(double* p1, double* p2)
+void vtkOrthogonalRepresentation2D::Translate(double* from, double* to)
 {
-  double hShift = p2[hCoord()] - p1[hCoord()];
-  double vShift = p2[vCoord()] - p1[vCoord()];
+  const double hShift = to[hCoord()] - from[hCoord()];
+  const double vShift = to[vCoord()] - from[vCoord()];
 
   LeftEdge   += hShift;
   RightEdge  += hShift;
@@ -280,7 +269,7 @@ void vtkOrthogonalRepresentation2D::CreateRegion()
   // Corners of the rectangular region
   Vertex->SetNumberOfPoints(4);
 
-  for(EDGE i=LEFT; i <= BOTTOM; i=EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     EdgePolyData[i]->GetLines()->Reset();
     EdgePolyData[i]->GetLines()->Allocate(EdgePolyData[i]->GetLines()->EstimateSize(1,2));
@@ -288,6 +277,7 @@ void vtkOrthogonalRepresentation2D::CreateRegion()
     EdgePolyData[i]->GetLines()->InsertCellPoint(i);
     EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
   }
+
   UpdateRegion();
 }
 
@@ -314,19 +304,19 @@ void vtkOrthogonalRepresentation2D::UpdateRegion()
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::UpdateXYFace()
 {
-  auto depth = sliceDepth();
+  const auto depth = sliceDepth();
 
-  double LB[3] = {LeftEdge,  BottomEdge, depth};
-  double LT[3] = {LeftEdge,  TopEdge,    depth};
-  double RT[3] = {RightEdge, TopEdge,    depth};
-  double RB[3] = {RightEdge, BottomEdge, depth};
+  const double LB[3] = {LeftEdge,  BottomEdge, depth};
+  const double LT[3] = {LeftEdge,  TopEdge,    depth};
+  const double RT[3] = {RightEdge, TopEdge,    depth};
+  const double RB[3] = {RightEdge, BottomEdge, depth};
 
   Vertex->SetPoint(0, LB);
   Vertex->SetPoint(1, LT);
   Vertex->SetPoint(2, RT);
   Vertex->SetPoint(3, RB);
 
-  for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     EdgePolyData[i]->Modified();
   }
@@ -342,19 +332,19 @@ void vtkOrthogonalRepresentation2D::UpdateXYFace()
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::UpdateYZFace()
 {
-  auto depth = sliceDepth();
+  const auto depth = sliceDepth();
 
-  double LB[3] = {depth, BottomEdge, LeftEdge };
-  double LT[3] = {depth, TopEdge,    LeftEdge };
-  double RT[3] = {depth, TopEdge,    RightEdge};
-  double RB[3] = {depth, BottomEdge, RightEdge};
+  const double LB[3] = {depth, BottomEdge, LeftEdge };
+  const double LT[3] = {depth, TopEdge,    LeftEdge };
+  const double RT[3] = {depth, TopEdge,    RightEdge};
+  const double RB[3] = {depth, BottomEdge, RightEdge};
 
   Vertex->SetPoint(0, LB);
   Vertex->SetPoint(1, LT);
   Vertex->SetPoint(2, RT);
   Vertex->SetPoint(3, RB);
 
-  for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     EdgePolyData[i]->Modified();
   }
@@ -370,19 +360,19 @@ void vtkOrthogonalRepresentation2D::UpdateYZFace()
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::UpdateXZFace()
 {
-  auto depth = sliceDepth();
+  const auto depth = sliceDepth();
 
-  double LB[3] = {LeftEdge,  depth, BottomEdge};
-  double LT[3] = {LeftEdge,  depth, TopEdge};
-  double RT[3] = {RightEdge, depth, TopEdge};
-  double RB[3] = {RightEdge, depth, BottomEdge};
+  const double LB[3] = {LeftEdge,  depth, BottomEdge};
+  const double LT[3] = {LeftEdge,  depth, TopEdge};
+  const double RT[3] = {RightEdge, depth, TopEdge};
+  const double RB[3] = {RightEdge, depth, BottomEdge};
 
   Vertex->SetPoint(0, LB);
   Vertex->SetPoint(1, LT);
   Vertex->SetPoint(2, RT);
   Vertex->SetPoint(3, RB);
 
-  for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     EdgePolyData[i]->Modified();
   }
@@ -401,20 +391,24 @@ void vtkOrthogonalRepresentation2D::UpdateXZFace()
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::SetDepth(double depth)
+void vtkOrthogonalRepresentation2D::SetDepth(const double depth)
 {
-  m_depth = depth;
+  if(m_depth != depth)
+  {
+    m_depth = depth;
 
-  UpdateRegion();
+    UpdateRegion();
+  }
 }
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::SetPlane(Plane plane)
+void vtkOrthogonalRepresentation2D::SetPlane(const Plane plane)
 {
-  if (plane == m_plane && plane != Plane::UNDEFINED) return;
+  if(plane != m_plane || (m_plane == Plane::UNDEFINED && plane != Plane::UNDEFINED))
+  {
+    m_plane = plane;
 
-  m_plane = plane;
-
-  CreateRegion();
+    CreateRegion();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -422,37 +416,27 @@ void vtkOrthogonalRepresentation2D::SetSlice(double pos)
 {
   m_slice = pos;
 
-  int index = normalCoordinateIndex(m_plane);
-  if (m_slice < m_bounds[2*index] || m_bounds[2*index+1] < m_slice)
+  const int index = normalCoordinateIndex(m_plane);
+  const auto invisible = (m_slice < m_bounds[2*index] || m_bounds[2*index+1] < m_slice);
+  const auto edgeProperty = invisible? InvisibleProperty : EdgeProperty;
+
+  for(int i = 0; i < 4; ++i)
   {
-    for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
-    {
-      EdgeActor[i]->SetProperty(InvisibleProperty);
-    }
+    EdgeActor[i]->SetProperty(edgeProperty);
   }
-  else
-  {
-    for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
-    {
-      EdgeActor[i]->SetProperty(EdgeProperty);
-    }
-    UpdateRegion();
-  }
+
+  if(!invisible) UpdateRegion();
 }
 
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::SetOrthogonalBounds(double bounds[6])
 {
-  memcpy(m_bounds, bounds, 6*sizeof(double));
+  std::memcpy(m_bounds, bounds, 6*sizeof(double));
 
   LeftEdge   = m_repBounds[0] = m_bounds[2*hCoord()];
   RightEdge  = m_repBounds[1] = m_bounds[2*hCoord()+1];
   TopEdge    = m_repBounds[2] = m_bounds[2*vCoord()];
   BottomEdge = m_repBounds[3] = m_bounds[2*vCoord()+1];
-
-  NumPoints = 4;
-  NumSlices = 1;
-  NumVertex = 4;
 
   SetSlice(m_slice);
 
@@ -462,33 +446,29 @@ void vtkOrthogonalRepresentation2D::SetOrthogonalBounds(double bounds[6])
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::GetOrthogonalBounds(double bounds[6])
 {
-  memcpy(bounds, m_bounds, 6*sizeof(double));
+  std::memcpy(bounds, m_bounds, 6*sizeof(double));
 }
 
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::PlaceWidget(double bds[6])
 {
-//   std::cout << "Place Widget: ";
-  int i;
   double bounds[6], center[3];
 
   AdjustBounds(bds,bounds,center);
-//   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
-//   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
 
   Vertex->SetPoint(0, bounds[0], bounds[2], bounds[4]);
   Vertex->SetPoint(1, bounds[1], bounds[2], bounds[4]);
   Vertex->SetPoint(2, bounds[1], bounds[3], bounds[4]);
   Vertex->SetPoint(3, bounds[0], bounds[3], bounds[4]);
 
-  for (i=0; i<6; i++)
+  for (int i=0; i<6; i++)
   {
     InitialBounds[i] = bounds[i];
   }
 
-  InitialLength = sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
-                             (bounds[3]-bounds[2])*(bounds[3]-bounds[2]) +
-                             (bounds[5]-bounds[4])*(bounds[5]-bounds[4]));
+  InitialLength = std::sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
+                            (bounds[3]-bounds[2])*(bounds[3]-bounds[2]) +
+                            (bounds[5]-bounds[4])*(bounds[5]-bounds[4]));
 
   ValidPick = 1; //since we have set up widget
 }
@@ -496,11 +476,12 @@ void vtkOrthogonalRepresentation2D::PlaceWidget(double bds[6])
 //----------------------------------------------------------------------------
 int vtkOrthogonalRepresentation2D::ComputeInteractionState(int X, int Y, int modify)
 {
+  InteractionState = vtkOrthogonalRepresentation2D::Outside;
+
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
   if (!Renderer || !Renderer->IsInViewport(X, Y))
   {
-    InteractionState = vtkOrthogonalRepresentation2D::Outside;
     return InteractionState;
   }
 
@@ -510,40 +491,37 @@ int vtkOrthogonalRepresentation2D::ComputeInteractionState(int X, int Y, int mod
   CurrentEdge = nullptr;
   EdgePicker->Pick(X,Y,0.0,Renderer);
   path = EdgePicker->GetPath();
-  if ( path != nullptr )
+  if(path != nullptr)
   {
     LastPicker = EdgePicker;
     ValidPick = 1;
 
-    CurrentEdge =
-      reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
-    if (CurrentEdge == EdgeActor[LEFT])
+    CurrentEdge = reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
+
+    if (CurrentEdge == EdgeActor[static_cast<int>(Edge::LEFT)])
     {
       InteractionState = vtkOrthogonalRepresentation2D::MoveLeft;
     }
-    else if (CurrentEdge == EdgeActor[RIGHT])
+    else if (CurrentEdge == EdgeActor[static_cast<int>(Edge::RIGHT)])
     {
       InteractionState = vtkOrthogonalRepresentation2D::MoveRight;
     }
-    else if (CurrentEdge == EdgeActor[TOP])
+    else if (CurrentEdge == EdgeActor[static_cast<int>(Edge::TOP)])
     {
       InteractionState = vtkOrthogonalRepresentation2D::MoveTop;
     }
-    else if (CurrentEdge == EdgeActor[BOTTOM])
+    else if (CurrentEdge == EdgeActor[static_cast<int>(Edge::BOTTOM)])
     {
       InteractionState = vtkOrthogonalRepresentation2D::MoveBottom;
-    }
-    else
-    {
-      assert(false);
     }
   }
   else
   {
-    double pickPoint[3];
+    double pickPoint[4];
     vtkInteractorObserver::ComputeDisplayToWorld(Renderer, X, Y, 0, pickPoint);
-    if ((LeftEdge < pickPoint[hCoord()] && pickPoint[hCoord()] < RightEdge)
-     && (TopEdge  < pickPoint[vCoord()] && pickPoint[vCoord()] < BottomEdge))
+
+    if ((LeftEdge < pickPoint[hCoord()] && pickPoint[hCoord()] < RightEdge) &&
+        (TopEdge  < pickPoint[vCoord()] && pickPoint[vCoord()] < BottomEdge))
     {
       InteractionState = vtkOrthogonalRepresentation2D::Inside;
     }
@@ -557,13 +535,11 @@ int vtkOrthogonalRepresentation2D::ComputeInteractionState(int X, int Y, int mod
 }
 
 //----------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::SetInteractionState(int state)
+void vtkOrthogonalRepresentation2D::SetInteractionState(const int state)
 {
   // Clamp to allowable values
-  state = state < vtkOrthogonalRepresentation2D::Outside ? vtkOrthogonalRepresentation2D::Outside : state;
+  InteractionState = std::max(static_cast<int>(vtkOrthogonalRepresentation2D::Outside), std::min(static_cast<int>(vtkOrthogonalRepresentation2D::Translating), state));
 
-  // Depending on state, highlight appropriate parts of representation
-  InteractionState = state;
   switch (state)
     {
     case vtkOrthogonalRepresentation2D::MoveLeft:
@@ -605,7 +581,7 @@ void vtkOrthogonalRepresentation2D::BuildRepresentation()
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::ReleaseGraphicsResources(vtkWindow *w)
 {
-  for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     EdgeActor[i]->ReleaseGraphicsResources(w);
   }
@@ -617,7 +593,7 @@ int vtkOrthogonalRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
   int count=0;
   BuildRepresentation();
 
-  for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     count += EdgeActor[i]->RenderOpaqueGeometry(v);
   }
@@ -631,7 +607,7 @@ int vtkOrthogonalRepresentation2D::RenderTranslucentPolygonalGeometry(vtkViewpor
   int count=0;
   BuildRepresentation();
 
-  for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     count += EdgeActor[i]->RenderTranslucentPolygonalGeometry(v);
   }
@@ -646,7 +622,7 @@ int vtkOrthogonalRepresentation2D::HasTranslucentPolygonalGeometry()
 
   BuildRepresentation();
 
-  for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  for(int i = 0; i < 4; ++i)
   {
     result |= EdgeActor[i]->HasTranslucentPolygonalGeometry();
   }
@@ -657,7 +633,7 @@ int vtkOrthogonalRepresentation2D::HasTranslucentPolygonalGeometry()
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::HighlightEdge(vtkSmartPointer<vtkActor> actor)
 {
-  for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
+  for(int edge = 0; edge < 4; ++edge)
   {
     if (EdgeActor[edge] == actor)
     {
@@ -673,9 +649,9 @@ void vtkOrthogonalRepresentation2D::HighlightEdge(vtkSmartPointer<vtkActor> acto
 //----------------------------------------------------------------------------
 void vtkOrthogonalRepresentation2D::Highlight()
 {
-  for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
+  for(int i = 0; i < 4; ++i)
   {
-    EdgeActor[edge]->SetProperty(SelectedEdgeProperty);
+    EdgeActor[i]->SetProperty(SelectedEdgeProperty);
   }
 }
 
@@ -692,11 +668,11 @@ void vtkOrthogonalRepresentation2D::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::setRepresentationColor(double *color)
+void vtkOrthogonalRepresentation2D::setRepresentationColor(const double *color)
 {
-  if (0 != memcmp(m_color, color, sizeof(double)*3))
+  if (0 != std::memcmp(m_color, color, sizeof(double)*3))
   {
-    memcpy(m_color, color, sizeof(double)*3);
+    std::memcpy(m_color, color, sizeof(double)*3);
 
     updateEdgeColor(EdgeProperty);
     updateEdgeColor(SelectedEdgeProperty);
@@ -704,7 +680,7 @@ void vtkOrthogonalRepresentation2D::setRepresentationColor(double *color)
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::setRepresentationPattern(int pattern)
+void vtkOrthogonalRepresentation2D::setRepresentationPattern(const int pattern)
 {
   if (m_pattern != pattern)
   {
@@ -716,21 +692,27 @@ void vtkOrthogonalRepresentation2D::setRepresentationPattern(int pattern)
 }
 
 //----------------------------------------------------------------------------
-double vtkOrthogonalRepresentation2D::sliceDepth() const
+const double vtkOrthogonalRepresentation2D::sliceDepth() const
 {
   return m_slice + m_depth;
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::updateEdgeColor(vtkProperty *edge)
+void vtkOrthogonalRepresentation2D::updateEdgeColor(vtkProperty *property)
 {
-  edge->SetColor(m_color);
-  edge->Modified();
+  if(property)
+  {
+    property->SetColor(m_color);
+    property->Modified();
+  }
 }
 
 //----------------------------------------------------------------------------
-void vtkOrthogonalRepresentation2D::updateEdgePattern(vtkProperty *edge)
+void vtkOrthogonalRepresentation2D::updateEdgePattern(vtkProperty *property)
 {
-  edge->SetLineStipplePattern(m_pattern);
-  edge->Modified();
+  if(property)
+  {
+    property->SetLineStipplePattern(m_pattern);
+    property->Modified();
+  }
 }

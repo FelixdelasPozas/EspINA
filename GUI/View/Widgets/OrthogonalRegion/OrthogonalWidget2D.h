@@ -63,6 +63,12 @@ namespace ESPINA
              */
             explicit OrthogonalWidget2D(OrthogonalRepresentationSPtr representation);
 
+            /** \brief OrthogonalWidget2D class virtual destructor.
+             *
+             */
+            virtual ~OrthogonalWidget2D()
+            {};
+
             virtual void setPlane(Plane plane) override;
 
             virtual void setRepresentationDepth(Nm depth) override;

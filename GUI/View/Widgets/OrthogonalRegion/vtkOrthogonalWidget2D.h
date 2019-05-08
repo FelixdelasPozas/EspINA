@@ -39,47 +39,82 @@ namespace ESPINA
       {
         namespace OrthogonalRegion
         {
+          /** \class vtkOrthogonalWidget2D
+           * \brief Implements a vtk widget to represent and manage an orthogonal region.
+           *
+           */
           class EspinaGUI_EXPORT vtkOrthogonalWidget2D
           : public vtkAbstractWidget
           {
           public:
-            // Description:
-            // Instantiate the object.
             static vtkOrthogonalWidget2D *New();
 
-            // Description:
-            // Standard class methods for type information and printing.
             vtkTypeMacro(vtkOrthogonalWidget2D, vtkAbstractWidget);
             void PrintSelf(ostream& os, vtkIndent indent);
 
-            void SetPlane(Plane plane);
+            /** \brief Sets the plane of the view the representation will be shown.
+             * \param[in] plane Plane enum value.
+             *
+             */
+            void SetPlane(const Plane plane);
 
-            void SetSlice(Nm pos);
+            /** \brief Sets the slice of the representation.
+             * \param[in] pos Slice in Nm.
+             *
+             */
+            void SetSlice(const Nm pos);
 
-            void SetDepth(double depth);
+            /** \brief Sets the depth of the representation in the planar view.
+             * \param[in] depth Depth in Nm.
+             *
+             */
+            void SetDepth(const Nm depth);
 
-            void SetBounds(Bounds bounds);
+            /** \brief Sets the representation bounds.
+             * \param[in] bounds Representation bounds in 3D.
+             *
+             */
+            void SetBounds(const Bounds bounds);
 
-            Bounds GetBounds();
+            /** \brief Returns the representation bounds.
+             *
+             */
+            const Bounds GetBounds();
 
-            // Description:
-            // Create the default widget representation if one is not set. By default,
-            // this is an instance of the vtkRectangularRectangularRepresentation class.
             void CreateDefaultRepresentation();
 
-            // modify representation methods
-            void setRepresentationColor(double *);
+            /** \brief Sets the color of the representation.
+             * \param[in] color Color rgb values.
+             *
+             */
+            void setRepresentationColor(const double *color);
 
-            void setRepresentationPattern(int);
+            /** \brief Sets the representation pattern.
+             * \param[in] pattern Pattern value.
+             */
+            void setRepresentationPattern(const int pattern);
 
           protected:
+            /** \brief vtkOrthogonalWidget2D class constructor.
+             *
+             */
             vtkOrthogonalWidget2D();
 
-            virtual ~vtkOrthogonalWidget2D();
+            /** \brief vtkOrthogonalWidget2D class virtual destructor.
+             *
+             */
+            virtual ~vtkOrthogonalWidget2D()
+            {};
 
           private:
+            /** \brief Creates the default representation if none.
+             *
+             */
             void ensureRepresentationIsAvailable();
 
+            /** \brief Updates the visual representation.
+             *
+             */
             void updateRepresentation();
 
           private:
@@ -88,25 +123,41 @@ namespace ESPINA
             enum _WidgetState {Start=0,Active};
             //ETX
 
-            // These methods handle events
-            static void SelectAction(vtkAbstractWidget*);
-            static void EndSelectAction(vtkAbstractWidget*);
-            static void TranslateAction(vtkAbstractWidget*);
-            static void MoveAction(vtkAbstractWidget*);
+            /** \brief Widget callback method to manage selection actions.
+             * \param[in] widget Widget raw pointer.
+             *
+             */
+            static void SelectAction(vtkAbstractWidget *widget);
 
-            // helper methods for cursoe management
+            /** \brief Widget callback method to manage ending a selection action.
+             * \param[in] widget Widget raw pointer.
+             *
+             */
+            static void EndSelectAction(vtkAbstractWidget *widget);
+
+            /** \brief Widget callback method to manage a translate action.
+             * \param[in] widget Widget raw pointer.
+             *
+             */
+            static void TranslateAction(vtkAbstractWidget *widget);
+
+            /** \brief Widget callback method to manage a movement action.
+             * \param[in] widget Widget raw pointer.
+             *
+             */
+            static void MoveAction(vtkAbstractWidget *widget);
+
             virtual void SetCursor(int state);
 
-            Plane  m_plane;
-            Nm     m_slice;
-            Bounds m_bounds;
-
-            double m_color[3];
-            int    m_pattern;
+            Plane  m_plane;    /** plane of the representation.         */
+            Nm     m_slice;    /** current slice of the representation. */
+            Bounds m_bounds;   /** representation bounds.               */
+            double m_color[3]; /** representation color rgb values.     */
+            int    m_pattern;  /** representation pattern.              */
 
           private:
-            vtkOrthogonalWidget2D(const vtkOrthogonalWidget2D&);  //Not implemented
-            void operator=(const vtkOrthogonalWidget2D&);  //Not implemented
+            vtkOrthogonalWidget2D(const vtkOrthogonalWidget2D&);  // copy constructor not implemented
+            void operator=(const vtkOrthogonalWidget2D&);  // assign operator not implemented
           };
         }
       }

@@ -524,7 +524,7 @@ namespace ESPINA
      */
     void EspinaCore_EXPORT cleanSkeletonStrokes(SkeletonDefinition &skeleton);
 
-    /** \brief Helper method that removes nodes without connetions from the list of given nodes.
+    /** \brief Helper method that removes nodes without connections from the list of given nodes.
      * \param[in] nodes List of nodes.
      *
      */

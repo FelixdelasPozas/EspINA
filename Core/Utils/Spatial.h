@@ -155,7 +155,7 @@ namespace ESPINA
   inline bool areEqual(const Nm lhs, const Nm rhs, const Nm spacing = 1.0)
   {
     const double DELTA = 0.01 * spacing;
-    return fabs(lhs - rhs) < DELTA;
+    return std::fabs(lhs - rhs) < DELTA;
   }
 
   /** \brief Returns true if the value is outside the given limits.

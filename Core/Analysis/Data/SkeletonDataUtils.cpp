@@ -69,7 +69,7 @@ const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<
 
   for(int i = 0; i < edgeIndexes->GetNumberOfTuples(); ++i)
   {
-    result.edges << SkeletonEdge{edgeIndexes->GetValue(i), edgeNumbers->GetValue(i), edgeParents->GetValue(i)};
+    result.edges << std::move(SkeletonEdge{edgeIndexes->GetValue(i), edgeNumbers->GetValue(i), edgeParents->GetValue(i)});
   }
 
   // strokes information.
@@ -94,7 +94,7 @@ const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<
     stroke.useMeasure = (strokeUses->GetValue(i) == 0 ? true : false);
 
     result.count.insert(stroke, numbers->GetValue(i));
-    result.strokes << stroke;
+    result.strokes << std::move(stroke);
   }
 
   // nodes information.
@@ -110,7 +110,7 @@ const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<
       node->flags = static_cast<SkeletonNodeFlags>(flags->GetValue(i));
     }
 
-    result.nodes << node;
+    result.nodes << std::move(node);
   }
 
   auto cellIndexes = vtkIntArray::SafeDownCast(skeleton->GetCellData()->GetAbstractArray("LineIndexes"));
@@ -133,6 +133,9 @@ const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<
     result.nodes.at(data[0])->connections.insert(result.nodes.at(data[1]), edgeIndex);
     result.nodes.at(data[1])->connections.insert(result.nodes.at(data[0]), edgeIndex);
   }
+
+  mergeSamePositionNodes(result.nodes);
+  removeIsolatedNodes(result.nodes);
 
   return result;
 }
@@ -520,15 +523,6 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
 {
   PathList result, stack;
 
-  // remove loops to itself.
-  for(auto node: nodes)
-  {
-    if(node->connections.contains(node))
-    {
-      node->connections.remove(node);
-    }
-  }
-
   if(nodes.isEmpty()) return result;
 
   if(nodes.size() == 1)
@@ -568,15 +562,47 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
     }
   };
 
-  auto buildPath = [](Path &path, QSet<SkeletonNode *> set, const int edge)
+  std::function<void(Path &, QSet<SkeletonNode *>, const int)> buildPath = [&buildPath](Path &path, QSet<SkeletonNode *> set, const int edge)
   {
     while(path.seen.size() != set.size())
     {
       auto oldEnd = path.end;
+      const auto connections = path.end->connections.keys();
+      const auto keys = path.end->connections.values();
 
-      for(auto connection: path.end->connections.keys())
+      auto count = std::count(keys.constBegin(), keys.constEnd(), edge);
+
+      // Invalid node, use the longest route. Will be reported as malformed.
+      if(count > 2)
       {
-        if(path.end->connections[connection] == edge && (path.seen.isEmpty() || path.seen.last() != connection))
+        Path one, two;
+
+        auto *search = &one;
+
+        for(auto &other: connections)
+        {
+          if(path.seen.contains(other)) continue;
+
+          if(search->seen.size() > 0) search = &two;
+          search->begin = oldEnd;
+          search->end = other;
+          search->seen << oldEnd;
+
+          buildPath(*search, set, edge);
+        }
+
+        if(one.seen.size() > two.seen.size()) search = &one;
+        else                                  search = &two;
+
+        path.end = search->end;
+        path.seen << search->seen;
+
+        return;
+      }
+
+      for(const auto &connection: connections)
+      {
+        if((path.end->connections[connection] == edge) && !path.seen.contains(connection))
         {
           path.seen << path.end;
           path.end = connection;
@@ -592,7 +618,7 @@ const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const Skele
     }
   };
 
-  for(auto group: pathNodes.values())
+  for(const auto group: pathNodes.values())
   {
     auto key = pathNodes.key(group);
     Path path;
@@ -1152,17 +1178,20 @@ void ESPINA::Core::cleanSkeletonStrokes(SkeletonDefinition& skeleton)
 void ESPINA::Core::removeIsolatedNodes(SkeletonNodes &nodes)
 {
   SkeletonNodes toRemove;
-  for(auto node: nodes)
+
+  auto removeLoops = [&toRemove](SkeletonNode *node)
   {
     if(node->connections.keys().contains(node)) node->connections.remove(node);
     if(node->connections.isEmpty()) toRemove << node;
-  }
+  };
+  std::for_each(nodes.begin(), nodes.end(), removeLoops);
 
-  for(auto node: toRemove)
+  auto removeNode = [&nodes](SkeletonNode *node)
   {
     nodes.removeAll(node);
     delete node;
-  }
+  };
+  std::for_each(toRemove.begin(), toRemove.end(), removeNode);
 }
 
 //--------------------------------------------------------------------
@@ -1170,6 +1199,17 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
 {
   auto nodesNum = nodes.size();
   SkeletonNodes toRemove;
+
+  auto checkEqual = [](const double *one, const double *two)
+  {
+    bool result = true;
+    for(int i = 0; i < 3; ++i)
+    {
+      result &= areEqual(one[i], two[i]);
+    }
+
+    return result;
+  };
 
   for(int i = 0; i < nodesNum; ++i)
   {
@@ -1179,7 +1219,7 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
     {
       auto otherNode = nodes.at(j);
 
-      if(std::memcmp(node->position, otherNode->position, 3*sizeof(double)) == 0)
+      if((std::memcmp(node->position, otherNode->position, 3*sizeof(double)) == 0) || checkEqual(node->position, otherNode->position))
       {
         if(!toRemove.contains(otherNode)) toRemove << otherNode;
 
@@ -1205,11 +1245,12 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
     }
   }
 
-  for(auto node: toRemove)
+  auto removeNode = [&nodes](SkeletonNode *node)
   {
     nodes.removeAll(node);
     delete node;
-  }
+  };
+  std::for_each(toRemove.begin(), toRemove.end(), removeNode);
 }
 
 //--------------------------------------------------------------------

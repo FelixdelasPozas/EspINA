@@ -24,11 +24,11 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Channel.h>
-#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Utils/EspinaException.h>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/SkeletonDataUtils.h>
-#include <Dialogs/IssueList/CheckAnalysis.h>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Utils/Bounds.h>
 #include <Extensions/Issues/ItemIssues.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
@@ -36,10 +36,14 @@
 #include <GUI/Model/ChannelAdapter.h>
 #include <GUI/View/ViewState.h>
 #include <GUI/View/CoordinateSystem.h>
+#include <App/Dialogs/IssueList/CheckAnalysis.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
 using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model;
 using namespace ESPINA::GUI::Model::Utils;
 
 const QString DUPLICATED_TAG = "duplicated";
@@ -74,13 +78,13 @@ void SegmentationIssue::addSeverityTag(SegmentationAdapterPtr segmentation, cons
   switch (severity)
   {
     case Severity::CRITICAL:
-      addIssueTag(segmentation, { Issue::CRITICAL_TAG });
+      addIssueTag(segmentation, QStringList{ Issue::CRITICAL_TAG });
       break;
     case Severity::WARNING:
-      addIssueTag(segmentation, { Issue::WARNING_TAG });
+      addIssueTag(segmentation, QStringList{ Issue::WARNING_TAG });
       break;
     case Severity::INFORMATION:
-      addIssueTag(segmentation, { Issue::INFORMATION_TAG });
+      addIssueTag(segmentation, QStringList{ Issue::INFORMATION_TAG });
       break;
     default:
       break;
@@ -91,7 +95,7 @@ void SegmentationIssue::addSeverityTag(SegmentationAdapterPtr segmentation, cons
 DuplicatedIssue::DuplicatedIssue(SegmentationAdapterPtr original, SegmentationAdapterPtr duplicated, const unsigned long long duplicatedVoxels)
 : SegmentationIssue(original, Severity::WARNING, description(duplicated, duplicatedVoxels), suggestion())
 {
-  addIssueTag(original, { DUPLICATED_TAG });
+  addIssueTag(original, QStringList{ DUPLICATED_TAG });
 }
 
 //------------------------------------------------------------------------
@@ -442,7 +446,7 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
 //------------------------------------------------------------------------
 CheckSegmentationTask::CheckSegmentationTask(Support::Context &context,
                                              NeuroItemAdapterSPtr item)
-: CheckDataTask {context, item}
+: CheckDataTask (context, item)
 , m_segmentation{std::dynamic_pointer_cast<SegmentationAdapter>(item)}
 {
 }
@@ -597,7 +601,8 @@ void CheckSegmentationTask::checkSkeletonProblems() const
   {
     const auto skeleton   = readLockSkeleton(m_segmentation->output())->skeleton();
     auto definition       = Core::toSkeletonDefinition(skeleton);
-    const auto nodes      = definition.nodes;
+    const auto &nodes     = definition.nodes;
+    const auto paths      = Core::paths(nodes, definition.edges, definition.strokes);
     const auto components = Core::connectedComponents(nodes);
 
     if(components.size() != 1)
@@ -627,6 +632,15 @@ void CheckSegmentationTask::checkSkeletonProblems() const
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
 
+    auto malformedPaths = std::count_if(paths.constBegin(), paths.constEnd(), [](const Core::Path &path) { return path.note.contains("Malformed", Qt::CaseInsensitive); });
+
+    if(malformedPaths != 0)
+    {
+      const auto description = tr("Segmentation has %1 malformed path%2.").arg(malformedPaths).arg(malformedPaths > 1 ? "s" : "");
+
+      reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
+    }
+
     definition.clear();
   }
 }
@@ -652,7 +666,7 @@ void CheckSegmentationTask::checkConnections()
 
 //------------------------------------------------------------------------
 CheckStackTask::CheckStackTask(Support::Context &context, NeuroItemAdapterSPtr item)
-: CheckDataTask{context, item}
+: CheckDataTask(context, item)
 , m_stack      {std::dynamic_pointer_cast<ChannelAdapter>(item)}
 {
 }
@@ -723,7 +737,7 @@ void CheckStackTask::run()
 
 //------------------------------------------------------------------------
 CheckSampleTask::CheckSampleTask(Support::Context &context, NeuroItemAdapterSPtr item)
-: CheckDataTask{context, item}
+: CheckDataTask(context, item)
 , m_sample     {std::dynamic_pointer_cast<SampleAdapter>(item)}
 {
 }
@@ -736,7 +750,7 @@ void CheckSampleTask::run()
 
 //------------------------------------------------------------------------
 CheckDuplicatedSegmentationsTask::CheckDuplicatedSegmentationsTask(Support::Context &context)
-: CheckTask      {context}
+: CheckTask      (context)
 , m_segmentations{context.model()->segmentations()}
 {
   setDescription(tr("Check duplicate segmentations."));
@@ -797,7 +811,7 @@ IssueSPtr CheckDuplicatedSegmentationsTask::possibleDuplication(SegmentationAdap
 
 //------------------------------------------------------------------------
 CheckDataTask::CheckDataTask(Support::Context &context, NeuroItemAdapterSPtr item)
-: CheckTask{context}
+: CheckTask(context)
 , m_item   {item}
 {
   setDescription(tr("Checking %1").arg(item->data().toString()));
@@ -816,7 +830,7 @@ template<typename T> void CheckDataTask::checkDataBounds(Output::ReadLockData<T>
 
 //------------------------------------------------------------------------
 CheckStacksSizes::CheckStacksSizes(const ChannelAdapterSList stacks, Support::Context& context)
-: CheckTask{context}
+: CheckTask(context)
 , m_stacks {stacks}
 {
   setDescription(tr("Checking stacks sizes."));

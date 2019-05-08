@@ -77,28 +77,28 @@ namespace ESPINA
         /** \brief Returns the name of the item that has the problem.
          *
          */
-        QString displayName() const;
+        const QString displayName() const;
 
         /** \brief Returns the severity level of the problem.
          *
          */
-        Severity severity() const;
+        const Severity severity() const;
 
         /** \brief Returns a textual description of the problem.
          *
          */
-        QString description() const;
+        const QString description() const;
 
         /** \brief Returns a suggestion on how to fix the problem.
          *
          */
-        QString suggestion() const;
+        const QString suggestion() const;
 
       private:
-        QString m_itemName;    /** Element that has the issue.            */
-        Severity m_severity;   /** Severity of the issue.                 */
-        QString m_description; /** Description of the issue.              */
-        QString m_suggestion;  /** Suggestion of a solution to the issue. */
+        QString  m_itemName;    /** Element that has the issue.            */
+        Severity m_severity;    /** Severity of the issue.                 */
+        QString  m_description; /** Description of the issue.              */
+        QString  m_suggestion;  /** Suggestion of a solution to the issue. */
 
     };
 

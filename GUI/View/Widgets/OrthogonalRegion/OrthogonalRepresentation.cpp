@@ -51,7 +51,7 @@ void OrthogonalRepresentation::setMode(const OrthogonalRepresentation::Mode mode
 }
 
 //----------------------------------------------------------------------------
-OrthogonalRepresentation::Mode OrthogonalRepresentation::mode() const
+const OrthogonalRepresentation::Mode OrthogonalRepresentation::mode() const
 {
   return m_mode;
 }
@@ -68,7 +68,7 @@ void OrthogonalRepresentation::setResolution(const NmVector3 &resolution)
 }
 
 //----------------------------------------------------------------------------
-NmVector3 OrthogonalRepresentation::resolution() const
+const NmVector3 OrthogonalRepresentation::resolution() const
 {
   return m_resolution;
 }
@@ -85,7 +85,7 @@ void OrthogonalRepresentation::setBounds(const Bounds &bounds)
 }
 
 //----------------------------------------------------------------------------
-Bounds OrthogonalRepresentation::bounds() const
+const Bounds OrthogonalRepresentation::bounds() const
 {
   return m_bounds;
 }
@@ -102,7 +102,7 @@ void OrthogonalRepresentation::setColor(const QColor &color)
 }
 
 //----------------------------------------------------------------------------
-QColor OrthogonalRepresentation::representationColor() const
+const QColor OrthogonalRepresentation::representationColor() const
 {
   return m_color;
 }
@@ -119,7 +119,7 @@ void OrthogonalRepresentation::setRepresentationPattern(int pattern)
 }
 
 //----------------------------------------------------------------------------
-int OrthogonalRepresentation::representationPattern() const
+const int OrthogonalRepresentation::representationPattern() const
 {
   return m_pattern;
 }

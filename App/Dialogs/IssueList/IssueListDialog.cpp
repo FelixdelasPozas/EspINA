@@ -26,7 +26,7 @@ using namespace ESPINA;
 using namespace ESPINA::Extensions;
 using namespace ESPINA::GUI;
 
-  //------------------------------------------------------------------------
+//------------------------------------------------------------------------
 IssueListDialog::IssueListDialog(IssueList issuesList)
 : QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 {
@@ -95,4 +95,3 @@ IssueListDialog::IssueListDialog(IssueList issuesList)
   m_issueTable->sortByColumn(0, Qt::AscendingOrder);
   m_issueTable->horizontalHeader()->setSortIndicatorShown(true);
 }
-

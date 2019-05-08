@@ -55,7 +55,8 @@ namespace ESPINA
       /** \brief DefaultContextualMenu class destructor.
        *
        */
-      ~DefaultContextualMenu();
+      ~DefaultContextualMenu()
+      {};
 
       virtual void setSelection(GUI::View::SelectionSPtr selection) override
       {};
@@ -95,6 +96,11 @@ namespace ESPINA
        *
        */
       void changeSegmentationsColorEngine();
+
+      /** \brief Helper method to execute code on current selection. Shouldn't be used in production.
+       *
+       */
+      void doFixes();
 
     signals:
       void renamedSegmentations();
@@ -136,10 +142,11 @@ namespace ESPINA
        */
       void createColorEntry();
 
-      /** \brief Helper method that generates a title for the current segmentation selection.
+      /** \brief Helper method to add an entry to the menu to apply fixes to selected items. Not to be used in production,
+       *  just to debug and fix.
        *
        */
-      QString dialogTitle() const;
+      void createFixesEntry();
 
     private:
       SegmentationAdapterList m_segmentations;  /** selected segmentation list. */
