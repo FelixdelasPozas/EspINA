@@ -45,7 +45,8 @@ namespace ESPINA
       /** \brief IssueListDialog class virtual destructor.
        *
        */
-      virtual ~IssueListDialog();
+      virtual ~IssueListDialog()
+      {};
   };
 
   class IssueTableWidgetItem

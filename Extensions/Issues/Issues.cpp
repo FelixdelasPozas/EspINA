@@ -26,25 +26,25 @@ QString Issue::WARNING_TAG     = "warning";
 QString Issue::CRITICAL_TAG    = "critical";
 
 //------------------------------------------------------------------------
-QString Issue::displayName() const
+const QString Issue::displayName() const
 {
   return m_itemName;
 }
 
 //------------------------------------------------------------------------
-Issue::Severity Issue::severity() const
+const Issue::Severity Issue::severity() const
 {
   return m_severity;
 }
 
 //------------------------------------------------------------------------
-QString Issue::description() const
+const QString Issue::description() const
 {
   return m_description;
 }
 
 //------------------------------------------------------------------------
-QString Issue::suggestion() const
+const QString Issue::suggestion() const
 {
   return m_suggestion;
 }
