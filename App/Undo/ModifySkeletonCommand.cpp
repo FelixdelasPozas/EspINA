@@ -23,9 +23,12 @@
 #include <Core/Analysis/Data/SkeletonData.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
+#include <Extensions/SkeletonInformation/SynapseInformation.h>
+#include <Extensions/BasicInformation/BasicSegmentationInformation.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
+using namespace ESPINA::Extensions;
 
 //-----------------------------------------------------------------------------
 ModifySkeletonCommand::ModifySkeletonCommand(SegmentationAdapterSPtr      segmentation,
@@ -41,16 +44,14 @@ ModifySkeletonCommand::ModifySkeletonCommand(SegmentationAdapterSPtr      segmen
 }
 
 //-----------------------------------------------------------------------------
-ModifySkeletonCommand::~ModifySkeletonCommand()
-{
-}
-
-//-----------------------------------------------------------------------------
 void ModifySkeletonCommand::redo()
 {
   auto model = m_segmentation->model();
   if(!m_oldConnections.isEmpty()) model->deleteConnections(m_oldConnections);
+  std::for_each(m_oldConnections.constBegin(), m_oldConnections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
+
   if(!m_connections.isEmpty())    model->addConnections(m_connections);
+  std::for_each(m_connections.constBegin(), m_connections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
 
   // set skeleton modifies edited regions accordingly
   writeLockSkeleton(m_segmentation->output())->setSkeleton(m_newSkeleton);
@@ -63,7 +64,10 @@ void ModifySkeletonCommand::undo()
 {
   auto model = m_segmentation->model();
   if(!m_connections.isEmpty())    model->deleteConnections(m_connections);
+  std::for_each(m_connections.constBegin(), m_connections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
+
   if(!m_oldConnections.isEmpty()) model->addConnections(m_oldConnections);
+  std::for_each(m_oldConnections.constBegin(), m_oldConnections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
 
   auto data = writeLockSkeleton(m_segmentation->output());
   data->setSkeleton(m_oldSkeleton);
@@ -74,3 +78,24 @@ void ModifySkeletonCommand::undo()
   m_segmentation->invalidateRepresentations();
 }
 
+//-----------------------------------------------------------------------------
+void ModifySkeletonCommand::invalidateSynapseExtensions(const Connection& connection)
+{
+  auto segmentation = connection.item2;
+  if(segmentation->category()->classificationName().startsWith("Synapse"))
+  {
+    auto extensions = segmentation->extensions();
+
+    // We could use output()->updateModificationTime() to invalidate all extensions, but
+    // its better to just invalidate connection related extensions and not the rest.
+    if(extensions->hasExtension(SynapseConnectionInformation::TYPE))
+    {
+      extensions->get<SynapseConnectionInformation>()->invalidate();
+    }
+
+    if(extensions->hasExtension(BasicSegmentationInformationExtension::TYPE))
+    {
+      extensions->get<BasicSegmentationInformationExtension>()->invalidate();
+    }
+  }
+}

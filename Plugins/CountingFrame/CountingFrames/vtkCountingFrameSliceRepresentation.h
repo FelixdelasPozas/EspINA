@@ -264,7 +264,6 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceRepresentation
     ESPINA::Nm Depth;                    /** distance from the slice coordinate to show the plane. */
     ESPINA::NmVector3 SlicingStep;       /** distance between slices. */
 
-    bool Init;                           /** true if the class has been correctly initialized. */
     ESPINA::Nm InclusionOffset[3];       /** exclusion margins offset. */
     ESPINA::Nm ExclusionOffset[3];       /** inclusion margins offset. */
 

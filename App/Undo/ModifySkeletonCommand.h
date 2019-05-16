@@ -54,12 +54,19 @@ namespace ESPINA
       /** \brief ModifySkeletonCommand class virtual destructor.
        *
        */
-      virtual ~ModifySkeletonCommand();
+      virtual ~ModifySkeletonCommand()
+      {};
 
       void undo() override;
       void redo() override;
 
     private:
+      /** \brief Helper method to invalidate the extensions of connected synapses.
+       * \param[in] connection Skeleton connection to a synapse.
+       *
+       */
+      void invalidateSynapseExtensions(const Connection &connection);
+
       SegmentationAdapterSPtr      m_segmentation;
       vtkSmartPointer<vtkPolyData> m_newSkeleton;
       vtkSmartPointer<vtkPolyData> m_oldSkeleton;

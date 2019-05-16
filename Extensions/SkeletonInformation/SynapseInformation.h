@@ -49,7 +49,8 @@ namespace ESPINA
         /** \brief SynapseConnectionInformation class virtual destructor.
          *
          */
-        virtual ~SynapseConnectionInformation();
+        virtual ~SynapseConnectionInformation()
+        {};
 
         virtual QString type() const
         { return TYPE; }

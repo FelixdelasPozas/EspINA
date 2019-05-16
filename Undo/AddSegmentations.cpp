@@ -23,8 +23,11 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Sample.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
+#include <Extensions/BasicInformation/BasicSegmentationInformation.h>
+#include <Extensions/SkeletonInformation/SynapseInformation.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //----------------------------------------------------------------------------
 AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
@@ -68,7 +71,11 @@ void AddSegmentations::redo()
     }
   }
 
-  if(!m_connections.empty()) m_model->addConnections(m_connections);
+  if(!m_connections.empty())
+  {
+    m_model->addConnections(m_connections);
+  }
+  std::for_each(m_connections.constBegin(), m_connections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
 
   m_model->endBatchMode();
 }
@@ -77,4 +84,28 @@ void AddSegmentations::redo()
 void AddSegmentations::undo()
 {
   m_model->remove(m_segmentations);
+
+  std::for_each(m_connections.constBegin(), m_connections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
+}
+
+//-----------------------------------------------------------------------------
+void AddSegmentations::invalidateSynapseExtensions(const Connection& connection)
+{
+  auto segmentation = connection.item2;
+  if(segmentation->category()->classificationName().startsWith("Synapse"))
+  {
+    auto extensions = segmentation->extensions();
+
+    // We could use output()->updateModificationTime() to invalidate all extensions, but
+    // its better to just invalidate connection related extensions and not the rest.
+    if(extensions->hasExtension(SynapseConnectionInformation::TYPE))
+    {
+      extensions->get<SynapseConnectionInformation>()->invalidate();
+    }
+
+    if(extensions->hasExtension(BasicSegmentationInformationExtension::TYPE))
+    {
+      extensions->get<BasicSegmentationInformationExtension>()->invalidate();
+    }
+  }
 }
