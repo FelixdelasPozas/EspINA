@@ -91,7 +91,7 @@ RenderView::~RenderView()
 {
   disconnect();
 
-  delete m_view;
+  m_view->deleteLater();
 }
 
 //-----------------------------------------------------------------------------
