@@ -103,7 +103,11 @@ InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
     if (!isSASExtensions(type))
     {
       auto prototype = m_factory->createSegmentationExtension(type);
-      info[type] << keyValues(prototype->availableInformation());
+
+      if(prototype->validCategory("SAS") || prototype->validCategory("Synapse"))
+      {
+        info[type] << keyValues(prototype->availableInformation());
+      }
     }
   }
 
