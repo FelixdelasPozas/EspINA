@@ -41,11 +41,6 @@ ModifySkeletonCommand::ModifySkeletonCommand(SegmentationAdapterSPtr      segmen
 }
 
 //-----------------------------------------------------------------------------
-ModifySkeletonCommand::~ModifySkeletonCommand()
-{
-}
-
-//-----------------------------------------------------------------------------
 void ModifySkeletonCommand::redo()
 {
   auto model = m_segmentation->model();

@@ -388,8 +388,7 @@ void SegmentationProperties::showConnections()
   {
     auto layout = m_gui->connectionsGroup->layout();
 
-    QStringList connectionLabels;
-    QStringList names;
+    QList<std::pair<QString, QString>> names;
 
     for(auto connection: connections)
     {
@@ -399,28 +398,29 @@ void SegmentationProperties::showConnections()
       const auto text    = tr("<b><a href=\"A%1\" style=\"color: %2;\">%3</a></b> at point <a href=\"B%4\">%4</a>")
                               .arg(pointer).arg(color).arg(name).arg(connection.point.toString());
 
-      connectionLabels << text;
-      names << name;
+      names.push_back(std::make_pair(name, text));
     }
 
-    auto qstringLessThan = [](const QString &lhs, const QString &rhs)
+    auto pairLessThan = [](const std::pair<QString, QString> &lhs, const std::pair<QString, QString> &rhs)
     {
-      auto lparts = lhs.split(' ');
-      auto rparts = rhs.split(' ');
+      auto lname = lhs.first;
+      auto rname = rhs.first;
+      auto lparts = lname.split(' ');
+      auto rparts = rname.split(' ');
 
       // check same category
       if(lparts[0] != rparts[0])
       {
-        return lhs < rhs;
+        return lname < rname;
       }
 
       // same category, check numbers
       QRegExp numExtractor("(\\d+)");
       numExtractor.setMinimal(false);
 
-      if ((numExtractor.indexIn(lhs) == -1) || (numExtractor.indexIn(rhs) == -1))
+      if ((numExtractor.indexIn(lname) == -1) || (numExtractor.indexIn(rname) == -1))
       {
-        return lhs < rhs;
+        return lname < rname;
       }
 
       // use the last number, we can't be sure that there is only one
@@ -428,14 +428,14 @@ void SegmentationProperties::showConnections()
       int numLeft  = 0;
       int numRight = 0;
 
-      while ((pos = numExtractor.indexIn(lhs, pos)) != -1)
+      while ((pos = numExtractor.indexIn(lname, pos)) != -1)
       {
         numLeft = numExtractor.cap(1).toInt();
         pos += numExtractor.matchedLength();
       }
 
       pos = 0;
-      while ((pos = numExtractor.indexIn(rhs, pos)) != -1)
+      while ((pos = numExtractor.indexIn(rname, pos)) != -1)
       {
         numRight = numExtractor.cap(1).toInt();
         pos += numExtractor.matchedLength();
@@ -443,36 +443,25 @@ void SegmentationProperties::showConnections()
 
       if (numLeft == numRight)
       {
-        return lhs < rhs;
+        return lname < rname;
       }
 
       return numLeft < numRight;
     };
 
-    qSort(names.constBegin(), names.constEnd(), qstringLessThan);
+    qSort(names.constBegin(), names.constEnd(), pairLessThan);
 
-    for(const auto name: names)
+    auto insertOp = [&layout, this](const std::pair<QString, QString> &pair)
     {
-      QString labelText;
-
-      for(auto text: connectionLabels)
-      {
-        if(text.contains(name))
-        {
-          labelText = text;
-          break;
-        }
-      }
-
-      Q_ASSERT(!labelText.isEmpty());
-      auto label = new QLabel{labelText};
+      auto label = new QLabel{pair.second};
       label->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
       label->setOpenExternalLinks(false);
       label->setTextFormat(Qt::RichText);
       connect(label, SIGNAL(linkActivated(const QString &)), this, SLOT(onLinkActivated(const QString &)));
 
       layout->addWidget(label);
-    }
+    };
+    std::for_each(names.constBegin(), names.constEnd(), insertOp);
 
     m_gui->connectionsGroup->show();
   }

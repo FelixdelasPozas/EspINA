@@ -54,7 +54,8 @@ namespace ESPINA
       /** \brief ModifySkeletonCommand class virtual destructor.
        *
        */
-      virtual ~ModifySkeletonCommand();
+      virtual ~ModifySkeletonCommand()
+      {};
 
       void undo() override;
       void redo() override;
