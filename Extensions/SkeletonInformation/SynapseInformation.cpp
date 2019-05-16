@@ -47,11 +47,6 @@ SynapseConnectionInformation::SynapseConnectionInformation(const InfoCache& info
 }
 
 //--------------------------------------------------------------------
-SynapseConnectionInformation::~SynapseConnectionInformation()
-{
-}
-
-//--------------------------------------------------------------------
 State SynapseConnectionInformation::state() const
 {
   return State();

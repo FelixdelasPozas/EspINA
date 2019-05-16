@@ -155,7 +155,7 @@ namespace ESPINA
 
           m_extendedItem = item;
 
-          if (invalidateOnChange())
+          if (m_extendedItem && invalidateOnChange())
           {
             connect(m_extendedItem, SIGNAL(outputModified()),
                     this,           SLOT(invalidate()), Qt::DirectConnection);

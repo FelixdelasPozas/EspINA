@@ -68,6 +68,11 @@ namespace ESPINA
     virtual void undo() override;
 
   private:
+    /** \brief Helper method to invalidate synapse connection related extensions.
+     * \param[in] connection Skeleton connection to a synapse.
+     *
+     */
+    void invalidateSynapseExtensions(const Connection& connection);
     SampleAdapterSList m_samples;
     ModelAdapterSPtr   m_model;
     ConnectionList     m_connections;
