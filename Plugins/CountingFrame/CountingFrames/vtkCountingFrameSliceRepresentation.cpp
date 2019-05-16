@@ -1,5 +1,8 @@
+
+// ESPINA
 #include "vtkCountingFrameSliceRepresentation.h"
 
+// VTK
 #include <vtkActor.h>
 #include <vtkAssemblyPath.h>
 #include <vtkBox.h>
@@ -27,6 +30,9 @@
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkSmartPointer.h>
 
+// C++
+#include <cstring>
+
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
@@ -39,15 +45,14 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
 , Region                   {nullptr}
 , Slice                    {0}
 , Depth                    {0}
-, Init                     {false}
 , NumPoints                {0}
 , NumSlices                {0}
 {
   // The initial state
   this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
 
-  memset(this->InclusionOffset, 0, 3*sizeof(double));
-  memset(this->ExclusionOffset, 0, 3*sizeof(double));
+  std::memset(this->InclusionOffset, 0, 3*sizeof(double));
+  std::memset(this->ExclusionOffset, 0, 3*sizeof(double));
 
   this->CreateDefaultProperties();
 
@@ -58,7 +63,7 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
 
   // Build edges
   this->Vertex = vtkSmartPointer<vtkPoints>::New();
-  this->Vertex->SetDataType(VTK_FLOAT);
+  this->Vertex->SetDataTypeToDouble();
   this->Vertex->SetNumberOfPoints(4);//line sides;
   for (EDGE i=LEFT; i<=BOTTOM; i = EDGE(i+1))
   {
@@ -113,8 +118,8 @@ vtkCountingFrameSliceRepresentation::~vtkCountingFrameSliceRepresentation()
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::reset()
 {
-  memset(this->InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
-  memset(this->ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+  std::memset(this->InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+  std::memset(this->ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
   CreateRegion();
 }
 
@@ -286,8 +291,8 @@ void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPo
                                                            ESPINA::NmVector3 slicingStep)
 {
   Region = region;
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
   SlicingStep = slicingStep;
 
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();

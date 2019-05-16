@@ -29,6 +29,8 @@
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 
 vtkStandardNewMacro(vtkCountingFrameRepresentationXZ);
 
@@ -99,6 +101,8 @@ void vtkCountingFrameRepresentationXZ::SetSlice(ESPINA::Nm pos)
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
+      this->EdgeActor[i]->GetProperty()->Modified();
+      this->EdgeActor[i]->Modified();
     }
   }
 }
@@ -274,6 +278,9 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
   {
     this->EdgePolyData[i]->GetLines()->Modified();
     this->EdgePolyData[i]->Modified();
+    this->EdgeMapper[i]->Update();
+    this->EdgeActor[i]->GetProperty()->Modified();
+    this->EdgeActor[i]->Modified();
   }
 }
 
