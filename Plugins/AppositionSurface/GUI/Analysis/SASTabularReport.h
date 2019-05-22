@@ -97,6 +97,24 @@ namespace ESPINA
       Core::SegmentationExtension::KeyList keyValues(const Core::SegmentationExtension::InformationKeyList &keys) const;
 
       bool isSASExtensions(const Core::SegmentationExtension::Type &type) const;
+
+      virtual QString selectedInformationFile() const override
+      {
+        QString path = m_category;
+
+        return SASTabularReport::extraPath(path.replace("/","_") + ".txt");
+      }
+
+      virtual const QString oldSelectedInformationFile() const override
+      {
+        QString path = m_category;
+
+        return SASTabularReport::extraPath(path.replace("/",">") + ".txt");
+      }
+
+      virtual Core::SegmentationExtension::InformationKeyList lastInformationOrder() override;
+
+      virtual GUI::InformationSelector::GroupedInfo lastDisplayedInformation() override;
   };
 } // namespace ESPINA
 

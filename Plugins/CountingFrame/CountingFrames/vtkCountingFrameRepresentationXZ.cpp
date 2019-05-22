@@ -149,6 +149,8 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
    *                  BOTTOM
    */
   this->Vertex->SetNumberOfPoints(numVertex + 2);
+  double zeroPoint[3]{0.,0.,0.};
+  for(vtkIdType i = 0; i < this->Vertex->GetNumberOfPoints(); ++i) this->Vertex->SetPoint(i, zeroPoint);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
@@ -273,6 +275,7 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
   }
 
   this->Vertex->Modified();
+  this->Vertex->ComputeBounds();
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {

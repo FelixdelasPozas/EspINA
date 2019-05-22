@@ -133,6 +133,7 @@ QVariant AppositionSurfaceExtension::cacheFail(const InformationKey &key) const
     else
     {
       result = m_synapse->alias().isEmpty() ? m_synapse->name() : m_synapse->alias();
+      updateInfoCache(key, result);
     }
   }
   else

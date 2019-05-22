@@ -37,9 +37,6 @@
 #include <itkImageToVTKImageFilter.h>
 #include <vtkMath.h>
 
-// Qt
-#include <QDebug>
-
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
 
@@ -50,6 +47,7 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
                                  const double min[3])
 {
   auto points = vtkSmartPointer<vtkPoints>::New();
+  points->SetDataTypeToDouble();
   points->SetNumberOfPoints(4);
 
   double x[3];
@@ -98,8 +96,9 @@ void AdaptiveEdgesCreator::computeEdges()
   auto bounds  = volume->bounds();
   auto image   = vtkImage<itkVolumeType>(volume, bounds);
 
+  auto faces = vtkSmartPointer<vtkCellArray>::New();
   auto borderVertices = vtkSmartPointer<vtkPoints>::New();
-  auto faces          = vtkSmartPointer<vtkCellArray>::New();
+  borderVertices->SetDataTypeToDouble();
 
   int dim[3], extent[6];
   double spacing[3];
@@ -144,6 +143,7 @@ void AdaptiveEdgesCreator::computeEdges()
     // We ignore pixels until we find the first non-black pixel
     // Then, we keep last non-black pixel as the other side of the line
     auto nonBlackPixels = vtkSmartPointer<vtkPoints>::New();
+    nonBlackPixels->SetDataTypeToDouble();
     for (auto y = yMin; y <= yMax; y++)
     {
       auto nonBlackPixelDetected = false;
@@ -382,8 +382,9 @@ void AdaptiveEdgesCreator::computeFaces()
 
   for (int face = 0; face < 6 && canExecute(); face++)
   {
+    auto faceCells = vtkCellArray::New();
     auto facePoints = vtkPoints::New();
-    auto faceCells  = vtkCellArray::New();
+    facePoints->SetDataTypeToDouble();
     if (face < 4)
     {
       for (int i = 0; i < numSlices; i++)
@@ -491,11 +492,9 @@ void AdaptiveEdgesCreator::computeFaces()
 //------------------------------------------------------------------------
 void AdaptiveEdgesCreator::run()
 {
-//  qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
   computeEdges();
   computeFaces();
 
   m_extension->m_hasCreatedEdges = !isAborted();
   m_extension->m_edgesTask.wakeAll();
-//  qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
 }

@@ -269,14 +269,6 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
 }
 
 //----------------------------------------------------------------------------
-void vtkCountingFrameSliceRepresentation::SetSlice(ESPINA::Nm pos)
-{
-  Slice = pos;
-
-  CreateRegion();
-}
-
-//----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::SetRepresentationDepth(ESPINA::Nm depth)
 {
   Depth = depth;

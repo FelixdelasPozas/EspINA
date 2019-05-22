@@ -104,7 +104,7 @@ InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
     {
       auto prototype = m_factory->createSegmentationExtension(type);
 
-      if(prototype->validCategory("SAS") || prototype->validCategory("Synapse"))
+      if(prototype->validCategory("Synapse"))
       {
         info[type] << keyValues(prototype->availableInformation());
       }
@@ -309,4 +309,103 @@ void SASTabularReport::Entry::extractInformation()
       }
     }
   }
+}
+
+//------------------------------------------------------------------------
+Core::SegmentationExtension::InformationKeyList SASTabularReport::Entry::lastInformationOrder()
+{
+  SegmentationExtension::InformationKeyList informationTags, availableInformationTags;
+
+  auto groupedInfo = availableInformation();
+
+  for (auto extension : groupedInfo.keys())
+  {
+    for (auto value : groupedInfo[extension])
+    {
+      availableInformationTags <<  SegmentationExtension::InformationKey(extension, value);
+    }
+  }
+
+  QString filename;
+  if(m_model->storage()->exists(selectedInformationFile()))
+  {
+    filename = selectedInformationFile();
+  }
+  else
+  {
+    if(m_model->storage()->exists(oldSelectedInformationFile()))
+    {
+      filename = oldSelectedInformationFile();
+    }
+  }
+
+  if(!filename.isEmpty())
+  {
+    QString selectedInformation(m_model->storage()->snapshot(filename));
+
+    for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+    {
+      if(tag.startsWith(AppositionSurfaceExtension::SAS_PREFIX, Qt::CaseSensitive))
+      {
+        informationTags << SegmentationExtension::InformationKey(AppositionSurfaceExtension::TYPE, AppositionSurfaceExtension::removeSASPrefix(tag));
+      }
+      else
+      {
+        for(auto key: availableInformationTags)
+        {
+          if(key.value() == tag)
+          {
+            informationTags << key;
+          }
+        }
+      }
+    }
+  }
+
+  return informationTags;
+}
+
+//------------------------------------------------------------------------
+GUI::InformationSelector::GroupedInfo SASTabularReport::Entry::lastDisplayedInformation()
+{
+  InformationSelector::GroupedInfo info, available;
+
+  available = availableInformation();
+
+  QString filename;
+  if(m_model->storage()->exists(selectedInformationFile()))
+  {
+    filename = selectedInformationFile();
+  }
+  else
+  {
+    if(m_model->storage()->exists(oldSelectedInformationFile()))
+    {
+      filename = oldSelectedInformationFile();
+    }
+  }
+
+  if(!filename.isEmpty())
+  {
+    QString selectedInformation(m_model->storage()->snapshot(filename));
+    for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+    {
+      if(tag.startsWith(AppositionSurfaceExtension::SAS_PREFIX, Qt::CaseSensitive))
+      {
+        info[AppositionSurfaceExtension::TYPE] << AppositionSurfaceExtension::removeSASPrefix(tag);
+      }
+      else
+      {
+        for (auto extension : available.keys())
+        {
+          if (available[extension].contains(tag))
+          {
+            info[extension] << tag;
+          }
+        }
+      }
+    }
+  }
+
+  return info;
 }

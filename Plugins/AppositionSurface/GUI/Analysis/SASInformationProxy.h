@@ -58,6 +58,8 @@ namespace ESPINA
 
     virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+
   private:
     QVariant information(SegmentationAdapterPtr segmentation,
                          SegmentationAdapterPtr sas,

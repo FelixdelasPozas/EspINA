@@ -98,6 +98,8 @@ void vtkCountingFrameRepresentationYZ::SetSlice(ESPINA::Nm pos)
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
+      this->EdgeActor[i]->GetProperty()->Modified();
+      this->EdgeActor[i]->Modified();
     }
   }
 }
@@ -143,6 +145,8 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
    *
    */
   this->Vertex->SetNumberOfPoints(numVertex);
+  double zeroPoint[3]{0.,0.,0.};
+  for(vtkIdType i = 0; i < this->Vertex->GetNumberOfPoints(); ++i) this->Vertex->SetPoint(i, zeroPoint);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
@@ -263,6 +267,7 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   }
 
   this->Vertex->Modified();
+  this->Vertex->ComputeBounds();
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {

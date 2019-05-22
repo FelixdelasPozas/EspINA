@@ -47,6 +47,7 @@ namespace ESPINA
     public:
       static const Type TYPE;
       static const Type OLD_TYPE;
+      static const QString SAS_PREFIX;
 
     public:
       /** \brief AppositionSurfaceExtension class virtual destructor.
@@ -160,8 +161,6 @@ namespace ESPINA
        *
        */
       void obtainOriginSynapse() const;
-
-      static const QString SAS_PREFIX;
 
       mutable bool             m_hasErrors; /** false if the computation process finished without errors, true otherwise. */
       mutable SegmentationSPtr m_synapse;   /** synapse the SAS is generated from.                                        */

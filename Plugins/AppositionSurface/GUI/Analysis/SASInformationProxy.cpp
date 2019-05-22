@@ -34,13 +34,11 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::GUI::Model::Utils;
 
-
 //----------------------------------------------------------------------------
 bool isSASInformation(SegmentationExtension::InformationKey& key)
 {
   return key.extension() == AppositionSurfaceExtension::TYPE;
 }
-
 
 //----------------------------------------------------------------------------
 class SASInformationProxy::SASInformationFetcher
@@ -93,7 +91,7 @@ class SASInformationProxy::SASInformationFetcher
 
         if (key != NameKey() && key != CategoryKey())
         {
-          if (isSASInformation(key))
+          if(isSASInformation(key))
           {
             if (m_sas)
             {
@@ -135,6 +133,8 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
   auto segmentation = segmentationPtr(proxyItem);
 
+  if(segmentation && !m_filter->isEmpty() && !m_filter->contains(segmentation)) return QVariant();
+
   if (role == Qt::TextAlignmentRole)
   {
     return Qt::AlignRight;
@@ -147,7 +147,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
     if (m_pendingInformation.contains(segmentation))
     {
-      InformationFetcherSPtr task = m_pendingInformation[segmentation];
+      auto &task = m_pendingInformation[segmentation];
 
       progress = task->hasFinished() ? HIDE_PROGRESS : task->currentProgress();
     }
@@ -258,7 +258,7 @@ QVariant SASInformationProxy::information(SegmentationAdapterPtr segmentation,
 {
   if (isSASInformation(key))
   {
-    if (sas)
+    if(sas)
     {
       return sas->information(key);
     }
@@ -271,4 +271,23 @@ QVariant SASInformationProxy::information(SegmentationAdapterPtr segmentation,
   {
     return segmentation->information(key);
   }
+}
+
+//----------------------------------------------------------------------------
+QVariant SASInformationProxy::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (!m_keys.isEmpty() && Qt::DisplayRole == role && section < m_keys.size())
+  {
+    const auto &pair = m_keys.at(section);
+    if(pair.extension() == AppositionSurfaceExtension::TYPE)
+    {
+      return AppositionSurfaceExtension::addSASPrefix(pair.value());
+    }
+    else
+    {
+      return pair.value();
+    }
+  }
+
+  return QAbstractProxyModel::headerData(section, orientation, role);
 }

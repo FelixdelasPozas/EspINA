@@ -155,7 +155,7 @@ namespace ESPINA
     /** \brief Returns the name of the file that contains the information fields to show in the table.
      *
      */
-    QString selectedInformationFile() const
+    virtual QString selectedInformationFile() const
     {
       QString path = m_category;
 
@@ -167,7 +167,7 @@ namespace ESPINA
      * NOTE: not compatible with windows OS
      *
      */
-    const QString oldSelectedInformationFile() const
+    virtual const QString oldSelectedInformationFile() const
     {
       QString path = m_category;
 
@@ -177,12 +177,12 @@ namespace ESPINA
     /** \brief Helper method to return the saved information fields (last used).
      *
      */
-    Core::SegmentationExtension::InformationKeyList lastInformationOrder();
+    virtual Core::SegmentationExtension::InformationKeyList lastInformationOrder();
 
     /** \brief Helper method to return the saved information fields (last used) in GroupedInfo format.
      *
      */
-    GUI::InformationSelector::GroupedInfo lastDisplayedInformation();
+    virtual GUI::InformationSelector::GroupedInfo lastDisplayedInformation();
 
     /** \brief Sets the new information fields to show on the table.
      * \param[in] extensionInformation information provided by extensions.

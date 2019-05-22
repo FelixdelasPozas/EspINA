@@ -56,7 +56,6 @@
 #include <memory>
 
 const QString SAS = QObject::tr("SAS");
-const QString SAS_PREFIX = QObject::tr("SAS ");
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -360,7 +359,7 @@ void AppositionSurfacePlugin::finishedTask()
     auto segmentation = factory->createSegmentation(m_finishedTasks.value(task).adapter, 0);
     segmentation->setCategory(category);
     segmentation->setNumber(number++);
-    segmentation->setData(SAS_PREFIX + QString::number(m_finishedTasks[task].segmentation->number()), Qt::EditRole);
+    segmentation->setData(AppositionSurfaceExtension::SAS_PREFIX + QString::number(m_finishedTasks[task].segmentation->number()), Qt::EditRole);
 
     auto extensions   = segmentation->extensions();
     auto extension    = factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
