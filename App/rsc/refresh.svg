@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -16,10 +17,10 @@
    height="48px"
    id="svg11300"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
-   sodipodi:docbase="/home/jimmac/src/cvs/tango-icon-theme/scalable/actions"
-   sodipodi:docname="view-refresh.svg"
-   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="refresh.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.1">
   <defs
      id="defs3">
     <inkscape:perspective
@@ -242,7 +243,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6568542"
-     inkscape:cx="2.4438651"
+     inkscape:cx="-0.64972709"
      inkscape:cy="18.153347"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -251,8 +252,9 @@
      inkscape:showpageshadow="false"
      inkscape:window-width="891"
      inkscape:window-height="818"
-     inkscape:window-x="0"
-     inkscape:window-y="30" />
+     inkscape:window-x="635"
+     inkscape:window-y="116"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata4">
     <rdf:RDF>
@@ -263,19 +265,15 @@
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
         <dc:creator>
           <cc:Agent>
-            <dc:title>Jakub Steiner</dc:title>
+            <dc:title></dc:title>
           </cc:Agent>
         </dc:creator>
-        <dc:source>http://jimmac.musichall.cz</dc:source>
+        <dc:source></dc:source>
         <cc:license
            rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
-        <dc:title>View Refresh</dc:title>
+        <dc:title></dc:title>
         <dc:subject>
-          <rdf:Bag>
-            <rdf:li>reload</rdf:li>
-            <rdf:li>refresh</rdf:li>
-            <rdf:li>view</rdf:li>
-          </rdf:Bag>
+          <rdf:Bag />
         </dc:subject>
       </cc:Work>
       <cc:License

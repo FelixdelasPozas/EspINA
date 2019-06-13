@@ -56,8 +56,15 @@ void InformationProxy::setSourceModel(ModelAdapterSPtr sourceModel)
                this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
   }
 
+  beginResetModel();
   m_model = sourceModel;
   m_elements.clear();
+
+  auto tasks = m_pendingInformation.values();
+
+  std::for_each(tasks.begin(), tasks.end(), [](InformationFetcherSPtr &task) { if(!task->hasFinished()) task->abort(); });
+
+  m_pendingInformation.clear();
 
   if (m_model)
   {
@@ -74,6 +81,7 @@ void InformationProxy::setSourceModel(ModelAdapterSPtr sourceModel)
   }
 
   QAbstractProxyModel::setSourceModel(m_model.get());
+  endResetModel();
 }
 
 //------------------------------------------------------------------------
@@ -314,12 +322,9 @@ void InformationProxy::setInformationTags(const SegmentationExtension::Informati
 //------------------------------------------------------------------------
 int InformationProxy::progress() const
 {
-  double finishedTasks = 0;
+  const auto tasks = m_pendingInformation.values();
 
-  for (auto task : m_pendingInformation)
-  {
-    if (task->hasFinished()) ++finishedTasks;
-  }
+  double finishedTasks = std::count_if(tasks.constBegin(), tasks.constEnd(), [](const InformationFetcherSPtr &task){ return task->hasFinished(); });
 
   return finishedTasks / rowCount() * 100;
 }
