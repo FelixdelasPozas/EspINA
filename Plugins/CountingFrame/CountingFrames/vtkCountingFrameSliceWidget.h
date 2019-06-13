@@ -97,7 +97,8 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceWidget
     /** \brief vtkCountingFrameSliceWidget class destructor.
      *
      */
-    ~vtkCountingFrameSliceWidget();
+    ~vtkCountingFrameSliceWidget()
+    {};
 
     //BTX - manage the state of the widget
     int WidgetState;

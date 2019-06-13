@@ -30,6 +30,8 @@
 #include <vtkCellArray.h>
 #include <vtkActor.h>
 #include <vtkMath.h>
+#include <vtkProperty.h>
+#include <vtkPolyDataMapper.h>
 
 vtkStandardNewMacro(vtkCountingFrameRepresentationXY);
 
@@ -47,6 +49,8 @@ void vtkCountingFrameRepresentationXY::SetSlice(ESPINA::Nm pos)
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
+      this->EdgeActor[i]->GetProperty()->Modified();
+      this->EdgeActor[i]->Modified();
     }
   }
   else
@@ -141,7 +145,11 @@ void vtkCountingFrameRepresentationXY::CreateRegion()
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
     this->EdgePolyData[i]->GetLines()->Modified();
+    this->EdgePolyData[i]->BuildCells();
     this->EdgePolyData[i]->Modified();
+    this->EdgeMapper[i]->Update();
+    this->EdgeActor[i]->GetProperty()->Modified();
+    this->EdgeActor[i]->Modified();
   }
 }
 

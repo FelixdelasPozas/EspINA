@@ -449,7 +449,7 @@ void SegmentationProperties::showConnections()
       return numLeft < numRight;
     };
 
-    qSort(names.constBegin(), names.constEnd(), pairLessThan);
+    std::sort(names.begin(), names.end(), pairLessThan);
 
     auto insertOp = [&layout, this](const std::pair<QString, QString> &pair)
     {

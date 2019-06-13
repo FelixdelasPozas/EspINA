@@ -55,7 +55,7 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceRepresentation
      * \param[in] pos slice position in Nm.
      *
      */
-    virtual void SetSlice(ESPINA::Nm pos);
+    virtual void SetSlice(ESPINA::Nm pos) = 0;
 
     /** \brief Defines the counting frame representation properties.
      * \param[in] region CF geometry data.
@@ -223,7 +223,7 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceRepresentation
      * \param[in] pos Z coordinate in Nm.
      *
      */
-    int sliceNumber(ESPINA::Nm pos) const;
+    const int sliceNumber(ESPINA::Nm pos) const;
 
     /** \brief Creates the face representation.
      *

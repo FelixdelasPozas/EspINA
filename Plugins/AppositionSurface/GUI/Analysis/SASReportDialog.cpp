@@ -57,7 +57,7 @@ SASReportDialog::SASReportDialog(SegmentationAdapterList segmentations,
   ESPINA_SETTINGS(settings);
 
   settings.beginGroup("Synaptic Apposition Surface Information Analysis");
-  resize(settings.value("size", QSize (400, 200)).toSize());
+  resize(settings.value("size", QSize (800, 600)).toSize());
   move  (settings.value("pos",  QPoint(200, 200)).toPoint());
   settings.endGroup();
 }

@@ -165,14 +165,9 @@ QModelIndex InformationProxy::index(int row, int column, const QModelIndex& pare
 //------------------------------------------------------------------------
 QVariant InformationProxy::headerData(int section, Qt::Orientation orientation, int role) const
 {
-  if (m_keys.isEmpty())
+  if (!m_keys.isEmpty() && Qt::DisplayRole == role && section < m_keys.size())
   {
-    return QAbstractProxyModel::headerData(section, orientation, role);
-  }
-
-  if (Qt::DisplayRole == role && section < m_keys.size())
-  {
-    return m_keys[section].value();
+    return m_keys.at(section).value();
   }
 
   return QAbstractProxyModel::headerData(section, orientation, role);

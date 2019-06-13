@@ -41,7 +41,6 @@ bool isSASInformation(SegmentationExtension::InformationKey& key)
   return key.extension() == AppositionSurfaceExtension::TYPE;
 }
 
-
 //----------------------------------------------------------------------------
 class SASInformationProxy::SASInformationFetcher
 : public InformationProxy::InformationFetcher
@@ -271,4 +270,23 @@ QVariant SASInformationProxy::information(SegmentationAdapterPtr segmentation,
   {
     return segmentation->information(key);
   }
+}
+
+//----------------------------------------------------------------------------
+QVariant SASInformationProxy::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (!m_keys.isEmpty() && Qt::DisplayRole == role && section < m_keys.size())
+  {
+    const auto &pair = m_keys.at(section);
+    if(pair.extension() == AppositionSurfaceExtension::TYPE)
+    {
+      return AppositionSurfaceExtension::addSASPrefix(pair.value());
+    }
+    else
+    {
+      return pair.value();
+    }
+  }
+
+  return QAbstractProxyModel::headerData(section, orientation, role);
 }

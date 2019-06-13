@@ -177,6 +177,7 @@ void ChannelEdges::loadEdgesData()
     if (edgesFile.exists())
     {
       m_edges = PolyDataUtils::readPolyDataFromFile(edgesFile.absoluteFilePath());
+      if(m_edges->GetPoints()->GetDataType() == VTK_FLOAT) m_edges->GetPoints()->SetDataTypeToDouble();
     }
   }
 
@@ -190,6 +191,7 @@ void ChannelEdges::loadEdgesData()
       if (facesFile.exists())
       {
         m_faces[i] = PolyDataUtils::readPolyDataFromFile(facesFile.absoluteFilePath());
+        if(m_faces[i]->GetPoints()->GetDataType() == VTK_FLOAT) m_faces[i]->GetPoints()->SetDataTypeToDouble();
       }
     }
   }

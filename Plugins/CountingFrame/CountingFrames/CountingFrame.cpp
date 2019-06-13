@@ -254,12 +254,12 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
   auto widget = CountingFrame2DWidgetAdapter::New();
 
   widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
-  widget->SetRepresentationDepth(view2D->widgetDepth());
-  widget->SetPlane(view2D->plane());
-  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
-  widget->SetSlice(slice);
   widget->SetCurrentRenderer(view2D->mainRenderer());
   widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());
+  widget->SetPlane(view2D->plane());
+  widget->SetRepresentationDepth(view2D->widgetDepth());
+  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
+  widget->SetSlice(slice);
   widget->SetEnabled(true);
   widget->setEditable(m_editable);
 

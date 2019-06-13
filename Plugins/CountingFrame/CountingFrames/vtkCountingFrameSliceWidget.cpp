@@ -34,6 +34,9 @@
 #include <vtkRenderer.h>
 #include <vtkPolyData.h>
 
+// C++
+#include <cstring>
+
 vtkStandardNewMacro(vtkCountingFrameSliceWidget);
 
 using SliceRepresentation   = vtkCountingFrameSliceRepresentation;
@@ -97,11 +100,6 @@ vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent,
                                           vtkWidgetEvent::Move,
                                           this, vtkCountingFrameSliceWidget::MoveAction);
-}
-
-//----------------------------------------------------------------------------
-vtkCountingFrameSliceWidget::~vtkCountingFrameSliceWidget()
-{
 }
 
 //----------------------------------------------------------------------
@@ -355,14 +353,14 @@ void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> 
     CreateDefaultRepresentation();
   }
 
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
 
   centerMarginsOnVoxelCenter(this);
 
   // ensures consistency with the counting frame
-  memcpy(inclusionOffset, InclusionOffset, 3*sizeof(ESPINA::Nm));
-  memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(inclusionOffset, InclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(ESPINA::Nm));
 
   auto rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
   rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, resolution);
