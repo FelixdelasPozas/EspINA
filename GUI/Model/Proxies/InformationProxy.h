@@ -275,12 +275,12 @@ namespace ESPINA
       Core::SegmentationExtension::InformationKeyList m_keys;
       mutable QMap<SegmentationAdapterPtr, InformationFetcherSPtr> m_pendingInformation;
       SchedulerSPtr m_scheduler;
+      const SegmentationAdapterList *m_filter;
 
     private:
       ModelAdapterSPtr m_model;
       QString          m_category;
 
-      const SegmentationAdapterList *m_filter;
 
       ItemAdapterList m_elements;
   };

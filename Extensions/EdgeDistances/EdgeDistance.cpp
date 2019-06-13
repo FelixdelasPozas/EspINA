@@ -222,9 +222,9 @@ bool EdgeDistance::isOnEdge() const
         isOnEdge |= (distances[(2*i)+1] < DELTA[i]);
       }
     }
-
-    updateInfoCache(TOUCH_EDGES, isOnEdge ? 1 : 0);
   }
+
+  updateInfoCache(TOUCH_EDGES, isOnEdge ? 1 : 0);
 
   return isOnEdge;
 }

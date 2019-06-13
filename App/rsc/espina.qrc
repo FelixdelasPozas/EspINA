@@ -83,6 +83,7 @@
     <file>preview_raw_information.png</file>
     <file>rainbow.svg</file>
     <file>refresh.svg</file>
+    <file>refresh-force.svg</file>
     <file>remove.svg</file>
     <file>removeSeg.svg</file>
     <file>reports.svg</file>
@@ -119,7 +120,6 @@
     <file>tubular.svg</file>
     <file>up.svg</file>
     <file>upm.gif</file>
-    <file>view-refresh.svg</file>
     <file>visualBookmarks_add.svg</file>
     <file>visualBookmarks_apply.svg</file>
     <file>visualBookmarks_remove.svg</file>

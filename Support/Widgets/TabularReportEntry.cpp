@@ -118,6 +118,9 @@ TabularReport::Entry::Entry(const QString   &category,
   connect(selectInformation,  SIGNAL(clicked(bool)),
           this,               SLOT(changeDisplayedInformation()));
 
+  connect(forceRefreshInformation, SIGNAL(clicked(bool)),
+          this,                    SLOT(forceRefreshAllInformation()));
+
   tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
@@ -287,6 +290,30 @@ void TabularReport::Entry::refreshAllInformation()
 }
 
 //------------------------------------------------------------------------
+void TabularReport::Entry::forceRefreshAllInformation()
+{
+  const auto message = tr("Do you really want to recalculate all displayed information?");
+  const auto title   = tr("Information recalculation");
+  if(QMessageBox::Yes == DefaultDialogs::UserQuestion(message, QMessageBox::Yes|QMessageBox::No, title, QString(), this))
+  {
+    const auto segmentations = toList<SegmentationAdapter>(m_proxy->displayedItems());
+    const auto extensions    = lastDisplayedInformation().keys();
+
+    auto invalidateExtensionsOp = [&extensions](const SegmentationAdapterPtr &seg)
+    {
+      auto segExtensions = seg->readOnlyExtensions();
+
+      std::for_each(extensions.constBegin(), extensions.constEnd(), [&segExtensions](const QString &type) { if(segExtensions->hasExtension(type)) segExtensions[type]->invalidate(); });
+    };
+    std::for_each(segmentations.constBegin(), segmentations.constEnd(), invalidateExtensionsOp);
+
+    m_proxy->setSourceModel(m_model); // resets the proxy.
+
+    tableView->viewport()->update();
+  }
+}
+
+//------------------------------------------------------------------------
 void TabularReport::Entry::refreshGUI()
 {
   refreshGUIImplementation();
@@ -315,6 +342,8 @@ void TabularReport::Entry::refreshGUIImplementation()
 
     emit informationReadyChanged();
   }
+
+  forceRefreshInformation->setEnabled(!inProgress);
 }
 
 //------------------------------------------------------------------------

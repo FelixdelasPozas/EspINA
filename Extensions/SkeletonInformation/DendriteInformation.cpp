@@ -402,24 +402,24 @@ void DendriteSkeletonInformation::updateInformation() const
       else
       {
         completeSpinesLength += spine.length;
+
+        if(spine.branched) ++branched;
+
+        switch(spine.numSynapses)
+        {
+          case 0:
+            ++none;
+            break;
+          case 1:
+            ++mono;
+            break;
+          default:
+            ++multi;
+            break;
+        }
+
+        connectionsOnSpine += spine.numSynapses;
       }
-
-      if(spine.branched) ++branched;
-
-      switch(spine.numSynapses)
-      {
-        case 0:
-          ++none;
-          break;
-        case 1:
-          ++mono;
-          break;
-        default:
-          ++multi;
-          break;
-      }
-
-      connectionsOnSpine += spine.numSynapses;
     }
 
     for(auto path: pathList)

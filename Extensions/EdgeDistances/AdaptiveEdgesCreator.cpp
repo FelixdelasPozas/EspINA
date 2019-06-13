@@ -96,10 +96,9 @@ void AdaptiveEdgesCreator::computeEdges()
   auto bounds  = volume->bounds();
   auto image   = vtkImage<itkVolumeType>(volume, bounds);
 
+  auto faces = vtkSmartPointer<vtkCellArray>::New();
   auto borderVertices = vtkSmartPointer<vtkPoints>::New();
   borderVertices->SetDataTypeToDouble();
-
-  auto faces = vtkSmartPointer<vtkCellArray>::New();
 
   int dim[3], extent[6];
   double spacing[3];
@@ -384,10 +383,10 @@ void AdaptiveEdgesCreator::computeFaces()
 
   for (int face = 0; face < 6 && canExecute(); face++)
   {
+    auto faceCells = vtkCellArray::New();
     auto facePoints = vtkPoints::New();
     facePoints->SetDataTypeToDouble();
 
-    auto faceCells  = vtkCellArray::New();
     if (face < 4)
     {
       for (int i = 0; i < numSlices; i++)

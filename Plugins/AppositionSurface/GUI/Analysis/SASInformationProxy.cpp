@@ -34,7 +34,6 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::GUI::Model::Utils;
 
-
 //----------------------------------------------------------------------------
 bool isSASInformation(SegmentationExtension::InformationKey& key)
 {
@@ -92,7 +91,7 @@ class SASInformationProxy::SASInformationFetcher
 
         if (key != NameKey() && key != CategoryKey())
         {
-          if (isSASInformation(key))
+          if(isSASInformation(key))
           {
             if (m_sas)
             {
@@ -134,6 +133,8 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
   auto segmentation = segmentationPtr(proxyItem);
 
+  if(segmentation && !m_filter->isEmpty() && !m_filter->contains(segmentation)) return QVariant();
+
   if (role == Qt::TextAlignmentRole)
   {
     return Qt::AlignRight;
@@ -146,7 +147,7 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
     if (m_pendingInformation.contains(segmentation))
     {
-      InformationFetcherSPtr task = m_pendingInformation[segmentation];
+      auto &task = m_pendingInformation[segmentation];
 
       progress = task->hasFinished() ? HIDE_PROGRESS : task->currentProgress();
     }
@@ -257,7 +258,7 @@ QVariant SASInformationProxy::information(SegmentationAdapterPtr segmentation,
 {
   if (isSASInformation(key))
   {
-    if (sas)
+    if(sas)
     {
       return sas->information(key);
     }

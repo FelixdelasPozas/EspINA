@@ -24,6 +24,12 @@
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
       <widget class="QPushButton" name="refreshInformation">
+       <property name="minimumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
        <property name="maximumSize">
         <size>
          <width>32</width>
@@ -39,6 +45,38 @@
        <property name="icon">
         <iconset resource="../../App/rsc/espina.qrc">
          <normaloff>:/espina/refresh.svg</normaloff>:/espina/refresh.svg</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="forceRefreshInformation">
+       <property name="minimumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../../App/rsc/espina.qrc">
+         <normaloff>:/espina/refresh-force.svg</normaloff>:/espina/refresh-force.svg</iconset>
        </property>
        <property name="iconSize">
         <size>

@@ -141,6 +141,11 @@ namespace ESPINA
      */
     virtual void refreshAllInformation();
 
+    /** \brief Invalidates all shown information and forces a refresh.
+     *
+     */
+    virtual void forceRefreshAllInformation();
+
     /** \brief Refreshes the entry GUI.
      *
      */
