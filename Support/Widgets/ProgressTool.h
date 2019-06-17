@@ -197,7 +197,7 @@ namespace ESPINA
            * \param[in] keySequence QKeySequence object.
            *
            */
-          void setShortcut(QKeySequence keySequence);
+          void setShortcut(const QKeySequence &keySequence);
 
           /** \brief Returns list of the key sequences used for the activation of this tool.
            *

@@ -207,6 +207,7 @@ void SegmentationRepresentationFactory::createSkeletonRepresentation(Representat
      auto skeletonSwitch2D     = std::make_shared<SegmentationSkeletonSwitch>("Skeleton2DSwitch", skeletonManager2D, skeletonSettings2D, ViewType::VIEW_2D, context);
      skeletonSwitch2D->setChecked(true);
      skeletonSwitch2D->setShortcut(Qt::Key_Space);
+     skeletonSwitch2D->setShortcut(Qt::KeypadModifier + Qt::Key_0);
      groupSwitch("1-2", skeletonSwitch2D);
 
      representation.Pools    << poolSkeleton2DXY << poolSkeleton2DXZ << poolSkeleton2DYZ;
