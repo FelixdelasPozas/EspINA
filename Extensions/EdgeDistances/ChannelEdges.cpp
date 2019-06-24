@@ -46,6 +46,7 @@
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkGenericDataObjectWriter.h>
 #include <vtkGenericDataObjectReader.h>
+#include <vtkImplicitPolyDataDistance.h>
 #include <vtkCellArray.h>
 
 // Qt
@@ -305,42 +306,71 @@ void ChannelEdges::distanceToEdges(SegmentationPtr segmentation, Nm distances[6]
   bool computed = false;
   auto output = segmentation->output();
 
-  vtkSmartPointer<vtkPolyData> segmentationPolyData = nullptr;
+  auto segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
 
   if(hasMeshData(output))
   {
-    segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
     segmentationPolyData->DeepCopy(writeLockMesh(output)->mesh());
+
+    if(segmentationPolyData->GetNumberOfPoints() != 0)
+    {
+      for (int face = 0; face < 6; ++face)
+      {
+        const auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
+
+        {
+          QMutexLocker lock(&m_distanceMutex);
+          faceMesh->DeepCopy(m_faces[face]);
+        }
+
+        auto distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
+        distanceFilter->SignedDistanceOff();
+        distanceFilter->SetInputData(0, segmentationPolyData);
+        distanceFilter->SetInputData(1, faceMesh);
+        distanceFilter->Update();
+
+        distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
+      }
+
+      computed = true;
+    }
   }
   else
   {
     if(hasSkeletonData(output))
     {
-      segmentationPolyData = vtkSmartPointer<vtkPolyData>::New();
       segmentationPolyData->DeepCopy(writeLockSkeleton(output)->skeleton());
-    }
-  }
 
-  if (segmentationPolyData != nullptr)
-  {
-    for (int face = 0; face < 6; ++face)
-    {
-      auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
-
+      // NOTE: Skeletons have no faces and vtkDistancePolyDataFilter returns an invalid result.
+      //       Need to evaluate distance at each point.
+      if(segmentationPolyData->GetNumberOfPoints() != 0)
       {
-        QMutexLocker lock(&m_distanceMutex);
-        faceMesh->DeepCopy(m_faces[face]);
+        for (int face = 0; face < 6; ++face)
+        {
+          const auto faceMesh = vtkSmartPointer<vtkPolyData>::New();
+
+          {
+            QMutexLocker lock(&m_distanceMutex);
+            faceMesh->DeepCopy(m_faces[face]);
+          }
+
+          distances[face] = VTK_DOUBLE_MAX;
+
+          auto implicit = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+          implicit->SetInput(faceMesh);
+
+          for(vtkIdType i = 0; i < segmentationPolyData->GetNumberOfPoints(); ++i)
+          {
+            double pt[3];
+            segmentationPolyData->GetPoint(i, pt);
+
+            distances[face] = std::min(distances[face], std::fabs(implicit->EvaluateFunction(pt)));
+          }
+        }
+
+        computed = true;
       }
-
-      auto distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
-      distanceFilter->SignedDistanceOff();
-      distanceFilter->SetInputData(0, segmentationPolyData);
-      distanceFilter->SetInputData(1, faceMesh);
-      distanceFilter->Update();
-      distances[face] = distanceFilter->GetOutput()->GetPointData()->GetScalars()->GetRange()[0];
     }
-
-    computed = true;
   }
 
   if(!computed)
@@ -514,7 +544,7 @@ void ChannelEdges::checkAnalysisData() const
 //-----------------------------------------------------------------------------
 void ChannelEdges::checkEdgesData()
 {
-  if(!m_hasCreatedEdges)
+  if(!m_hasCreatedEdges || !m_faces[0] || !m_faces[1] || !m_faces[2] || !m_faces[3] || !m_faces[4] || !m_faces[5] || !m_edges)
   {
     if(!useDistanceToBounds())
     {

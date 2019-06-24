@@ -218,8 +218,8 @@ bool EdgeDistance::isOnEdge() const
 
       for(int i = 0; i < 3; ++i)
       {
-        isOnEdge |= (distances[2*i]     < DELTA[i]);
-        isOnEdge |= (distances[(2*i)+1] < DELTA[i]);
+        isOnEdge |= (distances[2*i]     <= DELTA[i]);
+        isOnEdge |= (distances[(2*i)+1] <= DELTA[i]);
       }
     }
   }
