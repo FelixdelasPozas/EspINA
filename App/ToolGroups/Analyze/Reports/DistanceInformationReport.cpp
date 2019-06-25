@@ -22,6 +22,7 @@
 #include "DistanceInformationReport.h"
 #include <Dialogs/DistanceInformation/DistanceInformationDialog.h>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/MultiTasking/Scheduler.h>
 #include <Extensions/Morphological/MorphologicalInformation.h>
@@ -35,8 +36,11 @@
 // VTK
 #include <vtkSmartPointer.h>
 #include <vtkImplicitPolyDataDistance.h>
+#include <vtkDistancePolyDataFilter.h>
 #include <vtkPolyData.h>
 #include <vtkPointData.h>
+#include <vtkCellArray.h>
+#include <vtkLine.h>
 
 // Qt
 #include <QThread>
@@ -73,7 +77,15 @@ QString DistanceInformationReport::description() const
 //----------------------------------------------------------------------------
 SegmentationAdapterList DistanceInformationReport::acceptedInput(SegmentationAdapterList segmentations) const
 {
-  return segmentations;
+  SegmentationAdapterList validSegs;
+
+  for(auto &seg: segmentations)
+  {
+    const auto &output = seg->output();
+    if(hasMeshData(output) || hasSkeletonData(output)) validSegs << seg;
+  }
+
+  return validSegs;
 }
 
 //----------------------------------------------------------------------------
@@ -191,38 +203,24 @@ void DistanceComputationThread::run()
   }
   else
   {
-    auto from = readLockMesh(m_first->output())->mesh();
-    auto to   = readLockMesh(m_second->output())->mesh();
+    const auto output1 = m_first->output();
+    const auto output2 = m_second->output();
+    auto from = hasMeshData(output1) ? readLockMesh(output1)->mesh() : readLockSkeleton(output1)->skeleton();
+    auto to   = hasMeshData(output2) ? readLockMesh(output2)->mesh() : readLockSkeleton(output2)->skeleton();
 
-    if ((from->GetNumberOfPolys() == 0) || (from->GetNumberOfPoints() == 0) ||
-        (to->GetNumberOfPolys() == 0)   || (to->GetNumberOfPoints() == 0))
+    if(hasMeshData(output2))
     {
-      m_distance = -1;
-      return;
+      m_distance = distanceToMesh(from, to);
     }
-
-    auto distanceFilter = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
-    distanceFilter->SetInput(to);
-
-    int numPts = from->GetNumberOfPoints();
-
-    for (vtkIdType ptId = 0; ptId < numPts; ++ptId)
+    else
     {
-      double pt[3];
-      from->GetPoint(ptId, pt);
-      try
+      if(hasMeshData(output1))
       {
-        auto dist = std::fabs(distanceFilter->EvaluateFunction(pt));
-
-        if(m_distance > dist)
-        {
-          m_distance = dist;
-        }
+        m_distance = distanceToMesh(to, from);
       }
-      catch(...)
+      else
       {
-        m_distance = -1;
-        break;
+        m_distance = distanceSkeletonToSkeleton(from, to);
       }
     }
   }
@@ -236,28 +234,114 @@ void DistanceComputationThread::run()
 //----------------------------------------------------------------------------
 const NmVector3 DistanceComputationThread::getCentroid(SegmentationAdapterPtr seg)
 {
-  auto morphologicalExtension = retrieveOrCreateSegmentationExtension<MorphologicalInformation>(seg, m_context.factory());
+  NmVector3 centroid{0,0,0};
 
-  bool isOk;
-  const QStringList tagList = {"Centroid X","Centroid Y","Centroid Z"};
+  auto output = seg->output();
 
-  NmVector3 centroid;
-
-  for(int i = 0; i < 3; i++)
+  if(hasVolumetricData(output))
   {
-    auto key    = SegmentationExtension::InformationKey(MorphologicalInformation::TYPE, tagList.at(i));
-    auto qValue = morphologicalExtension->information(key);
-    auto value  = qValue.toDouble(&isOk);
+    auto morphologicalExtension = retrieveOrCreateSegmentationExtension<MorphologicalInformation>(seg, m_context.factory());
 
-    if(!isOk)
+    bool isOk;
+    const QStringList tagList = {"Centroid X","Centroid Y","Centroid Z"};
+
+    for(int i = 0; i < 3; i++)
     {
-      qWarning() << "DistanceComputationThread::getCentroid() -> Unexpected variant value.";
-    }
+      auto key    = SegmentationExtension::InformationKey(MorphologicalInformation::TYPE, tagList.at(i));
+      auto qValue = morphologicalExtension->information(key);
+      auto value  = qValue.toDouble(&isOk);
 
-    centroid[i] = value;
+      if(!isOk)
+      {
+        qWarning() << "DistanceComputationThread::getCentroid() -> Unexpected variant value.";
+      }
+
+      centroid[i] = value;
+    }
+  }
+  else
+  {
+    if(hasSkeletonData(output))
+    {
+      auto skeleton = readLockSkeleton(output)->skeleton();
+      const auto numPoints = skeleton->GetNumberOfPoints();
+
+      Nm point[3];
+
+      for(vtkIdType i = 0; i < numPoints; ++i)
+      {
+        skeleton->GetPoint(i, point);
+        centroid[0] = point[0];
+        centroid[1] = point[1];
+        centroid[2] = point[2];
+      }
+
+      for(auto i: {0,1,2}) centroid[i] = centroid[i] / numPoints;
+    }
   }
 
   return centroid;
+}
+
+//--------------------------------------------------------------------
+const Nm DistanceComputationThread::distanceToMesh(vtkSmartPointer<vtkPolyData> mesh1, vtkSmartPointer<vtkPolyData> mesh2)
+{
+  Nm distance = -1;
+  Q_ASSERT(mesh2->GetNumberOfPolys() > 0);
+
+  if(mesh1 && mesh2)
+  {
+    auto distanceFilter = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
+    distanceFilter->SetInput(mesh2);
+
+    distance = VTK_DOUBLE_MAX;
+
+    for(vtkIdType i = 0; i < mesh1->GetNumberOfPoints(); ++i)
+    {
+      double pt[3];
+      mesh1->GetPoint(i, pt);
+
+      distance = std::min(distance, std::fabs(distanceFilter->EvaluateFunction(pt)));
+    }
+  }
+
+  return distance;
+}
+
+//--------------------------------------------------------------------
+const Nm DistanceComputationThread::distanceSkeletonToSkeleton(vtkSmartPointer<vtkPolyData> skeleton1, vtkSmartPointer<vtkPolyData> skeleton2)
+{
+  Nm distance = -1;
+
+  if(skeleton1 && skeleton2)
+  {
+    distance = VTK_DOUBLE_MAX;
+    double unused1[3], unused2[3], unused3, unused4;
+
+    for(vtkIdType i = 0; i < skeleton1->GetNumberOfLines(); ++i)
+    {
+      auto list1 = vtkSmartPointer<vtkIdList>::New();
+      skeleton1->GetLines()->GetCell(i, list1);
+      if(list1->GetNumberOfIds() != 2) continue;
+      double pt1[3], pt2[3];
+      skeleton1->GetPoint(list1->GetId(0), pt1);
+      skeleton1->GetPoint(list1->GetId(1), pt2);
+
+      for(vtkIdType j = 0; j < skeleton2->GetNumberOfLines(); ++j)
+      {
+        auto list2 = vtkSmartPointer<vtkIdList>::New();
+        skeleton2->GetLines()->GetCell(j, list2);
+        if(list2->GetNumberOfIds() != 2) continue;
+        double pt3[3], pt4[3];
+        skeleton2->GetPoint(list2->GetId(0), pt3);
+        skeleton2->GetPoint(list2->GetId(1), pt4);
+
+        distance = std::min(distance, std::fabs(vtkLine::DistanceBetweenLineSegments(pt1, pt2, pt3, pt4, unused1, unused2, unused3, unused4)));
+      }
+    }
+  }
+
+  return std::sqrt(distance);
 }
 
 //--------------------------------------------------------------------
@@ -319,6 +403,7 @@ void DistanceComputationManagerThread::run()
     }
   }
 
+  int currentProgress = 0;
   // wait until finished or cancelled
   while(!m_finished && canExecute())
   {
@@ -326,7 +411,11 @@ void DistanceComputationManagerThread::run()
     if(!m_finished) m_waiter.wait(&m_waitMutex);
     m_waitMutex.unlock();
 
-    QApplication::processEvents();
+    if(progress() != currentProgress)
+    {
+      currentProgress = progress();
+      QApplication::processEvents();
+    }
   }
 
   if(isAborted())
@@ -363,8 +452,6 @@ void DistanceComputationManagerThread::onComputationFinished()
 
         reportProgress(static_cast<int>((100 * m_computations)/m_numComputations));
 
-        computeNextDistance();
-
         if(m_computations == m_numComputations)
         {
           m_finished = true;
@@ -373,6 +460,8 @@ void DistanceComputationManagerThread::onComputationFinished()
         break;
       }
     }
+
+    computeNextDistance();
   }
   else
   {
@@ -455,3 +544,4 @@ void DistanceComputationManagerThread::abortTasks()
 
   m_tasks.clear();
 }
+

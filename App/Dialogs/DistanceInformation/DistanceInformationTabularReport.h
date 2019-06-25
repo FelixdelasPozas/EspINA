@@ -38,7 +38,6 @@ namespace ESPINA
       Q_OBJECT
     protected:
       class Entry;
-      class InformationProxy;
 
     public:
       /** \brief DistanceInformationTabularReport class constructor.
