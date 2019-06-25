@@ -327,7 +327,7 @@ const QString &ProgressTool::id() const
 }
 
 //----------------------------------------------------------------------------
-void ProgressTool::setShortcut(QKeySequence keySequence)
+void ProgressTool::setShortcut(const QKeySequence &keySequence)
 {
   if(!m_shortcutSequences.contains(keySequence))
   {

@@ -243,12 +243,11 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
       return segmentation->category()->data(role);
     }
 
-    auto extensions = segmentation->readOnlyExtensions();
+    const auto extensions = segmentation->readOnlyExtensions();
 
     if (extensions->hasInformation(key))
     {
-      if (!m_pendingInformation.contains(segmentation)
-       || m_pendingInformation[segmentation]->isAborted())
+      if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
       {
         auto task = std::make_shared<InformationFetcher>(segmentation, m_keys, m_scheduler);
         m_pendingInformation[segmentation] = task;

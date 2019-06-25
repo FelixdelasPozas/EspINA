@@ -87,6 +87,20 @@ namespace ESPINA
        */
       const NmVector3 getCentroid(SegmentationAdapterPtr segmentation);
 
+      /** \brief Computes and returns the distance between two meshes, sencond mesh must have faces (triangles).
+       * \param[in] mesh1 Mesh object 1.
+       * \param[in] mesh1 Mesh object 2.
+       *
+       */
+      const Nm distanceToMesh(vtkSmartPointer<vtkPolyData> mesh1, vtkSmartPointer<vtkPolyData> mesh2);
+
+      /** \brief Computes and returns the distance between two skeletons.
+       * \param[in] skeleton1 Skeleton object 1.
+       * \param[in] skeleton2 Skeleton obejct 2.
+       *
+       */
+      const Nm distanceSkeletonToSkeleton(vtkSmartPointer<vtkPolyData> skeleton1, vtkSmartPointer<vtkPolyData> skeleton2);
+
       Support::Context                                    &m_context;  /** application context.            */
       Nm                                                   m_distance; /** distance between segmentations. */
       SegmentationAdapterPtr                               m_first;    /** first segmentation.             */
