@@ -200,10 +200,10 @@ namespace ESPINA
     volume->SetReleaseDataFlag(releaseFlag);
   }
 
-  /** \brief Saves @volume to the given @filename reporting progress to the given @task withih @start and @end parameters.
+  /** \brief Saves @volume to the given @filename reporting progress to the given @task within @start and @end parameters.
    * \param[in] volume itk volume type.
    * \param[in] filename file name on disk.
-   * \param[in] task task report progres to.
+   * \param[in] task task report progress to.
    * \param[in] start progress start value [0-100].
    * \param[in] end progress end value [0-100] (end > start).
    *
@@ -280,11 +280,23 @@ namespace ESPINA
   template<typename T>
   typename T::Pointer readVolume(const QString &filename)
   {
-    const QString utfFilename = filename.toUtf8();
+    const auto adaptedFilename  = QDir::convertSeparators(filename);
+    const QString utfFilename   = adaptedFilename.toUtf8();
     const QString asciiFilename = utfFilename.toAscii();
-    auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiFilename.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
+    const auto asciiString      = asciiFilename.toStdString();
+
+    auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiString.c_str(), itk::ImageIOFactory::ReadMode);
+
+    if(!imageIO)
+    {
+      auto message = QObject::tr("Can't read image file, file name: %1. No ImageIO class to read file.").arg(filename);
+      auto details = QObject::tr("VolumetricDataUtils::readVolume() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
     imageIO->SetGlobalWarningDisplay(false);
-    imageIO->SetFileName(asciiFilename.toStdString());
+    imageIO->SetFileName(asciiString);
     imageIO->ReadImageInformation();
 
     if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
@@ -297,7 +309,7 @@ namespace ESPINA
 
     auto reader = itk::ImageFileReader<T>::New();
     reader->SetGlobalWarningDisplay(false);
-    reader->SetFileName(asciiFilename.toStdString());
+    reader->SetFileName(asciiString);
     reader->SetImageIO(imageIO);
     reader->UseStreamingOff();
     reader->SetNumberOfThreads(1);

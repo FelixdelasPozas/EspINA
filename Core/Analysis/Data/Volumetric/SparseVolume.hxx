@@ -645,7 +645,7 @@ namespace ESPINA
 
     if(!m_blocks.empty()) return true; // test
 
-    bool dataFetched = false;
+    bool dataFetched = true;
 
     int i = 0;
     QFileInfo blockFile;
@@ -681,6 +681,7 @@ namespace ESPINA
       {
         // NOTE: return 'dataFetched = false' for now when a file/part is bad to force a filter rerun
         // instead of crashing.
+        dataFetched = false;
         break;
       }
 
@@ -698,7 +699,7 @@ namespace ESPINA
         index.SetElement(i, region.GetIndex(i) + vtkMath::Round(origin.GetElement(i)/spacing[i]));
       }
 
-      auto key   = lliVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
+      auto key = lliVector3{index[0]/s_blockSize, index[1]/s_blockSize, index[2]/s_blockSize};
 
       if (!m_blocks.contains(key)
         && (size[0] == s_blockSize)
@@ -724,7 +725,7 @@ namespace ESPINA
         if (blockFile.exists()) break;
       }
 
-      dataFetched = true;
+      dataFetched &= true;
     }
 
     this->setEditedRegions(regions);
