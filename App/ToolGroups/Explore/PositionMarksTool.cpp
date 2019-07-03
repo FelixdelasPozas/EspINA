@@ -51,11 +51,6 @@ PositionMarksTool::PositionMarksTool(Support::Context& context, QList<RenderView
 }
 
 //-----------------------------------------------------------------------------
-PositionMarksTool::~PositionMarksTool()
-{
-}
-
-//-----------------------------------------------------------------------------
 void PositionMarksTool::abortOperation()
 {
   if(isChecked()) setChecked(false);

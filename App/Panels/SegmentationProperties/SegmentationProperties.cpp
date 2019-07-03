@@ -155,17 +155,21 @@ void SegmentationProperties::onNotesModified()
 {
   if (m_segmentation)
   {
-    auto note = m_gui->notes->toPlainText();
+    const auto notesText = m_gui->notes->toPlainText();
+
+    // check for notes only containing spaces, tabs and newlines.
+    auto it = std::find_if(notesText.constBegin(), notesText.constEnd(), [](const QChar &c) { return !c.isSpace(); });
+    const auto isEmptyNote = (it == notesText.constEnd());
 
     // not using the undo command because in this case the QTextEdit provides its own undo/redo.
-    if (note.isEmpty())
+    if (notesText.isEmpty() || isEmptyNote)
     {
       safeDeleteExtension<SegmentationNotes>(m_segmentation);
     }
     else
     {
       auto notesExtension = retrieveOrCreateSegmentationExtension<SegmentationNotes>(m_segmentation, getContext().factory());
-      notesExtension->setNotes(note);
+      notesExtension->setNotes(notesText);
     }
   }
 }
