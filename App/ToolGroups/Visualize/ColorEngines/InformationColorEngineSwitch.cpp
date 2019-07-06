@@ -97,6 +97,8 @@ void UpdateColorEngineTask::run()
 {
   double i     = 0;
   double total = m_segmentations.size();
+  unsigned long numericalCount = 0;
+  unsigned long categoricalCount = 0;
 
   auto extensionType = m_factory->createSegmentationExtension(m_key.extension());
 
@@ -118,6 +120,7 @@ void UpdateColorEngineTask::run()
         {
           if(NUMERICAL_TYPES.contains(info.type()))
           {
+            ++numericalCount;
             auto value = info.toDouble();
 
             m_min = std::min(m_min, value);
@@ -125,8 +128,9 @@ void UpdateColorEngineTask::run()
           }
           else
           {
-            if(info.type() == QVariant::String)
+            if(info.type() == QVariant::String && (info.toString() != tr("Failed to compute")))
             {
+              ++categoricalCount;
               auto value = info.toString();
               if(!m_categories.contains(value)) m_categories << value;
             }
@@ -154,7 +158,14 @@ void UpdateColorEngineTask::run()
     reportProgress(i++/total*100);
   }
 
-  qSort(m_categories);
+  if(numericalCount >= categoricalCount)
+  {
+    m_categories.clear(); // so isCategorical() returns false.
+  }
+  else
+  {
+    std::sort(m_categories.begin(), m_categories.end());
+  }
 }
 
 //-----------------------------------------------------------------------------
