@@ -50,7 +50,8 @@ namespace ESPINA
       /** \brief VisualBookmarls class virtual destructor.
        *
        */
-      virtual ~PositionMarksTool();
+      virtual ~PositionMarksTool()
+      {};
 
       virtual void abortOperation() override;
 

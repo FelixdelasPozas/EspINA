@@ -30,6 +30,7 @@
 #include <Core/Utils/EspinaException.h>
 #include <Core/Utils/Bounds.h>
 #include <Extensions/Issues/ItemIssues.h>
+#include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Model/ViewItemAdapter.h>
@@ -530,6 +531,18 @@ void CheckSegmentationTask::checkExtensionsValidity() const
 {
   const auto availableExtensions = m_context.factory()->availableSegmentationExtensions().toSet();
   auto extensionTypes            = m_segmentation->readOnlyExtensions()->available().toSet();
+
+  // check and remove empty notes (consisting on spaces, tabs and newlines) from versions before 2.8.9.
+  if(extensionTypes.contains(SegmentationNotes::TYPE))
+  {
+    const auto notesText = m_segmentation->readOnlyExtensions()->get<SegmentationNotes>()->notes();
+    auto it = std::find_if(notesText.constBegin(), notesText.constEnd(), [](const QChar &c){return !c.isSpace(); });
+    if(it == notesText.constEnd())
+    {
+      safeDeleteExtension<SegmentationNotes>(m_segmentation);
+    }
+  }
+
   extensionTypes.subtract(availableExtensions);
 
   if(!extensionTypes.isEmpty())
