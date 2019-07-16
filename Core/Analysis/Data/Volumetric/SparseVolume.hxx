@@ -755,6 +755,8 @@ namespace ESPINA
       this->m_bounds = VolumeBounds{tempBounds, this->m_bounds.spacing(), this->m_bounds.origin()};
     }
 
+    dataFetched &= !m_blocks.isEmpty();
+
     return dataFetched;
   }
 
