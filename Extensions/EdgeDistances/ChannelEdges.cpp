@@ -178,7 +178,6 @@ void ChannelEdges::loadEdgesData()
     if (edgesFile.exists())
     {
       m_edges = PolyDataUtils::readPolyDataFromFile(edgesFile.absoluteFilePath());
-      if(m_edges->GetPoints()->GetDataType() == VTK_FLOAT) m_edges->GetPoints()->SetDataTypeToDouble();
     }
   }
 
@@ -192,7 +191,6 @@ void ChannelEdges::loadEdgesData()
       if (facesFile.exists())
       {
         m_faces[i] = PolyDataUtils::readPolyDataFromFile(facesFile.absoluteFilePath());
-        if(m_faces[i]->GetPoints()->GetDataType() == VTK_FLOAT) m_faces[i]->GetPoints()->SetDataTypeToDouble();
       }
     }
   }
@@ -265,12 +263,16 @@ itkVolumeType::RegionType ChannelEdges::sliceRegion(unsigned int slice) const
   {
     const_cast<ChannelEdges *>(this)->initializeEdges();
 
-    double LB[3], RT[3];
+    double LB[3]{-1,-1,-1}, RT[3]{0,0,0};
 
     QReadLocker lock(&m_dataMutex);
 
-    m_edges->GetPoint(slice*4+0, LB);
-    m_edges->GetPoint(slice*4+2, RT);
+    const unsigned int maxPoints = m_edges->GetNumberOfPoints();
+    if(maxPoints > 0)
+    {
+      m_edges->GetPoint(std::min(slice*4+0, maxPoints -1), LB);
+      m_edges->GetPoint(std::min(slice*4+2, maxPoints -1), RT);
+    }
 
     Bounds bounds{LB[0], RT[0], RT[1], LB[1], LB[2], LB[2]};
 

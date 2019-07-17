@@ -51,6 +51,7 @@ CountingFrame::CountingFrame(CountingFrameExtension                *extension,
 , m_factory        {factory}
 , m_countingFrame  {nullptr}
 , m_innerFrame     {nullptr}
+, m_channelEdges   {nullptr}
 , m_inclusionVolume{0}
 , m_totalVolume    {0}
 , m_extension      {extension}

@@ -70,7 +70,7 @@ vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(const Q
   const QString asciiFilename = utfFilename.toLatin1();
 
   auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-  reader->SetFileName(asciiFilename.toStdString().c_str());
+  reader->SetFileName(asciiFilename.toUtf8().toStdString().c_str());
   reader->SetReadAllFields(true);
   reader->Update();
 
