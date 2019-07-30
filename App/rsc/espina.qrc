@@ -157,5 +157,6 @@
     <file>weight-balance.svg</file>
     <file>ruler-max.svg</file>
     <file>display_crosshairs_intersections.svg</file>
+	<file>clean_segmentation.svg</file>
   </qresource>
 </RCC>

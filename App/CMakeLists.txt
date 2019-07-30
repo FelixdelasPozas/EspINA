@@ -76,6 +76,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Edit/SplitTool.h
   ToolGroups/Edit/SkeletonEditionTool.h
   ToolGroups/Edit/SliceInterpolationTool.h
+  ToolGroups/Edit/CleanSegmentationTool.h
   ToolGroups/Session/FileOpenTool.h
   ToolGroups/Session/FileSaveTool.h
   ToolGroups/Session/LogTool.h
@@ -230,6 +231,7 @@ set (ESPINA_SOURCES
   ToolGroups/Edit/SliceInterpolationTool.cpp
   ToolGroups/Edit/SplitTool.cpp
   ToolGroups/Edit/SkeletonEditionTool.cpp
+  ToolGroups/Edit/CleanSegmentationTool.cpp
   ToolGroups/Explore/PositionMarksTool.cpp
   ToolGroups/Explore/ResetViewTool.cpp
   ToolGroups/Explore/ZoomRegionTool.cpp

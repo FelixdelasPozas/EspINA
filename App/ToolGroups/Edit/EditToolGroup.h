@@ -73,22 +73,27 @@ namespace ESPINA
        */
       static FilterTypeList InterpolationFilters();
 
-      static const Filter::Type CLOSE_FILTER;           /** close filter signature.            */
-      static const Filter::Type CLOSE_FILTER_V4;        /** close filter old signature.        */
-      static const Filter::Type OPEN_FILTER;            /** open filter signature.             */
-      static const Filter::Type OPEN_FILTER_V4;         /** open filter old signature.         */
-      static const Filter::Type DILATE_FILTER;          /** dilate filter signature.           */
-      static const Filter::Type DILATE_FILTER_V4;       /** dilate filter old signature.       */
-      static const Filter::Type ERODE_FILTER;           /** erode filter signature.            */
-      static const Filter::Type ERODE_FILTER_V4;        /** erode filter old signature.        */
-      static const Filter::Type FILL_HOLES_FILTER;      /** fill holes filter signature.       */
-      static const Filter::Type FILL_HOLES_FILTER_V4;   /** fill holes filter old signature.   */
-      static const Filter::Type FILL_HOLES2D_FILTER;    /** fill holes filter 2D signature.    */
-      static const Filter::Type IMAGE_LOGIC_FILTER;     /** image logic filters old signature. */
-      static const Filter::Type ADDITION_FILTER;        /** addition filter signature.         */
-      static const Filter::Type SUBTRACTION_FILTER;     /** subtraction filter signature.      */
-      static const Filter::Type SLICE_INTERPOLATION_FILTER;     /** slice interpolation filter signature.      */
+      /** \brief Returns the cleaning filter's signatures.
+       *
+       */
+      static FilterTypeList CleanFilters();
 
+      static const Filter::Type CLOSE_FILTER;               /** close filter signature.               */
+      static const Filter::Type CLOSE_FILTER_V4;            /** close filter old signature.           */
+      static const Filter::Type OPEN_FILTER;                /** open filter signature.                */
+      static const Filter::Type OPEN_FILTER_V4;             /** open filter old signature.            */
+      static const Filter::Type DILATE_FILTER;              /** dilate filter signature.              */
+      static const Filter::Type DILATE_FILTER_V4;           /** dilate filter old signature.          */
+      static const Filter::Type ERODE_FILTER;               /** erode filter signature.               */
+      static const Filter::Type ERODE_FILTER_V4;            /** erode filter old signature.           */
+      static const Filter::Type FILL_HOLES_FILTER;          /** fill holes filter signature.          */
+      static const Filter::Type FILL_HOLES_FILTER_V4;       /** fill holes filter old signature.      */
+      static const Filter::Type FILL_HOLES2D_FILTER;        /** fill holes filter 2D signature.       */
+      static const Filter::Type IMAGE_LOGIC_FILTER;         /** image logic filters old signature.    */
+      static const Filter::Type ADDITION_FILTER;            /** addition filter signature.            */
+      static const Filter::Type SUBTRACTION_FILTER;         /** subtraction filter signature.         */
+      static const Filter::Type SLICE_INTERPOLATION_FILTER; /** slice interpolation filter signature. */
+      static const Filter::Type CLEAN_SEGMENTATION_FILTER;  /** clean segmentation filter signature.  */
     private:
       virtual const FilterTypeList providedFilters() const;
 
@@ -147,6 +152,12 @@ namespace ESPINA
        *
        */
       bool isSliceInterpolationFilter(const Filter::Type &type) const;
+
+      /** \brief Returns true if the given filter type corresponds to a clean segmentation voxels filter and false otherwise.
+       * \param[in] type filter type.
+       *
+       */
+      bool isCleanSegmentationFilter(const Filter::Type &type) const;
 
     private:
       mutable DataFactorySPtr m_dataFactory; /** data factory object. */
@@ -215,6 +226,11 @@ namespace ESPINA
      *
      */
     void initSkeletonTools();
+
+    /** \brief Modifies the GUI and tool parameters when the clean segmentation tool is activated.
+     *
+     */
+    void initCleanTools();
   };
 
 } // namespace ESPINA
