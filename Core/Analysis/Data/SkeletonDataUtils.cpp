@@ -967,6 +967,12 @@ QList<PathHierarchyNode*> ESPINA::Core::pathHierarchy(const PathList &paths, con
 
       if (stroke->path.connectsTo(otherStroke->path))
       {
+        if(final.contains(otherStroke) && !otherStroke->path.connectsTo(stroke->path))
+        {
+          assignTo(stroke, otherStroke);
+          break;
+        }
+
         if (otherStroke->path.connectsTo(stroke->path) && !otherStroke->parent && checkPriorities)
         {
           auto strokeUse = strokes.at(edges.at(stroke->path.edge).strokeIndex).useMeasure;
