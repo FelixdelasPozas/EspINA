@@ -66,6 +66,8 @@ using namespace ESPINA::GUI::Widgets::Styles;
 using namespace ESPINA::GUI::Representations;
 using namespace ESPINA::GUI::Representations::Managers;
 
+std::atomic_flag renderLock = ATOMIC_FLAG_INIT;
+
 //-----------------------------------------------------------------------------
 RenderView::RenderView(ViewState &state, ViewType type, QWidget *parent)
 : QWidget                  {parent}
@@ -395,7 +397,10 @@ void RenderView::refresh()
 {
   refreshViewImplementation();
 
+  while(renderLock.test_and_set(std::memory_order_acquire))
+    ;
   m_view->update();
+  renderLock.clear(std::memory_order_release);
 }
 
 //-----------------------------------------------------------------------------
@@ -548,7 +553,10 @@ void RenderView::onRenderRequest()
     m_latestFrame = frame;
   }
 
+  while(renderLock.test_and_set(std::memory_order_acquire))
+    ;
   m_view->update();
+  renderLock.clear(std::memory_order_release);
   // qDebug() << "------------------------------------------";
 }
 
@@ -781,7 +789,10 @@ void RenderView::onCursorChanged()
     m_view->setCursor(Qt::CrossCursor);
   }
 
+  while(renderLock.test_and_set(std::memory_order_acquire))
+    ;
   m_view->update();
+  renderLock.clear(std::memory_order_release);
 }
 
 //-----------------------------------------------------------------------------

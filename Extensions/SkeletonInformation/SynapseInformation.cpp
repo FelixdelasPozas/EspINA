@@ -111,111 +111,100 @@ void SynapseConnectionInformation::updateInformation() const
     QString spineName        = unconnected;
     QString branched         = unconnected;
 
-    auto connections = m_extendedItem->analysis()->connections(m_extendedItem);
+    const auto connections = m_extendedItem->analysis()->connections(m_extendedItem);
 
-    for(auto connection: connections)
+    for(auto &connection: connections)
     {
+      if(dendriteName != unconnected && axonName != unconnected) break;
+
       auto other = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
       Q_ASSERT(other);
 
+      if(other->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))
+      {
+        axonName = other->alias().isEmpty() ? other->name() : other->alias();
+        continue;
+      }
+	  
       if(other->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
       {
         dendriteName = other->alias().isEmpty() ? other->name() : other->alias();
 
         auto dendrite   = readLockSkeleton(other->output())->skeleton();
         auto definition = toSkeletonDefinition(dendrite);
-        auto pathList   = paths(definition.nodes, definition.edges, definition.strokes);
-        auto hierarchy  = pathHierarchy(pathList, definition.edges, definition.strokes);
-
-        std::function<Core::PathHierarchyNode*(const Core::Path &, const QList<Core::PathHierarchyNode *>)> locateHNode = [&locateHNode](const Core::Path &path, const QList<Core::PathHierarchyNode *> nodes)
-        {
-          PathHierarchyNode *result = nullptr;
-          for(const auto &node: nodes)
-          {
-            if(node->path == path) return node;
-
-            auto child = locateHNode(path, node->children);
-
-            if(child) return child;
-          }
-
-          return result;
-        };
+        const auto pathList   = paths(definition.nodes, definition.edges, definition.strokes);
+        const auto hierarchy  = pathHierarchy(pathList, definition.edges, definition.strokes);
 
         for(auto &path: pathList)
         {
-          if(path.hasEndingPoint(connection.point))
+          if(!path.hasEndingPoint(connection.point)) continue;
+
+          if(path.note.startsWith("Shaft", Qt::CaseInsensitive))
           {
-            if(path.note.startsWith("Shaft", Qt::CaseInsensitive))
+            dendriteLocation = tr("Shaft");
+            spineName        = tr("No");
+            spineLocation    = tr("No");
+            branched         = tr("No");
+            break;
+          }
+
+          if(path.note.startsWith("Spine", Qt::CaseInsensitive))
+          {
+            dendriteLocation = tr("Spine");
+            spineName        = path.note;
+            spineLocation    = tr("Spine head");
+            branched         = tr("No");
+            break;
+          }
+
+          if(path.note.startsWith("Subspine", Qt::CaseInsensitive))
+          {
+            dendriteLocation = tr("Spine");
+            spineLocation    = tr("Spine head");
+            branched         = path.note;
+
+            auto pathNode = locatePathHierarchyNode(path, hierarchy);
+            Q_ASSERT(pathNode);
+
+            while(pathNode && !pathNode->path.note.startsWith("Spine", Qt::CaseInsensitive)) pathNode = pathNode->parent;
+            spineName = (pathNode ? pathNode->path.note : tr("Failed to identify spine"));
+            break;
+          }
+
+          if(path.note.startsWith("Synapse", Qt::CaseInsensitive))
+          {
+            if(path.note.contains("shaft", Qt::CaseInsensitive))
             {
               dendriteLocation = tr("Shaft");
-              spineName        = tr("No");
               spineLocation    = tr("No");
               branched         = tr("No");
+              spineName        = tr("No");
               break;
             }
 
-            if(path.note.startsWith("Spine", Qt::CaseInsensitive))
+            dendriteLocation = tr("Spine");
+            spineLocation    = path.note.contains("head", Qt::CaseInsensitive) ? tr("Spine head") : tr("Spine neck");
+            branched         = tr("No");
+
+            auto pathNode = locatePathHierarchyNode(path, hierarchy);
+            Q_ASSERT(pathNode);
+			
+            while(pathNode && !pathNode->path.note.startsWith("Spine", Qt::CaseInsensitive))
             {
-              dendriteLocation = tr("Spine");
-              spineName        = path.note;
-              spineLocation    = tr("Spine head");
-              branched         = tr("No");
-              break;
-            }
-
-            if(path.note.startsWith("Subspine", Qt::CaseInsensitive))
-            {
-              dendriteLocation = tr("Spine");
-              spineLocation    = tr("Spine head");
-              branched         = path.note;
-
-              auto pathNode = locateHNode(path, hierarchy);
-              Q_ASSERT(pathNode);
-
-              while(pathNode && !pathNode->path.note.startsWith("Spine")) pathNode = pathNode->parent;
-              if(pathNode) spineName = pathNode->path.note;
-              break;
-            }
-
-            if(path.note.startsWith("Synapse", Qt::CaseInsensitive))
-            {
-              if(path.note.contains("shaft", Qt::CaseInsensitive))
+              if(pathNode->path.note.startsWith("Subspine", Qt::CaseInsensitive))
               {
-                dendriteLocation = tr("Shaft");
-                spineLocation    = tr("No");
-                branched         = tr("No");
-                spineName        = tr("No");
-                break;
+                branched = pathNode->path.note;
               }
 
-              dendriteLocation = tr("Spine");
-              spineLocation    = path.note.contains("head", Qt::CaseInsensitive) ? tr("Spine head") : tr("Spine neck");
-
-              auto pathNode = locateHNode(path, hierarchy);
-              while(pathNode && !pathNode->path.note.startsWith("Spine", Qt::CaseInsensitive))
-              {
-                if(pathNode->path.note.startsWith("Subspine", Qt::CaseInsensitive))
-                {
-                  branched = pathNode->path.note;
-                }
-
-                pathNode = pathNode->parent;
-              }
-
-              branched  = (branched == unconnected ? tr("No") : tr("yes"));
-              spineName = (pathNode ? pathNode->path.note : tr("Failed to identify"));
-              break;
+              pathNode = pathNode->parent;
             }
+
+            spineName = (pathNode ? pathNode->path.note : tr("Failed to identify spine"));
+            break;
           }
         }
 
         definition.clear();
-      }
-
-      if(other->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))
-      {
-        axonName = other->alias().isEmpty() ? other->name() : other->alias();
       }
     }
 

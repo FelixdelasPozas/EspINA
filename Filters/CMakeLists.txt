@@ -18,6 +18,7 @@ qt5_wrap_cpp(FILTERS_MOC
 set (FILTERS_SOURCES
   ${FILTERS_MOC}
   ${FILTERS_UI}
+  CleanSegmentationVoxelsFilter.cpp
   CloseFilter.cpp
   DilateFilter.cpp
   ErodeFilter.cpp

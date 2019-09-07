@@ -59,7 +59,7 @@ namespace ESPINA
        * \param[in] scheduler scheduler smart pointer.
        *
        */
-      SliceInterpolationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
+      explicit SliceInterpolationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
       /** \brief SliceInterpolationFilter class virtual destructor.
        *

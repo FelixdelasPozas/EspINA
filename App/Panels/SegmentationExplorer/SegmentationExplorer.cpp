@@ -70,6 +70,8 @@ public:
     groupList->setVisible(true);
     view->setSortingEnabled(true);
     view->sortByColumn(0, Qt::AscendingOrder);
+    view->setDragEnabled(true);
+    view->setDragDropMode(QAbstractItemView::DragDrop);
   }
 };
 

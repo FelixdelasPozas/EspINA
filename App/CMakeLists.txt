@@ -65,6 +65,7 @@ qt5_wrap_cpp (ESPINA_MOC
   ToolGroups/Explore/ResetViewTool.h
   ToolGroups/Explore/PositionMarksTool.h
   ToolGroups/Explore/ZoomRegionTool.h
+  ToolGroups/Edit/CleanSegmentationTool.h
   ToolGroups/Edit/CODERefineWidget.h
   ToolGroups/Edit/CODERefiner.h
   ToolGroups/Edit/CODETool.h
@@ -218,6 +219,7 @@ set (ESPINA_SOURCES
   ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
   ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.cpp
+  ToolGroups/Edit/CleanSegmentationTool.cpp
   ToolGroups/Edit/CODERefineWidget.cpp
   ToolGroups/Edit/CODERefiner.cpp
   ToolGroups/Edit/CODETool.cpp

@@ -28,11 +28,13 @@
 #include "ImageLogicTool.h"
 #include "SliceInterpolationTool.h"
 #include "SkeletonEditionTool.h"
+#include "CleanSegmentationTool.h"
 #include <App/ToolGroups/Edit/CODERefiner.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Utils/EspinaException.h>
 #include <Core/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.h>
 #include <Core/Utils/SignalBlocker.h>
+#include <Filters/CleanSegmentationVoxelsFilter.h>
 #include <Filters/CloseFilter.h>
 #include <Filters/DilateFilter.h>
 #include <Filters/ErodeFilter.h>
@@ -80,6 +82,7 @@ const Filter::Type EditionFilterFactory::IMAGE_LOGIC_FILTER         = "ImageLogi
 const Filter::Type EditionFilterFactory::ADDITION_FILTER            = "AdditionFilter";
 const Filter::Type EditionFilterFactory::SUBTRACTION_FILTER         = "SubstractionFilter";
 const Filter::Type EditionFilterFactory::SLICE_INTERPOLATION_FILTER = "SliceInterpolationFilter";
+const Filter::Type EditionFilterFactory::CLEAN_SEGMENTATION_FILTER  = "CleanSegmentationVoxelsFilter";
 
 //------------------------------------------------------------------------
 FilterTypeList EditionFilterFactory::CloseFilters()
@@ -161,6 +164,16 @@ FilterTypeList EditionFilterFactory::InterpolationFilters()
 }
 
 //------------------------------------------------------------------------
+FilterTypeList ESPINA::EditionFilterFactory::CleanFilters()
+{
+  FilterTypeList filters;
+
+  filters << CLEAN_SEGMENTATION_FILTER;
+
+  return filters;
+}
+
+//------------------------------------------------------------------------
 const FilterTypeList EditionFilterFactory::providedFilters() const
 {
   FilterTypeList filters;
@@ -172,14 +185,15 @@ const FilterTypeList EditionFilterFactory::providedFilters() const
   filters << FillHolesFilters();
   filters << ImageLogicFilters();
   filters << InterpolationFilters();
+  filters << CleanFilters();
 
   return filters;
 }
 
 //------------------------------------------------------------------------
 FilterSPtr EditionFilterFactory::createFilter(InputSList          inputs,
-                                                    const Filter::Type& filter,
-                                                    SchedulerSPtr       scheduler) const
+                                              const Filter::Type& filter,
+                                              SchedulerSPtr       scheduler) const
 {
   FilterSPtr editionFilter;
 
@@ -224,6 +238,10 @@ FilterSPtr EditionFilterFactory::createFilter(InputSList          inputs,
   {
     editionFilter = std::make_shared<ImageLogicFilter>(inputs, IMAGE_LOGIC_FILTER, scheduler);
   }
+  else if(isCleanSegmentationFilter(filter))
+  {
+    editionFilter = std::make_shared<CleanSegmentationVoxelsFilter>(inputs, CLEAN_SEGMENTATION_FILTER, scheduler);
+  }
   else
   {
     auto what    = QObject::tr("Unable to create filter %1").arg(filter);
@@ -239,13 +257,12 @@ FilterSPtr EditionFilterFactory::createFilter(InputSList          inputs,
 //------------------------------------------------------------------------
 bool EditionFilterFactory::isCloseFilter(const Filter::Type &type) const
 {
- return CLOSE_FILTER == type || CLOSE_FILTER_V4 == type;
+  return CLOSE_FILTER == type || CLOSE_FILTER_V4 == type;
 }
 
 //------------------------------------------------------------------------
 bool EditionFilterFactory::isOpenFilter(const Filter::Type &type) const
 {
-
   return OPEN_FILTER == type|| OPEN_FILTER_V4 == type;
 }
 
@@ -292,6 +309,12 @@ bool EditionFilterFactory::isSliceInterpolationFilter(const Filter::Type &type) 
 }
 
 //-----------------------------------------------------------------------------
+bool EditionFilterFactory::isCleanSegmentationFilter(const Filter::Type& type) const
+{
+  return CLEAN_SEGMENTATION_FILTER == type;
+}
+
+//-----------------------------------------------------------------------------
 EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
                              Support::Context              &context,
                              QWidget                       *parent)
@@ -312,6 +335,7 @@ EditToolGroup::EditToolGroup(Support::FilterRefinerFactory &filgerRefiners,
   initFillHolesTools();
   initImageLogicTools();
   initSliceInterpolationTool();
+  initCleanTools();
 }
 
 //-----------------------------------------------------------------------------
@@ -424,4 +448,13 @@ void EditToolGroup::initSkeletonTools()
   skeletonEdit->setOrder("1-1", "1-EDIT");
 
   addTool(skeletonEdit);
+}
+
+//-----------------------------------------------------------------------------
+void EditToolGroup::initCleanTools()
+{
+  auto cleanTool = std::make_shared<CleanSegmentationTool>(getContext());
+  cleanTool->setOrder("1-0", "7-CLEAN");
+
+  addTool(cleanTool);
 }
