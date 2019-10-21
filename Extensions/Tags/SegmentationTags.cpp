@@ -65,11 +65,6 @@ SegmentationTags::~SegmentationTags()
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::onExtendedItemSet(Segmentation* item)
-{
-}
-
-//------------------------------------------------------------------------
 const SegmentationExtension::InformationKeyList SegmentationTags::availableInformation() const
 {
   InformationKeyList keys;
@@ -79,7 +74,7 @@ const SegmentationExtension::InformationKeyList SegmentationTags::availableInfor
     keys << createKey(TAG_STRING.arg(tag));
   }
 
-  if(keys.isEmpty()) keys << createKey(TAGS);
+  keys << createKey(TAGS);
 
   return keys;
 }
@@ -150,7 +145,7 @@ void SegmentationTags::setTags(const QStringList &tags)
 //------------------------------------------------------------------------
 QVariant SegmentationTags::cacheFail(const InformationKey& key) const
 {
-  if(TAGS == key.value()) return QVariant();
+  if(TAGS == key.value()) return m_tags.join(";");
 
   for(auto tag: m_tags)
   {
