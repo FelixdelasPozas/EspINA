@@ -52,7 +52,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core;
 
 //--------------------------------------------------------------------
-const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton)
+Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton)
 {
   if(skeleton == nullptr || skeleton->GetNumberOfPoints() == 0 || skeleton->GetNumberOfLines() == 0) return SkeletonDefinition();
 
@@ -140,7 +140,7 @@ const Core::SkeletonDefinition Core::toSkeletonDefinition(const vtkSmartPointer<
 }
 
 //--------------------------------------------------------------------
-const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton)
+vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton)
 {
   // saves stroke information.
   auto strokeNames = vtkSmartPointer<vtkStringArray>::New();
@@ -303,7 +303,7 @@ const vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &sk
 }
 
 //--------------------------------------------------------------------
-const int Core::closestNode(const double position[3], const SkeletonNodes nodes)
+int Core::closestNode(const double position[3], const SkeletonNodes nodes)
 {
   double distance = VTK_DOUBLE_MAX;
   int closestNode = VTK_INT_MAX;
@@ -322,7 +322,7 @@ const int Core::closestNode(const double position[3], const SkeletonNodes nodes)
 }
 
 //--------------------------------------------------------------------
-const double Core::closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int& node_i, int& node_j, double worldPosition[3])
+double Core::closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int& node_i, int& node_j, double worldPosition[3])
 {
   node_i = node_j = VTK_INT_MAX;
 
@@ -408,7 +408,7 @@ const double Core::closestDistanceAndNode(const double position[3], const Skelet
 }
 
 //--------------------------------------------------------------------
-const double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
+double Core::closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3])
 {
   double result = -1.;
 
@@ -518,7 +518,7 @@ bool Core::Path::operator<(const Core::Path &other) const
 }
 
 //--------------------------------------------------------------------
-const ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
+ESPINA::Core::PathList Core::paths(const SkeletonNodes& nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes)
 {
   PathList result, stack;
 
@@ -725,7 +725,7 @@ QDebug Core::operator <<(QDebug stream, const struct Path& path)
 }
 
 //--------------------------------------------------------------------
-const QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& nodes)
+QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& nodes)
 {
   QSet<SkeletonNode *> visited;
   QSet<SkeletonNode *> visitedTotal;
@@ -765,7 +765,7 @@ const QList<Core::SkeletonNodes> Core::connectedComponents(const SkeletonNodes& 
 }
 
 //--------------------------------------------------------------------
-const QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
+QList<SkeletonNodes> Core::loops(const SkeletonNodes& skeleton)
 {
   QList<SkeletonNodes> result;
   if(skeleton.isEmpty()) return result;
@@ -896,7 +896,7 @@ void Core::adjustStrokeNumbers(Core::SkeletonDefinition& skeleton)
 }
 
 //--------------------------------------------------------------------
-const QString ESPINA::Core::strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes, const Core::SkeletonEdges &edges)
+QString ESPINA::Core::strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes, const Core::SkeletonEdges &edges)
 {
   auto number = QString::number(edge.strokeNumber);
   auto name   = strokes.at(edge.strokeIndex).name;
@@ -915,7 +915,7 @@ const QString ESPINA::Core::strokeName(const Core::SkeletonEdge &edge, const Cor
 }
 
 //--------------------------------------------------------------------
-const double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
+double ESPINA::Core::angle(SkeletonNode* base, SkeletonNode* a, SkeletonNode* b)
 {
   double vector1[3]{a->position[0]-base->position[0], a->position[1]-base->position[1], a->position[2]-base->position[2]};
   double vector2[3]{b->position[0]-base->position[0], b->position[1]-base->position[1], b->position[2]-base->position[2]};
@@ -1031,7 +1031,7 @@ ESPINA::Core::PathHierarchyNode * ESPINA::Core::locatePathHierarchyNode(const Pa
 }
 
 //--------------------------------------------------------------------
-const bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
+bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
 {
   if(node->path.begin->isTerminal() && node->path.begin->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
     return true;
@@ -1045,7 +1045,7 @@ const bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
 }
 
 //--------------------------------------------------------------------
-const double ESPINA::Core::length(const PathHierarchyNode *node)
+double ESPINA::Core::length(const PathHierarchyNode *node)
 {
   double result = 0;
 
@@ -1063,7 +1063,7 @@ const double ESPINA::Core::length(const PathHierarchyNode *node)
 };
 
 //--------------------------------------------------------------------
-const QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints)
+QList<NmVector3> ESPINA::Core::connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints)
 {
   QList<NmVector3> points;
 
@@ -1259,7 +1259,7 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
 }
 
 //--------------------------------------------------------------------
-const QColor ESPINA::Core::alternateStrokeColor(const SkeletonStrokes& strokes, int index)
+QColor ESPINA::Core::alternateStrokeColor(const SkeletonStrokes& strokes, int index)
 {
   if(index < 0 || index >= strokes.size())
   {

@@ -209,7 +209,7 @@ namespace ESPINA
       }
 
       const QString utfFilename = fileName.absoluteFilePath().toUtf8();
-      const QString asciiFilename = utfFilename.toAscii();
+      const QString asciiFilename = utfFilename.toLatin1();
 
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();
@@ -318,7 +318,7 @@ namespace ESPINA
       }
 
       const QString utfFilename = m_fileName.absoluteFilePath().toUtf8();
-      const QString asciiFilename = utfFilename.toAscii();
+      const QString asciiFilename = utfFilename.toLatin1();
 
       QReadLocker lock(&this->m_lock);
 
@@ -459,7 +459,7 @@ namespace ESPINA
       }
 
       const QString utfFilename = m_fileName.absoluteFilePath().toUtf8();
-      const QString asciiFilename = utfFilename.toAscii();
+      const QString asciiFilename = utfFilename.toLatin1();
 
       auto reader = itk::ImageFileReader<T>::New();
       reader->ReleaseDataFlagOn();

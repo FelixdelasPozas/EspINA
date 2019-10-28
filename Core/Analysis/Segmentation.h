@@ -128,8 +128,7 @@ namespace ESPINA
      * \param[in] path, file path.
      *
      */
-    QString extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const
-    { return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(path); }
+    QString extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const;
 
   private:
     QString                   m_alias;

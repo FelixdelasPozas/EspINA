@@ -24,6 +24,9 @@
 #include <App/Dialogs/ColorEngineSelector/ColorEngineSelector.h>
 #include <Core/Utils/SupportedFormats.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <Core/Utils/vtkPolyDataUtils.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
 #include <GUI/Widgets/NoteEditor.h>
@@ -414,7 +417,7 @@ void DefaultContextualMenu::deleteSelectedSementations()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createNoteEntry()
 {
-  auto action = addAction(tr("&Notes"));
+  auto action = addAction(tr("&Notes..."));
 
   action->setIcon(QIcon(":/espina/note.svg"));
   connect(action, SIGNAL(triggered(bool)),
@@ -424,7 +427,7 @@ void DefaultContextualMenu::createNoteEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createTagsEntry()
 {
-  auto action = addAction(tr("&Tags"));
+  auto action = addAction(tr("&Tags..."));
   action->setIcon(QIcon(":/espina/tag.svg"));
 
   connect(action, SIGNAL(triggered(bool)),
@@ -435,7 +438,7 @@ void DefaultContextualMenu::createTagsEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createRenameEntry()
 {
-  auto action = addAction(tr("&Rename"));
+  auto action = addAction(tr("&Rename..."));
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(renameSegmentation()));
 }
@@ -443,7 +446,7 @@ void DefaultContextualMenu::createRenameEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createGroupRenameEntry()
 {
-  auto action = addAction(tr("Rename &All"));
+  auto action = addAction(tr("Rename &All..."));
   action->setEnabled(m_segmentations.size() > 1);
 
   connect(action, SIGNAL(triggered(bool)),
@@ -453,10 +456,16 @@ void DefaultContextualMenu::createGroupRenameEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createExportEntry()
 {
-  auto action = addAction(tr("&Export"));
+  auto action = addAction(tr("&Export to TIFF image..."));
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(exportSelectedSegmentations()));
+
+  action = addAction(tr("E&xport to Wavefront OBJ..."));
+  action->setEnabled(m_segmentations.size() == 1);
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(exportSegmentationToOBJ()));
 }
 
 //------------------------------------------------------------------------
@@ -493,7 +502,7 @@ void DefaultContextualMenu::changeSegmentationsColorEngine()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
-  auto action = addAction(tr("&Delete"));
+  auto action = addAction(tr("&Delete..."));
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(deleteSelectedSementations()));
@@ -509,7 +518,58 @@ void DefaultContextualMenu::createColorEntry()
 }
 
 //------------------------------------------------------------------------
-void ESPINA::DefaultContextualMenu::createFixesEntry()
+void DefaultContextualMenu::exportSegmentationToOBJ()
+{
+  auto segmentation = m_segmentations.first();
+  const auto name   = segmentation->data().toString();
+
+  auto title      = tr("Export segmentation '%1'").arg(name);
+  auto suggestion = tr("%1.obj").arg(name);
+  auto format     = SupportedFormats().addFormat(tr("Wavefront OBJ file"), "obj");
+
+  auto file = DefaultDialogs::SaveFile(title, format, QDir::homePath(), ".obj", suggestion);
+
+  if (file.isEmpty()) return;
+
+  WaitingCursor cursor;
+
+  QByteArray buffer;
+
+  if(hasMeshData(segmentation->output()))
+  {
+    auto data = readLockMesh(segmentation->output());
+    buffer = PolyDataUtils::convertPolyDataToOBJ(data->mesh());
+  }
+  else
+  {
+    if(hasSkeletonData(segmentation->output()))
+    {
+      auto data = readLockSkeleton(segmentation->output());
+      buffer = PolyDataUtils::convertPolyDataToOBJ(data->skeleton());
+    }
+    else
+    {
+      const auto message = tr("Segmentation '%1' has no mesh or skeleton data to be exported.").arg(name);
+      DefaultDialogs::InformationMessage(title, message);
+      return;
+    }
+  }
+
+  QFile objFile(file);
+  if(!objFile.open(QIODevice::Text|QIODevice::Truncate|QIODevice::WriteOnly))
+  {
+    const auto message = tr("Unable to create destination file '%1'.").arg(file);
+    DefaultDialogs::InformationMessage(title, message);
+    return;
+  }
+
+  objFile.write(buffer);
+  objFile.flush();
+  objFile.close();
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createFixesEntry()
 {
   auto action = addAction(tr("Apply &fixes"));
 
@@ -518,7 +578,7 @@ void ESPINA::DefaultContextualMenu::createFixesEntry()
 }
 
 //------------------------------------------------------------------------
-void ESPINA::DefaultContextualMenu::doFixes()
+void DefaultContextualMenu::doFixes()
 {
   // FIXES
 }

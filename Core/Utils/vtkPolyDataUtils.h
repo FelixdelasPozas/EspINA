@@ -81,6 +81,13 @@ namespace ESPINA
      *
      */
     VolumeBounds EspinaCore_EXPORT polyDataVolumeBounds(vtkSmartPointer<vtkPolyData> data, const NmVector3 &spacing, const NmVector3 &origin);
+
+    /** \brief Converts the given mesh to a OBJ format and returns the buffer.
+     * \param[in] data vtkPolyData smart pointer.
+     * \param[in] startIndex First index number of the OBJ buffer returned.
+     *
+     */
+    QByteArray EspinaCore_EXPORT convertPolyDataToOBJ(const vtkSmartPointer<vtkPolyData> data, int startIndex = 1);
   }
 }
 
