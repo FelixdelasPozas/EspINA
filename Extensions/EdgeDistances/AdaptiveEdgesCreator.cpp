@@ -425,7 +425,7 @@ void AdaptiveEdgesCreator::computeFaces()
 
             break;
           default:
-            Q_ASSERT(FALSE);
+            Q_ASSERT(false);
             break;
         }
 

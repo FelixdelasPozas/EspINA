@@ -155,4 +155,10 @@ void CountingFramePlugin::onAnalysisClosed()
   }
 }
 
+//------------------------------------------------------------------------
+void CountingFramePlugin::init(SchedulerSPtr scheduler)
+{
+  std::dynamic_pointer_cast<CFStackExtensionFactory>(m_channelExtensionFactory)->setScheduler(scheduler);
+}
+
 Q_EXPORT_PLUGIN2(CountingFramePlugin, ESPINA::CF::CountingFramePlugin)

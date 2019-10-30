@@ -84,6 +84,8 @@ bool ESPINA::Core::loadPlugin(QObject* instance, CoreFactory* factory)
     {
       qDebug() << "Loading Core Plugin:" << corePlugin->name();
 
+      corePlugin->init(factory->scheduler());
+
       for (auto stackExtensionFactory : corePlugin->channelExtensionFactories())
       {
         qDebug() << corePlugin << "- Stack Extension Factory  ...... OK";

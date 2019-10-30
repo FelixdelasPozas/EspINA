@@ -93,6 +93,8 @@ namespace ESPINA
 
     virtual FilterFactorySList filterFactories() const;
 
+    virtual void init(SchedulerSPtr scheduler = nullptr) {};
+
     /** \brief Returns true if the segmentation given is of Synapse category and valid data.
      * \param[in] segmentation segmentation to check for Synapse category.
      *

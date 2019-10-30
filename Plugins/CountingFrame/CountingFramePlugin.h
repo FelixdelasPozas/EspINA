@@ -79,6 +79,8 @@ namespace ESPINA
 
         virtual QList<Support::CategorizedTool> tools() const;
 
+        virtual void init(SchedulerSPtr scheduler = nullptr);
+
       public slots:
         virtual void onAnalysisClosed();
 

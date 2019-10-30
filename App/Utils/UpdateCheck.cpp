@@ -39,7 +39,7 @@
 using namespace ESPINA;
 using namespace ESPINA::Support;
 
-const QString UpdateCheck::UPDATE_URL = "http://cajalbbp.cesvima.upm.es/espina/packages/releases.xml";
+const QString UpdateCheck::UPDATE_URL = "http://cajalbbp.es/espina/packages/releases.xml";
 
 const QString UpdateCheck::SKIP_VERSION_KEY    = "Skip version";
 const QString UpdateCheck::LAST_CHECK_TIME_KEY = "Last update check time";
