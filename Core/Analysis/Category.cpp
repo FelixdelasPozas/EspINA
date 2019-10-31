@@ -53,13 +53,13 @@ void Category::setName(const QString &name)
 }
 
 //------------------------------------------------------------------------
-const QString Category::name() const
+QString Category::name() const
 {
   return m_name;
 }
 
 //------------------------------------------------------------------------
-const QString Category::classificationName() const
+QString Category::classificationName() const
 {
   if (m_parent && !m_parent->name().isEmpty())
   {
@@ -136,7 +136,7 @@ void Category::removeSubCategory(CategoryPtr subCategory)
 }
 
 //------------------------------------------------------------------------
-const CategorySPtr Category::subCategory(const QString& name) const
+CategorySPtr Category::subCategory(const QString& name) const
 {
   CategorySPtr res;
 
@@ -170,7 +170,7 @@ void Category::deleteProperty(const QString& prop)
 }
 
 //------------------------------------------------------------------------
-const QVariant Category::property(const QString& prop) const
+QVariant Category::property(const QString& prop) const
 {
   return m_properties.value(prop,QVariant());
 }

@@ -209,3 +209,9 @@ void Segmentation::setCategory(CategorySPtr category)
     data->setSkeleton(skeleton);
   }
 }
+
+//------------------------------------------------------------------------
+QString Segmentation::extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const
+{
+  return extensionPath(extension) + QString("%1_%2").arg(uuid().toString()).arg(path); 
+}

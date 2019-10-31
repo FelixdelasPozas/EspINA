@@ -30,6 +30,7 @@ set (FILTERS_SOURCES
   SeedGrowSegmentationFilter.cpp
   SliceInterpolationFilter.cpp
   SplitFilter.cpp
+  CleanSegmentationVoxelsFilter.cpp
   Utils/vtkTube.cpp
   Utils/Stencil.cpp
   )

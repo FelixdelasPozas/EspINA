@@ -42,7 +42,7 @@ namespace ESPINA
       enum class PrintFormat: std::int8_t
       {
         BOOST = 1,
-        DEBUG = 2
+        DEBUGGING = 2
       };
 
       enum class VertexType: std::int8_t

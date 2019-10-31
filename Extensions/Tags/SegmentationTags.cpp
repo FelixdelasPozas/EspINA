@@ -40,6 +40,7 @@ const SegmentationExtension::Key  SegmentationTags::TAGS = "Tags";
 
 QMap<QString, unsigned int> SegmentationTags::s_availableTags;
 QReadWriteLock              SegmentationTags::s_mutex;
+const QString TAG_STRING = "Tag '%1'";
 
 //------------------------------------------------------------------------
 SegmentationTags::SegmentationTags(const InfoCache &infoCache)
@@ -64,14 +65,14 @@ SegmentationTags::~SegmentationTags()
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::onExtendedItemSet(Segmentation* item)
-{
-}
-
-//------------------------------------------------------------------------
 const SegmentationExtension::InformationKeyList SegmentationTags::availableInformation() const
 {
   InformationKeyList keys;
+
+  for(auto tag: s_availableTags.keys())
+  {
+    keys << createKey(TAG_STRING.arg(tag));
+  }
 
   keys << createKey(TAGS);
 
@@ -144,13 +145,23 @@ void SegmentationTags::setTags(const QStringList &tags)
 //------------------------------------------------------------------------
 QVariant SegmentationTags::cacheFail(const InformationKey& key) const
 {
-  return (TAGS == key.value())? state() : QVariant();
+  if(TAGS == key.value()) return m_tags.join(";");
+
+  for(auto tag: m_tags)
+  {
+    if(key.value().compare(TAG_STRING.arg(tag), Qt::CaseInsensitive) == 0)
+    {
+      return "1";
+    }
+  }
+
+  return "0";
 }
 
 //------------------------------------------------------------------------
 void SegmentationTags::addTagImplementation(const QString &tag)
 {
-  if (!tag.isEmpty())
+  if (!tag.isEmpty() && !m_tags.contains(tag.trimmed()))
   {
     m_tags << tag.trimmed();
 

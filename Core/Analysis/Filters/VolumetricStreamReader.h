@@ -74,7 +74,7 @@ namespace ESPINA
         /** \brief Returns the state of the streaming parameter.
          *
          */
-        const bool streamingEnabled() const
+        bool streamingEnabled() const
         { return m_streaming; }
 
       protected:

@@ -31,7 +31,7 @@ using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
 //--------------------------------------------------------------------
-const QList<QPluginLoader*> ESPINA::Core::loadPlugins(const QDir& path, CoreFactory* factory)
+QList<QPluginLoader*> ESPINA::Core::loadPlugins(const QDir& path, CoreFactory* factory)
 {
   QList<QPluginLoader *> loaders;
 
@@ -75,7 +75,7 @@ void ESPINA::Core::unloadPlugins(QList<QPluginLoader *> plugins)
 }
 
 //--------------------------------------------------------------------
-const bool ESPINA::Core::loadPlugin(QObject* instance, CoreFactory* factory)
+bool ESPINA::Core::loadPlugin(QObject* instance, CoreFactory* factory)
 {
   if (instance)
   {

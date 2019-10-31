@@ -120,7 +120,8 @@ namespace ESPINA
         QStringList tags() const;
 
       protected:
-        virtual void onExtendedItemSet(SegmentationPtr item) override;
+        virtual void onExtendedItemSet(SegmentationPtr item) override
+        {};
 
         virtual QVariant cacheFail(const InformationKey& tag) const override;
 

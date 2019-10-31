@@ -20,6 +20,7 @@
 
 // ESPINA
 #include <Core/Utils/EspinaException.h>
+#include <EspinaConfig.h>
 
 // VTK
 #include "vtkPolyDataUtils.h"
@@ -30,6 +31,9 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataToImageStencil.h>
 #include <vtkSmartPointer.h>
+#include <vtkDataArray.h>
+#include <vtkPoints.h>
+#include <vtkPointData.h>
 
 // QT
 #include <QByteArray>
@@ -317,4 +321,187 @@ VolumeBounds EspinaCore_EXPORT ESPINA::PolyDataUtils::polyDataVolumeBounds(vtkSm
   }
 
   return VolumeBounds(result, spacing, origin);
+}
+
+//------------------------------------------------------------------------------------
+QByteArray EspinaCore_EXPORT ESPINA::PolyDataUtils::convertPolyDataToOBJ(const vtkSmartPointer<vtkPolyData> data, int startIndex)
+{
+  std::stringstream objBuffer;
+  objBuffer.precision(6);
+  const char NEWLINE('\n');
+
+  //write header
+  objBuffer << "# wavefront obj conversion by EspINA " << ESPINA_VERSION << NEWLINE;
+  objBuffer << "mtllib NONE" << NEWLINE << NEWLINE;
+
+  vtkSmartPointer<vtkPointData> pntData;
+  vtkSmartPointer<vtkPoints> points;
+  vtkSmartPointer<vtkDataArray> tcoords;
+  int i, i1, i2;
+  int idStart = startIndex;
+  double p[3];
+  vtkCellArray *cells;
+  vtkIdType npts = 0;
+  vtkIdType *indx = 0;
+
+  // write out the points
+  for (i = 0; i < data->GetNumberOfPoints(); i++)
+  {
+    data->GetPoint(i, p);
+    objBuffer << "v " << p[0] << " " << p[1] << " " << p[2] << NEWLINE;
+  }
+
+  // write out the point data
+  const auto normals = data->GetPointData()->GetNormals();
+  if(normals)
+  {
+    for (i = 0; i < normals->GetNumberOfTuples(); i++)
+    {
+      normals->GetTuple(i, p);
+      objBuffer << "vn " << p[0] << " " << p[1] << " " << p[2] << NEWLINE;
+    }
+  }
+
+  tcoords = data->GetPointData()->GetTCoords();
+  if (tcoords)
+  {
+    for (i = 0; i < tcoords->GetNumberOfTuples(); i++)
+    {
+      tcoords->GetTuple(i, p);
+      objBuffer << "vt " << p[0] << " " << p[1] << NEWLINE;
+    }
+  }
+
+  // write out a group name and material
+  objBuffer << NEWLINE << "g grp" << idStart << NEWLINE;
+  objBuffer << "usemtl mtlNONE" << NEWLINE;
+
+  // write out verts if any
+  if (data->GetNumberOfVerts() > 0)
+  {
+    cells = data->GetVerts();
+    for (cells->InitTraversal(); cells->GetNextCell(npts,indx); )
+    {
+      objBuffer << "p ";
+      for (i = 0; i < npts; i++)
+      {
+        objBuffer << static_cast<int>(indx[i])+idStart << " ";
+      }
+      objBuffer << NEWLINE;
+    }
+  }
+
+  // write out lines if any
+  if (data->GetNumberOfLines() > 0)
+  {
+    cells = data->GetLines();
+    for (cells->InitTraversal(); cells->GetNextCell(npts,indx); )
+    {
+      objBuffer << "l ";
+      if (tcoords)
+      {
+        for (i = 0; i < npts; i++)
+        {
+          objBuffer << static_cast<int>(indx[i]) + idStart << "/" << static_cast<int>(indx[i]) + idStart << " ";
+        }
+      }
+      else
+      {
+        for (i = 0; i < npts; i++)
+        {
+          objBuffer << static_cast<int>(indx[i]) + idStart << " ";
+        }
+      }
+      objBuffer << NEWLINE;
+    }
+  }
+
+  // write out polys if any
+  if (data->GetNumberOfPolys() > 0)
+  {
+    cells = data->GetPolys();
+    for (cells->InitTraversal(); cells->GetNextCell(npts, indx);)
+    {
+      objBuffer << "f ";
+      for (i = 0; i < npts; i++)
+      {
+        if (normals)
+        {
+          if (tcoords)
+          {
+            objBuffer << static_cast<int>(indx[i]) + idStart << "/" << static_cast<int>(indx[i]) + idStart << "/" << static_cast<int>(indx[i]) + idStart << " ";
+          }
+          else
+          {
+            objBuffer << static_cast<int>(indx[i]) + idStart << "//" << static_cast<int>(indx[i]) + idStart << " ";
+          }
+        }
+        else
+        {
+          if (tcoords)
+          {
+            objBuffer << static_cast<int>(indx[i]) + idStart << " " << static_cast<int>(indx[i]) + idStart << " ";
+          }
+          else
+          {
+            objBuffer << static_cast<int>(indx[i]) + idStart << " ";
+          }
+        }
+      }
+      objBuffer << NEWLINE;
+    }
+  }
+
+  // write out tstrips if any
+  if (data->GetNumberOfStrips() > 0)
+  {
+    cells = data->GetStrips();
+    for (cells->InitTraversal(); cells->GetNextCell(npts, indx);)
+    {
+      for (i = 2; i < npts; i++)
+      {
+        if (i % 2)
+        {
+          i1 = i - 1;
+          i2 = i - 2;
+        }
+        else
+        {
+          i1 = i - 1;
+          i2 = i - 2;
+        }
+        if (normals)
+        {
+          if (tcoords)
+          {
+            objBuffer << "f " << static_cast<int>(indx[i1]) + idStart << "/" << static_cast<int>(indx[i1]) + idStart << "/" << static_cast<int>(indx[i1]) + idStart << " ";
+            objBuffer << static_cast<int>(indx[i2]) + idStart << "/" << static_cast<int>(indx[i2]) + idStart << "/" << static_cast<int>(indx[i2]) + idStart << " ";
+            objBuffer << static_cast<int>(indx[i]) + idStart << "/" << static_cast<int>(indx[i]) + idStart << "/" << static_cast<int>(indx[i]) + idStart << NEWLINE;
+          }
+          else
+          {
+            objBuffer << "f " << static_cast<int>(indx[i1]) + idStart << "//" << static_cast<int>(indx[i1]) + idStart << " ";
+            objBuffer << static_cast<int>(indx[i2]) + idStart << "//" << static_cast<int>(indx[i2]) + idStart << " ";
+            objBuffer << static_cast<int>(indx[i]) + idStart << "//" << static_cast<int>(indx[i]) + idStart << NEWLINE;
+          }
+        }
+        else
+        {
+          if (tcoords)
+          {
+            objBuffer << "f " << static_cast<int>(indx[i1]) + idStart << "/" << static_cast<int>(indx[i1]) + idStart << " ";
+            objBuffer << static_cast<int>(indx[i2]) + idStart << "/" << static_cast<int>(indx[i2]) + idStart << " ";
+            objBuffer << static_cast<int>(indx[i]) + idStart << "/" << static_cast<int>(indx[i]) + idStart << NEWLINE;
+          }
+          else
+          {
+            objBuffer << "f " << static_cast<int>(indx[i1]) + idStart << " " << static_cast<int>(indx[i2]) + idStart << " " << static_cast<int>(indx[i]) + idStart << NEWLINE;
+          }
+        }
+      }
+    }
+  }
+
+
+  return QByteArray(objBuffer.str().c_str(), objBuffer.str().length());
 }

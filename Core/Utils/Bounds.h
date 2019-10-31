@@ -314,13 +314,13 @@ namespace ESPINA
    * \param[in] bounds Bounds object.
    *
    */
-  const float EspinaCore_EXPORT surfaceArea(const Bounds &bounds);
+  float EspinaCore_EXPORT surfaceArea(const Bounds &bounds);
 
   /** \brief Returns the surface area of the given bounds with no units.
    * \param[in] bounds Bounds object.
    *
    */
-  const float EspinaCore_EXPORT enclosingVolume(const Bounds &bounds);
+  float EspinaCore_EXPORT enclosingVolume(const Bounds &bounds);
 }
 
 #endif // ESPINA_BOUNDS_H

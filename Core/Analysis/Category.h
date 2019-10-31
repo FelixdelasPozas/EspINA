@@ -76,7 +76,7 @@ namespace ESPINA
       /** \brief Returns the name of the category
        *
        */
-      const QString name() const;
+      QString name() const;
 
       /** \brief Return the name of the category inside a classification
        *
@@ -88,7 +88,7 @@ namespace ESPINA
        *  A classification name is the concatenation of the names of all the
        *  categories from the root of the classification to the category itself
        */
-      const QString classificationName() const;
+      QString classificationName() const;
 
       /** \brief Sets the color of the category.
        * \param[in] color new color of the category.
@@ -99,7 +99,7 @@ namespace ESPINA
       /** \brief Returns the color of the category.
        *
        */
-      const Hue color() const {return m_color;}
+      Hue color() const {return m_color;}
 
       /** \brief Adds a property to the category.
        * \param[in] prop key of the property.
@@ -118,12 +118,12 @@ namespace ESPINA
        * \param[in] prop key of the property.
        *
        */
-      const QVariant property(const QString &prop) const;
+      QVariant property(const QString &prop) const;
 
       /** \brief Returns the keys of the properties of the category.
        *
        */
-      const QStringList properties() const
+      QStringList properties() const
       {return m_properties.keys();}
 
       /** \brief Create a new sub-category with the given name.
@@ -162,18 +162,18 @@ namespace ESPINA
        *
        *  If no sub-category has the requested name, nullptr will be returned
        */
-      const CategorySPtr subCategory(const QString &name) const;
+      CategorySPtr subCategory(const QString &name) const;
 
       /** \brief Return a list with all the sub-categories of this category.
        *
        */
-      const CategorySList subCategories() const
+      CategorySList subCategories() const
       {return m_subCategories;}
 
       /** \brief Return the category from which this is a sub-category, if any.
        *
        */
-      const CategoryPtr parent() const
+      CategoryPtr parent() const
       { return m_parent; }
     private:
       /** \brief Category class constructor.

@@ -182,7 +182,7 @@ namespace ESPINA
          * \param[in] key information key.
          *
          */
-        const bool hasInformation(const typename E::InformationKey &key) const
+        bool hasInformation(const typename E::InformationKey &key) const
         { return availableInformation().contains(key); }
 
         /** \brief Returns the value of the specified information key.

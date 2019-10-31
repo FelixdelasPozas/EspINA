@@ -343,3 +343,15 @@ QString Channel::metadata() const
 
   return m_metadata;
 }
+
+//------------------------------------------------------------------------
+QString Channel::extensionDataPath(const Core::StackExtensionSPtr extension, QString fileName) const
+{
+  return extensionPath(extension) + QString("%1_%2").arg(uuid().toString()).arg(fileName); 
+}
+
+//------------------------------------------------------------------------
+QString Channel::metadataFile() const
+{
+  return QString("Metadata/%1/metadata.xml").arg(uuid().toString()); 
+}

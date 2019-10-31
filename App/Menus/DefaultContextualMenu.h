@@ -97,6 +97,11 @@ namespace ESPINA
        */
       void changeSegmentationsColorEngine();
 
+      /** \brief Exports the current segmentation to OBJ format in a file on disk.
+       *
+       */
+      void exportSegmentationToOBJ();
+
       /** \brief Helper method to execute code on current selection. Shouldn't be used in production.
        *
        */

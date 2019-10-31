@@ -373,20 +373,20 @@ namespace ESPINA
      * \param[in] skeleton skeleton polydata object.
      *
      */
-    const SkeletonDefinition EspinaCore_EXPORT toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton);
+    SkeletonDefinition EspinaCore_EXPORT toSkeletonDefinition(const vtkSmartPointer<vtkPolyData> skeleton);
 
     /** \brief Converts a list of nodes to a vtk mesh object.
      * \param[in] nodes list of nodes.
      *
      */
-    const vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT toPolyData(const SkeletonDefinition &skeleton);
+    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT toPolyData(const SkeletonDefinition &skeleton);
 
     /** \brief Returns the index of the closest node to the given position in space.
      * \param[in] point coordinates of a point in space.
      * \param[in] nodes list of nodes.
      *
      */
-    const int EspinaCore_EXPORT closestNode(const double position[3], const SkeletonNodes nodes);
+    int EspinaCore_EXPORT closestNode(const double position[3], const SkeletonNodes nodes);
 
     /** \brief Returns the distance closest point in the skeleton to the given point coordinates.
      * \param[in] point input point coordinates.
@@ -398,7 +398,7 @@ namespace ESPINA
      * NOTE: in the case that the closest distance is between nodes i and j, node_i is the closest one.
      *
      */
-    const double EspinaCore_EXPORT closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int &node_i, int &node_j, double worldPosition[3]);
+    double EspinaCore_EXPORT closestDistanceAndNode(const double position[3], const SkeletonNodes nodes, int &node_i, int &node_j, double worldPosition[3]);
 
     /** \brief Returns the distance and the closest point in the given segment to the input position in space.
      * \param[in] point input point coordinates.
@@ -407,7 +407,7 @@ namespace ESPINA
      * \param[out] worldPosition position of the closest point in the segment to the input point.
      *
      */
-    const double EspinaCore_EXPORT closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3]);
+    double EspinaCore_EXPORT closestPointToSegment(const double position[3], const SkeletonNode *node_i, const SkeletonNode *node_j, double closestPoint[3]);
 
     /** \brief Returns all the paths in the skeleton as a list of connected relevant nodes.
      * \param[in] nodes list of connected nodes.
@@ -417,13 +417,13 @@ namespace ESPINA
      * NOTE: this method doesn't handle unconnected graphs, so it's better to call connected components method first and then this on every component.
      *
      */
-    const PathList EspinaCore_EXPORT paths(const SkeletonNodes &nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes);
+    PathList EspinaCore_EXPORT paths(const SkeletonNodes &nodes, const SkeletonEdges &edges, const SkeletonStrokes &strokes);
 
     /** \brief Returns all the paths in the skeleton as a list of connected relevant nodes.
      * \param[in] skeleton Skeleton definition data.
      *
      */
-    inline const PathList paths(const SkeletonDefinition &skeleton)
+    inline PathList paths(const SkeletonDefinition &skeleton)
     { return paths(skeleton.nodes, skeleton.edges, skeleton.strokes); };
 
     /** \brief Returns the loops in the given skeleton.
@@ -432,13 +432,13 @@ namespace ESPINA
      * NOTE: this method doesn't handle unconnected graphs, so it's better to call connected components method first and then this on every component.
      *
      */
-    const QList<SkeletonNodes> EspinaCore_EXPORT loops(const SkeletonNodes &skeleton);
+    QList<SkeletonNodes> EspinaCore_EXPORT loops(const SkeletonNodes &skeleton);
 
     /** \brief Returns the skeleton as a list of connected components
      * \param[in] skeleton skeleton nodes list.
      *
      */
-    const QList<SkeletonNodes> EspinaCore_EXPORT connectedComponents(const SkeletonNodes &skeleton);
+    QList<SkeletonNodes> EspinaCore_EXPORT connectedComponents(const SkeletonNodes &skeleton);
 
     /** \brief Returns the full name of the stroke.
      * \param[in] edge Edge of the stroke..
@@ -446,7 +446,7 @@ namespace ESPINA
      * \param[in] edges SkeletonEdge list.
      *
      */
-    const QString EspinaCore_EXPORT strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes, const Core::SkeletonEdges &edges);
+    QString EspinaCore_EXPORT strokeName(const Core::SkeletonEdge &edge, const Core::SkeletonStrokes &strokes, const Core::SkeletonEdges &edges);
 
     /** \brief Adjusts the node stroke numbers to miminize stroke count.
      * \param[in] skeleleton Skeleton definition reference.
@@ -459,7 +459,7 @@ namespace ESPINA
      * \param[in] b first node of branch B.
      *
      */
-    const double EspinaCore_EXPORT angle(SkeletonNode *base, SkeletonNode *a, SkeletonNode *b);
+    double EspinaCore_EXPORT angle(SkeletonNode *base, SkeletonNode *a, SkeletonNode *b);
 
     /** \struct PathHierarchyNode
      * \brief Defines a node of a hierarchy of paths. Where the children paths have a node in the node path.
@@ -503,20 +503,20 @@ namespace ESPINA
     /** \brief Returns true if the node or any of its children is truncated.
      *
      */
-    const bool EspinaCore_EXPORT isTruncated(const PathHierarchyNode *node);
+    bool EspinaCore_EXPORT isTruncated(const PathHierarchyNode *node);
 
     /** \brief Returns the length of the node and its subnodes if the paths are 'Spine' or 'Subspine'.
      * \param[in] node Hierarchy node.
      *
      */
-    const double EspinaCore_EXPORT length(const PathHierarchyNode *node);
+    double EspinaCore_EXPORT length(const PathHierarchyNode *node);
 
     /** \brief Returns the points of connections in the given node and its children from the connectionPoints list.
      * \param[in] node Hierarchy node.
      * \param[in] connectionsPoints List of connection points.
      *
      */
-    const QList<NmVector3> EspinaCore_EXPORT connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints);
+    QList<NmVector3> EspinaCore_EXPORT connectionsInNode(const PathHierarchyNode *node, const QList<NmVector3> &connectionPoints);
 
     /** \brief Helper method that removes unused strokes.
      * \param[in] skeleton Skeleton definition struct.
@@ -541,7 +541,7 @@ namespace ESPINA
      * \param[in] index Index of the stroke to compute hue.
      *
      */
-    const QColor EspinaCore_EXPORT alternateStrokeColor(const SkeletonStrokes &strokes, int index);
+    QColor EspinaCore_EXPORT alternateStrokeColor(const SkeletonStrokes &strokes, int index);
 
   } // namespace Core
 } // namespace ESPINA

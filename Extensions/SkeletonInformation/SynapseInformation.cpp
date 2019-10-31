@@ -125,7 +125,7 @@ void SynapseConnectionInformation::updateInformation() const
         axonName = other->alias().isEmpty() ? other->name() : other->alias();
         continue;
       }
-	  
+
       if(other->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
       {
         dendriteName = other->alias().isEmpty() ? other->name() : other->alias();
@@ -188,7 +188,6 @@ void SynapseConnectionInformation::updateInformation() const
 
             auto pathNode = locatePathHierarchyNode(path, hierarchy);
             Q_ASSERT(pathNode);
-			
             while(pathNode && !pathNode->path.note.startsWith("Spine", Qt::CaseInsensitive))
             {
               if(pathNode->path.note.startsWith("Subspine", Qt::CaseInsensitive))

@@ -286,7 +286,8 @@ namespace ESPINA
   {
     const auto adaptedFilename  = QDir::toNativeSeparators(filename);
     const QString utfFilename   = adaptedFilename.toUtf8();
-    const QString asciiFilename = utfFilename.toLocal8Bit();
+    const QString asciiFilename = utfFilename.toLatin1();
+
     const auto asciiString      = asciiFilename.toStdString();
 
     auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiString.c_str(), itk::ImageIOFactory::ReadMode);
