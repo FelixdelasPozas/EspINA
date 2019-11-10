@@ -29,6 +29,7 @@
 #include <vtkImageData.h>
 #include <vtkImageStencilToImage.h>
 #include <vtkPolyData.h>
+#include <vtkCleanPolyData.h>
 #include <vtkPolyDataToImageStencil.h>
 #include <vtkSmartPointer.h>
 #include <vtkDataArray.h>
@@ -324,8 +325,19 @@ VolumeBounds EspinaCore_EXPORT ESPINA::PolyDataUtils::polyDataVolumeBounds(vtkSm
 }
 
 //------------------------------------------------------------------------------------
-QByteArray EspinaCore_EXPORT ESPINA::PolyDataUtils::convertPolyDataToOBJ(const vtkSmartPointer<vtkPolyData> data, int startIndex)
+QByteArray EspinaCore_EXPORT ESPINA::PolyDataUtils::convertPolyDataToOBJ(const vtkSmartPointer<vtkPolyData> polyData, int startIndex)
 {
+  auto cleanFilter = vtkSmartPointer<vtkCleanPolyData>::New();
+  cleanFilter->SetInputData(polyData);
+  cleanFilter->SetTolerance(0);
+  cleanFilter->ConvertLinesToPointsOn();
+  cleanFilter->ConvertPolysToLinesOn();
+  cleanFilter->ConvertStripsToPolysOn();
+  cleanFilter->PointMergingOn();
+  cleanFilter->Update();
+
+  auto data = cleanFilter->GetOutput();
+
   std::stringstream objBuffer;
   objBuffer.precision(6);
   const char NEWLINE('\n');

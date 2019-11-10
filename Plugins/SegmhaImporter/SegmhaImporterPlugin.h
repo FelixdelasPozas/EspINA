@@ -89,6 +89,8 @@ namespace ESPINA
 
       virtual AnalysisReaderSList analysisReaders() const;
 
+      virtual void init(SchedulerSPtr scheduler = nullptr) {};
+
     private:
       FilterFactorySPtr  m_factory;
       AnalysisReaderSPtr m_reader;

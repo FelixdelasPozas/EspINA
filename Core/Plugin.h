@@ -28,6 +28,7 @@
 #include <Core/Factory/AnalysisReader.h>
 #include <Core/Factory/ExtensionFactory.h>
 #include <Core/Factory/FilterFactory.h>
+#include <Core/MultiTasking/Scheduler.h>
 
 // Qt
 #include <QObject>
@@ -73,6 +74,11 @@ namespace ESPINA
          *
          */
         virtual const QString maintainer() const = 0;
+
+        /** \brief Initializes the plugin.
+         *
+         */
+        virtual void init(SchedulerSPtr scheduler = nullptr) = 0;
 
         /** \brief Returns a list of channel extension factories.
          *

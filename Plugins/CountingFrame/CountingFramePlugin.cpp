@@ -154,3 +154,17 @@ void CountingFramePlugin::onAnalysisClosed()
     dynamic_cast<Panel *>(m_dockWidget)->deleteCountingFrames();
   }
 }
+
+//------------------------------------------------------------------------
+void CountingFramePlugin::init(SchedulerSPtr scheduler)
+{
+  if(m_channelExtensionFactory == nullptr)
+  {
+    auto message = tr("Counting frame plugin not initialized.");
+    auto details = tr("CFPlugin::init() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
+  std::dynamic_pointer_cast<CFStackExtensionFactory>(m_channelExtensionFactory)->setScheduler(scheduler);
+}

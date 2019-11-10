@@ -136,6 +136,11 @@ namespace ESPINA
      */
     static unsigned int maxRunningTasks();
 
+    /** \brief Returns the number of task currently in the task list.
+     *
+     */
+    unsigned int numberOfTasks() const;
+
   public slots:
     /** \brief Starts the scheduler.
      *
@@ -172,11 +177,6 @@ namespace ESPINA
      *
      */
     void removeTask(Priority priority, TaskSPtr task);
-
-    /** \brief Returns the number of task currently in the task list.
-     *
-     */
-    unsigned int numberOfTasks() const;
 
     /** \brief Returns true if the given task can execute.
      * \param[in] task task smart pointer.

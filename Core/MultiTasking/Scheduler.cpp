@@ -428,6 +428,7 @@ void Scheduler::removeTask(Priority priority, TaskSPtr task)
   if (task->m_submitted)
   {
     m_scheduledTasks[priority].removeOne(task);
+    m_insertionBuffer.removeOne(task);
 
     task->m_submitted = false;
 
@@ -446,6 +447,8 @@ unsigned int Scheduler::numberOfTasks() const
   unsigned int result = 0;
   auto priorities = {Priority::VERY_HIGH, Priority::HIGH, Priority::NORMAL, Priority::LOW, Priority::VERY_LOW};
   std::for_each(priorities.begin(), priorities.end(), [&result, this] (const Priority priority) { result += m_scheduledTasks[priority].size(); });
+
+  result += m_insertionBuffer.size();
 
   return result;
 }
