@@ -196,6 +196,8 @@ void VolumetricStreamReader::execute()
           throw EspinaException(what, details);
         }
 
+        image = nullptr;
+
         if(!canExecute()) return;
 
         m_streamingFile = QFileInfo(m_streamingStorage->absoluteFilePath(STREAM_FILENAME));

@@ -289,10 +289,19 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
     filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
     filter->setDataFactory(m_dataFactory);
   }
+
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());
   filter->restoreState(roVertex->state());
+
+  auto reader = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
+  if(reader)
+  {
+    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
+                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+  }
+
   filter->setStorage(m_storage);
   filter->restorePreviousOutputs();
 
@@ -323,12 +332,6 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
   auto roOutput = findOutput(roVertex);
 
   auto filter   = roOutput.first;
-  auto reader   = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
-  if(reader)
-  {
-    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
-                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
-  }
   auto outputId = roOutput.second;
   auto channel  = m_factory->createChannel(filter, outputId);
 
