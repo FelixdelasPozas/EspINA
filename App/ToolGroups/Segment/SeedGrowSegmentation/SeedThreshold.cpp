@@ -49,8 +49,8 @@ SeedThreshold::SeedThreshold(QWidget* parent)
   m_threshold[1] = settings.value(UTHRESHOLD, DEFAULT_THRESHOLD).toInt();
 
   // Lower Threshold Widget
-  m_lthLabel = new QLabel(tr("Lower Th."));
-  m_lth      = new QSpinBox();
+  m_lthLabel = new QLabel(tr("Lower Th."), this);
+  m_lth      = new QSpinBox(this);
 
   m_lth->setMinimum(0);
   m_lth->setMaximum(255);
@@ -63,8 +63,8 @@ SeedThreshold::SeedThreshold(QWidget* parent)
           m_lth, SLOT(setValue(int)));
 
   // Upper Threshold Widget
-  m_uthLabel = new QLabel(tr("Upper Th."));
-  m_uth      = new QSpinBox();
+  m_uthLabel = new QLabel(tr("Upper Th."), this);
+  m_uth      = new QSpinBox(this);
 
   m_uth->setMinimum(0);
   m_uth->setMaximum(255);
@@ -78,7 +78,7 @@ SeedThreshold::SeedThreshold(QWidget* parent)
   connect(this, SIGNAL(upperThresholdChanged(int)),
           m_uth, SLOT(setValue(int)));
 
-  auto layout = new QHBoxLayout();
+  auto layout = new QHBoxLayout(this);
 
   layout->addWidget(m_lthLabel);
   layout->addWidget(m_lth);

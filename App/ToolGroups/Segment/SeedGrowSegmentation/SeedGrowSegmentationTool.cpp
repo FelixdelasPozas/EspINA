@@ -49,6 +49,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QThread>
+#include <QPushButton>
 
 #include "GUI/Model/ViewItemAdapter.h"
 using namespace ESPINA;
@@ -262,8 +263,7 @@ void SeedGrowSegmentationTool::initBestPixelWidgets()
 
   m_colorSelector->setVisible(enabled);
   m_colorSelector->setToolTip(tr("Seed color."));
-
-  Styles::setBarStyle(m_colorSelector);
+  m_colorSelector->setFixedHeight(20);
 
   connect(m_colorSelector, SIGNAL(newValue(int)),
           this,            SLOT(onNewPixelValue(int)));
@@ -561,7 +561,7 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::useBestPixelSelector(bool value)
 {
-  m_colorLabel->setVisible(false);
+  m_colorLabel->setVisible(value);
   m_colorSelector->setVisible(value);
 
   if(value)

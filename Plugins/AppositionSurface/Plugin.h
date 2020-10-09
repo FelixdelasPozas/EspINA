@@ -55,8 +55,8 @@ namespace ESPINA
   class AppositionSurfacePlugin_EXPORT AppositionSurfacePlugin
   : public Support::AppPlugin
   {
-    Q_INTERFACES(ESPINA::Core::CorePlugin ESPINA::Support::AppPlugin)
-    Q_OBJECT
+	Q_OBJECT
+	Q_INTERFACES(ESPINA::Core::CorePlugin ESPINA::Support::AppPlugin)
     Q_PLUGIN_METADATA(IID "es.upm.cesvima.ESPINA.Core.Plugin/1.0" FILE "plugin.json")
     Q_PLUGIN_METADATA(IID "es.upm.cesvima.ESPINA.Plugin/2.0" FILE "plugin.json")
 

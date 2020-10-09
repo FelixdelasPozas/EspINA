@@ -36,6 +36,9 @@
 #include <QElapsedTimer>
 #include <QtCore>
 
+// C++
+#include <exception>
+
 using namespace ESPINA;
 using namespace ESPINA::Core;
 using namespace ESPINA::Core::Utils;
@@ -86,7 +89,7 @@ void FileOpenTool::onTriggered()
   fileDialog.setViewMode(QFileDialog::Detail);
   fileDialog.setOption(QFileDialog::DontUseNativeDialog, false);
   fileDialog.resize(800, 480);
-  fileDialog.setSupportedSchemes(QStringList()); // accept all?
+  //fileDialog.setSupportedSchemes(QStringList()); // accept all? Not present in Qt 5.5
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   fileDialog.setModal(true);
   fileDialog.move(parent->rect().center()-fileDialog.rect().center());
@@ -203,6 +206,14 @@ void FileOpenTool::load(const QStringList &files, const IO::LoadOptions options)
       qWarning() << e.what();
       qWarning() << "File:" << e.GetFile() << "Line: " << e.GetLine();
       qWarning() << "Location:" << e.GetLocation();
+
+      failedFiles << fileInfo.fileName();
+      failDetails.append(QObject::tr("File %1 error: %2").arg(fileInfo.fileName()).arg(QString(e.what())));
+    }
+    catch(const std::exception &e)
+    {
+      qWarning() << QString("EXCEPTION: error loading file: %1").arg(file);
+      qWarning() << e.what();
 
       failedFiles << fileInfo.fileName();
       failDetails.append(QObject::tr("File %1 error: %2").arg(fileInfo.fileName()).arg(QString(e.what())));

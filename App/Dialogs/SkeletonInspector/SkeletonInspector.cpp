@@ -176,6 +176,8 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterPtr segmen
     return value;
   };
 
+  const auto hue = segmentation->category()->color().hue();
+
   for(auto i = 0; i < pathList.size(); ++i)
   {
     auto path = pathList.at(i);
@@ -186,9 +188,9 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterPtr segmen
     info.selected     = false;
     info.length       = path.length();
     info.used         = strokes.at(path.stroke).useMeasure;
-    info.hue          = strokes.at(path.stroke).colorHue;
+    info.hue          = strokes.at(path.stroke).colorHue == -1 ? hue : strokes.at(path.stroke).colorHue;
     info.randomHue    = assignRandomFromHue(info.hue);
-    info.hierarchyHue = Core::alternateStrokeColor(strokes, path.stroke).hue();
+    info.hierarchyHue = Core::alternateStrokeColor(strokes, path.stroke, hue).hue();
 
     auto points = vtkSmartPointer<vtkPoints>::New();
     points->SetNumberOfPoints(path.seen.size());
@@ -235,15 +237,22 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterPtr segmen
       }
     }
 
+    points->Squeeze();
+    points->Modified();
+    lines->Squeeze();
+    lines->Modified();
+
     auto polyData = vtkSmartPointer<vtkPolyData>::New();
     polyData->SetPoints(points);
     polyData->SetLines(lines);
+    polyData->RemoveGhostCells();
+    polyData->Modified();
 
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->SetInputData(polyData);
 
-    auto hue   = definition.strokes.at(path.stroke).colorHue;
-    auto color = QColor::fromHsv(hue, 255,255);
+    auto colorHue   = definition.strokes.at(path.stroke).colorHue == -1 ? hue : definition.strokes.at(path.stroke).colorHue;
+    auto color = QColor::fromHsv(colorHue, 255,255);
     auto actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
@@ -267,6 +276,8 @@ void SkeletonInspector::createSkeletonActors(const SegmentationAdapterPtr segmen
 
         auto truncatedData = vtkSmartPointer<vtkPolyData>::New();
         truncatedData->SetPoints(truncatedPoints);
+        truncatedData->SetLines(nullptr),
+        truncatedData->RemoveGhostCells();
         truncatedData->Modified();
 
         auto glyph2D = vtkSmartPointer<vtkGlyphSource2D>::New();
@@ -411,7 +422,7 @@ void SkeletonInspector::initView3D(RepresentationFactorySList representations)
   auto comparisonOp = [] (const RepresentationSwitchSPtr &left, const RepresentationSwitchSPtr &right) { if(left == nullptr || right == nullptr) return false; return left->groupWith() < right->groupWith(); };
   std::sort(switches.begin(), switches.end(), comparisonOp);
 
-  auto toolbar = new QToolBar();
+  auto toolbar = new QToolBar(this);
   for(auto repSwitch: switches)
   {
     auto id = repSwitch->id();
@@ -833,6 +844,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 
   auto labelsData = vtkSmartPointer<vtkPolyData>::New();
   labelsData->SetPoints(labelPoints);
+  labelsData->SetLines(nullptr),
   labelsData->GetPointData()->AddArray(labelText);
 
   auto textSize = SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
@@ -876,6 +888,7 @@ RepresentationPipeline::ActorList SkeletonInspector::SkeletonInspectorPipeline::
 
   if(labelPoints->GetNumberOfPoints() > 0)
   {
+    labelsData->RemoveGhostCells();
     labelsData->Modified();
     labelFilter->Update();
     labelMapper->Update();

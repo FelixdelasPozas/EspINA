@@ -296,11 +296,10 @@ bool SplitFilter::fetchCacheStencil() const
   if (storage()->exists(stencilFile()))
   {
     QString fileName = storage()->absoluteFilePath(stencilFile());
-    const QString utfFilename = fileName.toUtf8();
-    const QString asciiFilename = utfFilename.toLatin1();
+    const auto shortName = getShortFileName(fileName);
 
     auto stencilReader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-    stencilReader->SetFileName(asciiFilename.toStdString().c_str());
+    stencilReader->SetFileName(shortName.c_str());
     stencilReader->ReadAllFieldsOn();
     stencilReader->Update();
 

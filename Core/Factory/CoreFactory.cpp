@@ -73,15 +73,17 @@ FilterSPtr CoreFactory::createFilter(InputSList inputs, const Filter::Type& type
 {
   FilterSPtr filter;
 
-  if (m_filterFactories.contains(type))
+  if (!type.isEmpty() && m_filterFactories.contains(type))
   {
     filter = m_filterFactories[type]->createFilter(inputs, type, m_scheduler);
     filter->setStorage(defaultStorage());
   }
   else
   {
-    auto what    = QObject::tr("Unable to create filter: %1").arg(type);
-    auto details = QObject::tr("CoreFactory::createFilter() -> Unknown filter: %1").arg(type);
+	QString filterType = type.isEmpty() ? "Empty":type;
+
+    auto what    = QObject::tr("Unable to create filter: %1").arg(filterType);
+    auto details = QObject::tr("CoreFactory::createFilter() -> Unknown filter: %1").arg(filterType);
 
     throw EspinaException(what, details);
   }

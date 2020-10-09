@@ -38,7 +38,7 @@ class vtkAxisActor2D;
 class vtkPropPicker;
 class vtkRenderer;
 class QVTKWidget;
-class QToolButton;
+class QPushButton;
 
 // GUI
 class QScrollBar;

@@ -153,8 +153,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
   reportProgress(CLASSIFICATION_PROGRESS);
 
-  unsigned i = 0;
-  unsigned total = m_zip.getFileNameList().size();
+  unsigned long i = 0;
+  const unsigned long total = m_zip.getFileNameList().size();
 
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
@@ -184,7 +184,7 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
     hasFile = m_zip.goToNextFile();
 
-    reportProgress(CLASSIFICATION_PROGRESS + SNAPSHOT_PROGRESS_CHUNK*(++i)/total);
+    reportProgress(CLASSIFICATION_PROGRESS + (SNAPSHOT_PROGRESS_CHUNK*(++i)/total));
   }
 
   loadContent();
@@ -471,10 +471,15 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         break;
     }
 
-    if (vertex != nullptr)
+    if (vertex == nullptr)
     {
-      m_loadedVertices << vertex;
+       auto what    = QObject::tr("Unable to inflate vertex, type: %1. ").arg(static_cast<int>(rov->type()));
+       auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unable to inflate vertex, type %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+
+       throw EspinaException(what, details);
     }
+	
+	m_loadedVertices << vertex;
   }
 
   return vertex;
@@ -492,14 +497,36 @@ void SegFile_V5::Loader::loadContent()
 
   DirectedGraph::Vertices loadedVertices;
 
-  int i     = 0;
-  int total = m_content->vertices().size();
+  auto vertices = m_content->vertices();
+  const unsigned long total = vertices.size();
 
-  for (DirectedGraph::Vertex roVertex : m_content->vertices())
+  auto sorter = [](const DirectedGraph::Vertex &lv, const DirectedGraph::Vertex &rv)
+  {
+    auto dlv = dynamic_cast<IO::Graph::ReadOnlyVertex *>(lv.get());
+    auto drv = dynamic_cast<IO::Graph::ReadOnlyVertex *>(rv.get());
+
+    if(!dlv || !drv) return false;
+
+    if(dlv->type() == IO::Graph::VertexType::SAMPLE) return true;
+    if(drv->type() == IO::Graph::VertexType::SAMPLE) return false;
+
+    if(dlv->type() == IO::Graph::VertexType::CHANNEL)
+    {
+      return drv->type() != IO::Graph::VertexType::CHANNEL;
+    }
+
+    return drv->type() == IO::Graph::VertexType::CHANNEL;
+  };
+
+  // NOTE: loads channel elements first.
+  std::sort(vertices.begin(), vertices.end(), sorter);
+
+  unsigned long i = 0;
+  for (DirectedGraph::Vertex roVertex : vertices)
   {
     inflateVertex(roVertex);
 
-    reportProgress(SNAPSHOT_PROGRESS + CONTENT_PROGRESS_CHUNK*(++i)/total);
+    reportProgress(SNAPSHOT_PROGRESS + (CONTENT_PROGRESS_CHUNK*(++i)/total));
   }
 }
 //-----------------------------------------------------------------------------
@@ -514,8 +541,8 @@ void SegFile_V5::Loader::loadRelations()
 
   auto loadedVertices = m_analysis->content()->vertices();
 
-  int i     = 0;
-  int total = relations->edges().size();
+  unsigned long i = 0;
+  const unsigned long total = relations->edges().size();
   for (auto edge : relations->edges())
   {
     PersistentSPtr source = findVertex(loadedVertices, edge.source->uuid());
@@ -523,7 +550,7 @@ void SegFile_V5::Loader::loadRelations()
 
     m_analysis->addRelation(source, target, edge.relationship.c_str());
 
-    reportProgress(CONTENT_PROGRESS + RELATIONS_PROGRESS_CHUNK*(++i)/total);
+    reportProgress(CONTENT_PROGRESS + (RELATIONS_PROGRESS_CHUNK*(++i)/total));
   }
 }
 
@@ -718,9 +745,14 @@ void SegFile_V5::Loader::loadConnections()
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::Loader::reportProgress(unsigned int progress)
+void SegFile_V5::Loader::reportProgress(unsigned int currentProgress)
 {
-  if (m_reporter) m_reporter->setProgress(progress);
+  static unsigned int progress = std::numeric_limits<unsigned int>::max();
+  if (m_reporter && (progress != currentProgress))
+ {
+	progress = currentProgress;
+	m_reporter->setProgress(progress);
+  }
 }
 
 //-----------------------------------------------------------------------------

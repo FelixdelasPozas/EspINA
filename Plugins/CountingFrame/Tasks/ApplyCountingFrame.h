@@ -104,6 +104,12 @@ namespace ESPINA
          */
         virtual ~ApplyCountingFrame();
 
+        /** \brief Returns the counting frame of the task.
+         *
+         */
+        CountingFrame * countingFrame() const
+        { return m_countingFrame; }
+
       protected:
         virtual void run();
 

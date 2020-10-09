@@ -48,33 +48,31 @@ Core::SkeletonStrokes ESPINA::SkeletonToolsUtils::defaultStrokes(const CategoryA
 
   if(category)
   {
-    auto hue = category->color().hue();
-
     if(category->classificationName().startsWith("Axon"))
     {
-      result << SkeletonStroke(QObject::tr("Shaft"), hue, 0, true);
-      result << SkeletonStroke(QObject::tr("Synapse en passant"), hue, 1, false);
+      result << SkeletonStroke(QObject::tr("Shaft"), -1, 0, true);
+      result << SkeletonStroke(QObject::tr("Synapse en passant"), -1, 1, false);
 
       return result;
     }
 
     if(category->classificationName().startsWith("Dendrite"))
     {
-      result << SkeletonStroke(QObject::tr("Shaft"), hue, 0, true);
-      result << SkeletonStroke(QObject::tr("Spine"), hue, 0, true);
-      result << SkeletonStroke(QObject::tr("Subspine"), hue, 0, true);
-      result << SkeletonStroke(QObject::tr("Synapse on shaft"), hue, 1, false);
-      result << SkeletonStroke(QObject::tr("Synapse on spine head"), hue, 1, false);
-      result << SkeletonStroke(QObject::tr("Synapse on spine neck"), hue, 1, false);
+      result << SkeletonStroke(QObject::tr("Shaft"), -1, 0, true);
+      result << SkeletonStroke(QObject::tr("Spine"), -1, 0, true);
+      result << SkeletonStroke(QObject::tr("Subspine"), -1, 0, true);
+      result << SkeletonStroke(QObject::tr("Synapse on shaft"), -1, 1, false);
+      result << SkeletonStroke(QObject::tr("Synapse on spine head"), -1, 1, false);
+      result << SkeletonStroke(QObject::tr("Synapse on spine neck"), -1, 1, false);
 
       return result;
     }
 
-    result << SkeletonStroke(QObject::tr("Stroke"), hue, 0, true);
+    result << SkeletonStroke(QObject::tr("Stroke"), -1, 0, true);
   }
   else
   {
-    result << SkeletonStroke(QObject::tr("Stroke"), 0, 0, true);
+    result << SkeletonStroke(QObject::tr("Stroke"), -1, 0, true);
   }
 
   return result;
@@ -144,7 +142,7 @@ void ESPINA::SkeletonToolsUtils::loadStrokes(std::shared_ptr<QSettings> settings
 }
 
 //--------------------------------------------------------------------
-QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const Core::SkeletonStrokes &strokes)
+QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const Core::SkeletonStrokes &strokes, const CategoryAdapterSPtr category)
 {
   QMenu *menu = nullptr;
   const auto palette = QApplication::palette();
@@ -153,9 +151,11 @@ QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const 
                                     "QMenu::item { background-color: transparent; }"
                                     "QMenu::item:selected { background-color: blue; }").arg(palette.color(QPalette::Window).name());
 
+  const auto categoryColor = category->color().hue();
+
   if(!strokes.isEmpty())
   {
-    menu = new QMenu(title, nullptr);
+    menu = new QMenu(title);
     menu->setHidden(true);
     menu->setStyleSheet(style);
 
@@ -175,7 +175,8 @@ QMenu* SkeletonToolsUtils::createStrokesContextMenu(const QString& title, const 
 
       QPixmap original(ICONS.at(stroke.type));
       QPixmap copy(original.size());
-      copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+      const auto color = stroke.colorHue == -1 ? categoryColor : stroke.colorHue;
+      copy.fill(QColor::fromHsv(color,255,255));
       copy.setMask(original.createMaskFromColor(Qt::transparent));
 
       auto strokeAction = menu->addAction(stroke.name);

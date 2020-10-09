@@ -151,14 +151,14 @@ void SkeletonCreationTool::initParametersWidgets()
 
   addSettingsWidget(m_categorySelector);
 
-  auto label = new QLabel("Points distance:");
+  auto label = new QLabel(tr("Points distance:"));
   label->setToolTip(tr("Manage distance between points"));
 
   connect(this, SIGNAL(toggled(bool)), label, SLOT(setVisible(bool)));
 
   addSettingsWidget(label);
 
-  m_minWidget = new DoubleSpinBoxAction(this);
+  m_minWidget = new DoubleSpinBoxAction();
   m_minWidget->setToolTip(tr("Minimum distance between points."));
 
   m_minWidget->setLabelText(tr("Minimum"));
@@ -172,7 +172,7 @@ void SkeletonCreationTool::initParametersWidgets()
 
   addSettingsWidget(m_minWidget->createWidget(nullptr));
 
-  m_maxWidget = new DoubleSpinBoxAction(this);
+  m_maxWidget = new DoubleSpinBoxAction();
   m_maxWidget->setToolTip(tr("Maximum distance between points."));
 
   m_maxWidget->setLabelText(tr("Maximum"));
@@ -316,6 +316,8 @@ void SkeletonCreationTool::initTool(bool value)
     }
 
     m_item = getActiveChannel();
+    auto currentCategory = m_categorySelector->selectedCategory();
+    const auto defaultHue = currentCategory->color().hue();
 
     if(!getViewState().hasTemporalRepresentation(m_factory)) getViewState().addTemporalRepresentations(m_factory);
     if(!getViewState().hasTemporalRepresentation(m_pointsFactory)) getViewState().addTemporalRepresentations(m_pointsFactory);
@@ -329,6 +331,7 @@ void SkeletonCreationTool::initTool(bool value)
 
     for(auto widget: m_skeletonWidgets)
     {
+      widget->setDefaultHue(defaultHue);
       widget->updateRepresentation();
     }
 
@@ -792,6 +795,7 @@ void SkeletonCreationTool::updateStrokes()
   if(currentCategory)
   {
     auto categoryName = currentCategory->classificationName();
+	const auto hue = currentCategory->color().hue();
 
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->clear();
@@ -805,6 +809,7 @@ void SkeletonCreationTool::updateStrokes()
     }
 
     qSort(strokes);
+    const auto categoryColor = currentCategory->color().hue();
 
     for(int i = 0; i < strokes.size(); ++i)
     {
@@ -812,7 +817,8 @@ void SkeletonCreationTool::updateStrokes()
 
       QPixmap original(ICONS.at(stroke.type));
       QPixmap copy(original.size());
-      copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+      const auto color = stroke.colorHue == -1 ? categoryColor : stroke.colorHue;
+      copy.fill(QColor::fromHsv(color,255,255));
       copy.setMask(original.createMaskFromColor(Qt::transparent));
 
       m_strokeCombo->insertItem(i, QIcon(copy), stroke.name);
@@ -820,7 +826,7 @@ void SkeletonCreationTool::updateStrokes()
 
     m_strokeCombo->blockSignals(false);
 
-    m_eventHandler->setStrokesCategory(categoryName);
+    m_eventHandler->setStrokesCategory(currentCategory);
 
     if(m_strokeCombo->currentIndex() < 0 || m_strokeCombo->currentIndex() >= strokes.size())
     {

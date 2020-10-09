@@ -35,6 +35,7 @@
 
 class QCheckBox;
 class QUndoStack;
+class QPushButton;
 
 namespace ESPINA
 {

@@ -60,6 +60,7 @@
 #include <App/ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h>
 #include <App/ToolGroups/Visualize/GenericTogglableTool.h>
 #include <App/ToolGroups/Visualize/FullscreenTool.h>
+#include <App/ToolGroups/Visualize/DayNightTool.h>
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <App/ToolGroups/Segment/Manual/ManualSegmentTool.h>
@@ -674,11 +675,14 @@ void EspinaMainWindow::showIssuesDialog(IssueList issues) const
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAutoSave(const QString& file)
 {
-  QApplication::processEvents();
+  if(!m_busy)
+  {
+    QApplication::processEvents();
 
-  m_saveAsTool->saveAnalysis(file);
+    m_saveAsTool->saveAnalysis(file);
 
-  QApplication::processEvents();
+    QApplication::processEvents();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1163,6 +1167,11 @@ void EspinaMainWindow::createVisualizeToolGroup()
 
   m_visualizeToolGroup->addTool(fullscreenSwitch);
 
+  auto themeSwitch = std::make_shared<DayNightTool>(m_context);
+  themeSwitch->setOrder("1", "4-MainWindow");
+
+  m_visualizeToolGroup->addTool(themeSwitch);
+
   for(auto representation: m_context.representations())
   {
     registerRepresentationSwitches(representation);
@@ -1500,9 +1509,12 @@ void EspinaMainWindow::updateToolsSettings()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAboutToSaveSession()
 {
-  saveSessionSettings();
-  saveToolsSettings();
-  m_busy = true;
+  if(!m_busy)
+  {
+    m_busy = true;
+    saveSessionSettings();
+    saveToolsSettings();
+  }
 }
 
 //------------------------------------------------------------------------

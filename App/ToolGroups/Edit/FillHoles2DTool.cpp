@@ -28,6 +28,9 @@
 
 // Qt
 #include <QThread>
+#include <QPushButton>
+#include <QComboBox>
+#include <QLabel>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;

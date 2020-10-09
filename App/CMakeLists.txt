@@ -15,6 +15,7 @@ include_directories(
 # Add Qt Resource files
 qt5_add_resources(ESPINA_RCC
   rsc/espina.qrc
+  rsc/darktheme/style.qrc
   )
 
 # Create header's MOC files
@@ -101,6 +102,7 @@ qt5_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/FullscreenTool.h
+  ToolGroups/Visualize/DayNightTool.h
   ToolGroups/Visualize/Representations/Switches/CrosshairSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
@@ -262,6 +264,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
   ToolGroups/Visualize/FullscreenTool.cpp
+  ToolGroups/Visualize/DayNightTool.cpp
   ToolGroups/Visualize/GenericTogglableTool.cpp
   ToolGroups/Visualize/Representations/StackRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp

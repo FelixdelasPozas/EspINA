@@ -114,7 +114,7 @@ namespace ESPINA
     /** \brief Loads the plugins in the given path to the given core factory.
      *
      */
-    QList<QPluginLoader *> loadPlugins(const QDir &path, CoreFactory *factory);
+    QList<QPluginLoader *> EspinaCore_EXPORT loadPlugins(const QDir &path, CoreFactory *factory);
 
     /** \brief Adds the components of the plugin to the given core factory. Return true on success
      * and false otherwise.
@@ -122,12 +122,12 @@ namespace ESPINA
      * \param[in] factory Core factory pointer.
      *
      */
-    bool loadPlugin(QObject *instance, CoreFactory* factory);
+    bool EspinaCore_EXPORT loadPlugin(QObject *instance, CoreFactory* factory);
 
     /** \brief Unloads the given plugins.
      *
      */
-    void unloadPlugins(const QList<QPluginLoader *> plugins);
+    void EspinaCore_EXPORT unloadPlugins(const QList<QPluginLoader *> plugins);
 
   } // namespace Core
 } // namespace ESPINA

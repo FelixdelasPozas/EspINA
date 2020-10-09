@@ -121,8 +121,9 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
       if (colors)
       {
+        const auto limit = data->GetNumberOfLines();
         data->GetLines()->InitTraversal();
-        for (int i = 0; i < data->GetNumberOfLines(); ++i)
+        for (int i = 0; i < limit; ++i)
         {
           double rgba[4];
 
@@ -274,15 +275,17 @@ void ESPINA::GUI::Representations::SegmentationSkeletonPipelineBase::stippledLin
     }
   }
 
-  vtkPolyData *polyData = vtkPolyData::SafeDownCast(actor->GetMapper()->GetInput());
+  auto polyData = vtkPolyData::SafeDownCast(actor->GetMapper()->GetInput());
 
   // Create texture coordinates
   auto tcoords = vtkSmartPointer<vtkDoubleArray>::New();
   tcoords->SetNumberOfComponents(1);
-  tcoords->SetNumberOfTuples(polyData->GetNumberOfPoints());
-  for (int i = 0; i < polyData->GetNumberOfPoints(); ++i)
+  const auto numPoints = polyData->GetNumberOfPoints();
+
+  tcoords->SetNumberOfTuples(numPoints);
+  for (int i = 0; i < numPoints; ++i)
   {
-    double value = static_cast<double>(i) * .5;
+    double value = std::fmod(static_cast<double>(i) * .5, 128.*repeat);
     tcoords->SetTypedTuple(i, &value);
   }
 
@@ -292,6 +295,7 @@ void ESPINA::GUI::Representations::SegmentationSkeletonPipelineBase::stippledLin
   texture->SetInputData(image);
   texture->InterpolateOff();
   texture->RepeatOn();
+  texture->Modified();
 
   actor->SetTexture(texture);
 }

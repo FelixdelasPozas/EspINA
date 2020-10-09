@@ -260,12 +260,12 @@ void SpinesInformationDialog::createGUI()
 {
   setWindowTitle(tr("Spines Information Report"));
   setWindowIconText(":/espina/espina.svg");
-  auto dialogLayout = new QVBoxLayout();
+  auto dialogLayout = new QVBoxLayout(this);
 
-  auto general = new QHBoxLayout();
+  auto general = new QHBoxLayout(this);
   general->setAlignment(Qt::AlignRight);
 
-  auto exportButton = new QPushButton();
+  auto exportButton = new QPushButton(this);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   exportButton->setIcon(saveIcon);
   exportButton->setToolTip("Save All Data");
@@ -279,16 +279,16 @@ void SpinesInformationDialog::createGUI()
 
   general->addWidget(exportButton);
 
-  auto frame = new QFrame();
+  auto frame = new QFrame(this);
   frame->setFrameShape(QFrame::Shape::StyledPanel);
-  auto tabLayout = new QVBoxLayout();
+  auto tabLayout = new QVBoxLayout(frame);
 
-  auto tab = new QTabWidget();
+  auto tab = new QTabWidget(frame);
 
   auto headers = QString("Name;Parent dendrite;Complete;Branched;Length (Nm);Num of synapses;Num asymmetric;Num asymmetric on head;Num asymmetric on neck;");
   headers     += QString("Num symmetric;Num symmetric on head;Num symmetric on neck;Num of contacted axons;Num of inhibitory axons;Num of excitatory axons");
 
-  m_table  = new QTableWidget();
+  m_table  = new QTableWidget(tab);
   m_table->verticalHeader()->hide();
   m_table->setEditTriggers(QAbstractItemView::EditTrigger::NoEditTriggers);
   m_table->setColumnCount(14);
@@ -311,7 +311,7 @@ void SpinesInformationDialog::createGUI()
 
   dialogLayout->addWidget(frame);
 
-  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok, frame);
 
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(close()));

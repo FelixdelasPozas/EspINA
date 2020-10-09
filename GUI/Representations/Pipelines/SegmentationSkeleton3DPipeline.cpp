@@ -130,6 +130,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     dashedChanges->SetName("ChangeColor");
 
     data->GetLines()->InitTraversal();
+    int solidNum = 0, dashedNum = 0;
+
     for(int i = 0; i < data->GetNumberOfLines(); ++i)
     {
       auto idList = vtkSmartPointer<vtkIdList>::New();
@@ -140,7 +142,7 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       auto index = edgeIndexes->GetValue(cellIndexes->GetValue(i));
       auto lineHue = strokeColors->GetValue(index);
       double rgba[4];
-      auto colorCondition = (hue == lineHue);
+      auto colorCondition = (hue == lineHue) || (lineHue == -1);;
 
       if(colorCondition)
       {
@@ -158,29 +160,44 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
 
       if(strokeTypes->GetValue(index) == 0)
       {
+        ++solidNum;
         solidColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
         solidCells->InsertNextCell(line);
         solidChanges->InsertNextValue(colorCondition ? 0 : 1);
       }
       else
       {
+        ++dashedNum;
         dashedColors->InsertNextTuple3(rgba[0]*255, rgba[1]*255, rgba[2]*255);
         dashedCells->InsertNextCell(line);
         dashedChanges->InsertNextValue(colorCondition ? 0 : 1);
       }
     }
 
+    solidColors->Resize(solidNum);
+    solidCells->SetNumberOfCells(solidNum);
+    solidChanges->Resize(solidNum);
+
+    dashedColors->Resize(dashedNum);
+    dashedCells->SetNumberOfCells(dashedNum);
+    dashedChanges->Resize(dashedNum);
+
+
     auto solidData = vtkSmartPointer<vtkPolyData>::New();
     solidData->SetPoints(data->GetPoints());
     solidData->SetLines(solidCells);
     solidData->GetCellData()->SetScalars(solidColors);
     solidData->GetCellData()->AddArray(solidChanges);
+    solidData->RemoveGhostCells();
+    solidData->Modified();
 
     auto dashedData = vtkSmartPointer<vtkPolyData>::New();
     dashedData->SetPoints(data->GetPoints());
     dashedData->SetLines(dashedCells);
     dashedData->GetCellData()->SetScalars(dashedColors);
     dashedData->GetCellData()->AddArray(dashedChanges);
+    dashedData->RemoveGhostCells();
+    dashedData->Modified();
 
     auto solidMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     solidMapper->SetInputData(solidData);
@@ -198,9 +215,8 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
     auto dashedActor = vtkSmartPointer<vtkActor>::New();
     dashedActor->SetMapper(dashedMapper);
     dashedActor->GetProperty()->SetLineWidth(width);
-    // dashedActor->GetProperty()->SetLineStipplePattern(0xFF00);
 
-    stippledLine(dashedActor, 0xF0F0, 1);
+    SegmentationSkeletonPipelineBase::stippledLine(dashedActor, 0xF0F0);
 
     dashedActor->Modified();
 
@@ -223,8 +239,31 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       return actors;
     }
 
+    // 2020-05-23: fix spine name if child is truncated
+    for(auto i = 0; i < edgeTruncated->GetNumberOfTuples(); ++i)
+    {
+      if(!edgeTruncated->GetValue(i)) continue;
+      auto parentIndex = edgeParents->GetValue(i);
+      QSet<int> visited;
+      while(parentIndex != -1 && !visited.contains(parentIndex))
+      {
+        auto text = QString(strokeNames->GetValue(edgeIndexes->GetValue(parentIndex)).c_str());
+        if(text.startsWith("spine", Qt::CaseInsensitive))
+        {
+          edgeTruncated->SetValue(parentIndex, edgeTruncated->GetValue(i));
+          parentIndex = -1;
+        }
+        else
+        {
+          visited << parentIndex;
+          parentIndex = edgeParents->GetValue(parentIndex);
+        }
+      }
+    }
+
     auto flags = vtkIntArray::SafeDownCast(data->GetPointData()->GetAbstractArray("Flags"));
     auto truncatedPoints = vtkSmartPointer<vtkPoints>::New();
+    int truncatedNum = 0;
 
     if(flags)
     {
@@ -233,13 +272,19 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
         auto nodeFlags = static_cast<SkeletonNodeFlags>(flags->GetValue(i));
         if(nodeFlags.testFlag(SkeletonNodeProperty::TRUNCATED))
         {
+          ++truncatedNum;
           truncatedPoints->InsertNextPoint(data->GetPoint(i));
         }
       }
       truncatedPoints->Modified();
     }
 
+    truncatedPoints->Modified();
+    truncatedPoints->Resize(truncatedNum);
+    truncatedPoints->Squeeze();
+
     auto labelPoints = vtkSmartPointer<vtkPoints>::New();
+    int labelNum = 0;
     auto labelText   = vtkSmartPointer<vtkStringArray>::New();
     labelText->SetName("Labels");
 
@@ -253,16 +298,16 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
       auto index  = cellIndexes->GetValue(i);
       auto text   = QString(strokeNames->GetValue(edgeIndexes->GetValue(index)).c_str());
       auto number = QString::number(edgeNumbers->GetValue(index));
-      auto otherIndex = edgeParents->GetValue(index);
+      auto parentIndex = edgeParents->GetValue(index);
       QSet<int> visited;
-      while((otherIndex != -1) && !visited.contains(otherIndex))
+      while((parentIndex != -1) && !visited.contains(parentIndex))
       {
-        visited << otherIndex;
-        number = QString("%1.%2").arg(edgeNumbers->GetValue(otherIndex)).arg(number);
-        otherIndex = edgeParents->GetValue(otherIndex);
+        visited << parentIndex;
+        number = QString("%1.%2").arg(edgeNumbers->GetValue(parentIndex)).arg(number);
+        parentIndex = edgeParents->GetValue(parentIndex);
       }
       text += QString(" %1").arg(number);
-      if(edgeTruncated && edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
+      if(edgeTruncated->GetValue(index)) text += QString(" (Truncated)");
 
       if(ids.contains(text)) continue;
       ids << text;
@@ -289,13 +334,21 @@ RepresentationPipeline::ActorList SegmentationSkeleton3DPipeline::createActors(C
         for(auto j: {0,1,2}) coordsA[j] = (coordsA[j] + coordsB[j])/2.;
       }
 
+      ++labelNum;
       labelPoints->InsertNextPoint(coordsA);
       labelText->InsertNextValue(text.toStdString().c_str());
     }
 
+    labelPoints->Modified();
+    labelPoints->Resize(labelNum);
+    labelPoints->Squeeze();
+
     auto labelsData = vtkSmartPointer<vtkPolyData>::New();
     labelsData->SetPoints(labelPoints);
+    labelsData->SetLines(nullptr);
     labelsData->GetPointData()->AddArray(labelText);
+    labelsData->RemoveGhostCells();
+    labelsData->Modified();
 
     auto textSize =  SegmentationSkeletonPoolSettings::getAnnotationsSize(state);
 
@@ -360,6 +413,8 @@ vtkSmartPointer<vtkFollower> SegmentationSkeleton3DPipeline::createTruncatedPoin
 
   auto data = vtkSmartPointer<vtkPolyData>::New();
   data->SetPoints(points);
+  data->SetLines(nullptr);
+  data->RemoveGhostCells();
   data->Modified();
 
   auto mapper = vtkSmartPointer<vtkGlyph3DMapper>::New();

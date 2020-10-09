@@ -33,12 +33,14 @@ set (FILTERS_SOURCES
   CleanSegmentationVoxelsFilter.cpp
   Utils/vtkTube.cpp
   Utils/Stencil.cpp
+  LibraryFiltersFactory.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  EspinaCore
   EspinaExtensions
 )
 

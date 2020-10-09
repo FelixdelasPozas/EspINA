@@ -81,7 +81,7 @@ namespace ESPINA
            * \param[in] repeat Repeat specifies how many times each bit in the pattern is to be repeated.
            *
            */
-          static void stippledLine(vtkSmartPointer<vtkActor> &actor, int pattern = 0xF0F0, int repeat = 1);
+          static void stippledLine(vtkSmartPointer<vtkActor> &actor, int pattern = 0xF0F0, int repeat = 2);
   
         protected:
           GUI::ColorEngines::ColorEngineSPtr m_colorEngine; /** color engine for skeleton representations. */

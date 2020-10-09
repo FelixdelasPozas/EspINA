@@ -158,5 +158,6 @@
     <file>ruler-max.svg</file>
     <file>display_crosshairs_intersections.svg</file>
 	<file>clean_segmentation.svg</file>
+	<file>day-and-night.svg</file>
   </qresource>
 </RCC>

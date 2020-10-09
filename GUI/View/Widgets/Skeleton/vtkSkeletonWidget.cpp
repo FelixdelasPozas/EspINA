@@ -732,3 +732,11 @@ vtkSkeletonWidgetRepresentation* vtkSkeletonWidget::representation()
 
   return reinterpret_cast<vtkSkeletonWidgetRepresentation *>(WidgetRep);
 }
+
+//-----------------------------------------------------------------------------
+void vtkSkeletonWidget::setDefaultHue(const int value)
+{
+  if(!WidgetRep) CreateDefaultRepresentation();
+
+  representation()->setDefaultHueValue(value);
+}

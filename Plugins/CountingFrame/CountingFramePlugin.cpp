@@ -46,6 +46,7 @@ void CountingFramePlugin::init(Support::Context &context)
   m_undoStack   = context.undoStack();
 
   m_manager->setContext(context);
+  m_manager->setExtensionFactory(m_segmentationExtensionFactory);
 
   m_dockWidget            = new Panel(m_manager.get(), context, DefaultDialogs::defaultParentWidget());
   m_colorEngine           = std::make_shared<CF::ColorEngine>();

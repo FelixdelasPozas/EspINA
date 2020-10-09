@@ -83,6 +83,7 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
 , m_tolerance          {std::sqrt(20)}
 , m_slice              {-1}
 , m_shift              {0}
+, m_defaultHue         {100}
 , m_labelColor         {QColor::fromRgbF(1,1,1)}
 , m_labelSize          {5}
 , m_width              {1}
@@ -164,9 +165,7 @@ vtkSkeletonWidgetRepresentation::vtkSkeletonWidgetRepresentation()
   m_dashedLinesActor = vtkSmartPointer<vtkActor>::New();
   m_dashedLinesActor->SetMapper(m_dashedLinesMapper);
   m_dashedLinesActor->GetProperty()->SetLineWidth(m_width + 1);
-//  m_dashedLinesActor->GetProperty()->SetLineStipplePattern(0x00F0);
-//  m_dashedLinesActor->GetProperty()->SetLineStippleRepeatFactor(2);
-  SegmentationSkeletonPipelineBase::stippledLine(m_dashedLinesActor, 0xF0F0, 1);
+  SegmentationSkeletonPipelineBase::stippledLine(m_dashedLinesActor, 0xF0F0);
 
   m_truncatedPoints = vtkSmartPointer<vtkPoints>::New();
   m_truncatedPoints->SetDataTypeToDouble();
@@ -994,6 +993,27 @@ void vtkSkeletonWidgetRepresentation::BuildRepresentation()
     }
   }
 
+  // 2020-05-23: fix spine name if child is truncated
+  for(auto &index : truncatedStrokes)
+  {
+    auto edge = s_skeleton.edges.at(index);
+    auto name = s_skeleton.strokes.at(edge.strokeIndex).name;
+    int parentIndex = -1;
+    QSet<int> visited;
+    while(!name.startsWith("spine", Qt::CaseInsensitive) && edge.parentEdge != -1 && !visited.contains(edge.parentEdge))
+    {
+      parentIndex = edge.parentEdge;
+      visited << parentIndex;
+      edge = s_skeleton.edges.at(parentIndex);
+      name = s_skeleton.strokes.at(edge.strokeIndex).name;
+    }
+
+    if(name.startsWith("spine", Qt::CaseInsensitive) && (parentIndex != -1) && !truncatedStrokes.contains(parentIndex))
+    {
+      truncatedStrokes << parentIndex;
+    }
+  }
+
   // labels
   if(m_showLabels && !m_visiblePoints.empty())
   {
@@ -1128,8 +1148,9 @@ void vtkSkeletonWidgetRepresentation::UpdatePointer()
     m_pointer->Update();
     m_pointerActor->GetMapper()->Update();
 
-    auto color = QColor::fromHsv(stroke.colorHue, 255,255);
-    m_pointerActor->GetProperty()->SetColor(1 - color.redF()/2., 1 - color.greenF()/2., 1 - color.blueF()/2.);
+    const auto color = stroke.colorHue == -1 ? m_defaultHue : stroke.colorHue;
+    auto finalColor = QColor::fromHsv(color, 255,255);
+    m_pointerActor->GetProperty()->SetColor(1 - finalColor.redF()/2., 1 - finalColor.greenF()/2., 1 - finalColor.blueF()/2.);
     m_pointerActor->VisibilityOn();
   }
   else
@@ -2610,8 +2631,9 @@ const QColor vtkSkeletonWidgetRepresentation::computeCoincidentStrokeColor(const
 {
   if(m_changeCoincidentHue)
   {
-    return Core::alternateStrokeColor(s_skeleton.strokes, s_skeleton.strokes.indexOf(stroke));
+    return Core::alternateStrokeColor(s_skeleton.strokes, s_skeleton.strokes.indexOf(stroke), m_defaultHue);
   }
 
-  return QColor::fromHsv(stroke.colorHue, 255, 255);
+  const auto hue = stroke.colorHue == -1 ? m_defaultHue : stroke.colorHue;
+  return QColor::fromHsv(hue, 255, 255);
 }

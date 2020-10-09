@@ -107,7 +107,7 @@ void Dialog3D::closeEvent(QCloseEvent *event)
 //------------------------------------------------------------------------
 void Dialog3D::initView3D()
 {
-  auto layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout(m_view);
   layout->addWidget(&m_view3D);
   m_view->setLayout(layout);
 }

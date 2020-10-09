@@ -171,6 +171,12 @@ namespace ESPINA
                */
               const bool strokeHueModification() const;
 
+              /** \brief Sets the representation default color.
+               * \param[in] value Hue value in (0-359).
+               *
+               */
+              void setDefaultHue(const int value);
+
             public slots:
               /** \brief Updates the vtk widget representation.
                *

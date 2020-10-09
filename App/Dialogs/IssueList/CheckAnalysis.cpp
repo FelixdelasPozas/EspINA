@@ -654,6 +654,18 @@ void CheckSegmentationTask::checkSkeletonProblems() const
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
     }
 
+    // fix colors
+    const auto hue = m_segmentation->category()->color().hue();
+    bool changed = false;
+    auto fixStrokeColor = [&hue, &changed](Core::SkeletonStroke &s) { if(s.colorHue == hue) { changed = true; s.colorHue = -1; } };
+    std::for_each(definition.strokes.begin(), definition.strokes.end(), fixStrokeColor);
+
+    if(changed)
+    {
+      auto newSkeleton = Core::toPolyData(definition);
+      writeLockSkeleton(m_segmentation->output())->setSkeleton(newSkeleton);
+    }
+
     definition.clear();
   }
 }

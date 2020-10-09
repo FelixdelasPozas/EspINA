@@ -32,7 +32,9 @@
 
 // Qt
 #include <QMutex>
+#include <QMutexLocker>
 
+// C++
 #include <algorithm>
 
 using namespace ESPINA;
@@ -41,15 +43,20 @@ using namespace ESPINA::CF;
 //------------------------------------------------------------------------
 CountingFrameManager::CountingFrameManager()
 : m_context{nullptr}
+, m_applyTask{nullptr}
 {
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrameManager::registerCountingFrame(CountingFrame* cf)
 {
-  m_countingFrames[cf] = cf->extension()->extendedItem();
+  CFData data;
+  data.channel   = cf->extension()->extendedItem();
+  data.needApply = false;
 
-  connect(cf, SIGNAL(applied(CountingFrame *)), this, SLOT(onCountingFrameApplied(CountingFrame *)));
+  m_countingFrames.insert(cf, data);
+
+  connect(cf, SIGNAL(apply(CountingFrame *)), this, SLOT(applyCountingFrame(CountingFrame *)));
 
   emit countingFrameCreated(cf);
 }
@@ -59,7 +66,15 @@ void CountingFrameManager::unregisterCountingFrame(CountingFrame* cf)
 {
   m_countingFrames.remove(cf);
 
-  disconnect(cf, SIGNAL(applied(CountingFrame *)), this, SLOT(onCountingFrameApplied(CountingFrame *)));
+  {
+    QMutexLocker lock(&m_taskMutex);
+    if(m_applyTask && m_applyTask->countingFrame() == cf)
+    {
+      m_applyTask->abort();
+    }
+  }
+
+  disconnect(cf, SIGNAL(apply(CountingFrame *)), this, SLOT(applyCountingFrame(CountingFrame *)));
 
   emit countingFrameDeleted(cf);
 }
@@ -78,24 +93,44 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrameManager::onCountingFrameApplied(CountingFrame *cf)
+void CountingFrameManager::onCountingFrameApplied()
 {
-  if(m_context)
+  auto task = qobject_cast<ApplyCountingFrame *>(sender());
+  if(task)
   {
-    auto segmentations = m_context->model()->segmentations();
+    auto cf = task->countingFrame();
+    const auto hasBeenAborted = task->isAborted();
 
-    ViewItemAdapterList updated;
-    auto constraint = cf->categoryConstraint();
-
-    for(auto segmentation: segmentations)
     {
-      if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
-      {
-        updated << segmentation.get();
-      }
+      QMutexLocker lock(&m_taskMutex);
+      m_applyTask = nullptr;
     }
 
-    m_context->viewState().invalidateRepresentationColors(updated);
+    if(cf && m_countingFrames.keys().contains(cf))
+    {
+      m_countingFrames[cf].needApply = false;
+    }
+
+    if(cf && m_context && !hasBeenAborted)
+    {
+      auto segmentations = m_context->model()->segmentations();
+
+      ViewItemAdapterList updated;
+      auto constraint = cf->categoryConstraint();
+
+      for(auto segmentation: segmentations)
+      {
+        if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+        {
+          updated << segmentation.get();
+        }
+      }
+
+      m_context->viewState().invalidateRepresentationColors(updated);
+      cf->applied();
+    }
+
+    checkApplies();
   }
 }
 
@@ -112,4 +147,34 @@ CountingFrameList CountingFrameManager::countingFrames() const
   std::sort(cFrames.begin(), cFrames.end(), CF::lessThan);
 
   return cFrames;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::applyCountingFrame(CountingFrame *cf)
+{
+  m_countingFrames[cf].needApply = true;
+
+  checkApplies();
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::checkApplies()
+{
+  QMutexLocker lock(&m_taskMutex);
+
+  if(!m_applyTask)
+  {
+    auto needsApply = [](const CFData &d) { return d.needApply; };
+    auto it = std::find_if(m_countingFrames.cbegin(), m_countingFrames.cend(), needsApply);
+
+    if(it != m_countingFrames.cend())
+    {
+      m_applyTask = std::make_shared<ApplyCountingFrame>(it.key(), m_factory, m_context->scheduler());
+
+      connect(m_applyTask.get(), SIGNAL(finished()),
+              this,              SLOT(onCountingFrameApplied()));
+
+      Task::submit(m_applyTask);
+    }
+  }
 }

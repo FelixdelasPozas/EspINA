@@ -34,7 +34,6 @@
 #include <memory>
 #include <unistd.h>
 
-#include <QThreadPool>
 #include <QCoreApplication>
  
 using namespace ESPINA;

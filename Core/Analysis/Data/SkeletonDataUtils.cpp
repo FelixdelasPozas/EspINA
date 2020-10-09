@@ -300,6 +300,9 @@ vtkSmartPointer<vtkPolyData> Core::toPolyData(const SkeletonDefinition &skeleton
   polyData->GetPointData()->AddArray(edgeTruncated);
   polyData->GetCellData()->AddArray(cellIndexes);
 
+  polyData->RemoveGhostCells();
+  polyData->Modified();
+
   return polyData;
 }
 
@@ -1034,6 +1037,8 @@ ESPINA::Core::PathHierarchyNode * ESPINA::Core::locatePathHierarchyNode(const Pa
 //--------------------------------------------------------------------
 bool ESPINA::Core::isTruncated(const PathHierarchyNode *node)
 {
+  if(!node) return false;
+
   if(node->path.begin->isTerminal() && node->path.begin->flags.testFlag(SkeletonNodeFlags::enum_type::TRUNCATED))
     return true;
 
@@ -1260,7 +1265,7 @@ void ESPINA::Core::mergeSamePositionNodes(SkeletonNodes &nodes)
 }
 
 //--------------------------------------------------------------------
-QColor ESPINA::Core::alternateStrokeColor(const SkeletonStrokes& strokes, int index)
+QColor ESPINA::Core::alternateStrokeColor(const SkeletonStrokes& strokes, int index, int categoryHue)
 {
   if(index < 0 || index >= strokes.size())
   {
@@ -1268,7 +1273,8 @@ QColor ESPINA::Core::alternateStrokeColor(const SkeletonStrokes& strokes, int in
   }
 
   const auto &stroke = strokes.at(index);
-  auto finalHue = stroke.colorHue;
+  const auto hue = stroke.colorHue == -1 ? categoryHue : stroke.colorHue;
+  auto finalHue = hue;
 
   int position = 0;
   QSet<int> hueValues;
@@ -1278,16 +1284,16 @@ QColor ESPINA::Core::alternateStrokeColor(const SkeletonStrokes& strokes, int in
     if(i == index) continue;
 
     const auto &otherStroke = strokes.at(i);
-
-    hueValues << otherStroke.colorHue;
+	const auto otherHue = otherStroke.colorHue == -1 ? hue : otherStroke.colorHue;
+    hueValues << otherHue;
 
     // alphabetic to keep certain order, but can be altered by introducing more strokes.
-    if((otherStroke.colorHue == stroke.colorHue) && (otherStroke.name < stroke.name)) ++position;
+    if((otherHue == hue) && (otherStroke.name < stroke.name)) ++position;
   }
 
   while((position > 0) && (position < 20) && hueValues.contains(finalHue))
   {
-    finalHue = (stroke.colorHue + (50*position)) % 360;
+    finalHue = (hue + (50*position)) % 360;
 
     ++position;
   }

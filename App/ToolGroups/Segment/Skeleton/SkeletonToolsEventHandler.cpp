@@ -28,6 +28,7 @@
 #include <Extensions/EdgeDistances/ChannelEdges.h>
 #include <GUI/View/RenderView.h>
 #include <GUI/View/View2D.h>
+#include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
@@ -300,7 +301,7 @@ void SkeletonToolsEventHandler::onActionSelected(QAction *action)
 }
 
 //------------------------------------------------------------------------
-void SkeletonToolsEventHandler::setStrokesCategory(const QString &category)
+void SkeletonToolsEventHandler::setStrokesCategory(const CategoryAdapterSPtr category)
 {
   if(m_strokeMenu)
   {
@@ -321,19 +322,19 @@ void SkeletonToolsEventHandler::setStrokesCategory(const QString &category)
     m_connectionMenu = nullptr;
   }
 
-  m_category = category;
+  m_category = category->classificationName();
   m_strokes.clear();
 
   if(STROKES.keys().contains(m_category))
   {
     if(STROKES[m_category].size() != 1)
     {
-      m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu("Start Trace", STROKES[m_category]);
+      m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu(tr("Start Trace"), STROKES[m_category], category);
       connect(m_strokeMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
 
       if(isSpecialCategory())
       {
-        m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", STROKES[m_category]);
+        m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu(tr("Connection Type"), STROKES[m_category], category);
         connect(m_connectionMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
       }
     }
@@ -387,7 +388,7 @@ bool SkeletonToolsEventHandler::isCollision(const NmVector3& point) const
 }
 
 //------------------------------------------------------------------------
-void SkeletonToolsEventHandler::setStrokes(const Core::SkeletonStrokes& strokes, const QString &category)
+void SkeletonToolsEventHandler::setStrokes(const Core::SkeletonStrokes& strokes, const CategoryAdapterSPtr category)
 {
   if(m_strokeMenu)
   {
@@ -408,15 +409,15 @@ void SkeletonToolsEventHandler::setStrokes(const Core::SkeletonStrokes& strokes,
     m_connectionMenu = nullptr;
   }
 
-  m_category = category;
+  m_category = category->classificationName();
   m_strokes  = strokes;
 
-  m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu("Start Trace", m_strokes);
+  m_strokeMenu = SkeletonToolsUtils::createStrokesContextMenu("Start Trace", m_strokes, category);
   connect(m_strokeMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
 
   if(isSpecialCategory())
   {
-    m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", m_strokes);
+    m_connectionMenu = SkeletonToolsUtils::createStrokesContextMenu("Connection Type", m_strokes, category);
     connect(m_connectionMenu, SIGNAL(triggered(QAction *)), this, SLOT(onActionSelected(QAction *)));
   }
 }

@@ -43,13 +43,13 @@ DistanceInformationDialog::DistanceInformationDialog(const SegmentationAdapterLi
 {
   setWindowTitle(tr("Distance Information Report"));
   setWindowIconText(":/espina/espina.svg");
-  setLayout(new QVBoxLayout());
+  setLayout(new QVBoxLayout(this));
 
   auto report = new DistanceInformationTabularReport(context, segmentations, options, distances);
 
   layout()->addWidget(report);
 
-  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok, this);
 
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(close()));

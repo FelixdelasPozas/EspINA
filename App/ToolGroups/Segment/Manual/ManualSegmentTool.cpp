@@ -46,6 +46,7 @@
 // Qt
 #include <QAction>
 #include <QUndoStack>
+#include <QPushButton>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;

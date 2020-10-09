@@ -70,7 +70,7 @@ namespace ESPINA
          *
          */
         explicit SkeletonStroke()
-        : name{QString()}, colorHue{0}, type{0}, useMeasure{false}
+        : name{QString()}, colorHue{-1}, type{0}, useMeasure{false}
         {};
 
         /** \brief Operator == for skeleton strokes.
@@ -539,9 +539,10 @@ namespace ESPINA
     /** \brief Returns the alternate hue of the given stroke index if it matches with the hue of other strokes.
      * \param[in] strokes Stroke list.
      * \param[in] index Index of the stroke to compute hue.
+	 * \param[in] cateogoryHue Hue value of segmentation's category color. 
      *
      */
-    QColor EspinaCore_EXPORT alternateStrokeColor(const SkeletonStrokes &strokes, int index);
+    QColor EspinaCore_EXPORT alternateStrokeColor(const SkeletonStrokes &strokes, int index, int categoryHue);
 
   } // namespace Core
 } // namespace ESPINA

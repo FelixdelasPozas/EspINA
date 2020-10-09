@@ -78,7 +78,7 @@ namespace ESPINA
          * \param[in] column column of the item.
          *
          */
-        void onItemClicked(QTreeWidgetItem *item, int column);
+        void onItemClicked(QTreeWidgetItem *item, const int column);
 
       private:
         /** \brief Updates the state of the tree widget.
@@ -87,7 +87,7 @@ namespace ESPINA
          * \param[in] updateParent true to update the parent state, false otherwise.
          *
          */
-        void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
+        void updateCheckState(QTreeWidgetItem *item, const int column, const bool updateParent = true);
 
         /** \brief De-selects all the items.
          *
@@ -103,9 +103,18 @@ namespace ESPINA
         GroupedInfo &m_selection; /** selected tag group.                                           */
     };
 
+    /** \brief Returns the available information of extensions registered in the factory given.
+     * \param[in] factory Model factory smart pointer.
+     *
+     */
     InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(ModelFactorySPtr factory);
 
-    InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(SegmentationAdapterList segmentations, ModelFactorySPtr factory);
+    /** \brief Returns the available information for the given segmentations and factory given.
+     * \param[in] segmentations Segmentation list.
+     * \param[in] factory Model factory smart pointer.
+     *
+     */
+    InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(const SegmentationAdapterList segmentations, ModelFactorySPtr factory);
   }
 }
 

@@ -47,7 +47,7 @@
 #include <QVector3D>
 #include <QWheelEvent>
 #include <QMenu>
-#include <QToolButton>
+#include <QPushButton>
 #include <QStyle>
 #include <QVTKWidget.h>
 
@@ -99,8 +99,8 @@ View2D::View2D(GUI::View::ViewState &state, Plane plane, QWidget *parent)
 , m_controlLayout   {new QHBoxLayout()}
 , m_fromLayout      {new QHBoxLayout()}
 , m_toLayout        {new QHBoxLayout()}
-, m_scrollBar       {new QScrollBar(Qt::Horizontal)}
-, m_spinBox         {new QDoubleSpinBox()}
+, m_scrollBar       {new QScrollBar(Qt::Horizontal, this)}
+, m_spinBox         {new QDoubleSpinBox(this)}
 , m_cameraReset     {nullptr}
 , m_snapshot        {nullptr}
 , m_showThumbnail   {true}

@@ -48,7 +48,7 @@ DrawingWidget::DrawingWidget(View::ViewState &viewState, ModelAdapterSPtr model,
 : QWidget(parent)
 , m_viewState           (viewState)
 , m_categorySelector    {model, this}
-, m_eraserWidget        {Styles::createToolButton(":/espina/eraser.png", tr("Erase"))}
+, m_eraserWidget        {Styles::createToolButton(":/espina/eraser.png", tr("Erase"), this)}
 , m_showCategoryControls{true}
 , m_showRadiusControls  {true}
 , m_showOpacityControls {true}
@@ -380,7 +380,7 @@ QPushButton *DrawingWidget::registerPainter(const QString  &icon,
                                             const QString  &description,
                                             MaskPainterSPtr painter)
 {
-  auto button = Styles::createToolButton(icon, description);
+  auto button = Styles::createToolButton(icon, description, this);
 
   button->setCheckable(true);
   button->setAutoExclusive(true);

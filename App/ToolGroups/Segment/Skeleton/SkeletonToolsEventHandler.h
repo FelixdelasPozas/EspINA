@@ -67,10 +67,10 @@ namespace ESPINA
       virtual bool filterEvent(QEvent *e, RenderView *view = nullptr) override;
 
       /** \brief Sets the category to get the strokes definition.
-       * \param[in] category Category name.
+       * \param[in] category Category object smart pointer.
        *
        */
-      void setStrokesCategory(const QString &category);
+      void setStrokesCategory(const CategoryAdapterSPtr category);
 
       /** \brief Sets the same stroke the user specified manually on the tool.
        * \param[in] stroke Skeleton stroke definition.
@@ -81,10 +81,10 @@ namespace ESPINA
 
       /** \brief Sets the strokes for the menu instead the default category strokes.
        * \param[in] strokes List of defined strokes.
-       * \param[in] category Category string of the segmentation.
+       * \param[in] category Category smart pointer of the strokes.
        *
        */
-      void setStrokes(const Core::SkeletonStrokes &strokes, const QString &category);
+      void setStrokes(const Core::SkeletonStrokes &strokes, const CategoryAdapterSPtr category);
 
       /** \brief Weird hack for the tool to respond if the last coordinates signaled correspond to a start point.
        * \param[in] value True to indicate a start point and false otherwise.

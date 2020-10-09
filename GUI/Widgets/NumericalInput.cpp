@@ -49,7 +49,7 @@ NumericalInput::NumericalInput(QWidget *parent)
   connect(m_slider, SIGNAL(valueChanged(int)),
           this,     SLOT(setValue(int)));
 
-  auto layout = new QHBoxLayout();
+  auto layout = new QHBoxLayout(this);
 
   layout->addWidget(m_label);
   layout->addWidget(m_slider);

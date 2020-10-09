@@ -263,6 +263,11 @@ namespace ESPINA
        */
       void apply();
 
+      /** \brief Emits the applied signal.
+       *
+       */
+      void applied();
+
       /** \brief Returns the vtkPolyData object that defines the margins of the counting frame.
        *
        */
@@ -287,6 +292,8 @@ namespace ESPINA
     signals:
       void modified(CountingFrame *);
 
+      void apply(CountingFrame *);
+
       void applied(CountingFrame *);
 
       void changedVisibility();
@@ -296,15 +303,11 @@ namespace ESPINA
        * \param[in] extension counting frame extension of this object.
        * \param[in] inclusion inclusion margins in each of the axis.
        * \param[in] exclusion exclusion margins in each of the axis.
-       * \param[in] scheduler application task scheduler.
-       * \param[in] factory   stereological inclusion factory.
        *
        */
       explicit CountingFrame(CountingFrameExtension                *extension,
                              Nm                                     inclusion[3],
-                             Nm                                     exclusion[3],
-                             SchedulerSPtr                          scheduler,
-                             Core::SegmentationExtensionFactorySPtr factory);
+                             Nm                                     exclusion[3]);
 
       /** \brief Updates the counting frame inclusion/exclusion values of all the constrained segmentations and
        * recomputes the widgets geometry.
@@ -344,16 +347,7 @@ namespace ESPINA
        */
       vtkSmartPointer<vtkPolyData> channelEdgesPolyData() const;
 
-    protected slots:
-      /** \brief Helper method to emit the applied signal after a counting frame has been completely applied to the constrained segmentations.
-       *
-       */
-      void onCountingFrameApplied();
-
     protected:
-      SchedulerSPtr                          m_scheduler; /** task scheduler.                                 */
-      Core::SegmentationExtensionFactorySPtr m_factory;   /** factory for stereological inclusion extension.  */
-
       mutable QReadWriteLock       m_countingFrameMutex;  /** lock for m_countingFrame.                       */
       vtkSmartPointer<vtkPolyData> m_countingFrame;       /** counting frame limits.                          */
       vtkSmartPointer<vtkPolyData> m_innerFrame;          /** inner frame of the counting frame.              */
@@ -385,9 +379,6 @@ namespace ESPINA
       bool m_visible;                                     /** true if widgets are visible and false otherwise. */
       bool m_enable;                                      /** true if counting frame is enabled and false otherwise. */
       bool m_highlight;                                   /** true if the widgets are highlighted and false otherwise. */
-
-      ApplyCountingFrameSPtr m_applyTask;                 /** task to apply the counting frame to the constrained segmentations. */
-      QMutex                 m_taskMutex;                 /** mutex to protect task variable.                                    */
 
       QList<vtkCountingFrameSliceWidget *> m_widgets2D;   /** list of 2D widgets of this counting frame. */
       QList<vtkCountingFrame3DWidget    *> m_widgets3D;   /** list of 3D widgets of this counting frame. */

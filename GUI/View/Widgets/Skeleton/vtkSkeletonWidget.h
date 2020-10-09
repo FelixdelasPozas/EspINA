@@ -294,6 +294,12 @@ namespace ESPINA
                */
               const bool strokeHueModification() const;
 
+              /** \brief Sets the default color of the representation.
+               * \param[in] value Hue value in (0-359).
+               *
+               */
+              void setDefaultHue(const int value);
+
             protected:
               int       m_widgetState;   /** widget operation state.                */
               Plane     m_orientation;   /** orthogonal plane of the widget.        */

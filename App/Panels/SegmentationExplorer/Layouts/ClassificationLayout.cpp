@@ -240,7 +240,7 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
   {
     if (!segmentationsSelected)
     {
-      contextMenu = new QMenu();
+      contextMenu = new QMenu(m_view);
     }
 
     auto createNode = createCategoryAction(contextMenu,
@@ -958,12 +958,12 @@ const QString ClassificationLayout::uniqueCategoryName(const CategoryAdapterPtr 
 //------------------------------------------------------------------------
 void ClassificationLayout::createChangeCategoryMenu(QMenu *menu)
 {
-   auto changeCategoryMenu = new QMenu(tr("C&hange Category"));
+   auto changeCategoryMenu = new QMenu(tr("C&hange Category"), m_view);
    auto categoryListAction = new QWidgetAction(changeCategoryMenu);
 
    auto model = getModel();
 
-   auto classification = new QTreeView();
+   auto classification = new QTreeView(m_view);
    classification->header()->setVisible(false);
    classification->setModel(model.get());
    classification->setRootIndex(model->classificationRoot());

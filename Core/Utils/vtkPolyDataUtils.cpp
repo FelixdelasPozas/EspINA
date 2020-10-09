@@ -20,6 +20,7 @@
 
 // ESPINA
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/TemporalStorage.h>
 #include <EspinaConfig.h>
 
 // VTK
@@ -29,7 +30,6 @@
 #include <vtkImageData.h>
 #include <vtkImageStencilToImage.h>
 #include <vtkPolyData.h>
-#include <vtkCleanPolyData.h>
 #include <vtkPolyDataToImageStencil.h>
 #include <vtkSmartPointer.h>
 #include <vtkDataArray.h>
@@ -71,11 +71,10 @@ QByteArray ESPINA::PolyDataUtils::savePolyDataToBuffer(const vtkSmartPointer<vtk
 //------------------------------------------------------------------------------------
 vtkSmartPointer<vtkPolyData> ESPINA::PolyDataUtils::readPolyDataFromFile(const QString &fileName)
 {
-  const QString utfFilename = fileName.toUtf8();
-  const QString asciiFilename = utfFilename.toLatin1();
+  const auto shortName = getShortFileName(fileName);
 
   auto reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-  reader->SetFileName(asciiFilename.toUtf8().toStdString().c_str());
+  reader->SetFileName(shortName.c_str());
   reader->SetReadAllFields(true);
   reader->Update();
 
@@ -327,16 +326,7 @@ VolumeBounds EspinaCore_EXPORT ESPINA::PolyDataUtils::polyDataVolumeBounds(vtkSm
 //------------------------------------------------------------------------------------
 QByteArray EspinaCore_EXPORT ESPINA::PolyDataUtils::convertPolyDataToOBJ(const vtkSmartPointer<vtkPolyData> polyData, int startIndex)
 {
-  auto cleanFilter = vtkSmartPointer<vtkCleanPolyData>::New();
-  cleanFilter->SetInputData(polyData);
-  cleanFilter->SetTolerance(0);
-  cleanFilter->ConvertLinesToPointsOn();
-  cleanFilter->ConvertPolysToLinesOn();
-  cleanFilter->ConvertStripsToPolysOn();
-  cleanFilter->PointMergingOn();
-  cleanFilter->Update();
-
-  auto data = cleanFilter->GetOutput();
+  auto data = polyData;
 
   std::stringstream objBuffer;
   objBuffer.precision(6);

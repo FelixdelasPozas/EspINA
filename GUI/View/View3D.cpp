@@ -37,6 +37,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QScrollBar>
+#include <QPushButton>
 #include <QFont>
 
 // VTK
@@ -120,10 +121,10 @@ void View3D::buildViewActionsButtons()
   auto horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   const auto tooltip = tr("Distance from the camera to the focal point.");
-  auto label = new QLabel("Focal distance:");
+  auto label = new QLabel("Focal distance:", this);
   label->setToolTip(tooltip);
 
-  m_zoomFactor = new QDoubleSpinBox();
+  m_zoomFactor = new QDoubleSpinBox(this);
   m_zoomFactor->setToolTip(tooltip);
   m_zoomFactor->setSuffix(tr(" nm"));
   m_zoomFactor->setDecimals(2);
@@ -291,42 +292,42 @@ void View3D::setupUI()
   if (m_showCrosshairPlaneSelectors)
   {
     m_additionalGUI  = new QHBoxLayout();
-    m_axialScrollBar = new QScrollBar(Qt::Horizontal);
+    m_axialScrollBar = new QScrollBar(Qt::Horizontal, this);
     m_axialScrollBar->setEnabled(false);
     m_axialScrollBar->setFixedHeight(15);
     m_axialScrollBar->setToolTip(tr("Axial scroll bar"));
     connect(m_axialScrollBar, SIGNAL(valueChanged(int)),
             this,             SLOT(scrollBarMoved(int)));
 
-    auto axialLabel = new QLabel("XY");
+    auto axialLayout = new QHBoxLayout();
+    auto axialLabel = new QLabel("XY", this);
     auto font = axialLabel->font();
     font.setBold(true);
     axialLabel->setFont(font);
-    auto axialLayout = new QHBoxLayout();
     axialLayout->insertWidget(0, axialLabel, 0);
     axialLayout->insertWidget(1, m_axialScrollBar, 1);
 
-    m_coronalScrollBar = new QScrollBar(Qt::Vertical);
+    m_coronalScrollBar = new QScrollBar(Qt::Vertical, this);
     m_coronalScrollBar->setEnabled(false);
     m_coronalScrollBar->setFixedWidth(15);
     m_coronalScrollBar->setToolTip(tr("Coronal scroll bar"));
     connect(m_coronalScrollBar, SIGNAL(valueChanged(int)),
             this,               SLOT(scrollBarMoved(int)));
 
-    auto coronalLabel = new QLabel("XZ");
+    auto coronalLabel = new QLabel("XZ", this);
     coronalLabel->setFont(font);
     auto coronalLayout = new QVBoxLayout();
     coronalLayout->insertWidget(0, coronalLabel, 0);
     coronalLayout->insertWidget(1, m_coronalScrollBar, 1);
 
-    m_sagittalScrollBar = new QScrollBar(Qt::Vertical);
+    m_sagittalScrollBar = new QScrollBar(Qt::Vertical, this);
     m_sagittalScrollBar->setEnabled(false);
     m_sagittalScrollBar->setFixedWidth(15);
     m_sagittalScrollBar->setToolTip(tr("Sagittal scroll bar"));
     connect(m_sagittalScrollBar, SIGNAL(valueChanged(int)),
             this,                SLOT(scrollBarMoved(int)));
 
-    auto sagittalLabel = new QLabel("YZ");
+    auto sagittalLabel = new QLabel("YZ", this);
     sagittalLabel->setFont(font);
     auto sagittalLayout = new QVBoxLayout();
     sagittalLayout->insertWidget(0, sagittalLabel, 0);

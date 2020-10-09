@@ -115,20 +115,11 @@ void DirectedGraph::addRelation(Vertex ancestor,
 
     OutEdgeIterator oei;
 
-    try
-    {
-      findRelation(avd, svd, description);
-      alreadyInGraph = true;
-    }
-    catch (const EspinaException &e)
-    {
-      // adding edge on catch.
-      add_edge(avd, svd, p, m_graph);
-    }
+    alreadyInGraph = existsRelation(avd, svd, description);
+
+    if(!alreadyInGraph) add_edge(avd, svd, p, m_graph);
   }
 
-  // TODO: don't use exception types to implement program logic, redo the former try-catch with something else.
-  //       this is just a "temporal workaround".
   if(alreadyInGraph)
   {
     auto what    = QObject::tr("Attempt to add and existing relation, ancestor: %1, successor: %2, relation: %3").arg(ancestor->name()).arg(successor->name()).arg(description);
@@ -346,6 +337,26 @@ DirectedGraph::VertexDescriptor DirectedGraph::descriptor(VertexPtr vertex) cons
   return DirectedGraph::VertexDescriptor();
 }
 
+//-----------------------------------------------------------------------------
+bool DirectedGraph::existsRelation(const VertexDescriptor source,
+                                   const VertexDescriptor destination,
+                                   const QString         &relation) const
+{
+  OutEdgeIterator ei, oei_end;
+
+  for (tie(ei, oei_end) = out_edges(source, m_graph); ei != oei_end; ++ei)
+  {
+    if (target(*ei, m_graph) == destination)
+    {
+      if (m_graph[*ei].relationship == relation.toStdString())
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 //-----------------------------------------------------------------------------
 DirectedGraph::OutEdgeIterator DirectedGraph::findRelation(const VertexDescriptor source,

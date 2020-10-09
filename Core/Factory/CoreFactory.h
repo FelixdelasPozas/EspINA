@@ -242,7 +242,7 @@ namespace ESPINA
 
       if(extension->validCategory(item->category()->classificationName()))
       {
-        if (extension->validData(item->output()))
+        if(extension->validData(item->output()))
         {
           extensions->add(extension);
         }

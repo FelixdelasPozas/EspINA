@@ -46,7 +46,7 @@
 // Qt
 #include <QAction>
 #include <QApplication>
-#include <QToolButton>
+#include <QPushButton>
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QThread>

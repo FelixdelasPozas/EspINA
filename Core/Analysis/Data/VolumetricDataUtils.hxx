@@ -194,13 +194,29 @@ namespace ESPINA
     bool releaseFlag = volume->GetReleaseDataFlag();
     volume->ReleaseDataFlagOff();
 
-    const QString utfFilename = filename.toUtf8();
-    const QString asciiFilename = utfFilename.toLatin1();
+    const auto fName = filename.toLatin1().toStdString();
 
     auto writer = itk::ImageFileWriter<T>::New();
-    writer->SetFileName(asciiFilename.toStdString());
+    writer->SetFileName(fName);
     writer->SetInput(volume);
-    writer->Write();
+    writer->SetUseCompression(false);
+
+    try
+    {
+      writer->Write();
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      auto message = QObject::tr("ITK exception: %1. File: %2, line %3, location %4. Class: %5").arg(QString::fromLocal8Bit(e.GetDescription()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetFile()))
+                                                                                                .arg(e.GetLine())
+                                                                                                .arg(QString::fromLocal8Bit(e.GetLocation()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetNameOfClass()));
+      auto details = QObject::tr("VolumetricDataUtils::exportVolume() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
     volume->SetReleaseDataFlag(releaseFlag);
   }
 
@@ -223,12 +239,12 @@ namespace ESPINA
     bool releaseFlag = volume->GetReleaseDataFlag();
     volume->ReleaseDataFlagOff();
 
-    const QString utfFilename = path.toUtf8();
-    const QString asciiFilename = utfFilename.toLatin1();
+    const auto name = getShortFileName(path);
 
     auto writer = itk::ImageFileWriter<T>::New();
-    writer->SetFileName(asciiFilename.toStdString());
+    writer->SetFileName(name);
     writer->SetInput(volume);
+    writer->SetUseCompression(false);
 
     if(task != nullptr)
     {
@@ -236,7 +252,21 @@ namespace ESPINA
       reporter = std::make_shared<ReporterType>(task, writer, start, end);
     }
 
-    writer->Write();
+    try
+    {
+      writer->Write();
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      auto message = QObject::tr("ITK exception: %1. File: %2, line %3, location %4. Class: %5").arg(QString::fromLocal8Bit(e.GetDescription()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetFile()))
+                                                                                                .arg(e.GetLine())
+                                                                                                .arg(QString::fromLocal8Bit(e.GetLocation()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetNameOfClass()));
+      auto details = QObject::tr("VolumetricDataUtils::exportVolumeWithProgress() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
 
     volume->SetReleaseDataFlag(releaseFlag);
   }
@@ -284,13 +314,16 @@ namespace ESPINA
   template<typename T>
   typename T::Pointer readVolume(const QString &filename)
   {
-    const auto adaptedFilename  = QDir::toNativeSeparators(filename);
-    const QString utfFilename   = adaptedFilename.toUtf8();
-    const QString asciiFilename = utfFilename.toLatin1();
+    if(!QFile::exists(filename))
+    {
+      auto message = QObject::tr("Can't read image file, file name: %1. File doesn't exists.").arg(filename);
+      auto details = QObject::tr("VolumetricDataUtils::readVolume() -> ") + message;
 
-    const auto asciiString      = asciiFilename.toStdString();
+      throw Core::Utils::EspinaException(message, details);
+    }
 
-    auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiString.c_str(), itk::ImageIOFactory::ReadMode);
+    const auto shortName = getShortFileName(filename);
+    auto imageIO = itk::ImageIOFactory::CreateImageIO(shortName.c_str(), itk::ImageIOFactory::ReadMode);
 
     if(!imageIO)
     {
@@ -301,7 +334,7 @@ namespace ESPINA
     }
 
     imageIO->SetGlobalWarningDisplay(false);
-    imageIO->SetFileName(asciiString);
+    imageIO->SetFileName(shortName);
     imageIO->ReadImageInformation();
 
     if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
@@ -314,11 +347,26 @@ namespace ESPINA
 
     auto reader = itk::ImageFileReader<T>::New();
     reader->SetGlobalWarningDisplay(false);
-    reader->SetFileName(asciiString);
+    reader->SetFileName(shortName);
     reader->SetImageIO(imageIO);
     reader->UseStreamingOff();
     reader->SetNumberOfThreads(1);
-    reader->Update();
+
+    try
+    {
+      reader->Update();
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      auto message = QObject::tr("ITK exception: %1. File: %2, line %3, location %4. Class: %5").arg(QString::fromLocal8Bit(e.GetDescription()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetFile()))
+                                                                                                .arg(e.GetLine())
+                                                                                                .arg(QString::fromLocal8Bit(e.GetLocation()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetNameOfClass()));
+      auto details = QObject::tr("VolumetricDataUtils::readVolume() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
 
     return reader->GetOutput();
   }
@@ -333,16 +381,24 @@ namespace ESPINA
   template<typename T>
   typename T::Pointer readVolumeWithProgress(const QString &filename, Task *task = nullptr, int start = 0, int end = 100)
   {
+    if(!QFile::exists(filename))
+    {
+      auto message = QObject::tr("Can't read image file, file name: %1. File doesn't exists.").arg(filename);
+      auto details = QObject::tr("VolumetricDataUtils::readVolumeWithProgress() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
+
     using ReaderType   = itk::ImageFileReader<T>;
     using ReporterType = Core::Utils::ITKProgressReporter<ReaderType>;
 
     std::shared_ptr<ReporterType> reporter = nullptr;
 
-    const QString utfFilename = filename.toUtf8();
-    const QString asciiFilename = utfFilename.toLatin1();
-    auto imageIO = itk::ImageIOFactory::CreateImageIO(asciiFilename.toStdString().c_str(), itk::ImageIOFactory::ReadMode);
+    const auto shortName = getShortFileName(filename);
+
+    auto imageIO = itk::ImageIOFactory::CreateImageIO(shortName.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetGlobalWarningDisplay(false);
-    imageIO->SetFileName(asciiFilename.toStdString());
+    imageIO->SetFileName(shortName);
     imageIO->ReadImageInformation();
 
     if((imageIO->GetPixelType() != itk::ImageIOBase::IOPixelType::SCALAR) || (imageIO->GetComponentSize() != 1))
@@ -355,7 +411,7 @@ namespace ESPINA
 
     auto reader = ReaderType::New();
     reader->SetGlobalWarningDisplay(false);
-    reader->SetFileName(asciiFilename.toStdString());
+    reader->SetFileName(shortName);
     reader->SetImageIO(imageIO);
     reader->UseStreamingOff();
     reader->SetNumberOfThreads(1);
@@ -366,7 +422,21 @@ namespace ESPINA
       reporter = std::make_shared<ReporterType>(task, reader, start, end);
     }
 
-    reader->Update();
+    try
+    {
+      reader->UpdateLargestPossibleRegion();
+    }
+    catch(const itk::ExceptionObject &e)
+    {
+      auto message = QObject::tr("ITK exception: %1. File: %2, line %3, location %4. Class: %5").arg(QString::fromLocal8Bit(e.GetDescription()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetFile()))
+                                                                                                .arg(e.GetLine())
+                                                                                                .arg(QString::fromLocal8Bit(e.GetLocation()))
+                                                                                                .arg(QString::fromLocal8Bit(e.GetNameOfClass()));
+      auto details = QObject::tr("VolumetricDataUtils::readVolumeWithProgress() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
 
     return reader->GetOutput();
   }

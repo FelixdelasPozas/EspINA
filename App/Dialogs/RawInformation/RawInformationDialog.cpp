@@ -47,10 +47,10 @@ RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Suppor
 
   connect(context.model().get(), SIGNAL(aboutToBeReset()), this, SLOT(close()));
 
-  setLayout(new QVBoxLayout());
+  setLayout(new QVBoxLayout(this));
   layout()->addWidget(report);
 
-  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok, this);
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);

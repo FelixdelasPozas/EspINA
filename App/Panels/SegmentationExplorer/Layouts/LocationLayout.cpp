@@ -135,7 +135,7 @@ void LocationLayout::contextMenu(const QPoint& pos)
   {
     if (!segmentationsSelected)
     {
-      contextMenu = new QMenu();
+      contextMenu = new QMenu(m_view);
     }
     else
     {
@@ -449,7 +449,7 @@ void LocationLayout::moveAllToStack()
 void LocationLayout::createChangeStackEntry(QMenu* menu)
 {
   auto modelStacks = getModel()->channels();
-  auto changeStackMenu = new QMenu(tr("&Change location to"));
+  auto changeStackMenu = new QMenu(tr("&Change location to"), m_view);
 
   if(modelStacks.size() > 1 || (m_proxy->orphanIndex() != QModelIndex()))
   {

@@ -388,7 +388,7 @@ void SegmentationInspector::configureLayout()
 //------------------------------------------------------------------------
 QHBoxLayout *SegmentationInspector::createViewLayout()
 {
-  auto layout = new QHBoxLayout();
+  auto layout = new QHBoxLayout(m_viewport);
 
   layout->addWidget(&m_view);
   layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
@@ -399,7 +399,7 @@ QHBoxLayout *SegmentationInspector::createViewLayout()
 //------------------------------------------------------------------------
 QHBoxLayout *SegmentationInspector::createReportLayout()
 {
-  auto layout = new QHBoxLayout();
+  auto layout = new QHBoxLayout(m_information);
 
   layout->addWidget(&m_tabularReport);
 

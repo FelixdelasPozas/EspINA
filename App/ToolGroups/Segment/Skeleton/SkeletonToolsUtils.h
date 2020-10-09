@@ -61,9 +61,10 @@ namespace ESPINA
     /** \brief Returns a menu with a menu entry per stroke in the list.
      * \param[in] title Menu title.
      * \param[in] strokes List of skeleton strokes.
+
      *
      */
-    QMenu * createStrokesContextMenu(const QString &title, const Core::SkeletonStrokes &strokes);
+    QMenu * createStrokesContextMenu(const QString &title, const Core::SkeletonStrokes &strokes, const CategoryAdapterSPtr category);
   }
 }
 

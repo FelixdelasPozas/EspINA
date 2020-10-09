@@ -31,6 +31,7 @@
 // ESPINA
 #include <GUI/Types.h>
 #include <Support/Context.h>
+#include <Tasks/ApplyCountingFrame.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -88,6 +89,12 @@ namespace ESPINA
       void setContext(Support::Context &context)
       { m_context = &context; }
 
+      /** \brief Sets the extension factory for stereological inclusion extension to be used when applying the a CF.
+       *
+       */
+      void setExtensionFactory(Core::SegmentationExtensionFactorySPtr factory)
+      { m_factory = factory; }
+
     signals:
       void countingFrameCreated(CountingFrame *cf);
       void countingFrameDeleted(CountingFrame *cf);
@@ -97,11 +104,28 @@ namespace ESPINA
        * \param[in] cf pointer of the Counting Frame finished applying.
        *
        */
-      void onCountingFrameApplied(CountingFrame *cf);
+      void onCountingFrameApplied();
+
+      void applyCountingFrame(CountingFrame *cf);
 
     private:
-      Support::Context                 *m_context;        /** application context.                  */
-      QMap<CountingFrame *, ChannelPtr> m_countingFrames; /** maps counting frame with its channel. */
+      void checkApplies();
+
+      struct CFData
+      {
+          ChannelPtr channel;   /** CF channel.                                   */
+          bool       needApply; /** true if needs to be applied, false otherwise. */
+
+          CFData(): channel{nullptr}, needApply{false}{};
+      };
+
+      Support::Context                      *m_context;        /** application context.                       */
+      Core::SegmentationExtensionFactorySPtr m_factory;        /** stereological inclusion extension factory. */
+      QMap<CountingFrame *, CFData>          m_countingFrames; /** maps counting frame with its channel.      */
+
+      ApplyCountingFrameSPtr m_applyTask;                 /** task to apply the counting frame to the constrained segmentations. */
+      QMutex                 m_taskMutex;                 /** mutex to protect task variable.                                    */
+
     };
   }
 }

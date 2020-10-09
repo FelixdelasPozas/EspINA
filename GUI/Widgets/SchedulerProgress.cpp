@@ -44,7 +44,7 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 : QWidget           {parent, f}
 , m_scheduler       {scheduler}
 , m_notification    {new QWidget(this)}
-, m_notificationArea{new QScrollArea()}
+, m_notificationArea{new QScrollArea(this)}
 , m_width           {350}
 , m_height          {400}
 , m_taskProgress    {0}

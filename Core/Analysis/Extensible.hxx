@@ -30,6 +30,9 @@
 #include <QMap>
 #include <QVariant>
 
+// C++
+#include <iterator>
+
 namespace ESPINA
 {
   namespace Core
@@ -50,46 +53,88 @@ namespace ESPINA
          *
          */
         class Iterator
+        : public std::iterator<std::bidirectional_iterator_tag, ExtensionSPtr, int>
         {
           public:
+            typedef Iterator self_type;
+            typedef ExtensionSPtr value_type;
+            typedef ExtensionSPtr& reference;
+            typedef std::bidirectional_iterator_tag iterator_category;
+            typedef int difference_type;
+
             /** \brief Extensible Iterator class constructor.
              * \param[in] container extension map.
              * \param[in] index current iterator index.
              *
              */
-            Iterator(const Extensions<E, T> *container, unsigned index)
+            Iterator(const Extensions<E, T> &container, unsigned index)
             : m_container(container)
             , m_index    (index)
+            , m_keys     (container.m_extensions.keys())
             {}
+
+            /** \brief Operator equal.
+             * \param[in] rhs right hand side iterator.
+             *
+             */
+            bool operator ==(const self_type &rhs)
+            { return m_index == rhs.m_index; }
 
             /** \brief Operator not equal.
              * \param[in] rhs right hand side iterator.
              *
              */
-            bool operator !=(const Iterator &rhs)
+            bool operator !=(const self_type &rhs)
             { return m_index != rhs.m_index; }
 
             /** \brief Operator ++
              *
              */
-            const Iterator& operator++()
+            self_type& operator++()
             {
               ++m_index;
+
               return *this;
+            }
+
+            /** \brief Operator --
+             *
+             */
+            self_type& operator--()
+            {
+              --m_index;
+
+              return *this;
+            }
+
+            /** \brief Operator + pos
+             * \param[in] pos Positions to advance.
+             *
+             */
+            self_type operator++(int pos)
+            {
+              return self_type(m_container, pos);
             }
 
             /** \brief Operator ()
              *
              */
-            ExtensionSPtr &operator*() const
+            value_type operator*() const
             {
-              auto extensions = m_container->m_extensions;
-              return extensions[extensions.keys()[m_index]];
+              return m_container.m_extensions[m_keys[m_index]];
             }
 
+            /** \brief Difference of iterators operation.
+             * \param[in] rhs right hand side iterator.
+             *
+             */
+            difference_type operator -(const Iterator &rhs)
+            { return m_index - rhs.m_index; }
+
           private:
-            const Extensions<E, T> *m_container; /** extensions container map. */
-            unsigned                m_index;     /** current iterator index.   */
+            const Extensions<E, T> &m_container; /** extensions container map. */
+            size_t                  m_index;     /** current iterator index.   */
+            const QStringList       m_keys;      /** container keys. */
         };
 
       public:
@@ -101,12 +146,12 @@ namespace ESPINA
         : m_lock{ QReadWriteLock::NonRecursive }
         , m_item(item)
         {}
-
-        /** \brief Extensions class virtual destructor.
-         *
-         */
-        virtual ~Extensions()
-        {}
+		
+		/** \brief Extensions class virtual destructor. 
+		 *
+		 */
+		virtual ~Extensions()
+		{};
 
         /** \brief Adds a extension to extendible
          * \param[in] extension to be added to extendible object
@@ -126,13 +171,13 @@ namespace ESPINA
          * \param[in] extension type to be removed
          *
          */
-        void remove(const typename E::Type &extension);
+        void remove(const typename E::Type &type);
 
         /** \brief Check whether or not there is an extension with the given type.
          * \param[in] extension type
          *
          */
-        bool hasExtension(const typename E::Type& extension) const;
+        bool hasExtension(const typename E::Type& type) const;
 
         /** \brief Check whether or not there is an extension with the given type.
          * \param[in] extension type
@@ -143,7 +188,7 @@ namespace ESPINA
         /** \brief Return the extension with the especified type.
          * \param[in] extension type
          */
-        ExtensionSPtr operator[](const typename E::Type& extension) const;
+        ExtensionSPtr operator[](const typename E::Type& type) const;
 
         /** \brief Returns the extension of the specified type in the template parameter.
          *
@@ -213,13 +258,13 @@ namespace ESPINA
          *
          */
         Iterator begin() const
-        { return Iterator(this, 0); }
+        { return Iterator(*this, 0); }
 
         /** \brief End extensions iterator.
          *
          */
         Iterator end() const
-        { return Iterator(this, m_extensions.size()); }
+        { return Iterator(*this, m_extensions.size()); }
 
       private:
         using ExtensionSMap = QMap<typename E::Type, ExtensionSPtr>;
@@ -248,12 +293,6 @@ namespace ESPINA
         ReadLockExtensions(const Extensions<E, T> &extensions)
         : Core::Utils::ReadLocker(const_cast<Extensions<E, T> *>(&extensions)->m_lock)
         , m_extensions           (extensions)
-        {}
-
-        /** \brief ReadLockExtensions class destructor.
-         *
-         */
-        virtual ~ReadLockExtensions()
         {}
 
         /** \brief Extensions Iterator begin.
@@ -303,12 +342,6 @@ namespace ESPINA
         , m_extensions            (extensions)
         {}
 
-        /** \brief WriteLockExtensions class destructor.
-         *
-         */
-        virtual ~WriteLockExtensions()
-        {}
-
         /** \brief Extensions Iterator begin.
          *
          */
@@ -353,24 +386,24 @@ namespace ESPINA
         Extensible(T *item)
         : m_extensions(item)
         {}
-
+		
         /** \brief Extensible class virtual destructor.
          *
          */
         virtual ~Extensible()
-        {}
+        {};
 
         /** \brief Returns the map of extensions in read-only mode. Locks extensions map for reading.
          *
          */
         const ReadLockExtensions<E, T> readOnlyExtensions() const
-        { return ReadLockExtensions<E, T>(m_extensions); }
+        { return std::move(ReadLockExtensions<E, T>(m_extensions)); }
 
         /** \brief Returns the map of extensions in write mode. Locks extensions map for writing.
          *
          */
         WriteLockExtensions<E, T> extensions()
-        { return WriteLockExtensions<E, T>(m_extensions); }
+        { return std::move(WriteLockExtensions<E, T>(m_extensions)); }
 
         /** \brief Returns the value of the specified information key.
          * \param[in] key information key.
@@ -388,17 +421,27 @@ namespace ESPINA
     template<typename E, typename T>
     void Extensions<E, T>::add(ExtensionSPtr extension)
     {
-      if (hasExtension(extension))
+      if(extension.get())
       {
-        auto what = QObject::tr("Attempt to add an existing extension, type: %1").arg(extension->type());
-        auto details = QObject::tr("Extensions::add() -> Attempt to add an existing extension, type: %1").arg(extension->type());
+        if (hasExtension(extension))
+        {
+          auto what = QObject::tr("Attempt to add an existing extension, type: %1").arg(extension->type());
+          auto details = QObject::tr("Extensions::add() -> Attempt to add an existing extension, type: %1").arg(extension->type());
+
+          throw Core::Utils::EspinaException(what, details);
+        }
+
+        extension->setExtendedItem(m_item);
+
+        m_extensions[extension->type()] = extension;
+      }
+      else
+      {
+        auto what = QObject::tr("Attempt to add a null extension.");
+        auto details = QObject::tr("Extensions::add() -> Attempt to add a null extension.");
 
         throw Core::Utils::EspinaException(what, details);
       }
-
-      extension->setExtendedItem(m_item);
-
-      m_extensions.insert(extension->type(), extension);
     }
 
     //------------------------------------------------------------------

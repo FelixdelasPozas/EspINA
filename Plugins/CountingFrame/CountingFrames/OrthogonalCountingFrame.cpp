@@ -42,10 +42,8 @@ using namespace ESPINA::CF;
 //-----------------------------------------------------------------------------
 OrthogonalCountingFrame::OrthogonalCountingFrame(CountingFrameExtension                *channelExt,
                                                  Nm                                     inclusion[3],
-                                                 Nm                                     exclusion[3],
-                                                 SchedulerSPtr                          scheduler,
-                                                 Core::SegmentationExtensionFactorySPtr factory)
-: CountingFrame(channelExt, inclusion, exclusion, scheduler, factory)
+                                                 Nm                                     exclusion[3])
+: CountingFrame(channelExt, inclusion, exclusion)
 , m_bounds(channelExt->extendedItem()->bounds())
 {
   updateCountingFrame();
