@@ -2,6 +2,7 @@
 
 // ESPINA
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/QStringUtils.h>
 #include <Core/Types.h>
 
 // Qt
@@ -21,15 +22,14 @@ const QString Category::X_DIM = "Dim_X";
 const QString Category::Y_DIM = "Dim_Y";
 const QString Category::Z_DIM = "Dim_Z";
 
-#include <QDebug>
 //------------------------------------------------------------------------
 Category::Category(CategoryPtr parent,
                    const QString &name,
                    const Hue color)
 : m_parent(parent)
-, m_name(name)
 , m_color(color)
 {
+  setName(name);
 }
 
 //------------------------------------------------------------------------
@@ -44,12 +44,12 @@ void Category::setName(const QString &name)
   if (m_parent != nullptr && m_parent->subCategory(name).get() != nullptr)
   {
     auto what = QObject::tr("Category already defined, category: %1").arg(name);
-    auto details = QObject::tr("Category::setName() -> Category already defined, category: %1").arg(name);
+    auto details = QObject::tr("Category::setName() -> ") + what;
 
     throw Core::Utils::EspinaException(what, details);
   }
 
-  m_name = name;
+  m_name = Core::Utils::simplifyString(name);
 }
 
 //------------------------------------------------------------------------
@@ -84,7 +84,7 @@ void Category::setColor(const Hue color)
 //------------------------------------------------------------------------
 CategorySPtr Category::createSubCategory(const QString& name)
 {
-  CategorySPtr subCategory(new Category(this, name));
+  CategorySPtr subCategory(new Category(this, Core::Utils::simplifyString(name)));
   subCategory->setColor(m_color);
 
   m_subCategories << subCategory;

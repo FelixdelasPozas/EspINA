@@ -170,7 +170,7 @@ void Segmentation::restoreState(const State& state)
       {
         if (STATE_ALIAS == tokens[0])
         {
-          m_alias = tokens[1];
+          m_alias = Core::Utils::simplifyString(tokens[1]);
         }
       }
     }
@@ -191,22 +191,24 @@ void Segmentation::setCategory(CategorySPtr category)
 
   if(oldCategory && m_category && hasSkeletonData(output()))
   {
-    auto oldHue = oldCategory->color();
-    auto newHue = m_category->color();
+    const auto oldHue = oldCategory->color();
+    const auto newHue = m_category->color();
 
     auto data     = writeLockSkeleton(output());
     auto skeleton = data->skeleton();
 
     auto strokeColors = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeColor"));
+    bool modified = false;
     for(int i = 0; i < strokeColors->GetNumberOfTuples(); ++i)
     {
       if(strokeColors->GetValue(i) == oldHue)
       {
+        modified = true;
         strokeColors->SetValue(i, newHue);
       }
     }
 
-    data->setSkeleton(skeleton);
+    if(modified) data->setSkeleton(skeleton);
   }
 }
 

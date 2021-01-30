@@ -24,6 +24,9 @@
 
 // ESPINA
 #include <Core/Analysis/Category.h>
+#include <Core/Utils/QStringUtils.h>
+
+// Qt
 #include <QPixmap>
 #include <QDebug>
 
@@ -81,7 +84,7 @@ bool CategoryAdapter::setData(const QVariant& value, int role)
 
   if (role == Qt::EditRole)
   {
-    setName(value.toString());
+    setName(Core::Utils::simplifyString(value.toString()));
     successful = true;
   }
   else

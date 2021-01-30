@@ -78,9 +78,15 @@ Source: "platforms\*.dll"; DestDir: "{app}\platforms\"; Components: program
 ; QUAZIP  (Comment if static lib)
 Source: "@QUAZIP_LIBRARIES@"; DestDir: "{app}"; Components: program
 
+; xlslib (Comment if static lib)
+Source: "@XLSLIB_LIBRARY@"; DestDir: "{app}"; Components: program
+
 ; BOOST (Comment if static lib)
 Source: "@Boost_GRAPH_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
 Source: "@Boost_REGEX_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
+
+; Manual libraries, add if configured with it
+; HDF5 libraries if VTK-ITK were configured with it. TODO: search CMake variable for them.
 
 [Icons]
 Name: "{group}\ESPINA v@ESPINA_VERSION_MAJOR@.@ESPINA_VERSION_MINOR@.@ESPINA_VERSION_PATCH@"; Filename: "{app}\ESPINA.exe"; WorkingDir: "{app}"

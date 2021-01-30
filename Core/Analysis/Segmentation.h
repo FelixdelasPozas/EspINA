@@ -28,6 +28,7 @@
 #include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/ViewItem.h>
 #include <Core/Analysis/Extensible.hxx>
+#include <Core/Utils/QStringUtils.h>
 
 namespace ESPINA
 {
@@ -63,7 +64,7 @@ namespace ESPINA
      *
      */
     void setAlias(const QString& alias)
-    { m_alias = alias; }
+    { m_alias = Core::Utils::simplifyString(alias); }
 
     /** \brief Returns the alternate name for the segmentation.
      *
@@ -101,7 +102,7 @@ namespace ESPINA
      *
      */
     void modifiedByUser(const QString& user)
-    { m_users << user; }
+    { m_users << Core::Utils::simplifyString(user); }
 
     /** \brief Returns the list of users that have modified this segmentation.
      *
@@ -131,10 +132,10 @@ namespace ESPINA
     QString extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const;
 
   private:
-    QString                   m_alias;
-    unsigned int              m_number;
-    QSet<QString>             m_users;
-    CategorySPtr              m_category;
+    QString        m_alias;    /** segmentation alternate name in the analysis.    */
+    unsigned int   m_number;   /** segmentation number in the analysis.            */
+    QSet<QString>  m_users;    /** users that created and edited the segmentation. */
+    CategorySPtr   m_category; /** category object the segmentation belongs to.    */
   };
 }
 #endif // ESPINA_SEGMENTATION_H

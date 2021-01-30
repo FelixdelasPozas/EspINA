@@ -42,6 +42,7 @@
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/QStringUtils.h>
 
 // Qt
 #include <QDataStream>
@@ -350,9 +351,10 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 //-----------------------------------------------------------------------------
 QString SegFile_V5::Loader::parseCategoryName(const State& state)
 {
-  auto params = state.split(";");
+  const auto params = state.split(";");
+  const auto name = params[2].split("=")[1];
 
-  return params[2].split("=")[1];
+  return Core::Utils::simplifyString(name);
 }
 
 //-----------------------------------------------------------------------------
@@ -385,6 +387,12 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
     auto category = m_analysis->classification()->node(categoryName);
 
     segmentation->setCategory(category);
+  }
+  else
+  {
+    auto what    = QObject::tr("Invalid input, category is null in vertex %1").arg(roVertex->name());
+    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+    throw EspinaException(what, details);
   }
 
   loadExtensions(segmentation);

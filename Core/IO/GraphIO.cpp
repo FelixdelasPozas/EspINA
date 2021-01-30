@@ -143,6 +143,7 @@ namespace ESPINA
 
     in.getline(buff, MAX);
     State state(buff);
+    state = state.toLatin1();
 
     v = PersistentSPtr{new ReadOnlyVertex(vertexType(vType), uuid.toInt())};
     v->setName(name);

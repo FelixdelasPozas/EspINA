@@ -25,6 +25,7 @@
 #include <Core/Utils/Vector3.hxx>
 #include <Core/Analysis/Category.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <Core/Utils/QStringUtils.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -513,7 +514,8 @@ void ClassificationLayout::createCategory()
 
   if(QDialog::Accepted == dialog.exec())
   {
-    auto categoryName = dialog.categoryName();
+    auto categoryName = Core::Utils::simplifyString(dialog.categoryName());
+
     if(categoryName.isEmpty())
     {
       auto title   = tr("Create category");
@@ -572,7 +574,7 @@ void ClassificationLayout::createSubCategory()
 
     if(QDialog::Accepted == dialog.exec())
     {
-      name = uniqueCategoryName(category, dialog.categoryName());
+      name = uniqueCategoryName(category, Core::Utils::simplifyString(dialog.categoryName()));
 
       WaitingCursor cursor;
 

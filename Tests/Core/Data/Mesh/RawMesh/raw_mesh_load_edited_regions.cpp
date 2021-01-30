@@ -30,7 +30,6 @@
 
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
-#include <QDebug>
 
 #include "MeshTestingUtils.h"
 
@@ -65,7 +64,6 @@ int raw_mesh_load_edited_regions(int argc, char** argv)
     cerr << "Unexpected mesh polydata" << endl;
     error = true;
   }
-  qDebug() << "1";
 
   if (rawMesh.editedRegions().size() != 0)
   {
@@ -74,10 +72,8 @@ int raw_mesh_load_edited_regions(int argc, char** argv)
   }
   else
   {
-    qDebug() << "2";
     rawMesh.setMesh(mesh);
 
-    qDebug() << "3";
     if (rawMesh.editedRegions().size() != 1)
     {
       cerr << "Unexpected number of edited regions" << endl;
@@ -87,18 +83,15 @@ int raw_mesh_load_edited_regions(int argc, char** argv)
     auto editedRegions = rawMesh.editedRegions();
     auto editedRegion = editedRegions.first();
 
-    qDebug() << "4";
     if (editedRegion != rawMesh.bounds())
     {
       cerr << "Unxexpected edited region " << editedRegion << " differs from " << rawMesh.bounds() << endl;
       error = true;
     }
-    qDebug() << "5";
     auto storage = std::make_shared<TemporalStorage>();
 
     auto editedRegionSnapshots = rawMesh.editedRegionsSnapshot(storage, "mesh", "0");
 
-    qDebug() << "6";
     if (editedRegionSnapshots.size() != 1)
     {
       cerr << "Unxexpected number of edited regions snapshots" << endl;
@@ -108,10 +101,8 @@ int raw_mesh_load_edited_regions(int argc, char** argv)
     {
       auto snapshot = editedRegionSnapshots.first();
       storage->saveSnapshot(snapshot);
-      qDebug() << "7";
     }
 
-    qDebug() << "8";
     rawMesh.setMesh(nullptr); // Clear mesh
     rawMesh.setEditedRegions(editedRegions); // restore expected edited regions
 

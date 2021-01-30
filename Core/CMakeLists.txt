@@ -82,6 +82,7 @@ set (CORE_SOURCES
   Utils/vtkPolyDataUtils.cpp
   Utils/vtkVoxelContour2D.cpp  
   Utils/Histogram.cpp
+  Utils/QStringUtils.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

@@ -45,8 +45,6 @@
 
 namespace ESPINA
 {
-  using ExcelWorkBook = std::shared_ptr<xlslib_core::workbook>;
-
   /** \class TabularReport::Entry
    * \brief Individual tab entry for TabularReport widget.
    *

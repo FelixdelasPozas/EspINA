@@ -148,6 +148,7 @@ void AxonSkeletonInformation::updateInformation() const
 
     // NOTE: axon <-> synapse <-> dendrite if the synapse is fully connected.
     unsigned int spineConnections = 0;
+    unsigned int shaftConnections = 0;
     for(auto connection: connections)
     {
       auto synapseItem = connection.segmentation2;
@@ -184,17 +185,26 @@ void AxonSkeletonInformation::updateInformation() const
           {
             ++spineConnections;
           }
+          else
+          {
+            ++shaftConnections;  
+          }
           break;
         }
       }
     }
 
-    auto shaftConnections = connections.size() - spineConnections;
     updateInfoCache(AXON_SYNAPSES_ON_SPINE_NUM, spineConnections);
     updateInfoCache(AXON_SYNAPSES_ON_SHAFT_NUM, shaftConnections);
 
-    auto ratio = (shaftConnections == 0 ? 0 : static_cast<double>(spineConnections)/shaftConnections);
-    updateInfoCache(AXON_SYNAPSES_RATIO, ratio);
+    if(shaftConnections != 0)
+    {
+      updateInfoCache(AXON_SYNAPSES_RATIO, static_cast<double>(spineConnections)/shaftConnections);
+    }
+    else
+    {
+      updateInfoCache(AXON_SYNAPSES_RATIO, tr("Failed to compute"));
+    }
 
     definition.clear();
   }

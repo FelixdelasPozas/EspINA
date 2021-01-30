@@ -35,11 +35,6 @@ ViewItem::ViewItem(InputSPtr input)
 }
 
 //------------------------------------------------------------------------
-ViewItem::~ViewItem()
-{
-}
-
-//------------------------------------------------------------------------
 OutputSPtr ViewItem::output()
 {
   return m_input->output();

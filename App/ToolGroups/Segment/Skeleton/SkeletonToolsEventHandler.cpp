@@ -131,7 +131,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
               m_operation = OperationMode::NORMAL;
               if(isDendrite())
               {
-                if(m_lastStroke.name.compare("Synapse on shaft", Qt::CaseInsensitive) == 0)
+                if(m_lastStroke.name.startsWith("Synapse on shaft", Qt::CaseInsensitive))
                 {
                   emit changeStrokeTo(m_category, 0, m_plane); // Shaft
                   return true;
@@ -156,7 +156,7 @@ bool SkeletonToolsEventHandler::filterEvent(QEvent* e, RenderView* view)
             if(m_operation == OperationMode::COLLISION_MIDDLE && m_connectionMenu)
             {
               m_operation = OperationMode::NORMAL;
-              if(m_lastStroke.name.startsWith("Shaft"))
+              if(m_lastStroke.name.startsWith("Shaft", Qt::CaseInsensitive))
               {
                 if(isDendrite())
                 {
