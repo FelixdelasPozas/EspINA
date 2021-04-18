@@ -119,7 +119,7 @@ bool AboutDialog::eventFilter(QObject* object, QEvent* event)
 
         if(label == logoCBBP)
         {
-          QDesktopServices::openUrl(QUrl("http://cajalbbp.cesvima.upm.es/"));
+          QDesktopServices::openUrl(QUrl("https://cajalbbp.es/"));
           return true;
         }
 
@@ -131,7 +131,7 @@ bool AboutDialog::eventFilter(QObject* object, QEvent* event)
 
         if(label == version || label == espinaLogo || label == espinaText)
         {
-          QDesktopServices::openUrl(QUrl("http://cajalbbp.cesvima.upm.es/espina/"));
+          QDesktopServices::openUrl(QUrl("https://cajalbbp.es/espina/"));
           return true;
         }
       }
