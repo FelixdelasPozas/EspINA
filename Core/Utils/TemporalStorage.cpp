@@ -310,6 +310,11 @@ QByteArray TemporalStorage::snapshot(const QString &descriptor) const
     qWarning() << "TemporalStorage::snapshot() -> can't open:" << fileName;
     qWarning() << "TemporalStorage::snapshot() -> Cause:" << file.errorString();
   }
+  
+  if(data.isEmpty())
+  {
+    qWarning() << "TemporalStorage::snapshot() -> Empty file in snapshot:" << fileName;
+  }
 
   return data;
 }
