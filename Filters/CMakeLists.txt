@@ -1,36 +1,47 @@
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
 include_directories(
   ${CMAKE_BINARY_DIR}         # Generated EspinaConfig.h
+  ${CMAKE_BINARY_DIR}/Filters # Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
 )
 
 include (GenerateExportHeader)
 
-# qt4_wrap_cpp(FILTERS_MOC
-#   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
-#   )
+qt5_wrap_cpp(FILTERS_MOC
+  MorphologicalEditionFilter.h
+  SeedGrowSegmentationFilter.h
+  OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+  )
 
 set (FILTERS_SOURCES
   ${FILTERS_MOC}
   ${FILTERS_UI}
+  CleanSegmentationVoxelsFilter.cpp
   CloseFilter.cpp
   DilateFilter.cpp
   ErodeFilter.cpp
+  FillHoles2DFilter.cpp
   FillHolesFilter.cpp
-  FreeFormSource.cpp
   ImageLogicFilter.cpp
   MorphologicalEditionFilter.cpp
   OpenFilter.cpp
   SeedGrowSegmentationFilter.cpp
+  SliceInterpolationFilter.cpp
   SplitFilter.cpp
-  SourceFilter.cpp
+  CleanSegmentationVoxelsFilter.cpp
   Utils/vtkTube.cpp
-  VolumetricStreamReader.cpp
+  Utils/Stencil.cpp
+  LibraryFiltersFactory.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  EspinaCore
+  EspinaExtensions
 )
 
 if(DEFINED MINGW)

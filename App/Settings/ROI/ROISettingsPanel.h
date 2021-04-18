@@ -22,11 +22,11 @@
 #define ROI_SETTINGS_PANEL_H_
 
 // ESPINA
-#include <Core/Utils/NmVector3.h>
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/Model/CategoryAdapter.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Support/Settings/SettingsPanel.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 // Qt
 #include "ui_OrthogonalROISettings.h"
@@ -37,63 +37,41 @@ namespace ESPINA
   class ROISettings;
 
   class ROISettingsPanel
-  : public SettingsPanel
+  : public Support::Settings::SettingsPanel
   , public Ui::OrthogonalROISettings
+  , private Support::WithContext
   {
     Q_OBJECT
   public:
     /** \brief ROISettingsPanel class constructor.
      * \param[in] settings, ROISettings object raw pointer.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] context ESPINA context
      *
      */
-    explicit ROISettingsPanel(ROISettings*     settings,
-                              ModelAdapterSPtr model,
-                              ViewManagerSPtr  viewManager);
+    explicit ROISettingsPanel(ROISettings      *settings,
+                              Support::Context &context);
 
     /** \brief ROISettingsPanel class virtual destructor.
      *
      */
     virtual ~ROISettingsPanel();
 
-    /** \brief Overrides SettingsPanel::shortDescription().
-     *
-     */
     virtual const QString shortDescription() override
     { return tr("Orthogonal ROI"); }
 
-    /** \brief Overrides SettingsPanel::longDescription().
-     *
-     */
     virtual const QString longDescription() override
     { return tr("Orthogonal Region Of Interest"); }
 
-    /** \brief Overrides SettingsPanel::icon().
-     *
-     */
     virtual const QIcon icon() override
-    { return QIcon(":/espina/voi.svg"); }
+    { return QIcon(":/espina/roi_orthogonal_roi.svg"); }
 
-    /** \brief Overrides SettingsPanel::acceptChanges().
-     *
-     */
     virtual void acceptChanges() override;
 
-    /** \brief Overrides SettingsPanel::rejectChanges().
-     *
-     */
     virtual void rejectChanges() override;
 
-    /** \brief Overrides SettingsPanel::modified().
-     *
-     */
     virtual bool modified() const override;
 
-    /** \brief Overrides SettingsPanel::clone().
-     *
-     */
-    virtual SettingsPanelPtr clone() override;
+    virtual Support::Settings::SettingsPanelPtr clone() override;
 
   private:
     /** \brief Returns true if any of the values of ROI have changed.
@@ -107,16 +85,14 @@ namespace ESPINA
     void writeCategoryProperties();
 
   private slots:
-		/** \brief Updates category ROI values for the category.
-		 *
-		 */
+    /** \brief Updates category ROI values for the category.
+     *
+     */
     void updateCategoryROI(const QModelIndex &index);
 
   private:
-    ModelAdapterSPtr    m_model;
-    ROISettings*        m_settings;
-    CategoryAdapterSPtr m_activeCategory;
-    ViewManagerSPtr     m_viewManager;
+    ROISettings*            m_settings;
+    CategoryAdapterSPtr     m_activeCategory;
   };
 
 } // namespace ESPINA

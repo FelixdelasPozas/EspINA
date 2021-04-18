@@ -23,52 +23,54 @@
 
 #include "CountingFramePlugin_Export.h"
 
+// ESPINA
 #include "vtkCountingFrameWidget.h"
-
-class vtkPolyData;
-class vtkPolyDataAlgorithm;
 
 class CountingFramePlugin_EXPORT vtkCountingFrame3DWidget
 : public vtkCountingFrameWidget
 {
-public:
-  // Description:
-  // Instantiate the object.
-  static vtkCountingFrame3DWidget *New();
+  public:
+    // Description:
+    // Instantiate the object.
+    static vtkCountingFrame3DWidget *New();
 
-  // Description:
-  // Standard class methods for type information and printing.
-  vtkTypeMacro(vtkCountingFrame3DWidget, vtkCountingFrameWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+    // Description:
+    // Standard class methods for type information and printing.
+    vtkTypeMacro(vtkCountingFrame3DWidget, vtkCountingFrameWidget);
+    void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3]);
+    virtual void SetCountingFrame(vtkSmartPointer< vtkPolyData > region, ESPINA::Nm inclusionOffset[3], ESPINA::Nm exclusionOffset[3], ESPINA::NmVector3 resolution);
 
-  // Description:
-  // Create the default widget representation if one is not set. By default,
-  // this is an instance of the vtkCountingFrame3DRepresentation class.
-  void CreateDefaultRepresentation();
+    // Description:
+    // Create the default widget representation if one is not set. By default,
+    // this is an instance of the vtkCountingFrame3DRepresentation class.
+    void CreateDefaultRepresentation();
 
-protected:
-  vtkCountingFrame3DWidget();
-  ~vtkCountingFrame3DWidget();
+    virtual void setVisible(bool visible);
 
-//BTX - manage the state of the widget
-  int WidgetState;
-  enum _WidgetState {Start=0,Active};
-//ETX
+    /** \brief Sets the opacity of the representation.
+     * \param[in] opacity opacity value in range [0,1].
+     *
+     */
+    void SetOpacity(const float opacity);
 
-  // These methods handle events
-  static void SelectAction(vtkAbstractWidget*);
-  static void EndSelectAction(vtkAbstractWidget*);
+    /** \brief Returns the opacity value of the representation in range [0,1].
+     *
+     */
+    const float GetOpacity() const;
 
-  // helper methods for cursor management
-  virtual void SetCursor(int state);
+  protected:
+    vtkCountingFrame3DWidget();
+    ~vtkCountingFrame3DWidget();
 
-  vtkPolyData *Volume;
+  //BTX - manage the state of the widget
+    int WidgetState;
+    enum _WidgetState {Start=0,Active};
+  //ETX
 
-private:
-  vtkCountingFrame3DWidget(const vtkCountingFrame3DWidget&);  //Not implemented
-  void operator=(const vtkCountingFrame3DWidget&);  //Not implemented
+  private:
+    vtkCountingFrame3DWidget(const vtkCountingFrame3DWidget&);  //Not implemented
+    void operator=(const vtkCountingFrame3DWidget&);  //Not implemented
 };
 
 #endif // VTKBOUNDINGFRAME3DWIDGET_H

@@ -22,41 +22,25 @@
 #define ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H
 
 // ESPINA
-#include "GUI/ColorEngines/ColorEngine.h"
-
-// Qt
-#include <QMap>
+#include <GUI/ColorEngines/SelectionHighlighter.h>
 
 namespace ESPINA
 {
-	// NOTE 2012-10-11 Consider unifying its interface with ColorEngine
-	class EspinaGUI_EXPORT TransparencySelectionHighlighter
-	{
-		public:
-			/** \brief Returns the given color modified if the highlight flag is true.
-			 * \param[in] original, original color.
-			 * \param[in] highlight, true to highlight color false otherwise.
-			 *
-			 */
-			QColor color(const QColor &original, bool highlight = false);
+  namespace GUI
+  {
+    namespace ColorEngines
+    {
+      class EspinaGUI_EXPORT TransparencySelectionHighlighter
+      : public SelectionHighlighter
+      {
+        public:
+          virtual ~TransparencySelectionHighlighter()
+          {};
 
-			/** \brief Returns a LUT associated with the given color with two values,
-			 * the color and the transparent background.
-			 *
-			 */
-			LUTSPtr lut(const QColor &original, bool highlight = false);
-
-		private:
-			/** \brief Generates and returns a unique key for the given color.
-			 * \param[in] color, color to generate a key.
-			 *
-			 */
-			QString colorKey(const QColor &color) const;
-
-		private:
-			static ColorEngine::LUTMap m_LUT;
-	};
-
+          virtual QColor color(const QColor &original, bool highlight = false);
+      };
+    } // namespace ColorEngines
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // ESPINA_TRANSPARENCY_SELECTION_HIGHLIGHTER_H

@@ -22,52 +22,110 @@
 #ifndef ESPINA_CF_EXTENSION_FACTORY_H
 #define ESPINA_CF_EXTENSION_FACTORY_H
 
-#include <CountingFrames/CountingFrame.h>
+#include "CountingFramePlugin_Export.h"
+
+// Plugin
 #include "Extensions/CountingFrameExtension.h"
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
+#include <CountingFrames/CountingFrame.h>
 
-namespace ESPINA {
-  namespace CF {
+// ESPINA
+#include <GUI/Types.h>
+#include <Support/Context.h>
+#include <Tasks/ApplyCountingFrame.h>
 
-    class CountingFrameManager
+// VTK
+#include <vtkSmartPointer.h>
+class vtkPolyData;
+
+// Qt
+#include <QMutex>
+
+namespace ESPINA
+{
+  namespace CF
+  {
+    class CountingFramePlugin_EXPORT CountingFrameManager
     : public QObject
     {
       Q_OBJECT
 
     public:
-      CountingFrameExtensionSPtr createExtension(SchedulerSPtr scheduler,
-                                                 const State& state = State()) const;
+      /** \brief CountingFrame class constructor.
+       *
+       */
+      CountingFrameManager();
 
-//       void createAdaptiveCF(ChannelAdapterPtr channel,
-//                             Nm inclusion[3],
-//                             Nm exclusion[3],
-//                             const QString &constraint = QString());
-//
-//       void createRectangularCF(ChannelAdapterPtr channel,
-//                                Nm inclusion[3],
-//                                Nm exclusion[3],
-//                                const QString &constraint = QString());
+      /** \brief Returns the list of created counting frames.
+       *
+       */
+      CountingFrameList countingFrames() const;
 
-//       void deleteCountingFrame(CountingFrame *cf);
-
-      CountingFrameList countingFrames() const
-      { return m_countingFrames.keys(); }
-
+      /** \brief Adds the given counting frame to the map of counting frames.
+       * \param[in] cf counting frame object pointer.
+       *
+       */
       void registerCountingFrame(CountingFrame *cf);
 
+      /** \brief Removes the given counting frame from the map of counting frames.
+       * \param[in] cf counting frame object pointer.
+       *
+       */
       void unregisterCountingFrame(CountingFrame *cf);
 
+      /** \brief Returns the default id for the given constraint, or "Global" if the constraint is empty.
+       *
+       */
       CountingFrame::Id defaultCountingFrameId(const QString& constraint) const;
 
-      CountingFrame::Id suggestedId(const CountingFrame::Id id) const;
+      /** \brief Suggest a counting frame id for a new counting frame taking into account the existing counting frames' ids.
+       *
+       */
+      CountingFrame::Id suggestedId(const CountingFrame::Id &id) const;
+
+      /** \brief Sets the context of the application. Only needed if executed in a graphical environment.
+       * \param[in] context Application context reference.
+       *
+       */
+      void setContext(Support::Context &context)
+      { m_context = &context; }
+
+      /** \brief Sets the extension factory for stereological inclusion extension to be used when applying the a CF.
+       *
+       */
+      void setExtensionFactory(Core::SegmentationExtensionFactorySPtr factory)
+      { m_factory = factory; }
 
     signals:
-      void countingFrameCreated(CountingFrame *);
-      void countingFrameDeleted(CountingFrame *);
+      void countingFrameCreated(CountingFrame *cf);
+      void countingFrameDeleted(CountingFrame *cf);
+
+    private slots:
+      /** \brief Helper method to invalidate segmentation representations.
+       * \param[in] cf pointer of the Counting Frame finished applying.
+       *
+       */
+      void onCountingFrameApplied();
+
+      void applyCountingFrame(CountingFrame *cf);
 
     private:
-      QMap<CountingFrame *, ChannelPtr> m_countingFrames;
+      void checkApplies();
+
+      struct CFData
+      {
+          ChannelPtr channel;   /** CF channel.                                   */
+          bool       needApply; /** true if needs to be applied, false otherwise. */
+
+          CFData(): channel{nullptr}, needApply{false}{};
+      };
+
+      Support::Context                      *m_context;        /** application context.                       */
+      Core::SegmentationExtensionFactorySPtr m_factory;        /** stereological inclusion extension factory. */
+      QMap<CountingFrame *, CFData>          m_countingFrames; /** maps counting frame with its channel.      */
+
+      ApplyCountingFrameSPtr m_applyTask;                 /** task to apply the counting frame to the constrained segmentations. */
+      QMutex                 m_taskMutex;                 /** mutex to protect task variable.                                    */
+
     };
   }
 }

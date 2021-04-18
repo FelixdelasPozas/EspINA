@@ -24,15 +24,14 @@
 #include <GUI/View/RenderView.h>
 
 // ESPINA
-#include "GUI/Representations/Renderers/Renderer.h"
-#include "GUI/Representations/Representation.h"
-
-// VTK
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
+#include <vtkCommand.h>
+#include <vtkCamera.h>
 
 // Qt
 #include <QPushButton>
+#include <QDoubleSpinBox>
 
 class vtkAbstractWidget;
 class QVTKWidget;
@@ -43,6 +42,7 @@ class QPushButton;
 class QVBoxLayout;
 class QHBoxLayout;
 class QScrollBar;
+class QLabel;
 
 namespace ESPINA
 {
@@ -52,192 +52,78 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief View3D class constructor.
-     * \param[in] showCrosshairPlaneSelectors, true to show three aditional
+     * \param[in] showCrosshairPlaneSelectors true to show three aditional
      *            scrollbars in the borders of the view to manipulate the
      *            crosshair point, false otherwise.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
      *
      */
-    explicit View3D(bool showCrosshairPlaneSelectors = false,
-                    QWidget* parent = nullptr);
+    explicit View3D(GUI::View::ViewState &state, bool showCrosshairPlaneSelectors = false, QWidget *parent = nullptr);
 
     /** \brief View3D class virtual destructor.
      *
      */
     virtual ~View3D();
 
-    /** \brief Sets the focal point of the camera in the given point.
-     * \param[in] center, focal point.
-     *
-     */
-    void setCameraFocus(const NmVector3& center);
+    virtual Bounds previewBounds(bool cropToSceneBounds = true) const override;
 
-    /** \brief Implements RenderView::reset().
-     *
-     */
-    virtual void reset();
-
-    /** \brief Implements RenderView::resetCamera().
-     *
-     */
-    virtual void resetCamera();
-
-    /** \brief Implements RenderView::centerViewOn().
-     *
-     */
-    virtual void centerViewOn(const NmVector3& center, bool force = false);
-
-    /** \brief Overrides RenderView::addWidget().
-     *
-     */
-    virtual void addWidget(EspinaWidgetSPtr widget) override;
-
-    /** \brief Overrides RenderView::removeWidget().
-     *
-     */
-    virtual void removeWidget(EspinaWidgetSPtr widget) override;
-
-    /** \brief Implements RenderView::previewBounds().
-     *
-     */
-    virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
-
-    /** \brief Overrides RenderView::add(channel).
-     *
-     */
-    virtual void add(ChannelAdapterPtr channel) override;
-
-    /** \brief Overrides RenderView::add(segmentation)
-     *
-     */
-    virtual void add(SegmentationAdapterPtr seg) override
-    { RenderView::add(seg); }
-
-    /** \brief Overrides RenderView::remove(channel).
-     *
-     */
-    virtual void remove(ChannelAdapterPtr channel) override;
-
-    /** \brief Overrides RenderView::remove(segmentation).
-     *
-     */
-    virtual void remove(SegmentationAdapterPtr seg) override
-    { RenderView::remove(seg); }
-
-    /** \brief Overrides RenderView::updateRepresentation(channel).
-     *
-     */
-    virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true) override;
-
-    /** \brief Overrides RenderView::updateRepresentation(segmentation).
-     *
-     */
-    virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
-
-    /** \brief Modifies the position of a specified plane of the crosshair to the given position.
-     * \param[in] plane, crosshair plane to move.
-     * \param[in] position, new position.
-     *
-     */
-    void changePlanePosition(Plane plane, Nm position);
-
-    /** \brief Implements RenderView::addRendererControls().
-     *
-     */
-    void addRendererControls(RendererSPtr renderer);
-
-    /** \brief Implements RenderView::removeRendererControls().
-     *
-     */
-    void removeRendererControls(const QString name);
-
-    /** \brief Overrides QObject::eventFilter().
-     *
-     */
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
 
-    /** \brief Implements RenderView::cloneRepresentation().
-     *
-     */
-    virtual RepresentationSPtr cloneRepresentation(ESPINA::ViewItemAdapterPtr item, ESPINA::Representation::Type representation);
+    virtual void setCameraState(CameraState state) override;
 
-    /** \brief Implements RenderView::setRenderers().
-     *
-     */
-    void setRenderers(RendererSList renderers);
+    virtual RenderView::CameraState cameraState() override;
 
-    /** \brief Implements RenderView::activateRender().
-     *
-     */
-    void activateRender(const QString &rendererName);
-
-    /** \brief Implements RenderView::deactivateRender().
-     *
-     */
-    void deactivateRender(const QString &rendererName);
-
-    /** \brief Implements RenderView::setVisualState().
-     *
-     */
-    virtual void setVisualState(struct RenderView::VisualState);
-
-    /** \brief Implements RenderView::visualState().
-     *
-     */
-    virtual struct RenderView::VisualState visualState();
-
-    /** \brief Implements RenderView::select(flags, SCREEN x, SCREEN y)
-     *
-     */
-    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
-
-  public slots:
-  /** \brief Implements RenderView::updateView().
-		 *
-		 */
-    virtual void updateView();
-
-  signals:
-    void centerChanged(NmVector3);
+    virtual vtkRenderer *mainRenderer() const override;
 
   protected:
-    /** \brief Selects items under the given coordinates.
-     * \param[in] x, x display coordinate.
-     * \param[in] y, y display coordinate.
-     * \param[in] append, if true returns all the items if false returns only the first picked (if any).
-     *
-     */
-    void selectPickedItems(int x, int y, bool append);
-
-    /** \brief Implements RenderView::updateChannelsOpacity().
-     *
-     */
-    virtual void updateChannelsOpacity()
-    {}
+    virtual void resetImplementation() override;
 
   protected slots:
-		/** \brief Updates the view then a crosshair scroll bar changes value.
-		 * \param[in] value, new scrollbar value.
-		 *
-		 */
-  	void scrollBarMoved(int value);
+    /** \brief Updates the view then a crosshair scroll bar changes value.
+     * \param[in] value new scrollbar value.
+     *
+     */
+    void scrollBarMoved(int value);
 
     /** \brief Exports the scene meshes to an external format and saves the result to disk.
      *
      */
-  	void exportScene();
+    void exportScene();
 
     /** \brief Takes an 2D image of the current view and saves it to disk.
      *
      */
     void onTakeSnapshot();
 
-    /** \brief Updates the state of the renderers controls.
+    /** \brief Updates the camera if the user changes the focal distance.
+     * \param[in] distance new distance value.
      *
      */
-    void updateRenderersControls();
+    void onFocalDistanceChanged(double distance);
 
   private:
+    virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) override;
+
+    virtual void moveCamera(const NmVector3 &point) override;
+
+    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion) override;
+
+    virtual void onSceneBoundsChanged(const Bounds &bounds) override;
+
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
+
+    virtual void addActor   (vtkProp *actor) override;
+
+    virtual void removeActor(vtkProp *actor) override;
+
+    virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
+
+    virtual void resetCameraImplementation() override;
+
+    virtual bool isCrosshairPointVisible() const override;
+
+    virtual void refreshViewImplementation() override;
+
     /** \brief Helper method to setup the UI.
      *
      */
@@ -246,21 +132,77 @@ namespace ESPINA
     /** \brief Helper method to build the UI controls.
      *
      */
-    void buildControls();
+    void buildViewActionsButtons();
 
     /** \brief Helper method to update the limit of the crosshair scrollbars.
      *
      */
     void updateScrollBarsLimits();
 
+    virtual const QString viewName() const override;
+
+    /** \brief Connects the camera signal to this object.
+     *
+     */
+    void connectCamera();
+
   private:
+    /** \class vtkCameraCommand
+     * \brief Callback for camera modification event.
+     *
+     */
+    class vtkCameraCommand
+    : public vtkCommand
+    {
+      public:
+        /** \brief vtkCameraCommand class vtk-style new() operator.
+         *
+         */
+        static vtkCameraCommand *New()
+        { return new vtkCameraCommand; }
+
+        virtual void Execute(vtkObject *caller, unsigned long, void*)
+        {
+          auto camera = vtkCamera::SafeDownCast(caller);
+
+          if(camera && m_view)
+          {
+            if(std::abs(camera->GetDistance() - m_view->m_zoomFactor->value()) < 0.01) return;
+
+            m_view->m_zoomFactor->setValue(camera->GetDistance());
+          }
+        }
+
+        /** \brief Sets the view the command with interact with.
+         * \param[in] view view pointer.
+         *
+         */
+        void SetView(View3D *view)
+        { m_view = view; }
+
+      protected:
+        /** \brief vtkCameraCommand class protected constructor.
+         *
+         */
+        explicit vtkCameraCommand()
+        : m_view{nullptr}
+        {};
+
+      private:
+        View3D* m_view; /** Qt view with the camera. */
+    };
+
+    friend class vtkCameraCommand;
+
     // GUI
     QVBoxLayout *m_mainLayout;
     QHBoxLayout *m_controlLayout;
     QPushButton *m_snapshot;
     QPushButton *m_export;
-    QPushButton *m_zoom;
-    QPushButton *m_renderConfig;
+    QPushButton *m_cameraReset;
+
+    QDoubleSpinBox                   *m_zoomFactor;
+    vtkSmartPointer<vtkCameraCommand> m_cameraCommand;
 
     // GUI elements only visible in Segmentation Information dialog
     QHBoxLayout *m_additionalGUI;
@@ -268,19 +210,9 @@ namespace ESPINA
     QScrollBar  *m_coronalScrollBar;
     QScrollBar  *m_sagittalScrollBar;
 
+    vtkSmartPointer<vtkRenderer> m_renderer;
     bool m_showCrosshairPlaneSelectors;
-
-    NmVector3 m_center;
-
-    unsigned int m_numEnabledRenderers;
   };
-
-  /** \brief Returns true if the view is a 3D view.
-   * \param[in] view, RenderView raw pointer.
-   *
-   */
-  inline bool isView3D(RenderView *view)
-  { return dynamic_cast<View3D *>(view) != nullptr; }
 
   /** \brief Returns the 3D view raw pointer given a RenderView raw pointer.
    * \param[in] view, RenderView raw pointer.
@@ -288,6 +220,15 @@ namespace ESPINA
    */
   inline View3D * view3D_cast(RenderView* view)
   { return dynamic_cast<View3D *>(view); }
+
+  /** \brief Returns true if the view is a 3D view.
+   * \param[in] view RenderView raw pointer.
+   *
+   */
+  inline bool isView3D(RenderView *view)
+  { return view3D_cast(view) != nullptr; }
+
+  using View3DSPtr = std::shared_ptr<View3D>;
 
 } // namespace ESPINA
 

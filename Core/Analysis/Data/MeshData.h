@@ -50,14 +50,19 @@ namespace ESPINA
      */
     explicit MeshData();
 
-    virtual Data::Type type() const      final
+    virtual Data::Type type() const override final
     { return TYPE; }
 
-    virtual DataSPtr createProxy() const final;
+    virtual DataSPtr createProxy() const override final;
 
-    Bounds bounds() const                override;
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
 
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const override = 0;
+    // Because meshes store the whole mesh polydata when their edited regions
+    // are requested, we can use the same name which will cause fetch method to
+    // succeed when restoring from edited regions (this will also will avoid
+    // executing the filter itself if no other data is required)
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
+    { return snapshot(storage, path, id); };
 
     /** \brief Returns the vtkPolyData smart pointer object.
      *
@@ -65,42 +70,68 @@ namespace ESPINA
     virtual vtkSmartPointer<vtkPolyData> mesh() const = 0;
 
     /** \brief Replace current mesh data with mesh
+     * \param[in] mesh vtk mesh object.
+     * \param[in] notify true to notify modification and false otherwise (if the mesh is
+     *                   dependent of the other data and updated when the other data is
+     *                   modified, there is no need to signal for modification, as it's
+     *                   supposed to be in sync.
      *
      */
-    virtual void  setMesh(vtkSmartPointer<vtkPolyData> mesh) = 0;
-
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify = true) = 0;
 
   protected:
-    // Default implementation
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override = 0;
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
 
   private:
-    QString snapshotFilename(const QString &path, const QString &id) const
-    { return QString("%1/%2_%3.vtp").arg(path).arg(id).arg(type()); }
+    const QString snapshotFilename(const QString &path, const QString &id) const
+    { return path + QString("%1_%2.vtp").arg(id).arg(type()); }
 
-    QString oldSnapshotFilename(const QString &path, const QString &id) const
-    { return QString("%1/%2_%3.vtp").arg(path).arg(type()).arg(id); }
+    const QString oldSnapshotFilename(const QString &path, const QString &id) const
+    { return path + QString("%1_%2.vtp").arg(type()).arg(id); }
 
-    QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
+    const QString editedRegionSnapshotFilename(const QString &path, const QString &id) const
     { return snapshotFilename(path, id); }
   };
 
+  using MeshDataPtr  = MeshData *;
   using MeshDataSPtr = std::shared_ptr<MeshData>;
-
-  /** \brief Obtains and returns the MeshData smart pointer of the spacified Output.
-   * \param[in] output Output object smart pointer.
-   * 
-   *  This function ensures the output is up to date by callig mesh data update first
-   *  If the output doesn't contain the requested data type an expection will be thrownn
-   */
-  MeshDataSPtr EspinaCore_EXPORT meshData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
 
   /** \brief Returns whether output has any mesh data or not
    *
    */
   bool EspinaCore_EXPORT hasMeshData(OutputSPtr output);
 
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-only operations.
+   * \param[in] output Output object smart pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(OutputSPtr       output,
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-only operations.
+   * \param[in] output Output object pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::ReadLockData<MeshData> EspinaCore_EXPORT readLockMesh(Output          *output,
+                                                                DataUpdatePolicy policy = DataUpdatePolicy::Request);
+
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-write operations.
+   * \param[in] output Output object smart pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(OutputSPtr       output,
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
+
+  /** \brief Obtains and returns the MeshData smart pointer of the specified Output for read-write operations.
+   * \param[in] output Output object pointer.
+   * \param[in] policy marks if the data need to be updated before retrieval. Request to update, Ignore for not.
+   *
+   */
+  Output::WriteLockData<MeshData> EspinaCore_EXPORT writeLockMesh(Output          *output,
+                                                                  DataUpdatePolicy policy = DataUpdatePolicy::Request);
 } // namespace ESPINA
 
 #endif // ESPINA_MESH_DATA_H

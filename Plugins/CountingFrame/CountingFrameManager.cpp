@@ -19,83 +19,44 @@
  *
  */
 
+// Plugin
 #include "CountingFrameManager.h"
 #include "Extensions/CountingFrameExtension.h"
 #include "CountingFrames/AdaptiveCountingFrame.h"
-#include "CountingFrames/OrtogonalCountingFrame.h"
+#include "CountingFrames/OrthogonalCountingFrame.h"
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Category.h>
+#include <Core/Utils/AnalysisUtils.h>
+#include <GUI/View/ViewState.h>
+#include <GUI/Model/Utils/QueryAdapter.h>
+
+// Qt
+#include <QMutex>
+#include <QMutexLocker>
+
+// C++
+#include <algorithm>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
 //------------------------------------------------------------------------
-CountingFrameExtensionSPtr CountingFrameManager::createExtension(SchedulerSPtr scheduler,
-                                                                 const State& state) const
+CountingFrameManager::CountingFrameManager()
+: m_context{nullptr}
+, m_applyTask{nullptr}
 {
-  return CountingFrameExtensionSPtr{new CountingFrameExtension(const_cast<CountingFrameManager *>(this), scheduler, state)};
 }
-
-// //------------------------------------------------------------------------
-// void CountingFrameManager::createAdaptiveCF(ChannelAdapterPtr channel,
-//                                             Nm inclusion[3],
-//                                             Nm exclusion[3],
-//                                             const QString &constraint)
-// {
-//   auto extension = retrieveOrCreateCFExtension(channel);
-//
-//   auto cf = AdaptiveCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
-//
-//   cf->setCategoryConstraint(constraint);
-//
-//   registerCountingFrame(cf, extension);
-// }
-//
-// //------------------------------------------------------------------------
-// void CountingFrameManager::createRectangularCF(ChannelAdapterPtr channel,
-//                                                Nm inclusion[3],
-//                                                Nm exclusion[3],
-//                                             const QString &constraint)
-// {
-//   auto extension = retrieveOrCreateCFExtension(channel);
-//
-//   auto cf = OrtogonalCountingFrame::New(extension, channel->bounds(), inclusion, exclusion);
-//
-//   cf->setCategoryConstraint(constraint);
-//
-//   registerCountingFrame(cf, extension);
-// }
-
-// //-----------------------------------------------------------------------------
-// void CountingFrameManager::deleteCountingFrame(CountingFrame* cf)
-// {
-//   Q_ASSERT(m_countingFrames.contains(cf));
-//
-//
-//
-// //   while (!cfExtension && i < m_countingFramesExtensions.size())
-// //   {
-// //     if (m_countingFramesExtensions[i]->countingFrames().contains(cf))
-// //     {
-// //       cfExtension = m_countingFramesExtensions[i];
-// //       cfExtension->deleteCountingFrame(cf);
-// //     }
-// //     else
-// //       ++i;
-// //   }
-// //   m_countingFramesExtensions.removeAt(i);
-// //   m_countingFrames.removeOne(cf);
-//
-//   m_countingFrames.remove(cf);
-//   Q_ASSERT(!m_countingFrames.contains(cf));
-//
-//   cf->Delete();
-// }
 
 //-----------------------------------------------------------------------------
 void CountingFrameManager::registerCountingFrame(CountingFrame* cf)
 {
-  m_countingFrames[cf] = cf->extension()->extendedItem();
+  CFData data;
+  data.channel   = cf->extension()->extendedItem();
+  data.needApply = false;
+
+  m_countingFrames.insert(cf, data);
+
+  connect(cf, SIGNAL(apply(CountingFrame *)), this, SLOT(applyCountingFrame(CountingFrame *)));
 
   emit countingFrameCreated(cf);
 }
@@ -105,9 +66,18 @@ void CountingFrameManager::unregisterCountingFrame(CountingFrame* cf)
 {
   m_countingFrames.remove(cf);
 
+  {
+    QMutexLocker lock(&m_taskMutex);
+    if(m_applyTask && m_applyTask->countingFrame() == cf)
+    {
+      m_applyTask->abort();
+    }
+  }
+
+  disconnect(cf, SIGNAL(apply(CountingFrame *)), this, SLOT(applyCountingFrame(CountingFrame *)));
+
   emit countingFrameDeleted(cf);
 }
-
 
 //-----------------------------------------------------------------------------
 CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &constraint) const
@@ -116,45 +86,95 @@ CountingFrame::Id CountingFrameManager::defaultCountingFrameId(const QString &co
 
   if (id.isEmpty())
   {
-    id = "Global";
+    id = tr("Global");
   }
 
   return suggestedId(id);
 }
 
 //-----------------------------------------------------------------------------
-CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id id) const
+void CountingFrameManager::onCountingFrameApplied()
 {
-  QRegExp cardinalityRegExp("\\([0-9]+\\)");
-  QString cardinalityStrippedId = QString(id).replace(cardinalityRegExp, "").trimmed();
-
-  QString suggestedId = cardinalityStrippedId;
-
-  int count = 0;
-  for (auto cf : m_countingFrames.keys())
+  auto task = qobject_cast<ApplyCountingFrame *>(sender());
+  if(task)
   {
-    if (cf->id().startsWith(cardinalityStrippedId))
+    auto cf = task->countingFrame();
+    const auto hasBeenAborted = task->isAborted();
+
     {
-      int cardinalityIndex = cf->id().lastIndexOf(cardinalityRegExp);
+      QMutexLocker lock(&m_taskMutex);
+      m_applyTask = nullptr;
+    }
 
-      if (cardinalityIndex == -1)
-      {
-        ++count;
-      }
-      else
-      {
-        auto cardinality = cf->id().mid(cardinalityIndex + 1);
-        cardinality = cardinality.left(cardinality.length()-1);
+    if(cf && m_countingFrames.keys().contains(cf))
+    {
+      m_countingFrames[cf].needApply = false;
+    }
 
-        count = std::max(count, cardinality.toInt() + 1);
+    if(cf && m_context && !hasBeenAborted)
+    {
+      auto segmentations = m_context->model()->segmentations();
+
+      ViewItemAdapterList updated;
+      auto constraint = cf->categoryConstraint();
+
+      for(auto segmentation: segmentations)
+      {
+        if(constraint.isEmpty() || (segmentation->category()->classificationName().startsWith(constraint)))
+        {
+          updated << segmentation.get();
+        }
       }
+
+      m_context->viewState().invalidateRepresentationColors(updated);
+      cf->applied();
+    }
+
+    checkApplies();
+  }
+}
+
+//-----------------------------------------------------------------------------
+CountingFrame::Id CountingFrameManager::suggestedId(const CountingFrame::Id &id) const
+{
+  return SuggestId(id, m_countingFrames.keys());
+}
+
+//-----------------------------------------------------------------------------
+CountingFrameList CountingFrameManager::countingFrames() const
+{
+  auto cFrames = m_countingFrames.keys();
+  std::sort(cFrames.begin(), cFrames.end(), CF::lessThan);
+
+  return cFrames;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::applyCountingFrame(CountingFrame *cf)
+{
+  m_countingFrames[cf].needApply = true;
+
+  checkApplies();
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrameManager::checkApplies()
+{
+  QMutexLocker lock(&m_taskMutex);
+
+  if(!m_applyTask)
+  {
+    auto needsApply = [](const CFData &d) { return d.needApply; };
+    auto it = std::find_if(m_countingFrames.cbegin(), m_countingFrames.cend(), needsApply);
+
+    if(it != m_countingFrames.cend())
+    {
+      m_applyTask = std::make_shared<ApplyCountingFrame>(it.key(), m_factory, m_context->scheduler());
+
+      connect(m_applyTask.get(), SIGNAL(finished()),
+              this,              SLOT(onCountingFrameApplied()));
+
+      Task::submit(m_applyTask);
     }
   }
-
-  if (count > 0)
-  {
-    suggestedId.append(QString(" (%1)").arg(count));
-  }
-
-  return suggestedId;
 }

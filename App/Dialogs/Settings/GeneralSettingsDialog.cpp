@@ -20,6 +20,9 @@
 
 // ESPINA
 #include "GeneralSettingsDialog.h"
+#include <Support/Settings/SettingsPanel.h>
+#include <Core/Utils/EspinaException.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDir>
@@ -29,6 +32,9 @@
 #include <QTime>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
+using namespace ESPINA::Support::Settings;
 
 //------------------------------------------------------------------------
 GeneralSettingsDialog::GeneralSettingsDialog(QWidget *parent, Qt::WindowFlags flags)
@@ -46,7 +52,21 @@ GeneralSettingsDialog::GeneralSettingsDialog(QWidget *parent, Qt::WindowFlags fl
 //------------------------------------------------------------------------
 void GeneralSettingsDialog::accept()
 {
-  m_activePanel->acceptChanges();
+  try
+  {
+    m_activePanel->acceptChanges();
+  }
+  catch(const EspinaException &e)
+  {
+    DefaultDialogs::InformationMessage(QString("Couldn't accept the changes in '%1' panel.\n\nError: %2")
+                                       .arg(m_activePanel->shortDescription())
+                                       .arg(QString(e.what())),
+                                       tr("EspINA"),
+                                       "",
+                                       this);
+    return;
+  }
+
   QDialog::accept();
 }
 
@@ -60,7 +80,7 @@ void GeneralSettingsDialog::reject()
 //------------------------------------------------------------------------
 void GeneralSettingsDialog::registerPanel(SettingsPanelSPtr panel)
 {
-  QListWidgetItem *item = new QListWidgetItem();
+  auto item = new QListWidgetItem();
 
   item->setData(Qt::DisplayRole,   panel->shortDescription());
   item->setData(Qt::DecorationRole,panel->icon());
@@ -76,7 +96,9 @@ SettingsPanelSPtr GeneralSettingsDialog::panel(const QString& shortDesc)
   for(auto panel : m_panels)
   {
     if (panel->shortDescription() == shortDesc)
+    {
       return panel;
+    }
   }
 
   Q_ASSERT(false);
@@ -97,13 +119,30 @@ void GeneralSettingsDialog::changePreferencePanel(int panel)
                 .arg(m_activePanel->shortDescription()));
     msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
     if (msg.exec() == QMessageBox::Yes)
-      m_activePanel->acceptChanges();
+    {
+      try
+      {
+        m_activePanel->acceptChanges();
+      }
+      catch(const EspinaException &e)
+      {
+        DefaultDialogs::InformationMessage(QString("Couldn't accept the changes in '%1' panel.\nError: %2")
+                                           .arg(m_activePanel->shortDescription())
+                                           .arg(QString(e.what())),
+                                           tr("EspINA"),
+                                           "",
+                                           this);
+        return;
+      }
+    }
     else
+    {
       m_activePanel->rejectChanges();
+    }
   }
 
   m_activePanel = m_panels[panel]->clone();
-  longDescription->setText( m_activePanel->longDescription() );
-  icon->setPixmap( m_activePanel->icon().pixmap(icon->size()) );
+  longDescription->setText(m_activePanel->longDescription());
+  icon->setPixmap(m_activePanel->icon().pixmap(icon->size()));
   scrollArea->setWidget(m_activePanel); // takes ownership of the widget and destroys it when another widget is set or the scroll is destroyed
 }

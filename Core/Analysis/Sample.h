@@ -21,12 +21,12 @@
 #ifndef ESPINA_SAMPLE_H
 #define ESPINA_SAMPLE_H
 
+#include <Core/Utils/Vector3.hxx>
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 #include "Core/Utils/Bounds.h"
-#include <Core/Utils/NmVector3.h>
 #include "Core/Analysis/NeuroItem.h"
 
 namespace ESPINA

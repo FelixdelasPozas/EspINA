@@ -24,7 +24,9 @@
 #include "Extensions/EspinaExtensions_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Core/Utils/Spatial.h>
 
 // Qt
@@ -32,108 +34,103 @@
 
 namespace ESPINA
 {
+  class CoreFactory;
 
-  class EspinaExtensions_EXPORT EdgeDistance
-  : public SegmentationExtension
+  namespace Extensions
   {
-  public:
-    static const Type TYPE;
+    class ChannelEdges;
+    class EdgeDistanceFactory;
 
-    static const InfoTag LEFT_DISTANCE;
-    static const InfoTag TOP_DISTANCE;
-    static const InfoTag FRONT_DISTANCE;
-    static const InfoTag RIGHT_DISTANCE;
-    static const InfoTag BOTTOM_DISTANCE;
-    static const InfoTag BACK_DISTANCE;
-
-    /** \brief EdgeDistance class constructor.
+    /** \class EdgeDistance
+     * \brief Segmentation extension that provides the distance to the edges of the channel of the segmentation.
      *
      */
-    explicit EdgeDistance(const InfoCache &cache = InfoCache(),
-                          const State     &state = State());
+    class EspinaExtensions_EXPORT EdgeDistance
+    : public Core::SegmentationExtension
+    {
+      public:
+        static const Type TYPE;
 
-    /** \brief EdgeDistance class destructor.
-     *
-     */
-    virtual ~EdgeDistance();
+        static const Key LEFT_DISTANCE;
+        static const Key TOP_DISTANCE;
+        static const Key FRONT_DISTANCE;
+        static const Key RIGHT_DISTANCE;
+        static const Key BOTTOM_DISTANCE;
+        static const Key BACK_DISTANCE;
+        static const Key TOUCH_EDGES;
 
-    /** \brief Implements Extension::type().
-     *
-     */
-    virtual Type type() const
-    { return TYPE; }
+        /** \brief EdgeDistance class destructor.
+         *
+         */
+        virtual ~EdgeDistance()
+        {}
 
-    /** \brief Implements Extension::state().
-     *
-     */
-    virtual State state() const;
+        virtual Type type() const
+        { return TYPE; }
 
-    /** \brief Implements Extension::state().
-     *
-     */
-    virtual Snapshot snapshot() const;
+        virtual State state() const;
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
-    virtual TypeList dependencies() const
-    { return TypeList(); }
+        virtual Snapshot snapshot() const;
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
-    virtual bool invalidateOnChange() const
-    { return true; }
+        virtual const TypeList dependencies() const
+        { return TypeList(); }
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
-    virtual InfoTagList availableInformations() const;
+        virtual bool invalidateOnChange() const
+        { return true; }
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
-    virtual bool validCategory(const QString& classificationName) const
-    { return true; }
+        virtual const InformationKeyList availableInformation() const;
 
-    /** \brief Returns the distances as numerical values in the parameter.
-     * \param[out] distances.
-     *
-     */
-    void edgeDistance(Nm distances[6]) const;
+        virtual bool validCategory(const QString& classificationName) const
+        { return true; }
 
-  protected:
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
-    virtual QVariant cacheFail(const QString& tag) const;
+        virtual bool validData(const OutputSPtr output) const
+        { return hasMeshData(output) || hasSkeletonData(output); }
 
-    /** \brief Implements Extension::onExtendedItemSet().
-     *
-     */
-    virtual void onExtendedItemSet(Segmentation* segmentation);
+        /** \brief Returns the distances as numerical values in the parameter.
+         * \param[out] distances.
+         *
+         */
+        void edgeDistance(Nm distances[6]) const;
 
-  private:
-    /** \brief Updated the distances of the extended item to the edges of its channel.
-     *
-     */
-    void updateDistances() const;
+        virtual const QString toolTipText() const;
 
-  private:
-    mutable QMutex m_mutex;
+      protected:
+        virtual QVariant cacheFail(const InformationKey& key) const;
 
-    friend class ChannelEdges;
-  };
+        virtual void onExtendedItemSet(Segmentation* segmentation)
+        {};
 
-  using EdgeDistancePtr  = EdgeDistance *;
-  using EdgeDistanceSPtr = std::shared_ptr<EdgeDistance>;
+      private:
+        /** \brief EdgeDistance class constructor.
+         * \param[in] cache InfoCache object.
+         * \param[in] state extension's state.
+         *
+         */
+        explicit EdgeDistance(CoreFactory     *factory,
+                              const InfoCache &cache = InfoCache(),
+                              const State     &state = State());
 
-  /** \brief Returns the extension as an EdgeDistance raw pointer.
-   * \param[in] extension, segmentation extension raw pointer.
-   *
-   */
-  EdgeDistancePtr edgeDistance(SegmentationExtensionPtr extension);
+        /** \brief Updated the distances of the extended item to the edges of its channel.
+         *
+         */
+        void updateDistances() const;
 
-}// namespace ESPINA
+        /** \brief Returns true if the segmentation is at the edge of the channel.
+         *
+         */
+        bool isOnEdge() const;
+
+      private:
+        mutable QMutex m_mutex;    /** mutex for data protection.                   */
+        CoreFactory   *m_factory;  /** core factory to get/create edges extensions. */
+
+        friend class ChannelEdges;
+        friend class EdgeDistanceFactory;
+    };
+
+    using EdgeDistancePtr  = EdgeDistance *;
+    using EdgeDistanceSPtr = std::shared_ptr<EdgeDistance>;
+  } // namespace Extensions
+} // namespace ESPINA
 
 #endif // ESPINA_EDGE_DISTANCE_H

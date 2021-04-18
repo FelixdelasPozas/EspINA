@@ -20,28 +20,37 @@
 
 // ESPINA
 #include "Dialogs/CFTypeSelectorDialog.h"
+
+#include <Core/Analysis/Channel.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QDialog>
 #include <QRadioButton>
+#include <QStringListModel>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *parent)
-: QDialog(parent)
-, m_type(CF::ADAPTIVE)
-, m_proxy(new ChannelProxy(model))
-, m_channel(nullptr)
+CFTypeSelectorDialog::CFTypeSelectorDialog(Support::Context &context, QWidget *parent)
+: QDialog  {parent}
+, m_type   {CFType::ADAPTIVE}
+, m_proxy  {std::make_shared<ChannelProxy>(context.model())}
+, m_stack  {nullptr}
+, m_model  {context.model()}
+, m_factory{context.factory()}
 {
   setupUi(this);
 
+  auto model = context.model();
+
   adaptiveRadio->setChecked(true);
-  ortogonalRadio->setChecked(false);
+  orthogonalRadio->setChecked(false);
 
   balckLabel->setEnabled(true);
   colorBox  ->setEnabled(true);
@@ -60,7 +69,7 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
   connect(adaptiveRadio, SIGNAL(toggled(bool)),
           this,          SLOT(radioChanged(bool)));
 
-  connect(ortogonalRadio, SIGNAL(toggled(bool)),
+  connect(orthogonalRadio, SIGNAL(toggled(bool)),
           this,           SLOT(radioChanged(bool)));
 
   connect(useCategoryConstraint, SIGNAL(toggled(bool)),
@@ -69,28 +78,36 @@ CFTypeSelectorDialog::CFTypeSelectorDialog(ModelAdapterSPtr model, QWidget *pare
   categorySelector->setModel(model.get());
   categorySelector->setRootModelIndex(model->classificationRoot());
 
-  channelSelector->setModel(m_proxy.get());
+  auto activeStack = context.viewState().selection()->activeChannel();
+  auto activeIndex = 0;
+  auto stacks      = model->channels();
+  for(int i = 0; i < stacks.size(); ++i)
+  {
+    auto stack = stacks.at(i);
+    m_stackNames << stack->data().toString();
+    if(stack.get() == activeStack) activeIndex = i;
+  }
+  auto stackModel = new QStringListModel(m_stackNames);
+  channelSelector->setModel(stackModel);
 
   connect(channelSelector, SIGNAL(activated(QModelIndex)),
-          this, SLOT(channelSelected()));
+          this,            SLOT(channelSelected()));
 
   connect(channelSelector, SIGNAL(activated(int)),
-          this, SLOT(channelSelected()));
+          this,            SLOT(channelSelected()));
 
-  m_channelIndex = m_proxy->index(0, 0);
-  m_channelIndex = m_channelIndex.child(0,0);
-
-  channelSelector->setCurrentModelIndex(m_channelIndex);
-
-
+  // use first channel as default to force CF type selection using edges extension.
+  // 2018-06-12 Changed to active stack by default.
+  channelSelector->setCurrentIndex(std::min(activeIndex, stacks.size()-1));
+  channelSelected();
 }
 
 //------------------------------------------------------------------------
 void CFTypeSelectorDialog::setType(CFType type)
 {
-  if (ORTOGONAL == type)
+  if (CFType::ORTOGONAL == type)
   {
-    ortogonalRadio->setChecked(true);
+    orthogonalRadio->setChecked(true);
   }
   else
   {
@@ -111,7 +128,7 @@ QString CFTypeSelectorDialog::categoryConstraint() const
       auto item = itemAdapter(categoryyIndex);
       Q_ASSERT(isCategory(item));
 
-      auto category = categoryPtr(item);
+      auto category = toCategoryAdapterPtr(item);
 
       constraint = category->classificationName();
     }
@@ -124,37 +141,35 @@ QString CFTypeSelectorDialog::categoryConstraint() const
 //------------------------------------------------------------------------
 void CFTypeSelectorDialog::channelSelected()
 {
-  auto currentIndex = channelSelector->currentModelIndex();
+  auto index = channelSelector->currentIndex();
 
-  auto item = itemAdapter(currentIndex);
+  Q_ASSERT(0 <= index && index < m_stackNames.size());
+  auto stackName = m_stackNames.at(index);
 
-  if (!item || isSample(item))
+  ChannelAdapterPtr item = nullptr;
+  for(auto channel: m_model->channels())
   {
-    currentIndex = currentIndex.child(0, 0);
-    item = itemAdapter(currentIndex);
+    if(stackName == channel->data().toString())
+    {
+      item = channel.get();
+      break;
+    }
   }
 
   if (item && isChannel(item))
   {
-    m_channelIndex = currentIndex;
+    m_stack = item;
 
-    m_channel = channelPtr(item);
-
-    auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
-
+    auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_stack, m_factory);
     if (edgesExtension->useDistanceToBounds())
     {
-      setType(CF::ORTOGONAL);
+      setType(CFType::ORTOGONAL);
     }
     else
     {
-      setType(CF::ADAPTIVE);
+      setType(CFType::ADAPTIVE);
     }
   }
-//   else
-//   {
-//     channelSelector->setCurrentModelIndex(m_channelIndex);
-//   }
 }
 
 //------------------------------------------------------------------------
@@ -163,7 +178,7 @@ void CFTypeSelectorDialog::radioChanged(bool value)
   bool adaptiveChecked = sender() == adaptiveRadio;
   if (adaptiveChecked)
   {
-    ortogonalRadio->setChecked(!value);
+    orthogonalRadio->setChecked(!value);
   } else
   {
     adaptiveRadio->setChecked(!value);
@@ -175,5 +190,5 @@ void CFTypeSelectorDialog::radioChanged(bool value)
   thresholdBox  ->setEnabled(adaptiveChecked);
   thresholdLabel->setEnabled(adaptiveChecked);
 
-  m_type = adaptiveRadio->isChecked()?ADAPTIVE:ORTOGONAL;
+  m_type = adaptiveRadio->isChecked()? CFType::ADAPTIVE : CFType::ORTOGONAL;
 }

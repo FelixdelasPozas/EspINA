@@ -23,85 +23,67 @@
 
 #include "SegmhaImporterPlugin_Export.h"
 
+// ESPINA
 #include <Core/Factory/AnalysisReader.h>
 
 namespace ESPINA
 {
+  /** \class SegmhaReader
+   * \brief Implements a reader for old EspINA segmha file format.
+   *
+   */
   class SegmhaImporterPlugin_EXPORT SegmhaReader
   : public IO::AnalysisReader
   {
-  public:
-//     static const ArgumentId FILE;
-//     static const ArgumentId BLOCKS;
-//     static const ArgumentId SPACING; //Some segmha files have wrong
-//     // spacing, we need to keep real one
-//
-//     class Parameters
-//     {
-//     public:
-//       explicit Parameters(Arguments &args) : m_args(args) {}
-//
-//       void setBlocks(QStringList blockList)
-//       {
-//         m_args[BLOCKS] = blockList.join(",");
-//       }
-//       QStringList blocks() const
-//       {
-//         return m_args[BLOCKS].split(",");
-//       }
-//
-//       void setSpacing(itkVolumeType::SpacingType spacing)
-//       {
-//         m_args[SPACING] = QString("%1,%2,%3")
-//         .arg(spacing[0])
-//         .arg(spacing[1])
-//         .arg(spacing[2]);
-//       }
-//       itkVolumeType::SpacingType spacing()
-//       {
-//         itkVolumeType::SpacingType res;
-//         QStringList values = m_args[SPACING].split(",");
-//
-//         for(int i=0; i<3; i++)
-//           res[i] = values[i].toDouble();
-//
-//         return res;
-//       }
-//     private:
-//       Arguments &m_args;
-//     };
+    public:
+      virtual const QString type() const
+      { return "SegmhaReader"; }
 
-  public:
-    virtual QString type() const
-    { return "SegmharReader"; }
+      virtual const ExtensionList supportedFileExtensions() const;
 
-    virtual ExtensionList supportedFileExtensions() const;
+      virtual AnalysisSPtr read(const QFileInfo&      file,
+                                CoreFactorySPtr       factory,
+                                IO::ProgressReporter *reporter = nullptr,
+                                ErrorHandlerSPtr      handler = ErrorHandlerSPtr(),
+                                const IO::LoadOptions options = IO::LoadOptions());
 
-    virtual AnalysisSPtr read(const QFileInfo& file,
-                              CoreFactorySPtr  factory,
-                              ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+    private:
+      /** \struct SegmentationObject
+       * \brief Segmentation object data.
+       *
+       */
+      struct SegmentationObject
+      {
+        /** \brief SegmentationObject struct constructor.
+         * \param[in] line QString containing the segmentation data joined by ";".
+         *
+         */
+        explicit SegmentationObject(const QString &line);
 
-  private:
-    struct SegmentationObject
-    {
-      SegmentationObject(const QString &line);
+        unsigned int  label;      /** segmentation numbert.              */
+        unsigned int  categoryId; /** segmentation category id.          */
+        unsigned char selected;   /** true if selected, false otherwise. */
+      };
 
-      unsigned int  label;
-      unsigned int  categoryId;
-      unsigned char selected;
-    };
+      /** \brief CategoryObject
+       * \brief Category object data (Taxomony).
+       */
+      struct CategoryObject
+      {
+        /** \brief CategoryObject struct constructor.
+         * \param[in] line QString containing the category data joined by ";".
+         *
+         */
+        explicit CategoryObject(const QString &line);
 
-    struct CategoryObject
-    {
-      CategoryObject(const QString &line);
+        QString      name;  /** category name.  */
+        unsigned int label; /** category id.    */
+        QColor       color; /** category color. */
+      };
 
-      QString      name;
-      unsigned int label;
-      QColor       color;
-    };
-
-  private:
-    Nm                 m_inclusive[3], m_exclusive[3];
+    private:
+      Nm m_inclusive[3]; /** Counting frame inclusion margins. */
+      Nm m_exclusive[3]; /** Counting frame exclusion margins. */
   };
 
   using SegmhaReaderSPtr = std::shared_ptr<SegmhaReader>;

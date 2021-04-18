@@ -33,6 +33,7 @@
 
 // C++
 #include <memory>
+#include <QReadWriteLock>
 
 namespace ESPINA {
 
@@ -56,6 +57,11 @@ namespace ESPINA {
      *
      */
     virtual void set(DataSPtr data) = 0;
+
+  private:
+    QReadWriteLock m_lock;
+
+    friend class Output;
   };
 
 }

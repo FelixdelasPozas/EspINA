@@ -35,20 +35,15 @@ namespace ESPINA
   class EspinaFilters_EXPORT MorphologicalEditionFilter
   : public Filter
   {
+      Q_OBJECT
   public:
     /** \brief MorphologicalEditionFilter class virtual destructor.
      *
      */
     virtual ~MorphologicalEditionFilter();
 
-    /** \brief Implements Persistent::restoreState().
-     *
-     */
     virtual void restoreState(const State& state);
 
-    /** \brief Implements Persistent::state().
-     *
-     */
     virtual State state() const;
 
     /** \brief Returns the radius of the morphological operation.
@@ -61,8 +56,7 @@ namespace ESPINA
      * \param[in] radius radius of the morphological operation.
      *
      */
-    void setRadius(int radius)
-    { m_radius = radius; }
+    void setRadius(int radius);
 
     /** \brief Returs true if the output is empty.
      *
@@ -72,6 +66,9 @@ namespace ESPINA
     bool isOutputEmpty()
     { return m_isOutputEmpty; }
 
+  signals:
+    void radiusModified(int value);
+
   protected:
     /** \brief MorphologicalEditionFilter class constructor.
      * \param[in] inputs list of input smart pointers.
@@ -79,33 +76,18 @@ namespace ESPINA
      * \param[in] scheduler scheduler smart pointer.
      *
      */
-    explicit MorphologicalEditionFilter(InputSList    inputs,
-                                        Filter::Type  type,
-                                        SchedulerSPtr scheduler);
+    explicit MorphologicalEditionFilter(InputSList          inputs,
+                                        const Filter::Type &type,
+                                        SchedulerSPtr       scheduler);
 
-    /** \brief Implements Filter::saveFilterSnapshot().
-     *
-     */
     virtual Snapshot saveFilterSnapshot() const;
 
-    /** \brief Implements Filter::needUpdate().
-     *
-     */
     virtual bool needUpdate() const;
 
-    /** \brief Implements Filter::needUpdate(id).
-     *
-     */
     virtual bool needUpdate(Output::Id id) const;
 
-    /** \brief Implements Filter::ignoreStorageContent().
-     *
-     */
     virtual bool ignoreStorageContent() const;
 
-    /** \brief Implements Filter::invalidateEditedRegions().
-     *
-     */
     virtual bool areEditedRegionsInvalidated();
 
     /** \brief Checks if the output is empty after execution

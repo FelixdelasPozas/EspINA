@@ -1,10 +1,9 @@
 /*
- *    
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -22,8 +21,11 @@
 #define ESPINA_CF_ADAPTIVE_COUNTING_FRAME_H
 
 #include "CountingFramePlugin_Export.h"
+
+// Plugin
 #include "CountingFrames/CountingFrame.h"
 
+// ESPINA
 #include <Core/Utils/Bounds.h>
 
 namespace ESPINA
@@ -37,49 +39,88 @@ namespace ESPINA
     class CountingFramePlugin_EXPORT AdaptiveCountingFrame
     : public CountingFrame
     {
-    public:
-      static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
-                                        const Bounds &bounds,
-                                        Nm inclusion[3],
-                                        Nm exclusion[3],
-                                        SchedulerSPtr scheduler)
-      { return new AdaptiveCountingFrame(extension, bounds, inclusion, exclusion, scheduler); }
+      public:
+        /** \brief AdaptiveCountingFrame vtk-style static New constructor.
+         * \param[in] extension extension of this CF.
+         * \param[in] inclusion inclusion margins.
+         * \param[in] exclusion exclusion margins.
+         *
+         */
+        static AdaptiveCountingFrame *New(CountingFrameExtension *extension,
+                                          Nm inclusion[3],
+                                          Nm exclusion[3])
+        { return new AdaptiveCountingFrame(extension, inclusion, exclusion); }
 
-      virtual ~AdaptiveCountingFrame();
+        /** \brief AdaptiveCountingFrame class virtual destructor.
+         *
+         */
+        virtual ~AdaptiveCountingFrame();
 
-      virtual CFType cfType() const
-      { return CF::ADAPTIVE; }
+        virtual CFType cfType() const
+        { return CFType::ADAPTIVE; }
 
-      virtual QString typeName() const { return ADAPTIVE_CF; }
+        virtual QString typeName() const { return ADAPTIVE_CF; }
 
-      // Implements EspinaWidget itnerface
-      virtual void registerView(RenderView *);
-      virtual void unregisterView(RenderView *);
+        virtual void updateCountingFrameImplementation();
 
-      virtual void updateCountingFrameImplementation();
+      protected:
+        /** \brief AdaptiveCountingFrame class constructor.
+         * \param[in] extension extension of this CF.
+         * \param[in] inclusion inclusion margins.
+         * \param[in] exclusion exclusion margins.
+         * \param[in] scheduler task scheduler.
+         * \param[in] factory stereological inclusion factory.
+         *
+         */
+        explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
+                                       Nm inclusion[3],
+                                       Nm exclusion[3]);
 
-    protected:
-      explicit AdaptiveCountingFrame(CountingFrameExtension *extension,
-                                     const Bounds &bounds,
-                                     Nm inclusion[3],
-                                     Nm exclusion[3],
-                                     SchedulerSPtr scheduler);
+      protected:
+        /** \brief Returns the left inclusion margin.
+         *
+         */
+        Nm leftOffset()   const {QReadLocker lock(&m_marginsMutex); return m_inclusion[0];}
 
-    protected:
-      Nm leftOffset()   const {QReadLocker lock(&m_marginsMutex); return m_inclusion[0];}
-      Nm topOffset()    const {QReadLocker lock(&m_marginsMutex); return m_inclusion[1];}
-      Nm frontOffset()  const {QReadLocker lock(&m_marginsMutex); return m_inclusion[2];}
-      Nm rightOffset()  const {QReadLocker lock(&m_marginsMutex); return m_exclusion[0];}
-      Nm bottomOffset() const {QReadLocker lock(&m_marginsMutex); return m_exclusion[1];}
-      Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
+        /** \brief Returns the top inclusion margin.
+         *
+         */
+        Nm topOffset()    const {QReadLocker lock(&m_marginsMutex); return m_inclusion[1];}
 
-//       void applyOffset(double &var, double offset)
-//       {var = floor(var + offset + 0.5);}
+        /** \brief Returns the front inclusion margin.
+         *
+         */
+        Nm frontOffset()  const {QReadLocker lock(&m_marginsMutex); return m_inclusion[2];}
 
-    private:
-      Channel *m_channel;
+        /** \brief Returns the right exclusion margin.
+         *
+         */
+        Nm rightOffset()  const {QReadLocker lock(&m_marginsMutex); return m_exclusion[0];}
 
-      friend class vtkCountingFrameCommand;
+        /** \brief Returns the bottom exclusion margin.
+         *
+         */
+        Nm bottomOffset() const {QReadLocker lock(&m_marginsMutex); return m_exclusion[1];}
+
+        /** \brief Returns the back exclusion margin.
+         *
+         */
+        Nm backOffset()   const {QReadLocker lock(&m_marginsMutex); return m_exclusion[2];}
+
+        /** \brief Helper method to create the counting frame polydata.
+         *
+         */
+        void updateCountingFramePolyData();
+
+        /** \brief Helper method to update the volumes values and create the polydata of the inner frame.
+         *
+         */
+        void updateVolumesAndInnerFramePolyData();
+
+      private:
+        Channel *m_channel; /** extension's extended item. */
+
+        friend class vtkCountingFrameCommand;
     };
   } // namespace CF
 } // namespace ESPINA

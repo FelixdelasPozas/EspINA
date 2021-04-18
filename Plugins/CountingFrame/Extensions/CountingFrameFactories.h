@@ -22,41 +22,70 @@
 #ifndef ESPINA_CF_COUNTING_FRAME_FACTORIES_H
 #define ESPINA_CF_COUNTING_FRAME_FACTORIES_H
 
-#include <Core/Factory/ChannelExtensionFactory.h>
-#include <Core/Factory/SegmentationExtensionFactory.h>
+#include "CountingFramePlugin_Export.h"
+
+//Plugin
 #include <CountingFrameManager.h>
 
-namespace ESPINA {
-  namespace CF {
+// ESPINA
+#include <Core/Factory/ExtensionFactory.h>
 
-    class ChannelExtensionFactoryCF
-    : public ChannelExtensionFactory
+namespace ESPINA
+{
+  namespace CF
+  {
+    /** \class CFStackExtensionFactory
+     * \brief Factory for counting frame extensions.
+     *
+     */
+    class CountingFramePlugin_EXPORT CFStackExtensionFactory
+    : public Core::StackExtensionFactory
     {
-    public:
-      explicit ChannelExtensionFactoryCF(CountingFrameManager *manager, SchedulerSPtr scheduler);
+      public:
+        /** \brief CFStackExtensionFactory class constructor.
+         * \param[in] manager plugin's counting frame manager.
+         * \param[in] scheduler application task scheduler.
+         * \param[in] factory model factory.
+         *
+         */
+        explicit CFStackExtensionFactory(Core::SegmentationExtensionFactorySPtr factory, CountingFrameManager *manager, SchedulerSPtr scheduler = SchedulerSPtr());
 
-      virtual ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type      &type,
-                                                          const ChannelExtension::InfoCache &cache = ChannelExtension::InfoCache(),
-                                                          const State& state = State()) const;
+        virtual Core::StackExtensionSPtr createExtension(const Core::StackExtension::Type      &type,
+                                                         const Core::StackExtension::InfoCache &cache = Core::StackExtension::InfoCache(),
+                                                         const State                           &state = State()) const;
 
-      virtual ChannelExtensionTypeList providedExtensions() const;
+        virtual Core::StackExtension::TypeList providedExtensions() const;
 
-    private:
-      CountingFrameManager *m_manager;
-      SchedulerSPtr         m_scheduler;
+        /** \brief Sets the scheduler in late initialization.
+         *
+         */
+        void setScheduler(SchedulerSPtr scheduler)
+        { m_scheduler = scheduler; }
+
+      private:
+        Core::SegmentationExtensionFactorySPtr m_extensionfactory; /** stereological inclusion factory. */
+        CountingFrameManager                  *m_manager;          /** plugin's counting frame manager. */
+        SchedulerSPtr                          m_scheduler;        /** application's task scheduler.    */
     };
 
-    class SegmentationExtensionFactoryCF
-    : public SegmentationExtensionFactory
+    /** \class CFSegmentationExtensionFactory
+     * \brief Factory for stereological inclusion extensions.
+     *
+     */
+    class CountingFramePlugin_EXPORT CFSegmentationExtensionFactory
+    : public Core::SegmentationExtensionFactory
     {
-    public:
-      explicit SegmentationExtensionFactoryCF();
+      public:
+        /** \brief CFSegmentationExtensionFactory class constructor.
+         *
+         */
+        explicit CFSegmentationExtensionFactory();
 
-      virtual SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                          const SegmentationExtension::InfoCache &cache = SegmentationExtension::InfoCache(),
-                                                          const State& state = State()) const;
+        virtual Core::SegmentationExtensionSPtr createExtension(const Core::SegmentationExtension::Type      &type,
+                                                                const Core::SegmentationExtension::InfoCache &cache = Core::SegmentationExtension::InfoCache(),
+                                                                const State                                  &state = State()) const;
 
-      virtual SegmentationExtensionTypeList providedExtensions() const;
+        virtual Core::SegmentationExtension::TypeList providedExtensions() const;
     };
 
   } // namespace CF

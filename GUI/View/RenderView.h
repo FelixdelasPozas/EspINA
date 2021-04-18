@@ -18,25 +18,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINARENDERVIEW_H
-#define ESPINARENDERVIEW_H
+#ifndef ESPINA_RENDER_VIEW_H
+#define ESPINA_RENDER_VIEW_H
 
 // ESPINA
 #include "GUI/View/SelectableView.h"
-#include <Core/EspinaTypes.h>
-#include <GUI/Representations/Renderers/RepresentationRenderer.h>
-#include <GUI/Representations/Representation.h>
-#include <GUI/Representations/Renderers/RepresentationRenderer.h>
+
+#include <Core/Types.h>
+#include <GUI/Types.h>
+
+#include <GUI/Representations/RepresentationManager.h>
 #include <GUI/Widgets/ContextualMenu.h>
-#include <GUI/ColorEngines/ColorEngine.h>
 #include <GUI/Selectors/Selector.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
 #include <GUI/View/EventHandler.h>
+#include "ViewState.h"
+#include <GUI/Representations/ModelSources.h>
 
 // Qt
 #include <QWidget>
-#include <QMenu>
-#include <QFlags>
+#include <QElapsedTimer>
 
 class vtkRenderer;
 class vtkProp;
@@ -46,205 +46,85 @@ class QPushButton;
 
 namespace ESPINA
 {
-  class EspinaWidget;
-
   class EspinaGUI_EXPORT RenderView
   : public QWidget
   , public SelectableView
   {
     Q_OBJECT
   public:
-    static const int BUTTON_SIZE;
-
-  protected:
-    struct ChannelState
+    struct CameraState
     {
-      double     brightness;
-      double     contrast;
-      double     opacity;
-      TimeStamp  timeStamp;
-      QColor     stain;
-      bool       visible;
-      OutputSPtr output;
+      Plane     plane;
+      int       slice;           // Only used in View2D
+      NmVector3 cameraPosition;
+      NmVector3 focalPoint;
+      NmVector3 upVector;
+      double    heightLength;    // Only used in View2D
 
-      RepresentationSList representations;
-    };
-
-    struct SegmentationState
-    {
-      Nm         depth;
-      QColor     color;
-      bool       highlited;
-      TimeStamp  timeStamp;
-      bool       visible;
-      OutputSPtr output;
-
-      RepresentationSList representations;
+      CameraState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), upVector(NmVector3{}), heightLength(0) {};
     };
 
   public:
-    /** \brief RenderView class constructor.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
-     *
-     */
-    explicit RenderView(QWidget* parent = nullptr);
-
     /** \brief RenderView class virtual destructor.
      *
      */
     virtual ~RenderView();
 
-    /** \brief Sets the view event handler.
-     * \param[in] eventHandler, event handler smart pointer.
+    /** \brief View type (2D or 3D)
      *
      */
-    void setEventHandler(EventHandlerSPtr eventHandler)
-    { m_eventHandler = eventHandler; }
+    ViewType type() const
+    { return m_type; }
 
-    /** \brief Returns the view's event handler.
+    /** \brief Adds a representation manager to the view
      *
      */
-    EventHandlerSPtr eventHandler() const
-    { return m_eventHandler; }
+    void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
-    /** \brief Sets the view's color engine.
-     * \param[in] engine, color engine smart pointer.
+    /** \brief Removes a representation manager from the view
      *
      */
-    void setColorEngine(ColorEngineSPtr engine)
-    { m_colorEngine = engine; }
-
-    /** \brief Returns the view's color engine.
-     *
-     */
-    ColorEngineSPtr colorEngine() const
-    { return m_colorEngine; }
-
-    /** \brief Resets the view to it's initial state.
-     *
-     */
-    virtual void reset() = 0;
-
-    /** \brief Adds a channel to the view.
-     * \param[in] channel, channel adapter raw pointer.
-     *
-     */
-    virtual void add(ChannelAdapterPtr channel);
-
-    /** \brief Adds a segmentation to the view.
-     * \param[in] seg, segmentation adapter raw pointer.
-     *
-     */
-    virtual void add(SegmentationAdapterPtr seg);
-
-    /** \brief Removes a channel from the view.
-     * \param[in] channel, channel adapter raw pointer.
-     *
-     */
-    virtual void remove(ChannelAdapterPtr channel);
-
-    /** \brief Removes a segmentation from the view.
-     * \param[in] seg, segmentation adapter raw pointer.
-     *
-     */
-    virtual void remove(SegmentationAdapterPtr seg);
-
-    /** \brief Update the representations of the given channel.
-     * \param[in] channel, channel adapter raw pointer.
-     * \param[in] render, true to force a render after updating, false otherwise.
-     *
-     */
-    virtual bool updateRepresentation(ChannelAdapterPtr channel, bool render = true);
-
-    /** \brief Update the representations of the given segmentation.
-     * \param[in] channel, segmentation adapter raw pointer.
-     * \param[in] render, true to force a render after updating, false otherwise.
-     *
-     */
-    virtual bool updateRepresentation(SegmentationAdapterPtr seg, bool render = true);
-
-    /** \brief Implements SelectableView::updateRepresentations(ChannelAdapterList).
-     *
-     */
-    virtual void updateRepresentations(ChannelAdapterList list);
-
-    /** \brief Implements SelectableView::updateRepresentations(SegmentationAdapterList).
-     *
-     */
-    virtual void updateRepresentations(SegmentationAdapterList list);
-
-    /** \brief Implements SelectableView::updateRepresentations().
-     *
-     */
-    virtual void updateRepresentations();
-
-    /** \brief Adds a widget to the view.
-     * \param[in] widget, espina widget smart pointer.
-     *
-     */
-    virtual void addWidget(EspinaWidgetSPtr widget);
-
-    /** \brief Removes a widget to the view.
-     * \param[in] widget, espina widget smart pointer.
-     *
-     */
-    virtual void removeWidget(EspinaWidgetSPtr widget);
-
-    /** \brief Adds an actor to the vtkRenderer.
-     * \param[in] actor, vtkProp raw pointer.
-     *
-     */
-    virtual void addActor   (vtkProp *actor);
-
-    /** \brief Removes an actor to the vtkRenderer.
-     * \param[in] actor, vtkProp raw pointer.
-     *
-     */
-    virtual void removeActor(vtkProp *actor);
+    void removeRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
     /** \brief Returns the bounds in world coordinates that contains all of the objects in the view.
-     * \param[in] cropToSceneBounds, true to crop the bounds to the limits of the actual view, false otherwise.
+     * \param[in] cropToSceneBounds true to crop the bounds to the limits of the actual view, false otherwise.
      *
      */
     virtual Bounds previewBounds(bool cropToSceneBounds = true) const = 0;
 
-    /** \brief Sets the view's cursor.
-     * \param[in] cursor, QCursor object.
-     *
-     */
-    virtual void setCursor(const QCursor& cursor);
-
     /** \brief Returns the coordinates of the last mouse event.
-     * \param[out] x, x coordinate.
-     * \param[out] y, y coordinate.
+     * \param[out] x coordinate.
+     * \param[out] y coordinate.
      *
      */
-    virtual void eventPosition(int &x, int &y);
+    void eventPosition(int &x, int &y) const;
 
-    /** \brief Selects the NeuroItems specified in flags parameter whose voxels intersect the ones
-     * in the mask given as parameter.
-     * \param[in] flags NeuroItems selection flags.
-     * \param[in] mask  Area selected to intersect with the items in the view.
+    /** \brief Returns the world coordinates of the last mouse event.
      *
      */
-    virtual Selector::Selection select(const Selector::SelectionFlags flags, const Selector::SelectionMask &mask, bool multiselection = true) const;
+    NmVector3 worldEventPosition() const;
 
-    /** \brief Selects the NeuroIntems specified in flags parameter that has a voxel in the WORLD position
-     * specified in the point parameter.
-     * \param[in] flags NeuroItems selection flags.
-     * \param[in] point Point in WORLD coordinates (not necessarily in the slice position of the view).
+    /** \brief Returns the world coordinates of the last mouse event.
      *
      */
-    virtual Selector::Selection select(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection = true) const;
+    NmVector3 worldEventPosition(const QPoint &pos) const;
 
-    /** \brief Selects the NeuroItems specified in the flags parameter that has a voxel in the DISPLAY
-     * position specified by the x and y parameters.
-     * \param[in] flags, NeuroItems selection flags.
-     * \param[in] x, x position in display coordinates.
-     * \param[in] y, y position in display coordinates.
+    /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
+     * \param[in] flags view item types to be selected.
+     * \param[in] point position in WORLD coordinates.
+     * \param[in] multiselection if true several view items may be returned.
      *
      */
-    virtual Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
+    virtual Selector::Selection pick(const Selector::SelectionFlags flags, const NmVector3 &point, bool multiselection = true) const;
+
+    /** \brief Selects the view items whose types are defined by flags and have a valid representation at selection point
+     * \param[in] flags view item types to be selected.
+     * \param[in] x position in DISPLAY coordinates.
+     * \param[in] y position in DISPLAY coordinates.
+     * \param[in] multiselection if true several view items may be returned.
+     *
+     */
+    virtual Selector::Selection pick(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
 
     /** \brief Returns the raw pointer of the vtkRenderWindow of the view.
      *
@@ -254,253 +134,250 @@ namespace ESPINA
     /** \brief Returns the raw pointer of the vtkRenderer of the view.
      *
      */
-    virtual vtkRenderer     *mainRenderer() const;
-
-    /** \brief Resets the view's camera.
-     *
-     */
-    virtual void resetCamera() = 0;
+    virtual vtkRenderer *mainRenderer() const = 0;
 
     /** \brief Returns the bounds of the scene.
      *
      */
-    const Bounds sceneBounds() const
-    {return m_sceneBounds;}
+    const Bounds sceneBounds() const;
 
     /** \brief Returns the crosshair point.
      *
      */
-    const NmVector3 crosshairPoint() const
-    { return m_crosshairPoint; }
+    const NmVector3 crosshair() const;
 
     /** \brief Returns the resolution (spacing) of the view.
      *
      */
-    const NmVector3 sceneResolution() const
-    {return m_sceneResolution;}
-
-    /** \brief Centers the view on the given point.
-     * \param[in] point, point to center the view.
-     * \param[in] force, true to force a render after setting the viewpoint.
-     *
-     */
-    virtual void centerViewOn(const NmVector3& point, bool force=false) = 0;
+    const NmVector3 sceneResolution() const;
 
     /** \brief Sets the contextual menu of the view.
-     * \param[in] contextMenu, ContextualMenu smart pointer.
+     * \param[in] contextMenu to be displayed on right button click
      *
      */
-    virtual void setContextualMenu(ContextualMenuSPtr contextMenu)
+    void setContextualMenu(ContextualMenuSPtr contextMenu)
     { m_contextMenu = contextMenu; }
-
-    /** \brief Adds the widgets of the renderer to the view's controls.
-     * \param[in] renderer, renderer smart pointer.
-     *
-     */
-    virtual void addRendererControls(RendererSPtr renderer) = 0;
-
-    /** \brief Removes the widgets of the renderer from the view's controls.
-     *
-     */
-    virtual void removeRendererControls(const QString name) = 0;
-
-    /** \brief Creates and returns an instance of the given representation type for the given item.
-     * \param[in] item, view item adapter raw pointer.
-     * \param[in] type, type of representation to return.
-     *
-     */
-    virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation) = 0;
-
-    /** \brief Returns true if the segmentations are visible, false otherwise.
-     *
-     */
-    bool segmentationsVisibility() const
-    { return m_showSegmentations; }
-
-    /** \brief Sets the segmentations visibility.
-     * \param[in] visiblity, true to set visible, false otherwise.
-     *
-     */
-    void setSegmentationsVisibility(bool visibility);
-
-    /** \brief Activates the render with the given name.
-     * \param[in] rendererName.
-     *
-     */
-    virtual void activateRender(const QString &rendererName) = 0;
-
-    /** \brief Dectivates the render with the given name.
-     * \param[in] rendererName.
-     *
-     */
-    virtual void deactivateRender(const QString &rendererName) = 0;
-
-    /** \brief Sets the renderers for the view.
-     * \param[in] renderers, list of renderer smart pointers.
-     *
-     */
-    virtual void setRenderers(RendererSList renderers) = 0;
-
-    /** \brief Returns the list of smart pointers of the renderers of the view.
-     *
-     */
-    RendererSList renderers() const;
-
-    /** \brief Sets the activation state of the renderers of the view.
-     * \param[in] state, map of pair values of renderers' name and boolean state.
-     *
-     */
-    void setRenderersState(QMap<QString, bool> state);
-
-    /** \brief Struct used to store/restore camera state. Used in
-     * "view state" snapshots.
-     *
-     */
-    struct VisualState
-    {
-      Plane     plane;
-      int       slice;           // Only used in View2D
-      NmVector3 cameraPosition;
-      NmVector3 focalPoint;
-      double    heightLength;      // Only used in View2D
-
-      VisualState(): plane(Plane::UNDEFINED), slice(-1), cameraPosition(NmVector3{}), focalPoint(NmVector3{}), heightLength(0) {};
-    };
 
     /** \brief Restores camera position and zoom.
      * \param[in] state VisualState struct with camera values.
      *
      */
-    virtual void setVisualState(struct VisualState) = 0;
+    virtual void setCameraState(CameraState camera) = 0;
 
     /** \brief Returns the visual state of the view.
      *
      */
-    virtual struct VisualState visualState() = 0;
+    virtual CameraState cameraState() = 0;
 
-    /** \brief Helper method to create a QPushButton.
-     * \param[in] icon icon of the button.
-     * \param[in] tooltip tooltip of the button.
+    /** \brief Adds an actor to the vtkRenderer.
+     * \param[in] actor vtkProp raw pointer.
      *
      */
-    static QPushButton *createButton(const QString& icon, const QString& tooltip);
+    virtual void addActor(vtkProp *actor) = 0;
 
-  signals:
-    void sceneResolutionChanged();
+    /** \brief Removes an actor from the vtkRenderer.
+     * \param[in] actor vtkProp raw pointer.
+     *
+     */
+    virtual void removeActor(vtkProp *actor) = 0;
+
+    /** \brief Helper method to create a render view action buttons
+     * \param[in] icon of the button.
+     * \param[in] tooltip of the button.
+     * \param[in] parent QWidget parent of the button.
+     *
+     */
+    static QPushButton *createButton(const QString& icon, const QString& tooltip, QWidget *parent = nullptr);
+
+    /** \brief Returns the name of the view, for debugging purposes.
+     *
+     */
+    virtual const QString viewName() const = 0;
+
+    /** \brief Returns the ViewState used by the view.
+     *
+     */
+    GUI::View::ViewState &state() const;
 
   public slots:
-    /** \brief Recreates the representations after the given view item has changed its output.
-     * \param[in] item ViewItemAdapter raw pointer.
-     */
-    virtual void changedOutput(ViewItemAdapterPtr item);
-
-    /** \brief Updates the view.
+    /** \brief Resets the camera using the camera reset button of the view.
      *
      */
-    virtual void updateView() = 0;
+    virtual void resetCamera();
+
+    /** \brief Request a graphical refresh of the current view content
+     *
+     */
+    void refresh();
+
+  signals:
+    void crosshairChanged(NmVector3);
+
+    void crosshairPlaneChanged(Plane, Nm);
+
+    void viewFocusedOn(NmVector3 focusPoint);
+
+    void viewResized(QSize size);
 
   protected slots:
-    /** \brief Updates the bounds of the scene after a channel has been added or deleted.
-     *
-     */
-    virtual void updateSceneBounds();
 
-    /** \brief Resets the view's camera and updates the bounds of the scene.
+    /** \brief Resets the view to it's initial state.
      *
      */
-    virtual void resetView();
+    virtual void reset();
 
-    /** \brief Updates the representations of the given list of segmentations.
-     * \param[in] selection, list of segmentation adapter raw pointers.
+    /** \brief Tries to update the view when a manager request for a render.
      *
      */
-    virtual void updateSelection(SegmentationAdapterList selection);
+    void onRenderRequest();
+
+    /** \brief Updates the view cursor when the event hander changes its cursor.
+     *
+     */
+    void onCursorChanged();
 
   protected:
+    virtual void keyPressEvent(QKeyEvent *event) override;
+    virtual void keyReleaseEvent(QKeyEvent *event) override;
+    virtual void resizeEvent(QResizeEvent *event) override;
+
+    /** \brief RenderView class constructor.
+     * \param[in] parent raw pointer of the QWidget parent of this one.
+     * \param[in] type type of view 2D or 3D
+     * \param[in] parent QWidget parent of this one.
+     *
+     */
+    explicit RenderView(GUI::View::ViewState &state, ViewType type, QWidget *parent = nullptr);
+
+    /** \brief Returns the point world coordinates corresponding to the given ones in the given renderer.
+     * \param[in] renderer vtkRenderer used for transformation.
+     * \param[in] x x axis display coordinates.
+     * \param[in] y y axis display coordinates.
+     * \param[in] z z axis display coordinates.
+     *
+     */
+    NmVector3 toWorldCoordinates(vtkRenderer *renderer, int x, int y, int z) const;
+
     /** \brief Updates the view when the selection changes.
-     * \param[in] selection, new selection.
+     * \param[in] selection new selection.
      *
      */
-    virtual void onSelectionSet(SelectionSPtr selection);
+    virtual void onSelectionSet(GUI::View::SelectionSPtr selection);
 
-    /** \brief Overrides QWidget::showEvent().
+    /** \brief Updates the selection of items.
+     * \param[in] append if true the elements picked will be merged with the ones currently
+     *  selected, if false the elements picked will be the new selection.
+     *
+     *  If an item is selected and also is on the picked list the merge will deselect the item.
      *
      */
-    virtual void showEvent(QShowEvent *event) override;
+    void selectPickedItems(int x, int y, bool append);
 
-    /** \brief Gernerates and saves to disk an image of the actual view state.
+    /** \brief Generates and saves to disk an image of the actual view state.
      *
      */
     void takeSnapshot();
 
-    /** \brief Returns the suggested opacity for a channel.
+    /** \brief Shows tool tip for segmentations at position (x, y)
+     * \param[in] x display coordinate
+     * \param[in] y display coordinate
      *
      */
-    double suggestedChannelOpacity();
+    void showSegmentationTooltip(const int x, const int y);
 
-    /** \brief Updates the channel's opacity value.
-     *
-     */
-    virtual void updateChannelsOpacity() = 0;
+    bool hasVisibleRepresentations() const;
 
-    /** \brief Resets the bounds of the scene.
-     *
-     */
-    void resetSceneBounds();
+    bool hasChannelSources() const;
 
-    /** \brief Creates all the representations for the given item that can be renderer on the view.
-     * \param[in] channel channel raw pointer.
-     *
-     */
-    void createRepresentations(ChannelAdapterPtr channel);
+    virtual void resetImplementation() = 0;
 
-    /** \brief Creates all the representations for the given item that can be renderer on the view.
-     * \param[in] segmentation segmentation raw pointer.
-     *
-     */
-    void createRepresentations(SegmentationAdapterPtr segmentation);
+    EventHandlerSPtr eventHandler() const;
 
-    /** \brief Removes the channels representations from the view.
-     * \param[in] state, map of the items and their representations in the view.
-     *
-     */
-    void removeRepresentations(ChannelState &state);
+    bool eventHandlerFilterEvent(QEvent *event);
 
-    /** \brief Removes the segmentations representations from the view.
-     * \param[in] state, map of the items and their representations in the view.
-     *
-     */
-    void removeRepresentations(SegmentationState &state);
+    virtual void shutdownAndRemoveManagers();
 
-    /** \brief Returns the number of active renderers for a given type of item.
-     * \param[in] type, RenderableType type.
+  private:
+    /** \brief Renders the last frame in all the managers.
+     * \param[in] frame frame to render
+     * \param[in] managers managers to render the frame.
      *
      */
-    unsigned int numEnabledRenderersForViewItem(RenderableType type);
+    void renderFrame(GUI::Representations::FrameCSPtr frame, GUI::Representations::RepresentationManagerSList managers);
+
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const = 0;
+
+    virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager) {}
+
+    virtual void normalizeWorldPosition(NmVector3 &point) const {}
+
+    virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) = 0;
+
+    virtual void resetCameraImplementation() = 0;
+
+    virtual void refreshViewImplementation() {}
+
+    virtual bool isCrosshairPointVisible() const = 0;
+
+    void connectSignals();
+
+    GUI::Representations::RepresentationManagerSList pendingManagers() const;
+
+    unsigned int activeManagers() const;
+
+    GUI::Representations::RepresentationManagerSList pendingManagers(GUI::Representations::RepresentationManagerSList managers) const;
+
+    GUI::Representations::FrameCSPtr latestReadyFrame(GUI::Representations::RepresentationManagerSList managers) const;
+
+    void display(GUI::Representations::RepresentationManagerSList managers, const TimeStamp time);
+
+    GUI::Representations::RepresentationManager::ManagerFlags managerFlags() const;
+
+    void deleteInactiveWidgetManagers();
+
+    virtual void moveCamera(const NmVector3 &point) = 0;
+
+  private slots:
+    virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) = 0;
+
+    virtual void onSceneResolutionChanged(const NmVector3 &resolution) = 0;
+
+    virtual void onSceneBoundsChanged(const Bounds &bounds) = 0;
+
+    virtual void addSliceSelectors(GUI::Widgets::SliceSelectorSPtr widget, GUI::Widgets::SliceSelectionType selector) {};
+
+    virtual void removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr widget) {};
+
+    void onWidgetsAdded(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
+
+    void onWidgetsRemoved(GUI::Representations::Managers::TemporalPrototypesSPtr factory, const GUI::Representations::FrameCSPtr frame);
+
+    void delayedWidgetsShow();
 
   protected:
-    EventHandlerSPtr m_eventHandler;
-    ColorEngineSPtr  m_colorEngine;
+    using TempPrototypesSPtr = GUI::Representations::Managers::TemporalPrototypesSPtr;
+    using ReprManagerSPtr    = GUI::Representations::RepresentationManagerSPtr;
 
-    QVTKWidget*  m_view;
-    vtkSmartPointer<vtkRenderer> m_renderer;
+    ContextualMenuSPtr                               m_contextMenu;             /** context menu or nullptr if none.                 */
+    QVTKWidget                                      *m_view;                    /** VTK view.                                        */
+    GUI::Representations::RepresentationManagerSList m_managers;                /** factory<->managers for representations.          */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr>        m_temporalManagers;        /** factory<->managers for temporal representations. */
+    QMap<TempPrototypesSPtr, ReprManagerSPtr>        m_inactiveManagers;        /** factory<->managers to be removed on next frame.  */
+    unsigned int                                     m_lastFrameActiveManagers; /** number of active managers last frame.            */
 
-    Bounds    m_sceneBounds;
-    NmVector3 m_crosshairPoint;
-    NmVector3 m_sceneResolution;// Min distance between 2 voxels in each axis
+  private:
+    /** \brief vtkImageData to QImage conversion.
+     * \param[in] image vtkImageData object pointer.
+     *
+     */
+    QImage vtkImageDataToQImage(vtkImageData* image) const;
 
-    ContextualMenuSPtr m_contextMenu;
-
-    QMap<ChannelAdapterPtr,      ChannelState>      m_channelStates;
-    QMap<SegmentationAdapterPtr, SegmentationState> m_segmentationStates;
-
-    RendererSList m_renderers;
-    QList<EspinaWidgetSPtr> m_widgets;
-
-    bool m_sceneCameraInitialized;
-    bool m_showSegmentations;
+    GUI::View::ViewState                     &m_state;            /** current state of the views.                     */
+    GUI::View::SelectionSPtr                  m_selection;        /** current item selection.                         */
+    ViewType                                  m_type;             /** type of view: 2D/3D.                            */
+    GUI::Representations::FrameCSPtr          m_latestFrame;      /** latest rendered frame.                          */
   };
 
 } // namespace ESPINA
 
-#endif // ESPINARENDERVIEW_H
+#endif // ESPINA_RENDER_VIEW_H

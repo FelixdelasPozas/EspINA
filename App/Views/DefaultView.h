@@ -22,12 +22,13 @@
 #define ESPINA_DEFAULT_VIEW_H
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
-#include <Support/ViewManager.h>
 #include <Support/Settings/SettingsPanel.h>
+#include <Support/Representations/RepresentationFactory.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QAbstractItemView>
@@ -38,251 +39,98 @@ class QUndoStack;
 
 namespace ESPINA
 {
-  class RenderersMenu;
-  class CamerasMenu;
+  class Dialog3D;
 
   class DefaultView
-  : public QAbstractItemView
+  : public QWidget
+  , private Support::WithContext
   {
-    Q_OBJECT
-  public:
-    /** \brief DefaultView class constructor.
-     * \param[in] model, model adapter smart pointer.
-     * \param[in] viewManager, view manager smart pointer.
-     * \param[in] undoStack, QUndoStack object raw pointer.
-     * \param[in] parent, raw pointer to parent object.
-     */
-    explicit DefaultView(ModelAdapterSPtr    model,
-                         ViewManagerSPtr     viewManager,
-                         QUndoStack         *undoStack,
-                         QMainWindow        *parent = nullptr);
+      Q_OBJECT
+    public:
+      /** \brief DefaultView class constructor.
+       * \param[in] context application context
+       * \param[in] parent pointer of the object parent of this one.
+       */
+      explicit DefaultView(Support::Context &context,
+                           QMainWindow      *parent = nullptr);
 
-    /** \brief DefaultView class virtual destructor.
-     *
-     */
-    virtual ~DefaultView();
+      /** \brief DefaultView class virtual destructor.
+       *
+       */
+      virtual ~DefaultView();
 
-    /** \brief Sets the crosshair colors of the view.
-     * \param[in] plane, plane of the crosshair line.
-     * \param[in] color, color of the crosshair line.
-     *
-     */
-    void setCrosshairColor(const Plane plane, const QColor& color);
+      void addRepresentation(const Representation &representation);
 
-    /** \brief Fill the view menu.
-     * \param[inout] menu, menu to modify.
-     *
-     */
-    virtual void createViewMenu(QMenu *menu);
+      /** \brief Returns a reference to the XZ panel
+       *
+       */
+      Panel *panelXZ();
 
-    /** \brief Implements QAbstractItemView::indexAt().
-     *
-     */
-    virtual QModelIndex indexAt(const QPoint& point) const
-    { return QModelIndex(); }
+      /** \brief Returns a reference to the YZ panel
+       *
+       */
+      Panel *panelYZ();
 
-    /** \brief Implements QAbstractItemView::scrollTo().
-     *
-     */
-    virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible){}
+      /** \brief Returns a reference to the 3D dialog.
+       *
+       */
+      Dialog3D *dialog3D();
 
-    /** \brief Implements QAbstractItemView::visualRect().
-     *
-     */
-    virtual QRect visualRect(const QModelIndex& index) const
-    { return QRect(); }
+      /** \brief Returs the RenderViews' group.
+       *
+       */
+      QList<RenderView *> renderviews() const;
 
-    /** \brief Overrides QAbstractItemView::setModel().
-     *
-     */
-    virtual void setModel(QAbstractItemModel *model) override;
+      /* Used by other classes */
+      static const QString FIT_TO_SLICES_KEY;
 
-    /** \brief Returns the view's settings panel.
-     *
-     */
-    SettingsPanelSPtr settingsPanel();
+    public slots:
+      /** \brief Shows/hides the view's ruler.
+       * \param[in] visible true to show the ruler, false to hide.
+       */
+      void setRulerVisibility(bool visible);
 
-    /** \brief Loads view settings from storage.
-     * \param[in] storate, temporal storage containing the settings file.
-     */
-    void loadSessionSettings(TemporalStorageSPtr storage);
+      /** \brief Shows/hides the thumbnail in 2D views.
+       * \param[in] visible true to show the thumbnail, false to hide.
+       *
+       */
+      void showThumbnail(bool visible);
 
-    /** \brief Saves view settings from storage.
-     * \param[in] storate, temporal storage to save settings file.
-     */
-    void saveSessionSettings(TemporalStorageSPtr storage);
+      /** \brief Enables/disables fit to slices.
+       * \param[in] enabled true to enable and false otherwise.
+       *
+       */
+      void setFitToSlices(bool enabled);
 
-  protected:
-    /** \brief Implements QAbstractItemView::visualRegionForSelection().
-     *
-     */
-    virtual QRegion visualRegionForSelection(const QItemSelection& selection) const
-    {return QRegion();}
+    private slots:
+      void onColorEngineModified();
 
-    /** \brief Implements QAbstractItemView::setSelection().
-     *
-     */
-    virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command)
-    {}
+    private:
+      void initView(RenderView *view, QMainWindow *parent);
 
-    /** \brief Implements QAbstractItemView::isIndexHidden().
-     *
-     */
-    virtual bool isIndexHidden(const QModelIndex& index) const
-    {return true;}
+      /** \brief Creates keyboard shortcuts for slice navigation for the given view.
+       * \param[in] view planar view pointer.
+       *
+       */
+      void createView2DShortcuts(View2D* view);
 
-    /** \brief Implements QAbstractItemView::verticalOffset().
-     *
-     */
-    virtual int verticalOffset() const
-    {return 0;}
+      void initDialog3D(Dialog3D *dialog, QMainWindow *parent);
 
-    /** \brief Implements QAbstractItemView::horizontalOffset().
-     *
-     */
-    virtual int horizontalOffset() const
-    {return 0;}
+      void addRepresentationManager(GUI::Representations::RepresentationManagerSPtr manager);
 
-    /** \brief Implements QAbstractItemView::moveCursor().
-     *
-     */
-    virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
-    {return QModelIndex();}
+    private:
+      ModelSources                                     m_sources;         /** items sources list.                          */
+      RepresentationPoolSList                          m_pools;           /** list of pools in the view.                   */
+      GUI::Representations::RepresentationManagerSList m_repManagers;     /** list of representation managers in the view. */
+      View2D                                          *m_viewXY;          /** XY view.                                     */
+      View2D                                          *m_viewYZ;          /** YZ view.                                     */
+      View2D                                          *m_viewXZ;          /** XZ view.                                     */
+      Panel                                           *m_panelYZ;         /** panel of YZ view.                            */
+      Panel                                           *m_panelXZ;         /** panel of XZ view.                            */
+      Dialog3D                                        *m_dialog3D;        /** pointer to 3D view dialog.                   */
 
-    /** \brief Adds a channel to the view.
-     * \param[in] channel, channel adapter raw pointer of the element to add.
-     *
-     */
-    void add(ChannelAdapterPtr channel);
-
-    /** \brief Adds a segmentation to the view.
-     * \param[in] segmentation, segmentation adapter raw pointer of the element to add.
-     *
-     */
-    void add(SegmentationAdapterPtr segmentation);
-
-    /** \brief Removes a channel from the view.
-     * \param[in] channel, channel adapter raw pointer of the element to remove.
-     *
-     */
-    void remove(ChannelAdapterPtr channel);
-
-    /** \brief Removes a segmentation from the view.
-     * \param[in] segmentation, segmentation adapter raw pointer of the element to remove.
-     *
-     */
-    void remove(SegmentationAdapterPtr segmentation);
-
-    /** \brief Updates the representation of the given channel.
-     * \param[in] channel, channel adapter raw pointer of the element to update representations.
-     *
-     */
-    bool updateRepresentation(ChannelAdapterPtr channel);
-
-    /** \brief Updates the representation of the given segmentation.
-     * \param[in] segmentation, segmentation adapter raw pointer of the element to update representations.
-     *
-     */
-    bool updateRepresentation(SegmentationAdapterPtr segmentation);
-
-  protected slots:
-  	/** \brief Resets all the views.
-  	 *
-  	 */
-    void sourceModelReset();
-
-    /** \brief Shows/hides the view's crosshair.
-     * \param[in] visible, true to show the crosshair, false to hide.
-     */
-    void showCrosshair(bool visible);
-
-    /** \brief Shows/hides the view's ruler.
-     * \param[in] visible, true to show the ruler, false to hide.
-     */
-    void setRulerVisibility(bool visible);
-
-    /** \brief Shows/hides the segmentations.
-     * \param[in] visible, true to show the segmentations, false to hide.
-     */
-    void showSegmentations(bool visible);
-
-    /** \brief Shows/hides the thumbnail in 2D views.
-     * \param[in] visible, true to show the thumbnail, false to hide.
-     */
-    void showThumbnail(bool visible);
-
-    /** \brief Switches visibility between channels.
-     *
-     */
-    void switchPreprocessing();
-
-    /** \brief Toggles "fit to slices" boolean value.
-     * \param[in] unused, unused value.
-     */
-    void setFitToSlices(bool unused);
-
-    /** \brief Sets the crosshair point in the views.
-     * \param[in] point, point to set the crosshair.
-     * \param[in] force, force centering the view in the point.
-     */
-    virtual void setCrosshairPoint(const NmVector3& point, bool force = false);
-
-    /** \brief Changes a plane position.
-     * \param[in] plane, plane to change.
-     * \param[in] pos, position to set the plane.
-     */
-    virtual void changePlanePosition(Plane plane, Nm pos);
-
-    // virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
-  protected:
-    /** \brief Overrides QAbstractItemView::rowsInserted().
-     *
-     */
-    virtual void rowsInserted(const QModelIndex& parent, int start, int end);
-
-    /** \brief Overrides QAbstractItemView::rowsAboutToBeRemoved().
-     *
-     */
-    virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
-
-    /** \brief Updates XY, YZ, XZ and 3D views.
-     *
-     */
-    void updateViews();
-
-    /** \brief Initializes a 2D view.
-     * \pararm[in] view, View2D raw pointer of the view to initialize.
-     */
-    void initView2D(View2D *view);
-
-    /** \brief Clones a renderer.
-     * \param[in] name, name of the renderer to clone.
-     */
-    RendererSPtr renderer(const QString& name) const;
-
-    // void selectFromSlice(double slice, PlaneType plane);
-    // void selectToSlice(double slice, PlaneType plane);
-  private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-
-    bool m_showProcessing;
-    bool m_showSegmentations;
-
-    NmVector3 m_slicingStep;
-
-    QColor m_xLine, m_yLine, m_zLine;
-
-    View2D *m_viewXY, *m_viewYZ, *m_viewXZ;
-    View3D *m_view3D;
-
-    QDockWidget *dock3D, *dockYZ, *dockXZ;
-    QAction     *m_showRuler, *m_showThumbnail;
-
-    RenderersMenu      *m_renderersMenu;
-    CamerasMenu        *m_camerasMenu;
+      QList<RenderView *>                              m_views;           /** list of views.                               */
   };
-
 
   using DefaultViewSPtr = std::shared_ptr<DefaultView>;
 

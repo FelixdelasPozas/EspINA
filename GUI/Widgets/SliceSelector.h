@@ -30,62 +30,60 @@
 
 namespace ESPINA
 {
-  class View2D;
+  class RenderView;
 
-  class SliceSelector;
-  using SliceSelectorSPtr = std::shared_ptr<SliceSelector>;
-
-  class EspinaGUI_EXPORT SliceSelector
-  : public QObject
+  namespace GUI
   {
-  public:
-    /** \brief SliceSelectorWidget class constructor.
-     *
-     */
-    virtual ~SliceSelector()
-    {}
+    namespace Widgets
+    {
+      class SliceSelector;
+      using SliceSelectorSPtr = std::shared_ptr<SliceSelector>;
 
-    /** \brief Sets the plane of the widget.
-     * \param[in] plane, orientation plane.
-     */
-    virtual void setPlane(const Plane plane)
-    { m_plane = plane; }
+      enum SliceSelectionTypes { None=0x0, From = 0x1, To = 0x2 };
+      Q_DECLARE_FLAGS(SliceSelectionType, SliceSelectionTypes)
 
-    /** \brief Sets the view of the widget.
-     * \param[in] view, View2D raw pointer.
-     *
-     */
-    virtual void setView(View2D* view)
-    { m_view = view; }
+      /** class SliceSelector
+       * \brief Slice selector widgets to select a slice range.
+       *
+       */
+      class EspinaGUI_EXPORT SliceSelector
+      : public QObject
+      {
+        public:
+          /** \brief SliceSelectorWidget class constructor.
+           *
+           */
+          virtual ~SliceSelector()
+          {}
 
-    /** \brief Returns the left widget raw pointer.
-     *
-     */
-    virtual QWidget *leftWidget () const = 0;
+          /** \brief Returns the lower widget raw pointer.
+           *
+           */
+          virtual QWidget *lowerWidget() const = 0;
 
-    /** \brief Returns the right widget raw pointer.
-     *
-     */
-    virtual QWidget *rightWidget() const = 0;
+          /** \brief Returns the upper widget raw pointer.
+           *
+           */
+          virtual QWidget *upperWidget() const = 0;
 
-    /** \brief Returns a raw pointer to a new instance of the class.
-     *
-     */
-    virtual SliceSelectorSPtr clone() = 0;
+          /** \brief Returns a raw pointer to a new instance of the class.
+           * \param[in] view view that will contain the selectors.
+           * \param[in] plane plane of the selectors.
+           *
+           */
+          virtual SliceSelectorSPtr clone(RenderView *view, Plane plane) = 0;
 
-  protected:
-    /** \brief SliceSelectorWidget class constructor.
-     *
-     */
-    explicit SliceSelector()
-    : m_plane{Plane::XY}
-    , m_view {nullptr}
-    {}
+        protected:
+          /** \brief SliceSelectorWidget class constructor.
+           *
+           */
+          explicit SliceSelector()
+          {}
+      };
 
-    Plane   m_plane;
-    View2D *m_view;
-  };
-
+      Q_DECLARE_OPERATORS_FOR_FLAGS(SliceSelectionType)
+    } // namespace Widgets
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif // ESPINA_SLICE_SELECTOR_WIDGET_H

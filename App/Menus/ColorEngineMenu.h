@@ -23,7 +23,6 @@
 #define ESPINA_COLOR_ENGINE_MENU_H
 
 // ESPINA
-#include <Support/ViewManager.h>
 #include <GUI/ColorEngines/MultiColorEngine.h>
 
 // Qt
@@ -37,30 +36,24 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief ColorEngineMenu class constructor.
-     * \param[in] vm, view manager smart pointer.
-     * \param[in] title, title of the color engine.
-     * \param[in] parent, QObject parent raw pointer.
+     * \param[in] title of the color engine.
+     * \param[in] parent QObject.
      *
      */
-    explicit ColorEngineMenu(ViewManagerSPtr vm, const QString &title, QWidget *parent = nullptr);
+    explicit ColorEngineMenu(const QString  &title,
+                             GUI::ColorEngines::MultiColorEngineSPtr colorEngine);
 
     /** \brief ColorEngineMenu class virtual destructor.
      *
      */
     virtual ~ColorEngineMenu();
 
-    /** \brief Returns current color engine.
-     *
-     */
-    ColorEngineSPtr engine() const
-    {return m_engine;}
-
     /** \brief Adds a color engine to the menu.
-     * \param[in] title, name of the color engine.
-     * \param[in] engine, color engine smart pointer of the engine.
+     * \param[in] title for displaying the color engine in the menu
+     * \param[in] engine color engine
      *
      */
-    void addColorEngine(const QString &title, ColorEngineSPtr engine);
+    void addColorEngine(const QString &title, GUI::ColorEngines::ColorEngineSPtr engine);
 
     /** \brief Restores user settings for the menu.
      *
@@ -68,20 +61,19 @@ namespace ESPINA
     void restoreUserSettings();
 
   protected slots:
-  	/** \brief Activates/Deactivates the color engine of the QAction passed as parameter.
-  	 * \param[in] action, QAction raw pointer.
-  	 *
-  	 */
-    void setColorEngine(QAction *action);
+    /** \brief Toggles the color engine binded to the QAction passed as parameter.
+     * \param[in] action color engine toggle action.
+     *
+     */
+    void toggleColorEngine(QAction *action);
 
   signals:
-    void colorEngineChanged(ColorEngineSPtr);
+    void colorEngineChanged(GUI::ColorEngines::ColorEngineSPtr);
 
   private:
-    ViewManagerSPtr      m_viewManager;
-    MultiColorEngineSPtr m_engine;
+    GUI::ColorEngines::MultiColorEngineSPtr m_engine;
 
-    QMap<QAction *, ColorEngineSPtr>  m_availableEngines;
+    QMap<QAction *, GUI::ColorEngines::ColorEngineSPtr>  m_availableEngines;
   };
 
 } // namespace ESPINA

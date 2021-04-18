@@ -26,16 +26,39 @@
 
 #include <Coordinator.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class Coordinator
+   * \brief
+   */
   class EspinaSupport_EXPORT Coordinator
   : public Metadona::Coordinator
   {
-    virtual Metadona::Id selectEntry(const Metadona::Level& level, std::vector<Metadona::Id> entries) const;
+    public:
+      /** \brief Coordinator class virtual destructor.
+       *
+       */
+      virtual ~Coordinator()
+      {};
 
-    virtual void createEntry(Metadona::Entry& entry);
+      /** \brief Shows the selector dialog for the next possible entries.
+       * \param[in] level level of the metadata.
+       * \param[in] entries list of possible entries.
+       *
+       */
+      virtual Metadona::Id selectEntry(const Metadona::Level& level, std::vector<Metadona::Id> entries) const;
 
-    virtual Metadona::Level selectNextLevel(const std::vector<Metadona::Level>& levels);
+      /** \brief Creates and shows a dialog for the given entry.
+       * \param[in] entry entry data.
+       *
+       */
+      virtual void createEntry(Metadona::Entry& entry);
+
+      /** \brief Shows a dialog to select the next metadata level.
+       * \param[in] levels list of metadata levels.
+       *
+       */
+      virtual Metadona::Level selectNextLevel(const std::vector<Metadona::Level>& levels);
   };
 }
 

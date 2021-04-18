@@ -22,7 +22,8 @@
 #include "Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
 #include <Core/Utils/TemporalStorage.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
 
 // ITK
 #include <itkMetaImageIO.h>
@@ -39,14 +40,10 @@
 #include <vtkMath.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
-
-namespace ESPINA {
-//   class ReadOnlyData
-//   : public Data
-//   {
-//     virtual DataProxySPtr createProxy() const;
-//   };
+namespace ESPINA
+{
   namespace OutputParser
   {
     bool isOutputSection(const QXmlStreamReader& xml)
@@ -92,6 +89,7 @@ Snapshot Filter::snapshot() const
 {
   Snapshot snapshot;
 
+//   qDebug() << "Snapshot Request: " << m_type << uuid();
   if (!m_outputs.isEmpty())
   {
     QByteArray       buffer;
@@ -101,7 +99,8 @@ Snapshot Filter::snapshot() const
     xml.writeStartDocument();
     xml.writeStartElement("Filter");
     xml.writeAttribute("Type", m_type);
-    for(OutputSPtr output : m_outputs)
+
+    for(auto output : m_outputs)
     {
       xml.writeStartElement("Output");
       xml.writeAttribute("id",      QString::number(output->id()));
@@ -125,16 +124,16 @@ Snapshot Filter::snapshot() const
 //----------------------------------------------------------------------------
 void Filter::unload()
 {
-
 }
 
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-  //qDebug() << "Update Request: " << m_type;
+//  QString debugPath;
+//  debugPath.append(QString("Update Request: %1").arg(m_type));
   if (m_outputs.isEmpty() || needUpdate())
   {
-    //qDebug() << " - Accepted";
+//    debugPath.append(" - Accepted");
     bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
     for(auto input : m_inputs)
@@ -142,6 +141,7 @@ void Filter::update()
       input->update();
     }
 
+//    debugPath.append(QString(" - Executing: %1").arg(m_type));
     execute();
 
     if (invalidatePreviousEditedRegions)
@@ -153,19 +153,23 @@ void Filter::update()
     }
     else
     {
-      restoreEditedRegions();
+       restoreEditedRegions();
     }
   }
+
+//  qDebug() << debugPath;
 }
 
 //----------------------------------------------------------------------------
-Filter::Filter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+Filter::Filter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : Task         {scheduler}
 , m_analysis   {nullptr}
 , m_type       {type}
 , m_inputs     {inputs}
-, m_dataFactory{new FetchRawData()}
+, m_dataFactory{new RawDataFactory()}
 {
+  setDescription(tr("Filter execution task: %1").arg(m_type));
+
   setName(m_type);
 }
 
@@ -174,16 +178,19 @@ void Filter::restoreEditedRegions()
 {
   if (validStoredInformation())
   {
-    QByteArray buffer = storage()->snapshot(outputFile());
+    QByteArray buffer;
 
-    //qDebug() << buffer;
+    if(storage()->exists(outputFile()))
+    {
+      buffer = storage()->snapshot(outputFile());
+    }
 
     if (!buffer.isEmpty())
     {
       QXmlStreamReader xml(buffer);
 
       OutputSPtr output;
-      DataSPtr   data;
+      Data::Type dataType;
       BoundsList editedRegions;
 
       while (!xml.atEnd())
@@ -201,15 +208,11 @@ void Filter::restoreEditedRegions()
           }
           else if (isDataSection(xml) && output)
           {
-            data = output->data(parseDataType(xml));
-
-            Q_ASSERT(data);
-
+            dataType = parseDataType(xml);
             editedRegions.clear();
           }
           else if (isEditedRegionSection(xml) && output)
           {
-            Q_ASSERT(data);
             editedRegions << parseEditedRegionsBounds(xml);
           }
         }
@@ -217,7 +220,7 @@ void Filter::restoreEditedRegions()
         {
           if (isDataSection(xml))
           {
-            Q_ASSERT(data);
+            auto data = output->writeLockData<Data>(dataType);
             data->setEditedRegions(editedRegions);
             data->restoreEditedRegions(storage(), prefix(), QString::number(output->id()));
           }
@@ -247,13 +250,14 @@ bool Filter::existOutput(Output::Id id) const
 //----------------------------------------------------------------------------
 bool Filter::restorePreviousOutputs() const
 {
-  //qDebug() << "Restore Previous Outputs Request: " << m_type << uuid();
   if (validStoredInformation())
   {
-    //qDebug() << " - Accepted";
-    QByteArray buffer = storage()->snapshot(outputFile());
+    QByteArray buffer;
 
-    //qDebug() << buffer;
+    if(storage()->exists(outputFile()))
+    {
+      buffer = storage()->snapshot(outputFile());
+    }
 
     if (!buffer.isEmpty())
     {
@@ -278,16 +282,21 @@ bool Filter::restorePreviousOutputs() const
           }
           else if (isDataSection(xml) && output)
           {
+            // TODO: 07-10-2016 - @felix - Take into account data dependencies, requires data factory refactorization.
             data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
             if (!data)
             {
-              // TODO: Create ReadOnlyData to preserve data information in further savings
+              // TODO 2014-04-20: Create ReadOnlyData to preserve data information in further savings
+              qWarning() << name() << ":" << uuid() << "Unable to create requested data type: prefix[" << prefix() << "]";
+              for(auto attr: xml.attributes().toList())
+              {
+                qWarning() << "xml Attribute: " << attr.name().toString() << attr.value().toString();
+              }
             }
             editedRegions.clear();
           }
           else if (isEditedRegionSection(xml) && output)
           {
-            Q_ASSERT(data);
             editedRegions << parseEditedRegionsBounds(xml);
           }
         }
@@ -295,8 +304,10 @@ bool Filter::restorePreviousOutputs() const
         {
           if (isDataSection(xml))
           {
-            Q_ASSERT(data);
-            data->setEditedRegions(editedRegions);
+            if (data)
+            {
+              data->setEditedRegions(editedRegions);
+            }
           }
         }
       }
@@ -306,6 +317,14 @@ bool Filter::restorePreviousOutputs() const
   return !m_outputs.isEmpty();
 }
 
+//----------------------------------------------------------------------------
+void Filter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
+{
+  for (auto output : outputs())
+  {
+    output->setSpacing(spacing);
+  }
+}
 
 //----------------------------------------------------------------------------
 unsigned int Filter::numberOfOutputs() const
@@ -315,16 +334,20 @@ unsigned int Filter::numberOfOutputs() const
 
 //----------------------------------------------------------------------------
 bool Filter::validOutput(Output::Id id) const
-throw (Undefined_Output_Exception)
 {
   return existOutput(id) && m_outputs[id]->isValid();
 }
 
 //----------------------------------------------------------------------------
 OutputSPtr Filter::output(Output::Id id) const
-throw (Undefined_Output_Exception)
 {
-  if (!existOutput(id)) throw Undefined_Output_Exception();
+  if (!existOutput(id))
+  {
+    auto what = QObject::tr("Invalid output id, id: %1, filter: %2").arg(id).arg(type());
+    auto details = QObject::tr("Filter::output(id) -> Invalid output id, id: %1, filter: %2").arg(id).arg(type());
+
+    throw EspinaException(what, details);
+  }
 
   return m_outputs[id];
 }

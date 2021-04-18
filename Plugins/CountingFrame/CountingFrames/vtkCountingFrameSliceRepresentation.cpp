@@ -1,5 +1,8 @@
+
+// ESPINA
 #include "vtkCountingFrameSliceRepresentation.h"
 
+// VTK
 #include <vtkActor.h>
 #include <vtkAssemblyPath.h>
 #include <vtkBox.h>
@@ -27,6 +30,9 @@
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkSmartPointer.h>
 
+// C++
+#include <cstring>
+
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
@@ -38,16 +44,15 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
 , InvisibleProperty        {nullptr}
 , Region                   {nullptr}
 , Slice                    {0}
-, Init                     {false}
+, Depth                    {0}
 , NumPoints                {0}
 , NumSlices                {0}
-, NumVertex                {0}
 {
   // The initial state
   this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
 
-  memset(this->InclusionOffset, 0, 3*sizeof(double));
-  memset(this->ExclusionOffset, 0, 3*sizeof(double));
+  std::memset(this->InclusionOffset, 0, 3*sizeof(double));
+  std::memset(this->ExclusionOffset, 0, 3*sizeof(double));
 
   this->CreateDefaultProperties();
 
@@ -58,7 +63,7 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
 
   // Build edges
   this->Vertex = vtkSmartPointer<vtkPoints>::New();
-  this->Vertex->SetDataType(VTK_FLOAT);
+  this->Vertex->SetDataTypeToDouble();
   this->Vertex->SetNumberOfPoints(4);//line sides;
   for (EDGE i=LEFT; i<=BOTTOM; i = EDGE(i+1))
   {
@@ -70,10 +75,15 @@ vtkCountingFrameSliceRepresentation::vtkCountingFrameSliceRepresentation()
     this->EdgePolyData[i]->SetLines(vtkSmartPointer<vtkCellArray>::New());
     this->EdgeMapper[i]->SetInputData(this->EdgePolyData[i]);
     this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
+
     if (i < RIGHT)
+    {
       this->EdgeActor[i]->SetProperty(this->InclusionEdgeProperty);
+    }
     else
+    {
       this->EdgeActor[i]->SetProperty(this->ExclusionEdgeProperty);
+    }
 
     this->EdgePicker->AddPickList(this->EdgeActor[i]);
   }
@@ -108,9 +118,8 @@ vtkCountingFrameSliceRepresentation::~vtkCountingFrameSliceRepresentation()
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::reset()
 {
-//   std::cout << "Shift's been reset" << std::endl;
-  memset(this->InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
-  memset(this->ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+  std::memset(this->InclusionOffset, 0, 3*sizeof(ESPINA::Nm));
+  std::memset(this->ExclusionOffset, 0, 3*sizeof(ESPINA::Nm));
   CreateRegion();
 }
 
@@ -225,7 +234,9 @@ void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
                                                        ESPINA::Nm bounds[6]) const
 {
   if (regionSlice < 0)
+  {
     vtkMath::UninitializeBounds(bounds);
+  }
   else
   {
     double p1[3], p2[3];
@@ -241,76 +252,43 @@ void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
 }
 
 //----------------------------------------------------------------------------
-int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
+const int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
 {
   double point[3];
   for (int number = 0; number < NumSlices; number++)
   {
     this->Region->GetPoints()->GetPoint(4*number, point);
-//     this->Region->GetOutput()->GetPoints()->GetPoint(4*(number+1), next);
-//     if (point[Plane] <= pos && pos < next[Plane])
+
     if (pos <= point[2])
-      return (NumSlices == 2 || number == 0)?number : number - 1;
+    {
+      return (NumSlices == 2 || number == 0) ? number : number - 1;
+    }
   }
 
   return NumSlices-1;
 }
 
-// double slope(double p1[2], double p2[2])
-// {
-//   return (p2[1] - p1[1])/(p2[0] - p1[0]);
-// }
-// double interpolate(double p1[2], double p2[2], double x)
-// {
-//   double m = slope(p1, p2);
-//   return m*x + p1[1] - m*p1[0];
-// }
-// 
-// void intersection(double A1[2], double A2[2], double B1[2], double B2[2], double p[2])
-// {
-//   double mA = slope(A1, A2);
-//   double bA = A1[1] / (A1[0]*mA);
-//   double mB = slope(B1, B2);
-//   double bB = B1[1] / (B1[0]*mB);
-//   p[0] = (bB - bA)/(mA - mB);
-//   p[1] = mA*A1[0] + bA;
-// }
-
 //----------------------------------------------------------------------------
-void vtkCountingFrameSliceRepresentation::SetSlice(ESPINA::Nm pos)
+void vtkCountingFrameSliceRepresentation::SetRepresentationDepth(ESPINA::Nm depth)
 {
-  Slice = pos;
-//   std::cout << "Plane: " << Plane << ", Slice: " << pos << /*", Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] <<*/ std::endl;
-//   if (pos < InclusionOffset[Plane])// || NumSlices <= Slice)
-//   {
-//     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
-//       this->EdgeActor[i]->SetProperty(InvisibleProperty);
-//     return;
-//   } else
-//   {
-//     for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
-//       this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
-//     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
-//       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
-//   }
+  Depth = depth;
+
   CreateRegion();
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
-                                                             ESPINA::Nm inclusionOffset[3],
-                                                             ESPINA::Nm exclusionOffset[3],
-                                                             ESPINA::NmVector3 slicingStep)
+                                                           ESPINA::Nm inclusionOffset[3],
+                                                           ESPINA::Nm exclusionOffset[3],
+                                                           ESPINA::NmVector3 slicingStep)
 {
   Region = region;
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
   SlicingStep = slicingStep;
 
-  // this->Region->Update(); NOTE: is still needed with vtk6?
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
   this->NumSlices = this->NumPoints / 4;
-  this->NumVertex = this->NumSlices * 2;
 
   CreateRegion();
 }
@@ -332,11 +310,6 @@ void vtkCountingFrameSliceRepresentation::SetHighlighted(bool highlight)
   }
   else
   {
-//     this->InclusionEdgeProperty->SetLineWidth(0.5);
-//     this->ExclusionEdgeProperty->SetLineWidth(0.5);
-//     this->SelectedInclusionProperty->SetLineWidth(1.5);
-//     this->SelectedExclusionProperty->SetLineWidth(1.5);
-
     this->InclusionEdgeProperty->SetLineStipplePattern(0x0ff0);
     this->ExclusionEdgeProperty->SetLineStipplePattern(0x0ff0);
     this->SelectedInclusionProperty->SetLineStipplePattern(0x0ff0);
@@ -347,13 +320,10 @@ void vtkCountingFrameSliceRepresentation::SetHighlighted(bool highlight)
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::PlaceWidget(double bds[6])
 {
-//   std::cout << "Place Widget: ";
   int i;
   double bounds[6], center[3];
 
   this->AdjustBounds(bds,bounds,center);
-//   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
-//   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
 
   this->Vertex->SetPoint(0, bounds[0], bounds[2], bounds[4]);
   this->Vertex->SetPoint(1, bounds[1], bounds[2], bounds[4]);
@@ -361,9 +331,10 @@ void vtkCountingFrameSliceRepresentation::PlaceWidget(double bds[6])
   this->Vertex->SetPoint(3, bounds[0], bounds[3], bounds[4]);
 
   for (i=0; i<6; i++)
-    {
+  {
     this->InitialBounds[i] = bounds[i];
-    }
+  }
+
   this->InitialLength = sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
                              (bounds[3]-bounds[2])*(bounds[3]-bounds[2]) +
                              (bounds[5]-bounds[4])*(bounds[5]-bounds[4]));
@@ -377,42 +348,44 @@ int vtkCountingFrameSliceRepresentation::ComputeInteractionState(int X, int Y, i
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
   if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
-    {
+  {
     this->InteractionState = vtkCountingFrameSliceRepresentation::Outside;
     return this->InteractionState;
-    }
+  }
 
-  vtkAssemblyPath *path;
   // Try and pick a handle first
   this->LastPicker = nullptr;
   this->CurrentEdge = nullptr;
   this->EdgePicker->Pick(X,Y,0.0,this->Renderer);
-  path = this->EdgePicker->GetPath();
-  if ( path != nullptr )
+  auto path = this->EdgePicker->GetPath();
+  if (path != nullptr)
   {
     this->LastPicker = this->EdgePicker;
     this->ValidPick = 1;
 
     this->CurrentEdge = reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
-    if (this->CurrentEdge == this->EdgeActor[LEFT])
+    if(this->CurrentEdge)
     {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveLeft;
-    }
-    else if (this->CurrentEdge == this->EdgeActor[RIGHT])
-    {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveRight;
-    } 
-    else if (this->CurrentEdge == this->EdgeActor[TOP])
-    {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveTop;
-    } 
-    else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
-    {
-      this->InteractionState = vtkCountingFrameSliceRepresentation::MoveBottom;
-    }
-    else
-    {
-      assert(false);
+      if (this->CurrentEdge == this->EdgeActor[LEFT])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveLeft;
+      }
+      else if (this->CurrentEdge == this->EdgeActor[RIGHT])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveRight;
+      }
+      else if (this->CurrentEdge == this->EdgeActor[TOP])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveTop;
+      }
+      else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
+      {
+        this->InteractionState = vtkCountingFrameSliceRepresentation::MoveBottom;
+      }
+      else
+      {
+        assert(false);
+      }
     }
   }
   else
@@ -431,7 +404,7 @@ void vtkCountingFrameSliceRepresentation::SetInteractionState(int state)
   // Depending on state, highlight appropriate parts of representation
   this->InteractionState = state;
   switch (state)
-    {
+  {
     case vtkCountingFrameSliceRepresentation::MoveLeft:
     case vtkCountingFrameSliceRepresentation::MoveRight:
     case vtkCountingFrameSliceRepresentation::MoveTop:
@@ -444,7 +417,7 @@ void vtkCountingFrameSliceRepresentation::SetInteractionState(int state)
     default:
       this->HighlightEdge(nullptr);
       break;
-    }
+  }
 }
 
 //----------------------------------------------------------------------
@@ -462,17 +435,18 @@ void vtkCountingFrameSliceRepresentation::BuildRepresentation()
        (this->Renderer && this->Renderer->GetVTKWindow() &&
         (this->Renderer->GetVTKWindow()->GetMTime() > this->BuildTime ||
         this->Renderer->GetActiveCamera()->GetMTime() > this->BuildTime)) )
-    {
+  {
     this->BuildTime.Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceRepresentation::ReleaseGraphicsResources(vtkWindow *w)
 {
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     this->EdgeActor[i]->ReleaseGraphicsResources(w);
-
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -482,7 +456,9 @@ int vtkCountingFrameSliceRepresentation::RenderOpaqueGeometry(vtkViewport *v)
   this->BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     count += this->EdgeActor[i]->RenderOpaqueGeometry(v);
+  }
 
   return count;
 }
@@ -494,7 +470,9 @@ int vtkCountingFrameSliceRepresentation::RenderTranslucentPolygonalGeometry(vtkV
   this->BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     count += this->EdgeActor[i]->RenderTranslucentPolygonalGeometry(v);
+  }
 
   return count;
 }
@@ -506,7 +484,9 @@ int vtkCountingFrameSliceRepresentation::HasTranslucentPolygonalGeometry()
   this->BuildRepresentation();
 
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     result |= this->EdgeActor[i]->HasTranslucentPolygonalGeometry();
+  }
 
   return result;
 }
@@ -523,17 +503,25 @@ void vtkCountingFrameSliceRepresentation::HighlightEdge(vtkSmartPointer<vtkActor
       if (actor->GetProperty() == this->InclusionEdgeProperty)
       {
         actor->SetProperty(this->SelectedInclusionProperty);
-      } else {
+      }
+      else
+      {
         actor->SetProperty(this->SelectedExclusionProperty);
       }
     }
-    else if (edgeActor->GetProperty() == this->SelectedInclusionProperty)
+    else
     {
-      edgeActor->SetProperty(this->InclusionEdgeProperty);
-    }
-    else if (edgeActor->GetProperty() == this->SelectedExclusionProperty)
-    {
-      edgeActor->SetProperty(this->ExclusionEdgeProperty);
+      if (edgeActor->GetProperty() == this->SelectedInclusionProperty)
+      {
+        edgeActor->SetProperty(this->InclusionEdgeProperty);
+      }
+      else
+      {
+        if (edgeActor->GetProperty() == this->SelectedExclusionProperty)
+        {
+          edgeActor->SetProperty(this->ExclusionEdgeProperty);
+        }
+      }
     }
   }
 }

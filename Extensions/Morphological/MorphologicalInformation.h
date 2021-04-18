@@ -24,7 +24,9 @@
 #include "Extensions/EspinaExtensions_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
+#include <Core/Analysis/Extensions.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 // ITK
 #include <itkLabelImageToShapeLabelMapFilter.h>
@@ -32,100 +34,76 @@
 
 namespace ESPINA
 {
-  class EspinaExtensions_EXPORT MorphologicalInformation
-  : public SegmentationExtension
+  namespace Extensions
   {
-    using LabelObjectType = itk::StatisticsLabelObject<unsigned int, 3>;
-    using LabelMapType    = itk::LabelMap<LabelObjectType>;
-    using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
+    class EspinaExtensions_EXPORT MorphologicalInformation
+    : public Core::SegmentationExtension
+    {
+        using LabelObjectType       = itk::StatisticsLabelObject<unsigned int, 3>;
+        using LabelMapType          = itk::LabelMap<LabelObjectType>;
+        using Image2LabelFilterType = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
 
-  public:
-    static const Type TYPE;
+      public:
+        static const Type TYPE;
 
-  public:
-    /** \brief MorphologicalInformation class constructor.
-     * \param[in] cache, cache object for the extension.
-     * \param[in] state, state object of the extension.
-     */
-    explicit MorphologicalInformation(const InfoCache &cache = InfoCache(),
-                                      const State     &state = State());
+      public:
+        /** \brief MorphologicalInformation class virtual destructor.
+         *
+         */
+        virtual ~MorphologicalInformation();
 
-    /** \brief MorphologicalInformation class virtual destructor.
-     *
-     */
-    virtual ~MorphologicalInformation();
+        virtual QString type() const
+        { return TYPE; }
 
-    /** \brief Implements Extesion::type().
-     *
-     */
-    virtual QString type() const
-    { return TYPE; }
+        virtual State state() const;
 
-    /** \brief Implements Extension::state().
-     *
-     */
-    virtual State state() const;
+        virtual Snapshot snapshot() const;
 
-    /** \brief Implements Extension::snapshot().
-     *
-     */
-    virtual Snapshot snapshot() const;
+        virtual const TypeList dependencies() const
+        { return TypeList(); }
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
-    virtual TypeList dependencies() const
-    { return TypeList(); }
+        virtual bool invalidateOnChange() const
+        { return true; }
 
-    /** \brief Implements Extension::invalidateOnChange().
-     *
-     */
-    virtual bool invalidateOnChange() const
-    { return true; }
+        virtual const InformationKeyList availableInformation() const;
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
-    virtual InfoTagList availableInformations() const;
+        virtual bool validCategory(const QString& classificationName) const
+        { return true;}
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
-    virtual bool validCategory(const QString& classificationName) const
-    { return true;}
+        virtual bool validData(const OutputSPtr output) const
+        { return hasVolumetricData(output) && hasMeshData(output); }
 
-  protected:
-    /** \brief Implements Extension::cacheFail().
-     *
-     */
-    virtual QVariant cacheFail(const QString& tag) const;
+      protected:
+        virtual QVariant cacheFail(const InformationKey& tag) const;
 
-    /** \brief Implements Extension::onExtendedItemSet().
-     *
-     */
-    virtual void onExtendedItemSet(Segmentation* item);
+        virtual void onExtendedItemSet(Segmentation* item);
 
-  private:
-    /** \brief Computes information values.
-     *
-     */
-    void updateInformation() const;
+      private:
+        /** \brief Computes information values.
+         *
+         */
+        void updateInformation() const;
 
-  private:
-    Image2LabelFilterType::Pointer m_labelMap;
-    mutable LabelObjectType       *m_statistic;
+      private:
+        /** \brief MorphologicalInformation class constructor.
+         * \param[in] cache, cache object for the extension.
+         * \param[in] state, state object of the extension.
+         */
+        explicit MorphologicalInformation(const InfoCache &cache = InfoCache(),
+                                          const State     &state = State());
 
-    mutable bool m_validFeret;
+        mutable QReadWriteLock m_mutex;
 
-    double Size;
-    double PhysicalSize;
-    double Centroid[3];
-    double BinaryPrincipalMoments[3];
-    double BinaryPrincipalAxes[3][3];
-    double FeretDiameter;
-    double EquivalentEllipsoidSize[3];
-  };
+        Image2LabelFilterType::Pointer m_labelMap;
+        mutable LabelObjectType       *m_statistic;
 
+        friend class MorphologicalInformationFactory;
+    };
+
+    using MorphologicalExtensionPtr  = MorphologicalInformation *;
+    using MorphologicalExtensionSPtr = std::shared_ptr<MorphologicalInformation>;
+
+  }// namespace Extensions
 }// namespace ESPINA
 
 #endif // ESPINA_MORPHOLOGICAL_INFORMATION_H

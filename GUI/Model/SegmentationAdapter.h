@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+ * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
 
@@ -22,59 +22,38 @@
 #ifndef ESPINA_SEGMENTATION_ADAPTER_H
 #define ESPINA_SEGMENTATION_ADAPTER_H
 
+#include <GUI/EspinaGUI_Export.h>
+
 // ESPINA
-#include "GUI/Model/ViewItemAdapter.h"
-#include <Core/Analysis/Extension.h>
+#include <GUI/Model/ViewItemAdapter.h>
+#include <Core/Analysis/Extensible.hxx>
+#include <Core/Analysis/Extensions.h>
 
 namespace ESPINA
 {
-  class CategoryAdapter;
-  using CategoryAdapterPtr   = CategoryAdapter *;
-  using CategoryAdapterSPtr  = std::shared_ptr<CategoryAdapter>;
-
-  class SegmentationAdapter;
-  using SegmentationAdapterPtr   = SegmentationAdapter *;
-  using SegmentationAdapterSet   = QSet<SegmentationAdapterPtr>;
-  using SegmentationAdapterList  = QList<SegmentationAdapterPtr>;
-  using SegmentationAdapterSPtr  = std::shared_ptr<SegmentationAdapter>;
-  using SegmentationAdapterSList = QList<SegmentationAdapterSPtr>;
-
-  static const int NumberRole = TypeRole + 1;
-
-  /** ass SegmentationAdapter.
+  /** class SegmentationAdapter.
    * \brief Model biological structures which have been extracted from one or more channels.
    */
   class EspinaGUI_EXPORT SegmentationAdapter
   : public ViewItemAdapter
   {
   public:
+    using ReadLockExtensions  = Core::ReadLockExtensions<Core::SegmentationExtension, Segmentation>;
+    using WriteLockExtensions = Core::WriteLockExtensions<Core::SegmentationExtension, Segmentation>;
+
+  public:
     /** \brief SegmentationAdapter class virtual destructor.
      *
      */
     virtual ~SegmentationAdapter();
 
-    /** \brief Implements ItemAdapter::data().
-     *
-     */
     virtual QVariant data(int role = Qt::DisplayRole) const;
 
-    /** \brief Implements ItemAdapter::setData().
-     *
-     */
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual bool setData(const QVariant& value, int role);
 
-    /** \brief Implements ItemAdapter::type().
-     *
-     */
     virtual ItemAdapter::Type type() const
     { return Type::SEGMENTATION; }
 
-    /** \brief Implements ViewItemAdapter::asInput().
-     *
-     * TODO 2014-05-13: create a new method with this name to add a new type of input which is
-     *      invariant to the segmentation and rename this method to something else?
-     *
-     */
     virtual InputSPtr asInput() const;
 
     /** \brief Sets the number of the segmentation.
@@ -110,58 +89,28 @@ namespace ESPINA
      */
     QStringList users() const;
 
-    /** \brief Adds a extension to the segmentation.
-     * \param[in] extension smart pointer of the segmentation extension to add.
-     *
-     * Extesion won't be available until requirements are satisfied
-     *
-     */
-    void addExtension(SegmentationExtensionSPtr extension);
+    ReadLockExtensions readOnlyExtensions() const;
 
-    /** \brief Removes an extension from the segmentation.
-     * \param[in] extension smart pointer of the segmentation extension to remove.
-     *
-     */
-    void deleteExtension(SegmentationExtensionSPtr extension);
+    WriteLockExtensions extensions();
 
-    /** \brief Check whether or not there is an extension with the given name.
-     * \param[in] type segmentation extension type.
-     *
-     */
-    bool hasExtension(const SegmentationExtension::Type& type) const;
-
-    /** \brief Return the extension with the especified name.
-     * \param[in] type segmentation extension type.
-     *
-     *  Important: It the segmentation doesn't contain any extension with
-     *  the requested name, but there exist an extension prototype registered
-     *  in the factory, a new instance will be created and attached to the
-     *  segmentation.
-     *  If there is no extension with the given name registered in the factory
-     *  a Undefined_Extension exception will be thrown
-     */
-     SegmentationExtensionSPtr extension(const SegmentationExtension::Type& type) const;
-
-     /** \brief Returns the list of extensions that the segmentation has.
+     /** \brief Returns the list of tags provided by the segmentation extensions of the segmentation.
       *
       */
-     SegmentationExtensionSList extensions() const;
+    virtual const Core::SegmentationExtension::InformationKeyList availableInformation() const;
 
-     /** \brief Returns the list of tags provided by the segmnetation extensions of the segmentation.
-      *
-      */
-    virtual SegmentationExtension::InfoTagList informationTags() const;
+    bool hasInformation(const Core::SegmentationExtension::InformationKey &key) const
+    { return availableInformation().contains(key); }
 
     /** \brief Returns the information specified by the tag.
-     * \param[in] tag segmentation extension information tag.
+     * \param[in] key segmentation extension information tag.
      *
      */
-    virtual QVariant information(const SegmentationExtension::InfoTag& tag) const;
+    virtual QVariant information(const Core::SegmentationExtension::InformationKey &key) const;
 
     /** \brief Returns true if the information is available.
      *
      */
-    bool isInformationReady(const SegmentationExtension::InfoTag& tag) const;
+    bool isReady(const Core::SegmentationExtension::InformationKey &key) const;
 
     /** \brief Returns a bounds that contain the segmentation.
      *
@@ -170,10 +119,24 @@ namespace ESPINA
      */
     Bounds bounds() const;
 
-  protected:
-    /** \brief Implements ViewItemAdapter::changeOutput().
+    /** \brief Returns a color engine for this segmentation that overrides the one given by the app, or nullptr to use
+     * the default one.
      *
      */
+    GUI::ColorEngines::ColorEngineSPtr colorEngine() const;
+
+    /** \brief Sets a color engine for the segmentation representations.
+     * \param[in] engine Color engine object smart pointer.
+     *
+     */
+    void setColorEngine(GUI::ColorEngines::ColorEngineSPtr engine);
+
+    /** \brief Removes the color engine, if any, of the segmentation.
+     *
+     */
+    void clearColorEngine();
+
+  protected:
     virtual void changeOutputImplementation(InputSPtr input);
 
   private:
@@ -185,8 +148,9 @@ namespace ESPINA
     explicit SegmentationAdapter(SegmentationSPtr segmentation);
 
   private:
-    SegmentationSPtr    m_segmentation;
-    CategoryAdapterSPtr m_category;
+    SegmentationSPtr                   m_segmentation; /** adapted segmentation object.                                         */
+    CategoryAdapterSPtr                m_category;     /** adapted category of the segmentation.                                */
+    GUI::ColorEngines::ColorEngineSPtr m_colorEngine;  /** color engine for the segmentation or nullptr to use the default one. */
 
     friend class ModelFactory;
     friend class ModelAdapter;
@@ -194,40 +158,34 @@ namespace ESPINA
 
     friend bool operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs);
     friend bool operator==(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs);
-
   };
 
   /** \brief Equality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation adapter smart pointer.
-   * \param[in] rhs, segmentation smart pointer.
+   * \param[in] lhs segmentation adapter smart pointer.
+   * \param[in] rhs segmentation smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator==(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
 
   /** \brief Equality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation smart pointer.
-   * \param[in] rhs, segmentation adapter smart pointer.
+   * \param[in] lhs segmentation smart pointer.
+   * \param[in] rhs segmentation adapter smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator==(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
 
   /** \brief Inequality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation adapter smart pointer.
-   * \param[in] rhs, segmentation smart pointer.
+   * \param[in] lhs segmentation adapter smart pointer.
+   * \param[in] rhs segmentation smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr        rhs);
 
   /** \brief Inequality operation between a segmentation adapter smart pointer and a segmentation smart pointer.
-   * \param[in] lhs, segmentation smart pointer.
-   * \param[in] rhs, segmentation adapter smart pointer.
+   * \param[in] lhs segmentation smart pointer.
+   * \param[in] rhs segmentation adapter smart pointer.
    *
    */
   bool EspinaGUI_EXPORT operator!=(SegmentationSPtr        lhs, SegmentationAdapterSPtr rhs);
-
-  /** \brief Returns the segmentation adapter smart pointer from the item adapter raw pointer.
-   * \param[in] item, item adapter raw pointer.
-   */
-  SegmentationAdapterPtr EspinaGUI_EXPORT segmentationPtr(ItemAdapterPtr item);
 }
 #endif // ESPINA_SEGMENTATION_ADAPTER_H

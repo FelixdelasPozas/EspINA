@@ -20,20 +20,31 @@
 
 // ESPINA
 #include "DefaultContextualMenu.h"
+#include <App/Utils/TagUtils.h>
+#include <App/Dialogs/ColorEngineSelector/ColorEngineSelector.h>
+#include <Core/Utils/SupportedFormats.h>
+#include <Core/Utils/ListUtils.hxx>
+#include <Core/Utils/vtkPolyDataUtils.h>
+#include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
-#include <Extensions/Tags/SegmentationTags.h>
 #include <GUI/Widgets/NoteEditor.h>
-#include <GUI/Widgets/TagSelector.h>
+#include <GUI/Widgets/Styles.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <Undo/ChangeSegmentationNotes.h>
-#include <Undo/ChangeSegmentationTags.h>
-#include <Undo/ChangeCategoryCommand.h>
 #include <Undo/RenameSegmentationsCommand.h>
 #include <Undo/RemoveSegmentations.h>
 
+// ITK
+#include <itkLabelObject.h>
+#include <itkLabelMap.h>
+#include <itkBinaryImageToLabelMapFilter.h>
+#include <itkLabelMapToLabelImageFilter.h>
+#include <itkMergeLabelMapFilter.h>
+
 // Qt
-#include <QWidgetAction>
-#include <QTreeView>
 #include <QHeaderView>
 #include <QStringList>
 #include <QStringListModel>
@@ -41,34 +52,34 @@
 #include <QInputDialog>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QApplication>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::View;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::Widgets::Styles;
 
 //------------------------------------------------------------------------
 DefaultContextualMenu::DefaultContextualMenu(SegmentationAdapterList selection,
-                                             ModelAdapterSPtr        model,
-                                             ViewManagerSPtr         viewManager,
-                                             QUndoStack             *undoStack,
+                                             Support::Context       &context,
                                              QWidget                *parent)
-: ContextualMenu  {parent}
-, m_model         {model}
-, m_viewManager   {viewManager}
-, m_undoStack     {undoStack}
-, m_classification{nullptr}
-, m_segmentations {selection}
+: ContextualMenu {parent}
+, WithContext    (context)
+, m_segmentations{selection}
 {
-  createChangeCategoryMenu();
   createNoteEntry();
   createTagsEntry();
   createRenameEntry();
+  createGroupRenameEntry();
+  createExportEntry();
   createDeleteEntry();
-}
+  createColorEntry();
 
-//------------------------------------------------------------------------
-DefaultContextualMenu::~DefaultContextualMenu()
-{
-  if (m_classification)
-    delete m_classification;
+  // to comment in production
+  // createFixesEntry();
 }
 
 //------------------------------------------------------------------------
@@ -80,141 +91,292 @@ void DefaultContextualMenu::addNote()
   {
     QString previousNotes;
 
-    if (segmentation->hasExtension(SegmentationNotes::TYPE))
+    auto extensions = segmentation->readOnlyExtensions();
+    if (extensions->hasExtension(SegmentationNotes::TYPE))
     {
-      previousNotes = segmentation->information(SegmentationNotes::NOTES).toString();
+      previousNotes = extensions->get<SegmentationNotes>()->notes();
     }
 
     NoteEditor editor(segmentation->data().toString(), previousNotes);
 
-    if (editor.exec())
+    if (QDialog::Accepted == editor.exec())
     {
-      commands << new ChangeSegmentationNotes(segmentation, editor.text());
+      commands << new ChangeSegmentationNotes(segmentation, editor.text(), getContext().factory().get());
     }
   }
 
   if (!commands.isEmpty())
   {
-    m_undoStack->beginMacro(tr("Add Notes"));
+    auto undoStack = getUndoStack();
+    auto names     = segmentationListNames(m_segmentations);
+
+    WaitingCursor cursor;
+
+    undoStack->beginMacro(tr("Add notes to %1.").arg(names));
     for (auto command : commands)
     {
-      m_undoStack->push(command);
+      undoStack->push(command);
     }
-    m_undoStack->endMacro();
+    undoStack->endMacro();
   }
-}
-
-//------------------------------------------------------------------------
-void DefaultContextualMenu::changeSegmentationsCategory(const QModelIndex& index)
-{
-   this->hide();
-
-   ItemAdapterPtr categoryItem = itemAdapter(index);
-   Q_ASSERT(isCategory(categoryItem));
-   CategoryAdapterPtr categoryAdapter = categoryPtr(categoryItem);
-
-   m_undoStack->beginMacro(tr("Change Category"));
-   {
-     m_undoStack->push(new ChangeCategoryCommand(m_segmentations,
-                                                 categoryAdapter,
-                                                 m_model,
-                                                 m_viewManager));
-   }
-   m_undoStack->endMacro();
-
-   emit changeCategory(categoryAdapter);
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::manageTags()
 {
-  QList<QUndoCommand *> commands;
-
-  if (!m_segmentations.isEmpty())
-  {
-    QStandardItemModel tags;
-
-    TagSelector tagSelector(dialogTitle(), tags);
-    if (tagSelector.exec())
-    {
-      for(auto segmentation : m_segmentations)
-      {
-        QStringList currentTags, previousTags;
-
-        if (segmentation->hasExtension(SegmentationTags::TYPE))
-        {
-          currentTags  = segmentation->information(SegmentationTags::TAGS).toString().split(";");
-          previousTags = currentTags;
-        }
-
-        for (int r = 0; r < tags.rowCount(); ++r)
-        {
-          QStandardItem *item = tags.item(r);
-          if (Qt::Checked == item->checkState())
-          {
-            if (!currentTags.contains(item->text()))
-              currentTags << item->text();
-          } else if (Qt::Unchecked == item->checkState())
-          {
-            currentTags.removeAll(item->text());
-          }
-        }
-        if (previousTags != currentTags)
-          commands << new ChangeSegmentationTags(segmentation, currentTags);
-      }
-    }
-
-  }
-
-  if (!commands.isEmpty())
-  {
-    m_undoStack->beginMacro(tr("Change Segmentation Tags"));
-    for (auto command : commands)
-    {
-      m_undoStack->push(command);
-    }
-    m_undoStack->endMacro();
-  }
-}
-
-//------------------------------------------------------------------------
-void DefaultContextualMenu::resetRootItem()
-{
-  m_classification->setRootIndex(m_model->classificationRoot());
+  manageTagsDialog(m_segmentations, getUndoStack(), getContext().factory().get());
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::renameSegmentation()
 {
   QMap<SegmentationAdapterPtr, QString> renames;
+  QString names;
 
   for (auto segmentation : m_segmentations)
   {
-    QString oldName = segmentation->data().toString();
-    QString alias = QInputDialog::getText(this, oldName, "Rename Segmentation", QLineEdit::Normal, oldName);
+    bool result = false;
+    auto oldName = segmentation->data().toString();
+    auto newName = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), oldName, tr("Rename segmentation"), QLineEdit::Normal, oldName, &result);
+    QString prefix = (segmentation == m_segmentations.first() ? "":(segmentation == m_segmentations.last() ? " and ":", "));
+
+    if(!result) continue;
 
     bool exists = false;
-    for (auto existinSegmentation : m_model->segmentations())
+    for (auto existinSegmentation : getModel()->segmentations())
     {
-      exists |= (existinSegmentation->data().toString() == alias && segmentation != existinSegmentation.get());
+      exists |= (existinSegmentation->data().toString() == newName);
     }
 
     if (exists)
     {
-      QMessageBox::warning(this, tr("Alias duplicated"),
-          tr("Segmentation alias is already used by another segmentation."));
+      auto title   = tr("Name duplicated");
+      auto msg     = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
+      auto buttons = QMessageBox::Abort|QMessageBox::Discard;
+
+      if(QMessageBox::Abort == DefaultDialogs::UserQuestion(msg, buttons, title))
+      {
+        break;
+      }
     }
     else
     {
-      renames[segmentation] = alias;
+      if(oldName != newName)
+      {
+        renames[segmentation] = newName;
+        names += tr("%1'%2' to '%3'").arg(prefix).arg(oldName).arg(newName);
+      }
     }
   }
 
   if (renames.size() != 0)
   {
-    m_undoStack->beginMacro(QString("Rename segmentations"));
-    m_undoStack->push(new RenameSegmentationsCommand(renames));
-    m_undoStack->endMacro();
+    WaitingCursor cursor;
+
+    auto undoStack = getUndoStack();
+    undoStack->beginMacro(tr("Rename segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
+    undoStack->push(new RenameSegmentationsCommand(renames));
+    undoStack->endMacro();
+  }
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::renameSegmentationGroup()
+{
+  QString names;
+  QMap<SegmentationAdapterPtr, QString> renames;
+  auto hint = m_segmentations.first()->data().toString();
+
+  QRegExp regExpr{"[0-9]"};
+
+  auto index = regExpr.indexIn(hint);
+
+  if(index > 1)
+  {
+   hint = hint.mid(0, (hint[index-1] == ' ' ? index-1 : index));
+  }
+
+  bool result = false;
+  QString prefix = QInputDialog::getText(DefaultDialogs::defaultParentWidget(), tr("Rename Group"), tr("Segmentations prefix"), QLineEdit::Normal, hint, &result);
+
+  if(!result) return;
+
+  for (auto segmentation : m_segmentations)
+  {
+    QString oldName  = segmentation->data().toString();
+    auto numIndex    = regExpr.indexIn(oldName);
+    auto newName     = prefix + " " + oldName.mid(numIndex, oldName.length()-numIndex);
+    auto namesPrefix = (segmentation == m_segmentations.first() ? "":(segmentation == m_segmentations.last() ? " and ":", "));
+
+    bool exists = false;
+    for (auto existinSegmentation : getModel()->segmentations())
+    {
+      exists |= (existinSegmentation->data().toString() == newName);
+    }
+
+    if (exists)
+    {
+      auto title   = tr("Alias duplicated");
+      auto msg     = tr("Segmentation name '%1' is already used by another segmentation.").arg(newName);
+      auto buttons = QMessageBox::Abort|QMessageBox::Discard;
+
+      if(QMessageBox::Abort == DefaultDialogs::UserQuestion(msg, buttons, title))
+      {
+        break;
+      }
+    }
+    else
+    {
+      renames.insert(segmentation, newName);
+      names += tr("%1'%2' to '%3'").arg(namesPrefix).arg(segmentation->data().toString()).arg(newName);
+    }
+  }
+
+  if (renames.size() != 0)
+  {
+    WaitingCursor cursor;
+
+    auto undoStack = getUndoStack();
+    undoStack->beginMacro(tr("Rename segmentations group: %1.").arg(names));
+    undoStack->push(new RenameSegmentationsCommand(renames));
+    undoStack->endMacro();
+  }
+}
+
+//------------------------------------------------------------------------
+template<typename T>
+void exportSegmentations(ChannelAdapterPtr channel, SegmentationAdapterList &segmentations, const QString &file)
+{
+  using Label            = itk::LabelObject<T, 3>;
+  using LabelMap         = itk::LabelMap<Label>;
+  using LabelImage       = itk::Image<T, 3>;
+  using MergFilter       = itk::MergeLabelMapFilter<LabelMap>;
+  using Binary2Label     = itk::BinaryImageToLabelMapFilter<itkVolumeType, LabelMap>;
+  using Label2LabelImage = itk::LabelMapToLabelImageFilter<LabelMap, LabelImage>;
+
+  auto origin  = channel->position();
+  auto spacing = channel->output()->spacing();
+  auto region  = equivalentRegion<LabelMap>(origin, spacing, channel->bounds());
+
+  auto labelMap = LabelMap::New();
+  labelMap->SetSpacing(ItkSpacing<LabelMap>(spacing));
+  labelMap->SetRegions(region);
+  labelMap->Allocate();
+
+  T i = 1;
+  QStringList croppedSegmentations;
+  for (auto segmentation : segmentations)
+  {
+    auto volume = readLockVolume(segmentation->output())->itkImage();
+
+    // NOTE: some segmentations could have voxels outside the stack bounds
+    //       (a dilated segmentation in the edge of the stack for example)
+    //       so a crop is needed in that case.
+    auto imageRegion = volume->GetLargestPossibleRegion();
+    if (!region.IsInside(imageRegion))
+    {
+      croppedSegmentations << segmentation->data().toString();
+
+      imageRegion.Crop(region);
+
+      volume = extract_image<itkVolumeType>(volume, imageRegion);
+    }
+
+    auto segLabelMapFilter = Binary2Label::New();
+    segLabelMapFilter->SetInput(volume);
+    segLabelMapFilter->SetInputForegroundValue(SEG_VOXEL_VALUE);
+    segLabelMapFilter->FullyConnectedOff();
+    segLabelMapFilter->Update();
+
+    auto segLabelMap = segLabelMapFilter->GetOutput();
+
+    auto label = segLabelMap->GetNthLabelObject(0);
+
+    // BinaryImageToLabelMapFilter create different labels for non connected components:
+    // Merge disconnected components into first label object
+    for (unsigned int n = 1; n < segLabelMap->GetNumberOfLabelObjects(); ++n)
+    {
+      auto part = segLabelMap->GetNthLabelObject(n);
+      for (unsigned int l = 0; l < part->GetNumberOfLines(); ++l)
+      {
+        label->AddLine(part->GetLine(l));
+      }
+    }
+    label->SetLabel(i++);
+    labelMap->AddLabelObject(label);
+  }
+
+  auto image = Label2LabelImage::New();
+
+  image->SetInput(labelMap);
+  image->SetNumberOfThreads(1);
+
+  auto title = QObject::tr("Export Segmentation%1 to a Binary Stack").arg(segmentations.size() > 1 ? "s" : "");
+
+  try
+  {
+    image->Update();
+
+    exportVolume<LabelImage>(image->GetOutput(), file);
+  }
+  catch (const itk::MemoryAllocationError &e)
+  {
+    auto msg = QObject::tr("Insufficient memory to export selected segmentations.");
+
+    if (segmentations.size() >= 256)
+    {
+      msg.append(QObject::tr("\nTry exporting less than 256 segmentations to produce 8 bit images instead of 16 bit ones"));
+    }
+
+    DefaultDialogs::InformationMessage(msg, title);
+  }
+  catch (const itk::ExceptionObject &e)
+  {
+    auto msg = QObject::tr("Error exporting: %1.").arg(QString(e.GetDescription()));
+
+    DefaultDialogs::InformationMessage(msg, title);
+  }
+
+  if(!croppedSegmentations.isEmpty())
+  {
+    auto msg = QObject::tr("Several segmentations needed to be cropped to fit stack bounds.");
+    auto details = QObject::tr("The following segmentations have voxels outside of the stack bounds and were cropped to fit:\n");
+    for(auto name: croppedSegmentations)
+    {
+      details += QString("\n- %1").arg(name);
+    }
+
+    DefaultDialogs::InformationMessage(msg, title, details);
+  }
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::exportSelectedSegmentations()
+{
+  auto title      = tr("Export selected segmentations");
+  auto suggestion = tr("segmentation_images.tif");
+  auto format     = SupportedFormats().addFormat(tr("Binary Stack"), "tif");
+
+  auto file = DefaultDialogs::SaveFile(title, format, QDir::homePath(), ".tif", suggestion);
+
+  if (file.isEmpty()) return;
+
+  WaitingCursor cursor;
+
+  if (m_segmentations.size() < 256)
+  {
+    exportSegmentations<unsigned char>(getActiveChannel(), m_segmentations, file);
+  }
+  else
+  {
+    if(m_segmentations.size() < 65535)
+    {
+      exportSegmentations<unsigned short>(getActiveChannel(), m_segmentations, file);
+    }
+    else // short and int are not guaranteed to be different in size, don't even check and go for the next one.
+    {
+      exportSegmentations<unsigned long>(getActiveChannel(), m_segmentations, file);
+    }
   }
 }
 
@@ -223,83 +385,200 @@ void DefaultContextualMenu::deleteSelectedSementations()
 {
   this->hide();
 
-  m_undoStack->beginMacro("Delete Segmentations");
-  m_undoStack->push(new RemoveSegmentations(m_segmentations, m_model));
-  m_undoStack->endMacro();
+  if(!m_segmentations.isEmpty())
+  {
+    auto message  = QObject::tr("Do you really want to delete the selected segmentations?");
+    auto title    = QObject::tr("Delete Selected Items");
+    auto details  = QObject::tr("Selected to be deleted:");
 
-  emit deleteSegmentations();
-}
+    for(int i = 0; i < m_segmentations.size(); ++i)
+    {
+      details.append(QString("\n - %1").arg(m_segmentations.at(i)->data().toString()));
+    }
 
-//------------------------------------------------------------------------
-void DefaultContextualMenu::setSelection(SelectionSPtr selection)
-{
+    if(QMessageBox::Ok == GUI::DefaultDialogs::UserQuestion(message, QMessageBox::Cancel|QMessageBox::Ok, title, details))
+    {
+      auto undoStack = getUndoStack();
+      auto names     = segmentationListNames(m_segmentations);
+
+      {
+        WaitingCursor cursor;
+
+        undoStack->beginMacro(tr("Delete segmentation%1: %2.").arg(m_segmentations.size() > 1 ? "s":"").arg(names));
+        undoStack->push(new RemoveSegmentations(m_segmentations, getModel()));
+        undoStack->endMacro();
+      }
+
+      emit deleteSegmentations();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createNoteEntry()
 {
-  QAction *noteAction = addAction(tr("Notes"));
-  noteAction->setIcon(QIcon(":/espina/note.png"));
-  connect(noteAction, SIGNAL(triggered(bool)),
-          this, SLOT(addNote()));
-}
+  auto action = addAction(tr("&Notes..."));
 
-//------------------------------------------------------------------------
-void DefaultContextualMenu::createChangeCategoryMenu()
-{
-   QMenu         *changeCategoryMenu = new QMenu(tr("Change Category"));
-   QWidgetAction *categoryListAction = new QWidgetAction(changeCategoryMenu);
-
-   m_classification = new QTreeView();
-   m_classification->header()->setVisible(false);
-   m_classification->setModel(m_model.get());
-   m_classification->setRootIndex(m_model->classificationRoot());
-   m_classification->expandAll();
-   connect(m_model.get(), SIGNAL(modelReset()),
-           this,          SLOT(resetRootItem()));
-   connect(m_classification, SIGNAL(clicked(QModelIndex)),
-           this, SLOT(changeSegmentationsCategory(QModelIndex)));
-
-   categoryListAction->setDefaultWidget(m_classification);
-   changeCategoryMenu->addAction(categoryListAction);
-   addMenu(changeCategoryMenu);
+  action->setIcon(QIcon(":/espina/note.svg"));
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(addNote()));
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createTagsEntry()
 {
-  QAction *tagsAction = addAction(tr("Tags"));
-  tagsAction->setIcon(QIcon(":/espina/tag.svg"));
-  connect(tagsAction, SIGNAL(triggered(bool)),
-          this, SLOT(manageTags()));
+  auto action = addAction(tr("&Tags..."));
+  action->setIcon(QIcon(":/espina/tag.svg"));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,       SLOT(manageTags()));
 
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createRenameEntry()
 {
-  QAction *action = addAction(tr("&Rename"));
+  auto action = addAction(tr("&Rename..."));
   connect(action, SIGNAL(triggered(bool)),
-          this, SLOT(renameSegmentation()));
+          this,   SLOT(renameSegmentation()));
 }
 
 //------------------------------------------------------------------------
-QString DefaultContextualMenu::dialogTitle() const
+void DefaultContextualMenu::createGroupRenameEntry()
 {
-  QString title = m_segmentations[0]->data().toString();
-  if (m_segmentations.size() > 1)
-    title.append(", " + m_segmentations[1]->data().toString());
-  if (m_segmentations.size() > 2)
-    title.append(", ...");
+  auto action = addAction(tr("Rename &All..."));
+  action->setEnabled(m_segmentations.size() > 1);
 
-  return title;
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(renameSegmentationGroup()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createExportEntry()
+{
+  auto action = addAction(tr("&Export to TIFF image..."));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(exportSelectedSegmentations()));
+
+  action = addAction(tr("E&xport to Wavefront OBJ..."));
+  action->setEnabled(m_segmentations.size() == 1);
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(exportSegmentationToOBJ()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::changeSegmentationsColorEngine()
+{
+  this->hide();
+
+  auto colorEngine = std::dynamic_pointer_cast<GUI::ColorEngines::MultiColorEngine>(getContext().colorEngine());
+  if(colorEngine)
+  {
+    ColorEngineSelector dialog{colorEngine};
+    if(dialog.exec() == QDialog::Accepted)
+    {
+      auto segColorEngine = dialog.colorEngine();
+
+      for(auto segmentation: m_segmentations)
+      {
+        if(segColorEngine)
+        {
+          segmentation->setColorEngine(segColorEngine);
+        }
+        else
+        {
+          segmentation->clearColorEngine();
+        }
+
+        auto items = Core::Utils::toList<ViewItemAdapter>(m_segmentations);
+        getViewState().invalidateRepresentationColors(items);
+      }
+    }
+  }
 }
 
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createDeleteEntry()
 {
-  QAction *deleteAction = addAction(tr("Delete"));
+  auto action = addAction(tr("&Delete..."));
 
-  connect(deleteAction, SIGNAL(triggered(bool)),
-          this,         SLOT(deleteSelectedSementations()));
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(deleteSelectedSementations()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createColorEntry()
+{
+  auto action = addAction(tr("&Custom coloring..."));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(changeSegmentationsColorEngine()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::exportSegmentationToOBJ()
+{
+  auto segmentation = m_segmentations.first();
+  const auto name   = segmentation->data().toString();
+
+  auto title      = tr("Export segmentation '%1'").arg(name);
+  auto suggestion = tr("%1.obj").arg(name);
+  auto format     = SupportedFormats().addFormat(tr("Wavefront OBJ file"), "obj");
+
+  auto file = DefaultDialogs::SaveFile(title, format, QDir::homePath(), ".obj", suggestion);
+
+  if (file.isEmpty()) return;
+
+  WaitingCursor cursor;
+
+  QByteArray buffer;
+
+  if(hasMeshData(segmentation->output()))
+  {
+    auto data = readLockMesh(segmentation->output());
+    buffer = PolyDataUtils::convertPolyDataToOBJ(data->mesh());
+  }
+  else
+  {
+    if(hasSkeletonData(segmentation->output()))
+    {
+      auto data = readLockSkeleton(segmentation->output());
+      buffer = PolyDataUtils::convertPolyDataToOBJ(data->skeleton());
+    }
+    else
+    {
+      const auto message = tr("Segmentation '%1' has no mesh or skeleton data to be exported.").arg(name);
+      DefaultDialogs::InformationMessage(title, message);
+      return;
+    }
+  }
+
+  QFile objFile(file);
+  if(!objFile.open(QIODevice::Text|QIODevice::Truncate|QIODevice::WriteOnly))
+  {
+    const auto message = tr("Unable to create destination file '%1'.").arg(file);
+    DefaultDialogs::InformationMessage(title, message);
+    return;
+  }
+
+  objFile.write(buffer);
+  objFile.flush();
+  objFile.close();
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::createFixesEntry()
+{
+  auto action = addAction(tr("Apply &fixes"));
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(doFixes()));
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::doFixes()
+{
+  // FIXES
 }

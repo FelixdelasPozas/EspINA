@@ -28,12 +28,18 @@ using namespace ESPINA::Testing;
 DummyFilter::DummyFilter()
 : Filter(InputSList(), "DummyFilter", SchedulerSPtr(new Scheduler(10000000)))
 {
-  m_outputs[0] = OutputSPtr(new Output(this, 0, NmVector3{1,1,1}));
+  m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1});
 }
 
+//------------------------------------------------------------------------
+DummyFilter::DummyFilter(InputSList input, Filter::Type type, SchedulerSPtr scheduler)
+: Filter(input, type, scheduler)
+{
+  m_outputs[0] = std::make_shared<Output>(this, 0, NmVector3{1,1,1});
+}
 
 //------------------------------------------------------------------------
 DataSPtr DummyData::createProxy() const
 {
-  return DataSPtr{new DummyDataProxy()};
+  return std::make_shared<DummyDataProxy>();
 }

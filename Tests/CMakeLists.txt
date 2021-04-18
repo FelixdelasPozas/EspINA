@@ -1,8 +1,11 @@
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+
 enable_testing()
 
 set (BUILD_UNIT_TESTS OFF  CACHE BOOL "Build ESPINA Unit Tests")
-
-set (BUILD_CI_TESTS   OFF  CACHE BOOL "Build ESPINA Continous Integration Tests")
 
 set (USE_DASHBOARD    OFF  CACHE BOOL "Use ESPINA Unitary Tests Dashboard")
 
@@ -25,9 +28,10 @@ include_directories(
   ${CMAKE_BINARY_DIR}
   ${CMAKE_BINARY_DIR}/Plugins/AppositionSurface
   )
-
+  
 set(EXTERNAL_LIBS_DEPENDENCIES
   ${QT_LIBRARIES}
+  Qt5::Test
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${QUAZIP_LIBRARIES}
@@ -35,13 +39,13 @@ set(EXTERNAL_LIBS_DEPENDENCIES
 )
 
 # Core
-qt4_add_resources(CORE_RCCS
+qt5_add_resources(CORE_RCCS
   ${CORE_DIR}/rsc/core.qrc
   )
-qt4_wrap_cpp(CORE_MOCS
+qt5_wrap_cpp(CORE_MOCS
   ${CORE_DIR}/Analysis/Data.h
   ${CORE_DIR}/Analysis/Output.h
-  ${CORE_DIR}/Analysis/Extension.h
+  ${CORE_DIR}/Analysis/Extensions.h
   ${CORE_DIR}/Analysis/ViewItem.h
   ${CORE_DIR}/MultiTasking/Scheduler.h
   ${CORE_DIR}/MultiTasking/Task.h
@@ -50,15 +54,22 @@ set (CORE_SOURCES
   ${CORE_RCCS}
   ${CORE_MOCS}
   ${CORE_DIR}/Analysis/Data/MeshData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonData.cpp
+  ${CORE_DIR}/Analysis/Data/SkeletonDataUtils.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
   ${CORE_DIR}/Analysis/Analysis.cpp
   ${CORE_DIR}/Analysis/Category.cpp
   ${CORE_DIR}/Analysis/Channel.cpp
+  ${CORE_DIR}/Analysis/Connections.cpp
   ${CORE_DIR}/Analysis/Data.cpp
   ${CORE_DIR}/Analysis/Data/Mesh/RawMesh.cpp
+  ${CORE_DIR}/Analysis/Data/Mesh/MarchingCubesMesh.cpp
   ${CORE_DIR}/Analysis/Data/VolumetricData.cpp
   ${CORE_DIR}/Analysis/Data/Volumetric/ROI.cpp
+  ${CORE_DIR}/Analysis/Data/Skeleton/RawSkeleton.cpp
   ${CORE_DIR}/Analysis/Filter.cpp
+  ${CORE_DIR}/Analysis/Filters/SourceFilter.cpp
+  ${CORE_DIR}/Analysis/Filters/VolumetricStreamReader.cpp
   ${CORE_DIR}/Analysis/Graph/DirectedGraph.cpp
   ${CORE_DIR}/Analysis/Input.cpp
   ${CORE_DIR}/Analysis/Output.cpp
@@ -68,36 +79,43 @@ set (CORE_SOURCES
   ${CORE_DIR}/Analysis/ViewItem.cpp
   ${CORE_DIR}/Factory/CoreFactory.cpp
   ${CORE_DIR}/IO/ClassificationXML.cpp
-  ${CORE_DIR}/IO/DataFactory/FetchRawData.cpp
+  ${CORE_DIR}/IO/DataFactory/RawDataFactory.cpp
   ${CORE_DIR}/IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   ${CORE_DIR}/IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   ${CORE_DIR}/IO/GraphIO.cpp
-  ${CORE_DIR}/IO/ReadOnlyChannelExtension.cpp
-  ${CORE_DIR}/IO/ReadOnlySegmentationExtension.cpp
   ${CORE_DIR}/IO/SegFile.cpp
   ${CORE_DIR}/IO/SegFileInterface.cpp
   ${CORE_DIR}/IO/SegFile_V4.cpp
   ${CORE_DIR}/IO/SegFile_V5.cpp
+  ${CORE_DIR}/IO/ZipUtils.cpp
   ${CORE_DIR}/MultiTasking/Scheduler.cpp
   ${CORE_DIR}/MultiTasking/Task.cpp
   ${CORE_DIR}/Utils/AnalysisUtils.cpp
   ${CORE_DIR}/Utils/Bounds.cpp
-  ${CORE_DIR}/Utils/NmVector3.cpp
+  ${CORE_DIR}/Utils/EspinaException.cpp
   ${CORE_DIR}/Utils/TemporalStorage.cpp
   ${CORE_DIR}/Utils/VolumeBounds.cpp
   ${CORE_DIR}/Utils/vtkPolyDataUtils.cpp
+  ${CORE_DIR}/Utils/SupportedFormats.cpp
 )
 add_library(EspinaCoreTesting SHARED ${CORE_SOURCES})
+message("External libs")
 target_link_libraries(EspinaCoreTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # Filters
+qt5_wrap_cpp(FILTERS_MOCS
+  ${FILTERS_DIR}/MorphologicalEditionFilter.h
+  ${FILTERS_DIR}/SeedGrowSegmentationFilter.h
+)
 set (FILTERS_SOURCES
+  ${FILTERS_MOCS}
   ${FILTERS_DIR}/DilateFilter.cpp
-  ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
   ${FILTERS_DIR}/ImageLogicFilter.cpp
+  ${FILTERS_DIR}/MorphologicalEditionFilter.cpp
   ${FILTERS_DIR}/SeedGrowSegmentationFilter.cpp
-  ${FILTERS_DIR}/VolumetricStreamReader.cpp
+  ${FILTERS_DIR}/SplitFilter.cpp
+  ${FILTERS_DIR}/Utils/Stencil.cpp
 )
 add_library(EspinaFiltersTesting SHARED ${FILTERS_SOURCES})
 target_link_libraries(EspinaFiltersTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
@@ -105,6 +123,8 @@ target_link_libraries(EspinaFiltersTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Extensions
 set (EXTENSIONS_SOURCES
+  ${EXTENSIONS_DIR}/Issues/Issues.cpp
+  ${EXTENSIONS_DIR}/Issues/ItemIssues.cpp
   ${EXTENSIONS_DIR}/Notes/SegmentationNotes.cpp
 )
 add_library(EspinaExtensionsTesting SHARED ${EXTENSIONS_SOURCES})
@@ -112,16 +132,23 @@ target_link_libraries(EspinaExtensionsTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 
 # GUI
-qt4_wrap_cpp(GUI_MOCS
+qt5_wrap_cpp(GUI_MOCS
   ${GUI_DIR}/Model/ItemAdapter.h
   ${GUI_DIR}/Model/ModelAdapter.h
   ${GUI_DIR}/Model/Proxies/ChannelProxy.h
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.h
   ${GUI_DIR}/Model/ViewItemAdapter.h
+  ${GUI_DIR}/Model/Utils/DBVH.h
+  ${GUI_DIR}/Utils/Timer.h
+  ${GUI_DIR}/View/ViewState.h
+  ${GUI_DIR}/View/CoordinateSystem.h
+  ${GUI_DIR}/View/EventHandler.h
+  ${GUI_DIR}/View/Selection.h
 )
 
 set (GUI_SOURCES
   ${GUI_MOCS}
+  ${GUI_DIR}/ColorEngines/IntensitySelectionHighlighter.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/CategoryAdapter.cpp
   ${GUI_DIR}/Model/ChannelAdapter.cpp
@@ -132,30 +159,49 @@ set (GUI_SOURCES
   ${GUI_DIR}/Model/Proxies/ClassificationProxy.cpp
   ${GUI_DIR}/Model/SampleAdapter.cpp
   ${GUI_DIR}/Model/SegmentationAdapter.cpp
+  ${GUI_DIR}/Model/Utils/ModelUtils.cpp
+  ${GUI_DIR}/Model/Utils/SegmentationUtils.cpp
   ${GUI_DIR}/Model/ViewItemAdapter.cpp
+  ${GUI_DIR}/Model/Utils/QueryAdapter.cpp
   ${GUI_DIR}/ModelFactory.cpp
-  ${GUI_DIR}/Representations/RepresentationFactoryGroup.cpp
+  ${GUI_DIR}/Model/Utils/DBVH.cpp
+  ${GUI_DIR}/Representations/Frame.cpp
+  ${GUI_DIR}/Utils/Timer.cpp
+  ${GUI_DIR}/Utils/MiscUtils.cpp
+  ${GUI_DIR}/View/CoordinateSystem.cpp
+  ${GUI_DIR}/View/EventHandler.cpp
+  ${GUI_DIR}/View/Selection.cpp
+  ${GUI_DIR}/View/ViewState.cpp
 )
 add_library(EspinaGUITesting SHARED ${GUI_SOURCES})
-target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} )
+target_link_libraries(EspinaGUITesting ${EXTERNAL_LIBS_DEPENDENCIES} EspinaExtensionsTesting)
 
-qt4_wrap_cpp(PLUGIN_MOCS
+qt5_wrap_cpp(PLUGIN_MOCS
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.h
 )
 
 set (PLUGIN_SOURCES
   ${PLUGIN_MOCS}
   ${PLUGINS_DIR}/AppositionSurface/Filter/AppositionSurfaceFilter.cpp
-  ${PLUGINS_DIR}/AppositionSurface/Filter/SASDataFactory.cpp
 )
 add_library(EspinaPluginTesting SHARED ${PLUGIN_SOURCES})
 target_link_libraries(EspinaPluginTesting ${EXTERNAL_LIBS_DEPENDENCIES} )
 
 # Testing
+qt5_wrap_cpp(TESTING_MOCS
+  ModelProfiler.h
+  ModelTest.h
+)
+
 set (TESTING_SOURCES
+  ${TESTING_MOCS}
   testing_support_channel_input.cpp
   testing_support_dummy_filter.cpp
   MeshTestingUtils.cpp
+  ModelProfiler.cpp
+  ModelTest.cpp
+  ModelTestUtils.cpp
+  SkeletonTestingUtils.cpp
   Testing_Support.cpp
 )
 add_library(EspinaTesting SHARED ${TESTING_SOURCES})
@@ -169,23 +215,20 @@ set(TESTING_DEPENDECIES
   ${EXTERNAL_LIBS_DEPENDENCIES}
   )
 
-set(TESTING_DEPENDECIES
-  EspinaCoreTesting
-  EspinaExtensionsTesting
-  EspinaFiltersTesting
-  EspinaGUITesting
-  EspinaTesting
-  ${EXTERNAL_LIBS_DEPENDENCIES}
+if (UNIX)
+  set (TESTING_DEPENDECIES
+    ${TESTING_DEPENDECIES}
+    QtTest
   )
+endif (UNIX)
+
 
 if (BUILD_UNIT_TESTS)
 
-  add_subdirectory(Unitary)
+  add_subdirectory(Core)
+  add_subdirectory(Filters)
+  add_subdirectory(GUI)
+  add_subdirectory(Pipeline)
+  add_subdirectory(IO)
 
 endif(BUILD_UNIT_TESTS)
-
-if (BUILD_CI_TESTS)
-
-  add_subdirectory(Integration)
-
-endif(BUILD_CI_TESTS)

@@ -1,0 +1,7 @@
+{
+  "name": "Counting Frame Plugin",
+  "description" : "Stereological inclusion methods to count segmentations per volume.",
+  "organization" : "Universidad Politécnica de Madrid.", 
+  "maintainer" : "felix.delaspozas@ctb.upm.es",
+  "version" : "1.0.0"
+}

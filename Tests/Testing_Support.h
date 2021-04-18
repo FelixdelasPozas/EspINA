@@ -66,7 +66,63 @@ namespace ESPINA
                                   const Bounds& bounds = Bounds());
   };
 
-#include "Testing_Support.txx"
+  template<typename T>
+  typename T::Pointer Testing_Support<T>::Create_Test_Image(const typename T::SizeType size,
+                                                            const typename T::ValueType value) {
+
+    typename T::PointType   origin;
+    typename T::IndexType   index;
+    typename T::SpacingType spacing;
+
+    origin .Fill(0);
+    index  .Fill(0);
+    spacing.Fill(1);
+
+    return Create_Test_Image(origin, index, size, spacing, value);
+    }
+
+
+    template<typename T>
+    typename T::Pointer Testing_Support<T>::Create_Test_Image(const typename T::PointType   origin,
+                                                              const typename T::IndexType   index,
+                                                              const typename T::SizeType    size,
+                                                              const typename T::SpacingType spacing,
+                                                              const typename T::ValueType   value) {
+      typename T::RegionType region;
+      region.SetIndex(index);
+      region.SetSize(size);
+
+      typename T::Pointer image = T::New();
+      image->SetRegions(region);
+      image->SetOrigin(origin);
+      image->SetSpacing(spacing);
+      image->Allocate();
+      image->FillBuffer(value);
+
+      return image;
+  }
+
+  template<typename T>
+  bool Testing_Support<T>::Test_Pixel_Values(const typename T::Pointer   image,
+                                             const typename T::PixelType value,
+                                             const Bounds &bounds) {
+    bool pass = true;
+
+    typename T::RegionType region = image->GetLargestPossibleRegion();
+    if (bounds.areValid()) {
+      region = equivalentRegion<T>(image, bounds);
+    }
+
+    typedef itk::ImageRegionIterator<T> ImageIterator;
+    ImageIterator it = ImageIterator(image, region);
+    it.GoToBegin();
+    while (pass && !it.IsAtEnd()) {
+      pass = it.Get() == value;
+      ++it;
+    }
+
+    return pass;
+  }
 
   } // namespace Testing
 } // namespace ESPINA

@@ -23,58 +23,54 @@
 
 // ESPINA
 #include <GUI/Widgets/ContextualMenu.h>
-#include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 // Qt
 #include <QModelIndex>
 
-class QTreeView;
 class QUndoStack;
 
 namespace ESPINA
 {
   class ViewManager;
 
+  /** \class DefaultContextualMenu
+   *  \brief Default context menu for segmentation explorer layouts.
+   *
+   */
   class DefaultContextualMenu
   : public ContextualMenu
+  , private Support::WithContext
   {
     Q_OBJECT
     public:
-			/** \brief DefaultContextualMenu class constructor.
-			 * \param[in] selection, list of segmentation adapters of the selected items.
-			 * \param[in] model, model adapter smart pointer.
-			 * \param[in] viewManager, view manager smart pointer.
-			 * \param[in] undoStack, QUndoStack object raw pointer.
-			 * \param[in] parent, parent QWidget raw pointer.
-			 *
-			 */
+      /** \brief DefaultContextualMenu class constructor.
+       * \param[in] context
+       *
+       */
       explicit DefaultContextualMenu(SegmentationAdapterList selection,
-                                     ModelAdapterSPtr        model,
-                                     ViewManagerSPtr         viewManager,
-                                     QUndoStack             *undoStack,
+                                     Support::Context       &context,
                                      QWidget                *parent = nullptr);
 
       /** \brief DefaultContextualMenu class destructor.
        *
        */
-      ~DefaultContextualMenu();
+      ~DefaultContextualMenu()
+      {};
 
-      /** \brief Overrides ContextualMenu::setSelection().
-       *
-       */
-      virtual void setSelection(SelectionSPtr selection) override;
+      virtual void setSelection(GUI::View::SelectionSPtr selection) override
+      {};
 
     private slots:
-			/** \brief Adds/Modifies notes to the selected segmentations.
-			 *
-			 */
+      /** \brief Adds/Modifies notes to the selected segmentations.
+       *
+       */
       void addNote();
 
-      /** \brief Changes the category of the selected segmentation.
-       * \param[in] index, const QModelIndex referece of the item.
+      /** \brief Export selected segmentations to external format
+       *
        */
-      void changeSegmentationsCategory(const QModelIndex &index);
+      void exportSelectedSegmentations();
 
       /** \brief Removes the selected segmentations.
        *
@@ -86,18 +82,33 @@ namespace ESPINA
        */
       void manageTags();
 
-      /** \brief Resets the root of the model.
-       *
-       */
-      void resetRootItem();
-
       /** \brief Renames selected segmentations.
        *
        */
       void renameSegmentation();
 
+      /** \brief Renames a group of segmentations with the user given prefix.
+       *
+       */
+      void renameSegmentationGroup();
+
+      /** \brief Changes the color engine assigned to the selected segmentations.
+       *
+       */
+      void changeSegmentationsColorEngine();
+
+      /** \brief Exports the current segmentation to OBJ format in a file on disk.
+       *
+       */
+      void exportSegmentationToOBJ();
+
+      /** \brief Helper method to execute code on current selection. Shouldn't be used in production.
+       *
+       */
+      void doFixes();
+
     signals:
-      void changeCategory(CategoryAdapterPtr);
+      void renamedSegmentations();
       void deleteSegmentations();
 
     private:
@@ -105,11 +116,6 @@ namespace ESPINA
        *
        */
       void createNoteEntry();
-
-      /** \brief Creates a "change category" entry for the contextual menu.
-       *
-       */
-      void createChangeCategoryMenu();
 
       /** \brief Creates a "tags" entry for the contextual menu.
        *
@@ -121,23 +127,34 @@ namespace ESPINA
        */
       void createRenameEntry();
 
+      /** \brief Creates a "rename group" entry for the contextual menu.
+       *
+       */
+      void createGroupRenameEntry();
+
+      /** \brief Export segmentations to external format
+       *
+       */
+      void createExportEntry();
+
       /** \brief Creates a "delete" entry for the contextual menu.
        *
        */
       void createDeleteEntry();
 
-      /** \brief Helper method that generates a title for the current segmentation selection.
+      /** \brief Created "Custom coloring" entry for the contextual menu.
        *
        */
-      QString dialogTitle() const;
+      void createColorEntry();
+
+      /** \brief Helper method to add an entry to the menu to apply fixes to selected items. Not to be used in production,
+       *  just to debug and fix.
+       *
+       */
+      void createFixesEntry();
 
     private:
-      ModelAdapterSPtr m_model;
-      ViewManagerSPtr m_viewManager;
-      QUndoStack *m_undoStack;
-
-      QTreeView *m_classification;
-      SegmentationAdapterList m_segmentations;
+      SegmentationAdapterList m_segmentations;  /** selected segmentation list. */
   };
 } // namespace ESPINA
 

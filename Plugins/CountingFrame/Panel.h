@@ -21,150 +21,273 @@
 #ifndef ESPINA_COUNTING_FRAME_PANEL_H
 #define ESPINA_COUNTING_FRAME_PANEL_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
-
-#include <Support/Widgets/DockWidget.h>
-
 #include "CountingFrames/CountingFrame.h"
 #include "CountingFrameManager.h"
-#include "Tasks/ComputeOptimalMargins.h"
 
+// ESPINA
+#include <Support/Widgets/Panel.h>
+#include <Support/Context.h>
+#include <Tasks/ComputeOptimalMargins.hxx>
+
+// Qt
 #include <QStandardItemModel>
 
 namespace ESPINA
 {
   namespace CF
   {
-  // Forward declaration
-  class Channel;
-  class CountingFrameExtension;
+    class CountingFrameExtension;
 
-  /// Counting Frame Plugin
-  class CountingFramePlugin_EXPORT Panel
-  : public DockWidget
-  {
-    Q_OBJECT
-
-    class GUI;
-    class CFModel;
-
-  public:
-    static const QString ID;
-
-  public:
-    explicit Panel(CountingFrameManager *manager,
-                   ModelAdapterSPtr      model,
-                   ViewManagerSPtr       viewManager,
-                   SchedulerSPtr         scheduler,
-                   QWidget              *parent = nullptr);
-    virtual ~Panel();
-
-    virtual void reset(); // slot
-
-    void deleteCountingFrame(CountingFrame *cf);
-
-    void deleteCountingFrames();
-
-  private slots:
-    void applyCategoryConstraint();
-
-    void enableCategoryConstraints(bool enable);
-
-    /// Update UI depending on selected row's counting frame
-    void updateUI(QModelIndex index);
-
-    void showInfo(CountingFrame *cf);
-
-    void onMarginsComputed();
-
-    void onCountingFrameCreated(CountingFrame *cf);
-
-    void onSegmentationsAdded(SegmentationAdapterSList segmentation);
-
-    void createCountingFrame();
-
-    void resetActiveCountingFrame();
-
-    void updateActiveCountingFrameMargins();
-
-    void deleteActiveCountingFrame();
-
-    void saveActiveCountingFrameDescription();
-
-    void onChannelChanged(ChannelAdapterPtr channel);
-
-    void changeUnitMode(bool useSlices);
-
-    void reportProgess(int progress);
-
-  private:
-    QModelIndex findCategoryIndex(const QString &classificationName);
-
-    void updateSegmentations();
-
-    /// Find margin values which discard all segmentations that
-    /// touch the channel margins
-    void computeOptimalMargins(ChannelAdapterPtr channel,
-                               Nm inclusion[3],
-                               Nm exclusion[3]);
-
-//     void computeOptimalMargins(ChannelPtr channel,
-//                                Nm inclusion[3],
-//                                Nm exclusion[3]);
-
-    /// Return inclusion margins definded by the UI
-    void inclusionMargins(double values[3]);
-
-    /// Return exclusion margins definded by the UI
-    void exclusionMargins(double values[3]);
-
-    void updateTable();
-
-    void exportCountingFrameDescriptionAsText(const QString& filename);
-
-    void exportCountingFrameDescriptionAsExcel(const QString& filename);
-
-    void applyCountingFrames(SegmentationAdapterSList segmentations);
-
-  private:
-    CountingFrameManager *m_manager;
-    ModelAdapterSPtr      m_model;
-    ViewManagerSPtr       m_viewManager;
-    SchedulerSPtr         m_scheduler;
-
-    GUI     *m_gui;
-    CFModel *m_cfModel;
-
-    bool m_useSlices;
-
-    CountingFrameList m_countingFrames;
-    CountingFrame    *m_activeCF;
-
-    using ComputeOptimalMarginsTask = ComputeOptimalMargins<ChannelPtr, SegmentationSList>;
-    using ComputeOptimalMarginsSPtr = std::shared_ptr<ComputeOptimalMarginsTask>;
-
-    struct PendingCF
+    /** \class Panel
+     * \brief Counting frame plugin GUI panel.
+     *
+     */
+    class CountingFramePlugin_EXPORT Panel
+    : public ESPINA::Panel
     {
-      CountingFrame *CF;
-      ComputeOptimalMarginsSPtr Task;
+        Q_OBJECT
+        class GUI;     /** gui implementation.     */
+        class CFModel; /** qt model for the table. */
 
-      PendingCF() : CF(nullptr) {}
+      public:
+        static const QString ID;
 
-      PendingCF(CountingFrame *cf, ComputeOptimalMarginsSPtr task)
-      : CF(cf)
-      , Task(task){}
+      public:
+        /** \brief Panel class constructor
+         * \param[in] manager CF manager.
+         * \param[in] context application context.
+         * \param[in] parent QWidget parent of this one.
+         *
+         */
+        explicit Panel(CountingFrameManager *manager,
+                       Support::Context     &context,
+                       QWidget              *parent = nullptr);
 
-      bool operator==(const PendingCF &rhs) const
-      {
-        return CF == rhs.CF && Task == rhs.Task;
-      }
+        /** \brief Panel class virtual destructor.
+         *
+         */
+        virtual ~Panel();
+
+        /** \brief Deletes the given counting frame.
+         * \param[in] cf counting frame to delete.
+         *
+         */
+        void deleteCountingFrame(CountingFrame *cf);
+
+        /** \brief Deletes all counting frames.
+         *
+         */
+        void deleteCountingFrames();
+
+      public slots:
+        virtual void reset();
+
+      private slots:
+        /** \brief Saves the properties and description of all the CFs on the panel
+         * to text, CSV and XLS.
+         *
+         */
+        void exportCountingFramesData();
+
+        /** \brief Applies the category contraint to the current CF.
+         *
+         */
+        void applyCategoryConstraint();
+
+        /** \brief Enables the constraint GUI
+         * \param[in] enable true to enable the GUI and false otherwise.
+         *
+         */
+        void enableCategoryConstraints(bool enable);
+
+        /** \brief Update UI depending on selected row's counting frame
+         * \param[in] index selected CF index.
+         *
+         */
+        void updateUI(QModelIndex index);
+
+        /** \brief Updates the information GUI with the information for the given CF.
+         * \param [in] cf counting frame.
+         *
+         */
+        void showInfo(CountingFrame *cf);
+
+        /** \brief Updates the margins GUI values after the computation thread has finished.
+
+         *
+         */
+        void onMarginsComputed();
+
+        /** \brief Inserts the new CF into the CF list and applies it.
+         * \param[in] cf counting frame.
+         *
+         */
+        void onCountingFrameCreated(CountingFrame *cf);
+
+        /** \brief Updates the segmentation's representations after the CF has been applied.
+         * \param[in] cf counting frame.
+         *
+         */
+        void onCountingFrameApplied(CountingFrame *cf);
+
+        /** \brief Computes the CF of the added segmentations.
+         * \param[in] items list of segmentations.
+         *
+         */
+        void onSegmentationsAdded(ViewItemAdapterSList items);
+
+        /** \brief Executes the CF creation dialog and inserts the CF to the stack extensions.
+         *
+         */
+        void createCountingFrame();
+
+        /** \brief Lauches the optimal margins computatio task.
+         *
+         */
+        void resetActiveCountingFrame();
+
+        /** \brief Updates the margins values on the GUI.
+         *
+         */
+        void updateActiveCountingFrameMargins();
+
+        /** \brief Deletes the currently selected CF.
+         *
+         */
+        void deleteActiveCountingFrame();
+
+        /** \brief Updates the limits of the CF when the stack changes dimensions.
+         *
+         */
+        void onChannelChanged(ChannelAdapterPtr channel);
+
+        /** \brief Changes the unis of measurements.
+         *
+         */
+        void changeUnitMode(bool useSlices);
+
+        /** \brief Toggles between editable/non-editable states for the CF.
+         *
+         */
+        void changeEditableState();
+
+      private:
+        /** \brief Exports the properties and descriptions of the CFs in the panel
+         * to a text file.
+         * \param[in] fileName file name.
+         *
+         */
+        void exportAsText(const QString &fileName) const;
+
+        /** \brief Exports the properties and descriptions of the CFs in the panel
+         * to a comma separated values text file.
+         * \param[in] fileName file name.
+         *
+         */
+        void exportAsCSV(const QString &fileName) const;
+
+        /** \brief Exports the properties and descriptions of the CFs in the panel
+         * to a Microsoft Excel 97 file.
+         * \param[in] fileName file name.
+         *
+         */
+        void exportAsXLS(const QString &fileName) const;
+
+        /** \brief Returns the model index of the given classification name in the Context model.
+         * \param[in] classificationName Category classification text string.
+         *
+         */
+        QModelIndex findCategoryIndex(const QString &classificationName);
+
+        /** \brief Helper method that returns the classification name of the selected category in the constraint
+         * field, or an empty QString if none selected.
+         *
+         */
+        const QString getSelectedCategory() const;
+
+        /** \brief Updates the representations of all the segmentations in the model.
+         *
+         */
+        void updateSegmentationRepresentations();
+
+        /** \brief Updates the stereological inclusion extensions of all the segmentations. Removes the extensions if no CFs present.
+         *
+         */
+        void updateSegmentationExtensions();
+
+        /** \brief Returns inclusion margins defined by the UI
+         * \param[out] values inclusion margins values.
+         *
+         */
+        void inclusionMargins(double values[3]);
+
+        /** Returns exclusion margins defined by the UI.
+         * \param[out] values exclusion margins values.
+         *
+         */
+        void exclusionMargins(double values[3]);
+
+        /** \brief
+         *
+         */
+        void updateTable();
+
+        /** \brief
+         *
+         */
+        void applyCountingFrames(SegmentationAdapterSList segmentations);
+
+      private:
+        GUI                  *m_gui;            /** user interface chessire-cat.                */
+        CountingFrameManager *m_manager;        /** Counting frame manager.                     */
+        CFModel              *m_cfModel;        /** table's qt model.                           */
+        bool                  m_useSlices;      /** true to measure in slices and false for Nm. */
+        CountingFrameList     m_countingFrames; /** list of counting frames.                    */
+        CountingFrame        *m_activeCF;       /** pointer to the active counting frame.       */
+
+        using ComputeOptimalMarginsTask = ComputeOptimalMargins<ChannelPtr, SegmentationSList>;
+        using ComputeOptimalMarginsSPtr = std::shared_ptr<ComputeOptimalMarginsTask>;
+
+        /** \struct PendingCF
+         * \brief Data of currently computing CFs.
+         *
+         */
+        struct PendingCF
+        {
+          CountingFrame            *CF;   /** pointer to counting frame. */
+          ComputeOptimalMarginsSPtr Task; /** margins computation task.  */
+
+          /** \brief PendingCF empty constructor.
+           *
+           */
+          PendingCF() : CF{nullptr}
+          {}
+
+          /** \brief PendingCF constructor.
+           * \param[in] cf counting frame pointer.
+           * \param[in] task margins computation task for the given CF.
+           *
+           */
+          PendingCF(CountingFrame *cf, ComputeOptimalMarginsSPtr task)
+          : CF(cf)
+          , Task(task)
+          {}
+
+          /** \brief PendingCF operator ==
+           *
+           */
+          bool operator==(const PendingCF &rhs) const
+          {
+            return CF == rhs.CF && Task == rhs.Task;
+          }
+        };
+
+        QList<PendingCF> m_pendingCFs; /** list of pending CF to be added and currently computing margins. */
+
+        friend class CountingFrameExtension;
     };
-
-    QList<PendingCF> m_pendingCFs;
-
-    friend class CountingFrameExtension;
-  };
-
   } // namespace CF
 } // namespace ESPINA
 

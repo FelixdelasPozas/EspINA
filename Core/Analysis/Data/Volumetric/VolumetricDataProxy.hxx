@@ -30,15 +30,13 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
-#include <QReadWriteLock>
-
 class vtkImplicitFunction;
 namespace ESPINA
 {
   template <class T> class VolumetricData;
 
   template<typename T>
-  class EspinaCore_EXPORT VolumetricDataProxy
+  class VolumetricDataProxy
   : public VolumetricData<T>
   , public DataProxy
   {
@@ -47,7 +45,6 @@ namespace ESPINA
      *
      */
     explicit VolumetricDataProxy()
-    : m_lock(QReadWriteLock::Recursive)
     {}
 
     /** \brief VolumetricDataProxy class virtual destructor.
@@ -56,105 +53,88 @@ namespace ESPINA
     virtual ~VolumetricDataProxy()
     {}
 
-    virtual void set(DataSPtr data)
+    virtual void set(DataSPtr data) override
     {
-      QWriteLocker lock(&m_lock);
+      if (m_data)
+      {
+        data->copyFetchContext(m_data);
+      }
       m_data = std::dynamic_pointer_cast<VolumetricData<T>>(data);
-      m_data->setOutput(this->m_output);
     }
 
-    virtual size_t memoryUsage() const
+    virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
+    { m_data->setFetchContext(storage, path, id, bounds); }
+
+    virtual bool needFetch() const override
+    { return m_data->needFetch(); }
+
+    virtual size_t memoryUsage() const override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->memoryUsage();
     }
 
-    virtual Bounds bounds() const
+    virtual VolumeBounds bounds() const override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->bounds();
     }
 
-    virtual void setOrigin(const NmVector3& origin)
+    virtual void setOrigin(const NmVector3& origin) override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->setOrigin(origin);
     }
 
-    virtual NmVector3 origin() const
+    virtual void setSpacing(const NmVector3& spacing) override
     {
-      //QReadLocker lock(&m_lock);
-      return m_data->origin();
-    }
-
-    virtual void setSpacing(const NmVector3& spacing)
-    {
-      //QWriteLocker lock(&m_lock);
       m_data->setSpacing(spacing);
     }
 
-    virtual NmVector3 spacing() const
+    virtual const typename T::Pointer itkImage() const override
     {
-      //QReadLocker lock(&m_lock);
-      return m_data->spacing();
-    }
-
-    virtual const typename T::Pointer itkImage() const
-    {
-      //QReadLocker lock(&m_lock);
       return m_data->itkImage();
     }
 
-    virtual const typename T::Pointer itkImage(const Bounds& bounds) const
+    virtual const typename T::Pointer itkImage(const Bounds& bounds) const override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->itkImage(bounds);
     }
 
-    virtual void setBackgroundValue(const typename T::ValueType value)
+    virtual void setBackgroundValue(const typename T::ValueType value) override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->setBackgroundValue(value);
     }
 
-    typename T::ValueType backgroundValue() const
+    typename T::ValueType backgroundValue() const override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->backgroundValue();
     }
 
-    virtual void draw(const vtkImplicitFunction* brush,
-                      const Bounds&      bounds,
+    virtual void draw(vtkImplicitFunction*        brush,
+                      const Bounds&               bounds,
                       const typename T::ValueType value)                   override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->draw(brush, bounds, value);
     }
 
     virtual void draw(const typename T::Pointer volume)                    override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->draw(volume);
     }
 
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds)                    override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->draw(volume, bounds);
     }
 
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE) override
+    virtual void draw(const typename T::IndexType &index,
+                      const typename T::PixelType  value = SEG_VOXEL_VALUE) override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->draw(index, value);
     }
 
     virtual void draw(const Bounds               &bounds,
                       const typename T::PixelType value = SEG_VOXEL_VALUE) override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->draw(bounds, value);
     }
 
@@ -162,71 +142,55 @@ namespace ESPINA
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override
     {
-     //QWriteLocker lock(&m_lock);
      m_data->draw(mask, value);
     }
 
-    virtual void resize(const Bounds &bounds)
+    virtual void resize(const Bounds &bounds) override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->resize(bounds);
     }
 
-    virtual void undo()
+    virtual TimeStamp lastModified() const override
     {
-      //QWriteLocker lock(&m_lock);
-      m_data->undo();
-    }
-
-    virtual TimeStamp lastModified()
-    {
-      //QReadLocker lock(&m_lock);
       return m_data->lastModified();
     }
 
     virtual BoundsList editedRegions() const override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->editedRegions();
     }
 
     virtual void setEditedRegions(const BoundsList& regions) override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->setEditedRegions(regions);
     }
 
     virtual void clearEditedRegions() override
     {
-      //QWriteLocker lock(&m_lock);
       m_data->clearEditedRegions();
     }
 
-    virtual bool isValid() const
+    virtual bool isValid() const override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->isValid();
     }
 
-    virtual bool isEmpty() const
+    virtual bool isEmpty() const override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->isEmpty();
     }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
-                              const QString      &id) const              override
+                              const QString      &id) override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->snapshot(storage, path, id);
     }
 
     virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage,
                                            const QString      &path,
-                                           const QString      &id) const override
+                                           const QString      &id) override
     {
-      //QReadLocker lock(&m_lock);
       return m_data->editedRegionsSnapshot(storage, path, id);
     }
 
@@ -234,12 +198,11 @@ namespace ESPINA
                                       const QString      &path,
                                       const QString      &id)            override
     {
-      //QWriteLocker lock(&m_lock);
-      return m_data->restoreEditedRegions(storage, path, id);
+      m_data->restoreEditedRegions(storage, path, id);
     }
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
     { return m_data->fetchData(); }
 
   private:
@@ -248,7 +211,6 @@ namespace ESPINA
 
 
   private:
-    mutable QReadWriteLock             m_lock;
     std::shared_ptr<VolumetricData<T>> m_data;
 
     friend class Output;

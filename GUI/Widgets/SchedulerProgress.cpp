@@ -24,14 +24,18 @@
 #include "TaskProgress.h"
 #include <Core/MultiTasking/Task.h>
 #include <Core/MultiTasking/Scheduler.h>
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QLayout>
 #include <QProgressBar>
 #include <QLabel>
 #include <QScrollBar>
+#include <QDebug>
+#include <QWidget>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
@@ -39,8 +43,8 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
                                      Qt::WindowFlags f)
 : QWidget           {parent, f}
 , m_scheduler       {scheduler}
-, m_notification    {new QWidget(nullptr)}
-, m_notificationArea{new QScrollArea(nullptr)}
+, m_notification    {new QWidget(this)}
+, m_notificationArea{new QScrollArea(this)}
 , m_width           {350}
 , m_height          {400}
 , m_taskProgress    {0}
@@ -50,7 +54,11 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 
   setVisible(false);
 
+  setMinimumWidth(m_width+15);
+  setMaximumWidth(m_width+15);
+
   m_notification->setLayout(new QVBoxLayout(m_notification));
+  m_notification->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
   m_notification->setMinimumWidth(m_width);
   m_notification->setMaximumWidth(m_width);
 
@@ -65,12 +73,15 @@ SchedulerProgress::SchedulerProgress(SchedulerSPtr   scheduler,
 
   qRegisterMetaType<TaskSPtr>("TaskSPtr");
 
+  // NOTE: Need to be queued to prevent signal reordering
   connect(m_scheduler.get(), SIGNAL(taskAdded(TaskSPtr)),
-          this, SLOT(onTaskAdded(TaskSPtr)));
+          this, SLOT(onTaskAdded(TaskSPtr)), Qt::QueuedConnection);
   connect(m_scheduler.get(), SIGNAL(taskRemoved(TaskSPtr)),
-          this, SLOT(onTaskRemoved(TaskSPtr)));
+          this, SLOT(onTaskRemoved(TaskSPtr)), Qt::QueuedConnection);
   connect(m_showTasks, SIGNAL(toggled(bool)),
           this, SLOT(showTaskProgress(bool)));
+  connect(m_stopTasks, SIGNAL(pressed()),
+          this, SLOT(abortAllTasks()));
 }
 
 //------------------------------------------------------------------------
@@ -85,22 +96,30 @@ SchedulerProgress::~SchedulerProgress()
 
 //------------------------------------------------------------------------
 void SchedulerProgress::onTaskAdded(TaskSPtr task)
-throw (Duplicated_Task_Exception)
 {
-  if (m_tasks.contains(task)) throw Duplicated_Task_Exception();
+  m_mutex.lock();
+  if (m_tasks.contains(task))
+  {
+    auto what    = QObject::tr("Attempt to add an existing task, task: %1").arg(task->description());
+    auto details = QObject::tr("SchedulerProgress::onTaskAdded() -> Attempt to add an existing task, task: %1").arg(task->description());
+
+    throw EspinaException(what, details);
+  }
 
   ++m_taskTotal;
 
-  TaskProgressSPtr taskProgress{new TaskProgress(task)};
+  auto taskProgress = std::make_shared<TaskProgress>(task);
 
   m_tasks[task] = taskProgress;
+  m_mutex.unlock();
+
   connect(taskProgress.get(), SIGNAL(aborted()),
-          this, SLOT(onProgressAborted()));
+          this,               SLOT(onProgressAborted()));
 
   m_notification->layout()->addWidget(m_tasks[task].get());
 
   connect(task.get(), SIGNAL(progress(int)),
-          this, SLOT(updateProgress()));
+          this,       SLOT(updateProgress()));
 
   updateNotificationWidget();
 }
@@ -108,25 +127,28 @@ throw (Duplicated_Task_Exception)
 //------------------------------------------------------------------------
 void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 {
-  if (m_tasks.contains(task))
+  m_mutex.lock();
+  Q_ASSERT(m_tasks.contains(task));
+
+  m_notification->layout()->removeWidget(m_tasks[task].get());
+
+  m_tasks[task]->setParent(0); // In case the notification area is open
+  m_tasks.remove(task);
+
+  if (m_tasks.isEmpty())
   {
-    disconnect(task.get(), SIGNAL(progress(int)),
-               this, SLOT(updateProgress()));
-
-    m_notification->layout()->removeWidget(m_tasks[task].get());
-    m_tasks[task]->setParent(0); // In case the notification are is open
-    m_tasks.remove(task);
-
-    if (m_tasks.isEmpty())
-    {
-      m_taskProgress = 0;
-      m_taskTotal    = 0;
-    }
-    else
-    {
-      m_taskProgress += 100;
-    }
+    m_taskProgress = 0;
+    m_taskTotal    = 0;
   }
+  else
+  {
+    m_taskProgress += 100;
+  }
+
+  m_mutex.unlock();
+
+  disconnect(task.get(), SIGNAL(progress(int)),
+             this,       SLOT(updateProgress()));
 
   updateNotificationWidget();
   updateProgress();
@@ -135,30 +157,34 @@ void SchedulerProgress::onTaskRemoved(TaskSPtr task)
 //------------------------------------------------------------------------
 void SchedulerProgress::showTaskProgress(bool visible)
 {
-  if (visible)
+  if (visible && !m_tasks.isEmpty())
   {
     m_notificationArea->show();
+    m_showTasks->setIcon(QIcon(":/espina/down.svg"));
     updateNotificationWidget();
-    m_showTasks->setIcon(QIcon(":/espina/down.png"));
-  } else
+  }
+  else
   {
     m_notificationArea->hide();
-    m_showTasks->setIcon(QIcon(":/espina/up.png"));
+    m_showTasks->setIcon(QIcon(":/espina/up.svg"));
   }
 }
 
 //------------------------------------------------------------------------
 void SchedulerProgress::updateProgress()
 {
+  QMutexLocker lock(&m_mutex);
+
   int total = m_taskProgress;
+  auto hasTasks = !m_tasks.isEmpty();
 
-  for(TaskProgressSPtr task : m_tasks)
+  if(hasTasks)
   {
-    total += task->progress();
-  }
+    for(auto task : m_tasks.keys())
+    {
+      total += task->progress();
+    }
 
-  if (total > 0)
-  {
     total = (total / m_taskTotal);
   }
   else
@@ -168,28 +194,36 @@ void SchedulerProgress::updateProgress()
 
   m_progressBar->setValue(total);
 
-  setVisible(0 != total || m_tasks.size() != 0);
+  setVisible(hasTasks);
 }
 
 //------------------------------------------------------------------------
 void SchedulerProgress::onProgressAborted()
 {
   auto taskProgress = dynamic_cast<TaskProgress *>(sender());
-
-  onTaskRemoved(taskProgress->task());
+  taskProgress->m_cancelButton->setEnabled(false);
+  taskProgress->task()->abort();
 }
-
 
 //------------------------------------------------------------------------
 void SchedulerProgress::updateNotificationWidget()
 {
   m_notification->adjustSize();
-  auto wHeight = m_notification->height();
 
-  if (wHeight < m_notificationArea->height())
+  auto size = m_notification->size();
+
+  if(!size.isValid())
   {
-    m_notificationArea->setMaximumHeight(wHeight);
-    m_notificationArea->setMinimumHeight(wHeight);
+    m_notificationArea->hide();
+    m_showTasks->setChecked(false);
+    m_showTasks->setIcon(QIcon(":/espina/up.svg"));
+    return;
+  }
+
+  if (size.height() <= m_notificationArea->height())
+  {
+    m_notificationArea->setMaximumHeight(size.height());
+    m_notificationArea->setMinimumHeight(size.height());
     m_notificationArea->verticalScrollBar()->hide();
   }
   else
@@ -204,4 +238,15 @@ void SchedulerProgress::updateNotificationWidget()
   int yShift = -m_notificationArea->height();
 
   m_notificationArea->move(mapToGlobal(m_showTasks->pos()+QPoint(xShift, yShift)));
+}
+
+//------------------------------------------------------------------------
+void SchedulerProgress::abortAllTasks()
+{
+  QMutexLocker lock(&m_mutex);
+
+  for(auto widget: m_tasks.values())
+  {
+    widget->onCancel();
+  }
 }

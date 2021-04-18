@@ -29,12 +29,12 @@
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/DataFactory.h>
 
-namespace ESPINA {
-
-  namespace IO {
-
-    namespace SegFile {
-
+namespace ESPINA
+{
+  namespace IO
+  {
+    namespace SegFile
+    {
       class EspinaCore_EXPORT SegFile_V4
       : public SegFileInterface
       {
@@ -46,113 +46,119 @@ namespace ESPINA {
          */
         class Loader
         {
-        public:
-          /* SegFile_V4::Loader class constructor.
-           * \param[in] zip, QuaZip handler.
-           * \param[in] factory, core factory smart pointer.
-           * \param[in] handler, error handler smart pointer.
-           */
-          Loader(QuaZip&          zip,
-                 CoreFactorySPtr  factory = CoreFactorySPtr(),
-                 ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+          public:
+            /* SegFile_V4::Loader class constructor.
+             * \param[in] zip, QuaZip handler.
+             * \param[in] factory, core factory smart pointer.
+             * \param[in] handler, error handler smart pointer.
+             */
+            Loader(QuaZip&           zip,
+                   CoreFactorySPtr   factory  = CoreFactorySPtr(),
+                   ProgressReporter *reporter = nullptr,
+                   ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                   const LoadOptions options  = LoadOptions());
 
-          /** \brief Process the data and returns an analysis.
-           *
-           */
-          AnalysisSPtr load();
+            /** \brief Process the data and returns an analysis.
+             *
+             */
+            AnalysisSPtr load();
 
-        private:
-          /** \brief Finds and returns the already built vertex that has the given id.
-           * \param[in] id id of the vertex.
-           */
-          DirectedGraph::Vertex findInflatedVertexByIdV4(int id) const;
+          private:
+            /** \brief Finds and returns the already built vertex that has the given id.
+             * \param[in] id id of the vertex.
+             */
+            DirectedGraph::Vertex findInflatedVertexByIdV4(int id) const;
 
-          /** \brief Returns the filter and output id that serves as input for the given vertex.
-           * \param[in] roVertex read only vertex.
-           * \param[in] linkName edge relation specifier.
-           *
-           */
-          QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex roVertex,
-                                                   const QString        &linkName);
+            /** \brief Returns the filter and output id that serves as input for the given vertex.
+             * \param[in] roVertex read only vertex.
+             * \param[in] linkName edge relation specifier.
+             *
+             */
+            QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex roVertex,
+                                                     const QString        &linkName);
 
-          /** \brief Creates and returns a sample smart pointer from the information in the given vertes.
-           * \param[in] roVertex read only vertex.
-           *
-           */
-          SampleSPtr createSample(DirectedGraph::Vertex roVertex);
+            /** \brief Creates and returns a sample smart pointer from the information in the given vertes.
+             * \param[in] roVertex read only vertex.
+             *
+             */
+            SampleSPtr createSample(DirectedGraph::Vertex roVertex);
 
-          /** \brief Creates and returns a filter smart pointer from the information in the given vertex.
-           * \param[in] roVertex read only vertex.
-           *
-           */
-          FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
+            /** \brief Creates and returns a filter smart pointer from the information in the given vertex.
+             * \param[in] roVertex read only vertex.
+             *
+             */
+            FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
 
-          /** \brief Creates and returns a channel smart pointer from the information in the given vertex.
-           * \param[in] roVertex read only vertex.
-           *
-           */
-          ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
+            /** \brief Creates and returns a channel smart pointer from the information in the given vertex.
+             * \param[in] roVertex read only vertex.
+             *
+             */
+            ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
 
-          /** \brief Returns the category name from a given state of a vertex.
-           * \param[in] state, state of a vertex.
-           *
-           */
-          QString parseCategoryName(const State& state);
+            /** \brief Returns the category name from a given state of a vertex.
+             * \param[in] state, state of a vertex.
+             *
+             */
+            QString parseCategoryName(const State& state);
 
-          /** \brief Returns the output id from a given state of a vertex.
-           * \param[in] state, state of a vertex.
-           *
-           */
-          int parseOutputId(const State& state);
+            /** \brief Returns the output id from a given state of a vertex.
+             * \param[in] state, state of a vertex.
+             *
+             */
+            int parseOutputId(const State& state);
 
-          /** \brief Creates and returns a segmentation smart pointer from the information in the given vertex.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
+            /** \brief Creates and returns a segmentation smart pointer from the information in the given vertex.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
 
-          /** \brief Loads and creates the vertices of the v4 analysis graph.
-           *
-           */
-          void loadTrace();
+            /** \brief Loads and creates the vertices of the v4 analysis graph.
+             *
+             */
+            void loadTrace();
 
-          /** \brief Creates the analysis object specified in the given vertex an resturns it.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          DirectedGraph::Vertex inflateVertexV4(DirectedGraph::Vertex roVertex);
+            /** \brief Creates the analysis object specified in the given vertex an resturns it.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            DirectedGraph::Vertex inflateVertexV4(DirectedGraph::Vertex roVertex);
 
-          /** \brief Creates graph segmentations.
-           *
-           */
-          void createSegmentations();
+            /** \brief Creates graph segmentations.
+             *
+             */
+            void createSegmentations();
 
-          /** \brief Restores graph relations.
-           *
-           */
-          void restoreRelations();
+            /** \brief Restores graph relations.
+             *
+             */
+            void restoreRelations();
 
-          /** \brief Create v5 outputs files for the given filter.
-           * \param[in] filter, filter smart pointer.
-           * \param[in] filterVertex, filter vertex id.
-           *
-           */
-          void createFilterOutputsFile(FilterSPtr filter, int filterVertex);
+            /** \brief Create v5 outputs files for the given filter.
+             * \param[in] filter, filter smart pointer.
+             * \param[in] filterVertex, filter vertex id.
+             *
+             */
+            void createFilterOutputsFile(FilterSPtr filter, int filterVertex);
 
-        private:
-          QuaZip                 &m_zip;
-          CoreFactorySPtr         m_factory;
-          ErrorHandlerSPtr        m_handler;
-          DataFactorySPtr         m_dataFactory;
+          private:
+            void reportProgress(unsigned int progress) const;
 
-          AnalysisSPtr            m_analysis;
-          TemporalStorageSPtr     m_storage;
+          private:
+            QuaZip                 &m_zip;
+            CoreFactorySPtr         m_factory;
+            IO::ProgressReporter   *m_reporter;
+            ErrorHandlerSPtr        m_handler;
+            const LoadOptions       m_options;
+            DataFactorySPtr         m_dataFactory;
 
-          QMap<int, QUuid>        m_vertexUuids;
-          QMap<int, QUuid>        m_filerUuids;
-          DirectedGraph::Vertices m_loadedVertices;
-          DirectedGraphSPtr       m_trace;
-          DirectedGraph::Vertices m_pendingSegmentationVertices;
+            AnalysisSPtr            m_analysis;
+            TemporalStorageSPtr     m_storage;
+
+            QMap<int, QUuid>        m_vertexUuids;
+            DirectedGraph::Vertices m_loadedVertices;
+            DirectedGraphSPtr       m_trace;
+            DirectedGraph::Vertices m_pendingSegmentationVertices;
         };
 
       public:
@@ -167,15 +173,18 @@ namespace ESPINA {
         /** \brief Implements SegFileInterface::load().
          *
          */
-        virtual AnalysisSPtr load(QuaZip&          zip,
-                                  CoreFactorySPtr  factory = CoreFactorySPtr(),
-                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+        virtual AnalysisSPtr load(QuaZip&           zip,
+                                  CoreFactorySPtr   factory  = CoreFactorySPtr(),
+                                  ProgressReporter *reporter = nullptr,
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                  const LoadOptions options  = LoadOptions());
 
         /** \brief Implements SegFileInterface::save().
          *
          */
         virtual void save(AnalysisPtr      analysis,
                           QuaZip&          zip,
+                          ProgressReporter *reporter = nullptr,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
 
       };

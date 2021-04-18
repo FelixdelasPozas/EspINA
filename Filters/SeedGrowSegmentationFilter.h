@@ -26,7 +26,7 @@
 #include <Core/Analysis/Data/Volumetric/ROI.h>
 #include "Core/Analysis/Filter.h"
 #include <Core/Utils/BinaryMask.hxx>
-#include "Core/EspinaTypes.h"
+#include "Core/Types.h"
 
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;
@@ -36,131 +36,144 @@ namespace ESPINA
   class EspinaFilters_EXPORT SeedGrowSegmentationFilter
   : public Filter
   {
-  public:
-    /** \brief SeedGrowSegmentationFilter class constructor.
-     * \param[in] inputs list of input smart pointers.
-     * \param[in] type SeedGrowSegmentationFilter type.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit SeedGrowSegmentationFilter(InputSList inputs, Type type, SchedulerSPtr scheduler);
+      Q_OBJECT
+    public:
+      /** \brief SeedGrowSegmentationFilter class constructor.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type SeedGrowSegmentationFilter type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit SeedGrowSegmentationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler);
 
-    virtual void restoreState(const State& state);
+      /** \brief SeedGrowSegmentationFilter class virtual destructor.
+       *
+       */
+      virtual ~SeedGrowSegmentationFilter()
+      {}
 
-    virtual State state() const;
+      virtual void restoreState(const State& state);
 
-    /** \brief Sets the lower value of the threshold.
-     * \param[in] th lower threshold value.
-     *
-     */
-    void setLowerThreshold(int th);
+      virtual State state() const;
 
-    /** \brief Returns the lower threshold value.
-     *
-     */
-    int lowerThreshold() const;
+      virtual void changeSpacing(const NmVector3 &origin, const NmVector3 &spacing);
 
-    /** \brief Sets the upper threshold value.
-     * \param[in] th upper threshold value.
-     *
-     */
-    void setUpperThreshold(int th);
+      /** \brief Sets the lower value of the threshold.
+       * \param[in] th lower threshold value.
+       *
+       */
+      void setLowerThreshold(int th);
 
-    /** \brief Returns the upper threshold value.
-     *
-     */
-    int upperThreshold() const;
+      /** \brief Returns the lower threshold value.
+       *
+       */
+      int lowerThreshold() const;
 
-    /** \brief Convenience method to set symmetrical lower/upper thresholds.
-     * \param[in] th threshold value.
-     *
-     */
-    void setThreshold(int th)
-    {
-      setLowerThreshold(th);
-      setUpperThreshold(th);
-    };
+      /** \brief Sets the upper threshold value.
+       * \param[in] th upper threshold value.
+       *
+       */
+      void setUpperThreshold(int th);
 
-    /** \brief Sets the seed point.
-     * \param[in] seed seed point.
-     *
-     */
-    void setSeed(const NmVector3& seed);
+      /** \brief Returns the upper threshold value.
+       *
+       */
+      int upperThreshold() const;
 
-    /** \brief Returns the seed point.
-     *
-     */
-    NmVector3 seed() const;
+      /** \brief Convenience method to set symmetrical lower/upper thresholds.
+       * \param[in] th threshold value.
+       *
+       */
+      void setThreshold(int th)
+      {
+        setLowerThreshold(th);
+        setUpperThreshold(th);
+      };
 
-    /** \brief Sets the region of interest to constrain the application of the filter.
-     * \param[in] roi ROI object smart pointer.
-     *
-     */
-    void setROI(const ROISPtr roi);
+      /** \brief Sets the seed point.
+       * \param[in] seed seed point.
+       *
+       */
+      void setSeed(const NmVector3& seed);
 
-    /** \brief Returns the ROI of the filter.
-     *
-     */
-    ROISPtr roi() const;
+      /** \brief Returns the seed point.
+       *
+       */
+      NmVector3 seed() const;
 
-    /** \brief Sets the radious for the closing morphological operation.
-     * \param[in] radious close filter radius.
-     *
-     */
-    void setClosingRadius(int radius);
+      /** \brief Sets the region of interest to constrain the application of the filter.
+       * \param[in] roi ROI object smart pointer.
+       *
+       */
+      void setROI(const ROISPtr roi);
 
-    /** \brief Returns the closing filter radius.
-     *
-     */
-    int closingRadius() const;
+      /** \brief Returns the ROI of the filter.
+       *
+       */
+      ROISPtr roi() const;
 
-    /** \brief Returns true if the resulting segmentation touches the used ROI.
-     *
-     */
-    bool isTouchingROI() const
-    { return m_touchesROI; };
+      /** \brief Sets the radious for the closing morphological operation.
+       * \param[in] radious close filter radius.
+       *
+       */
+      void setClosingRadius(int radius);
 
-    /** \brief Forces filter execution even if its parameters haven't changed
-     *
-     */
-    void forceUpdate()
-    { m_forceUpdate = true; }
+      /** \brief Returns the closing filter radius.
+       *
+       */
+      int closingRadius() const;
 
-  protected:
-    virtual Snapshot saveFilterSnapshot() const;
+      /** \brief Returns true if the resulting segmentation touches the used ROI.
+       *
+       */
+      bool isTouchingROI() const
+      { return m_touchesROI; };
 
-    virtual bool needUpdate() const;
+      /** \brief Forces filter execution even if its parameters haven't changed
+       *
+       */
+      void forceUpdate()
+      { m_forceUpdate = true; }
 
-    virtual void execute();
+    signals:
+      void seedModified(NmVector3 seed);
+      void thresholdModified(int, int);
+      void radiusModified(int radius);
+      void roiModified(ROISPtr roi);
 
-    virtual bool ignoreStorageContent() const;
+    protected:
+      virtual Snapshot saveFilterSnapshot() const;
 
-    //virtual bool areEditedRegionsInvalidated();
+      virtual bool needUpdate() const;
 
-  private:
-    /** \brief Helper method that returns true if the segmentation touches the ROI.
-     *
-     */
-     bool computeTouchesROIValue() const;
+      virtual void execute();
 
-     QString roiPrefix() const
-     { return prefix() + "roi/"; }
+      virtual bool ignoreStorageContent() const;
 
-     QString roiId() const
-     { return "roi"; }
+    private:
+      /** \brief Helper method that returns true if the segmentation touches the ROI.
+       *
+       */
+       bool computeTouchesROIValue() const;
 
-  private:
-    int       m_lowerTh, m_prevLowerTh;
-    int       m_upperTh, m_prevUpperTh;
-    NmVector3 m_seed,    m_prevSeed;
-    int       m_radius,  m_prevRadius;
-    bool      m_hasROI;
-    mutable
-    ROISPtr   m_ROI;
-    mutable
-    ROIPtr    m_prevROI;
-    bool      m_touchesROI;
-    bool      m_forceUpdate;
+       /** \brief Returns the ROI id for this filter.
+        *
+        */
+       QString roiId() const
+       { return "sgs"; }
+
+    private:
+      int       m_lowerTh, m_prevLowerTh; /** lower threshold, settings lower threshold.*/
+      int       m_upperTh, m_prevUpperTh;
+      NmVector3 m_seed,    m_prevSeed;
+      int       m_radius,  m_prevRadius;
+
+      mutable bool    m_hasROI;  // roi() const
+      mutable ROISPtr m_ROI;     // roi() const
+      mutable ROIPtr  m_prevROI; // roi() const
+
+      bool      m_touchesROI;
+      bool      m_forceUpdate;
   };
 
   using SeedGrowSegmentationFilterSPtr = std::shared_ptr<SeedGrowSegmentationFilter>;

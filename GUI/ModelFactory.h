@@ -25,10 +25,10 @@
 
 // ESPINA
 #include "Model/SegmentationAdapter.h"
-#include "Representations/RepresentationFactoryGroup.h"
-#include <Core/Factory/AnalysisReader.h>
+
 #include <Core/Factory/FilterFactory.h>
 #include <Core/Factory/CoreFactory.h>
+#include <Core/IO/SegFile.h>
 
 // C++
 #include <memory>
@@ -47,6 +47,13 @@ namespace ESPINA
   class ChannelAdapter;
   using ChannelAdapterSPtr = std::shared_ptr<ChannelAdapter>;
 
+  class ModelFactory;
+  using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
+
+  /** \class ModelFactory
+   * \brief Factory for objects in the model adapter.
+   *
+   */
   class EspinaGUI_EXPORT ModelFactory
   {
   public:
@@ -64,10 +71,10 @@ namespace ESPINA
     ~ModelFactory();
 
     /** \brief Registers an analysis reader in the factory.
-     * \param[in] reader analysis reader raw pointer.
+     * \param[in] reader to be registered
      *
      */
-    void registerAnalysisReader(AnalysisReaderPtr reader);
+    void registerAnalysisReader(AnalysisReaderSPtr reader);
 
     /** \brief Registers a filter factory in the factory.
      * \param[in] factory filter factory smart pointer.
@@ -80,46 +87,34 @@ namespace ESPINA
      * \param[in] factory channel extension factory smart pointer.
      *
      */
-    void registerExtensionFactory(ChannelExtensionFactorySPtr factory);
+    void registerExtensionFactory(Core::StackExtensionFactorySPtr factory);
 
     /** \brief Registers a segmentation extension factory in the factory.
      * \param[in] factory segmentation extension factory smart pointer.
      *
      */
-    void registerExtensionFactory(SegmentationExtensionFactorySPtr factory);
-
-    /** \brief Registers a channel representation factory in the factory.
-     * \param[in] factory channel representation factory smart pointer.
-     *
-     */
-    void registerChannelRepresentationFactory(RepresentationFactorySPtr factory);
-
-    /** \brief Registers a segmentation representation factory in the factory.
-     * \param[in] factory segmentation representation factory smart pointer.
-     *
-     */
-    void registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory);
+    void registerExtensionFactory(Core::SegmentationExtensionFactorySPtr factory);
 
     /** \brief Returns the list of channel extension types the factory can create.
      *
      */
-    ChannelExtensionTypeList availableChannelExtensions() const;
+    Core::StackExtension::TypeList availableStackExtensions() const;
 
     /** \brief Returns the list of segmentation extension types the factory can create.
      *
      */
-    SegmentationExtensionTypeList availableSegmentationExtensions() const;
+    Core::SegmentationExtension::TypeList availableSegmentationExtensions() const;
 
     /** \brief Returns the list of file extensions the factory can read.
      *
      */
-    FileExtensions supportedFileExtensions();
+    Core::Utils::SupportedFormats supportedFileExtensions();
 
     /** \brief Returns the list of raw pointers of the readers registered in the factory for a given file.
      * \param[in] file QFileInfo object.
      *
      */
-    AnalysisReaderList readers(const QFileInfo& file);
+    AnalysisReaderSList readers(const QFileInfo& file);
 
     /** \brief Reads a data file and returns an analysis.
      * \param[in] reader analysis reader raw pointer.
@@ -127,8 +122,12 @@ namespace ESPINA
      * \param[in] handler smart pointer of the error handler to use.
      *
      */
-    AnalysisSPtr read(AnalysisReaderPtr reader, const QFileInfo& file, ErrorHandlerSPtr handler = ErrorHandlerSPtr())
-    { return reader->read(file, m_factory, handler); }
+    AnalysisSPtr read(AnalysisReaderSPtr    reader,
+                      const QFileInfo      &file,
+                      IO::ProgressReporter *reporter = nullptr,
+                      ErrorHandlerSPtr      handler  = ErrorHandlerSPtr(),
+                      IO::LoadOptions       options  = IO::LoadOptions())
+    { return reader->read(file, m_factory, reporter, handler, options); }
 
     /** \brief Creates and returns a new sample adapter.
      * \param[in] name name of the sample.
@@ -136,13 +135,28 @@ namespace ESPINA
      */
     SampleAdapterSPtr createSample(const QString& name = QString()) const;
 
+    /** \brief Convenience method to create filters with a single view item input
+     * \param[in] input view item
+     * \param[in] type filter type.
+     *
+     * This is a convenience method to create input
+     */
+    template<typename T>
+    std::shared_ptr<T> createFilter(ViewItemAdapter *input, const Filter::Type &type) const
+    {
+      InputSList inputs;
+      inputs << input->asInput();
+
+      return m_factory->createFilter<T>(inputs, type);
+    }
+
     /** \brief Creates and returns a filter of the specified type.
      * \param[in] inputs list of input smart pointers.
      * \param[in] type type of the filter to return.
      *
      */
     template<typename T>
-    std::shared_ptr<T> createFilter(InputSList inputs, Filter::Type type) const
+    std::shared_ptr<T> createFilter(InputSList inputs, const Filter::Type &type) const
     {
       return m_factory->createFilter<T>(inputs, type);
     }
@@ -158,7 +172,7 @@ namespace ESPINA
      * \param[in] type channel extension type.
      *
      */
-    ChannelExtensionSPtr createChannelExtension(const ChannelExtension::Type &type);
+    Core::StackExtensionSPtr createStackExtension(const Core::StackExtension::Type &type);
 
     /** \brief Creates and returns a segmentation adapter from a given filter and an output id.
      * \param[in] filter filter adapter smart pointer.
@@ -171,7 +185,7 @@ namespace ESPINA
      * \param[in] type segmentation extension type.
      *
      */
-    SegmentationExtensionSPtr createSegmentationExtension(const SegmentationExtension::Type &type);
+    Core::SegmentationExtensionSPtr createSegmentationExtension(const Core::SegmentationExtension::Type &type);
 
     /** \brief Returns the adapter for the given sample.
      * \param[in] sample sample smart pointer to adapt.
@@ -193,35 +207,62 @@ namespace ESPINA
      */
     SegmentationAdapterSPtr adaptSegmentation(SegmentationSPtr segmentation) const;
 
-    /** \brief Returns the channel representation factory smart pointer.
-     *
-     */
-    RepresentationFactorySPtr channelRepresentationFactory() const
-    { return m_channelRepresentationFactory; }
-
-    /** \brief Returns the segmentation representation factory smart pointer.
-     *
-     */
-    RepresentationFactorySPtr segmentationRepresentationFactory() const
-    { return m_segmentationRepresentationFactory; }
-
     /** \brief Returns the smart pointer of the scheduler used in the factory.
      *
      */
     SchedulerSPtr scheduler() const
     { return m_scheduler; }
 
-  private:
-    CoreFactorySPtr m_factory;
-    SchedulerSPtr   m_scheduler;
-    RepresentationFactoryGroupSPtr m_channelRepresentationFactory;
-    RepresentationFactoryGroupSPtr m_segmentationRepresentationFactory;
+    /** \brief Sets the temporal directory of the CoreFactory.
+     * \param[in] directory QDir object.
+     *
+     */
+    void setTemporalDirectory(const QDir &directory);
 
-    QMap<QString, AnalysisReaderList> m_readerExtensions;
-    AnalysisReaderList m_readers;
+    /** \brief Returns a temporal storage object.
+     *
+     */
+    TemporalStorageSPtr createTemporalStorage();
+
+    /** \brief Returns the core default storage for filters.
+     *
+     */
+    TemporalStorageSPtr defaultStorage() const
+    { return m_factory->defaultStorage(); }
+
+  private:
+    template<typename Factory, typename ... Args>
+    friend Core::StackExtensionFactorySPtr createStackExtensionFactory(ModelFactorySPtr factory, Args ... args);
+
+    template<typename Factory, typename ... Args>
+    friend Core::SegmentationExtensionFactorySPtr createSegmentationExtensionFactory(ModelFactorySPtr factory, Args ... args);
+
+    CoreFactorySPtr m_factory;   /** core factory.   */
+    SchedulerSPtr   m_scheduler; /** task scheduler. */
   };
 
-  using ModelFactorySPtr = std::shared_ptr<ModelFactory>;
+  /** \brief Creation of StackExtensionFactory objects.
+   * \param[in] factory model factory.
+   * \param[in] args rest of arguments for the extension factory.
+   *
+   */
+  template<typename Factory, typename ... Args>
+  Core::StackExtensionFactorySPtr createStackExtensionFactory(ModelFactorySPtr factory, Args ... args)
+  {
+    return std::make_shared<Factory>(factory->m_factory.get(), args ...);
+  }
+
+  /** \brief Creation of SegmentationExtensionFactory objects.
+   * \param[in] factory model factory.
+   * \param[in] args rest of arguments for the extension factory.
+   *
+   */
+  template<typename Factory, typename ... Args>
+  Core::SegmentationExtensionFactorySPtr createSegmentationExtensionFactory(ModelFactorySPtr factory, Args ... args)
+  {
+    return std::make_shared<Factory>(factory->m_factory.get(), args ...);
+  }
+
 }// namespace ESPINA
 
 #endif // ESPINA_CORE_FACTORY_H

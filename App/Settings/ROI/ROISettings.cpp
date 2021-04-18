@@ -19,10 +19,8 @@
 */
 
 // ESPINA
+#include <Support/Settings/Settings.h>
 #include "ROISettings.h"
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
 #include <QSettings>
 
 using namespace ESPINA;
@@ -31,45 +29,46 @@ using namespace ESPINA;
 ROISettings::ROISettings()
 {
   ESPINA_SETTINGS(settings);
-  settings.beginGroup(ROI_SETTINGS_GROUP);
 
-  m_xSize   = settings.value(DEFAULT_ROI_X, 500).toInt();
-  m_ySize   = settings.value(DEFAULT_ROI_Y, 500).toInt();
-  m_zSize   = settings.value(DEFAULT_ROI_Z, 500).toInt();
+  settings.beginGroup(ROI_SETTINGS_GROUP);
+  m_xSize = settings.value(DEFAULT_ROI_X_SIZE_KEY, 500).toLongLong();
+  m_ySize = settings.value(DEFAULT_ROI_Y_SIZE_KEY, 500).toLongLong();
+  m_zSize = settings.value(DEFAULT_ROI_Z_SIZE_KEY, 500).toLongLong();
+  settings.endGroup();
 }
 
 //------------------------------------------------------------------------
-void ROISettings::setXSize(int value)
+void ROISettings::setXSize(long long value)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(ROI_SETTINGS_GROUP);
-
-  settings.setValue(DEFAULT_ROI_X, value);
-  settings.sync();
-
   m_xSize = value;
+
+  set(DEFAULT_ROI_X_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------
-void ROISettings::setYSize(int value)
+void ROISettings::setYSize(long long value)
 {
-  ESPINA_SETTINGS(settings);
-  settings.beginGroup(ROI_SETTINGS_GROUP);
-
-  settings.setValue(DEFAULT_ROI_Y, value);
-  settings.sync();
-
   m_ySize = value;
+
+  set(DEFAULT_ROI_Y_SIZE_KEY, value);
 }
 
 //------------------------------------------------------------------------
-void ROISettings::setZSize(int value)
+void ROISettings::setZSize(long long value)
+{
+  m_zSize = value;
+
+  set(DEFAULT_ROI_Z_SIZE_KEY, value);
+}
+
+//------------------------------------------------------------------------
+void ROISettings::set(const QString& key, long long value)
 {
   ESPINA_SETTINGS(settings);
+
   settings.beginGroup(ROI_SETTINGS_GROUP);
+  settings.setValue(key, value);
+  settings.endGroup();
 
-  settings.setValue(DEFAULT_ROI_Z, value);
   settings.sync();
-
-  m_zSize = value;
 }

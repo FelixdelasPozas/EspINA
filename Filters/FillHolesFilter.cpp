@@ -20,76 +20,55 @@
 
 // ESPINA
 #include "FillHolesFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkBinaryFillholeImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using BinaryFillholeFilter = itk::BinaryFillholeImageFilter<itkVolumeType>;
 
 //-----------------------------------------------------------------------------
-FillHolesFilter::FillHolesFilter(InputSList    inputs,
-                                 Filter::Type  type,
-                                 SchedulerSPtr scheduler)
+FillHolesFilter::FillHolesFilter(InputSList          inputs,
+                                 const Filter::Type &type,
+                                 SchedulerSPtr       scheduler)
 : Filter(inputs, type, scheduler)
 {
 }
 
 //-----------------------------------------------------------------------------
-FillHolesFilter::~FillHolesFilter()
-{
-}
-
-//-----------------------------------------------------------------------------
-void FillHolesFilter::restoreState(const State& state)
-{
-}
-
-//-----------------------------------------------------------------------------
-State FillHolesFilter::state() const
-{
-  return State();
-}
-
-//-----------------------------------------------------------------------------
-Snapshot FillHolesFilter::saveFilterSnapshot() const
-{
-  return Snapshot();
-}
-
-//-----------------------------------------------------------------------------
 bool FillHolesFilter::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return m_outputs.isEmpty() || !validOutput(0);
 }
 
 //-----------------------------------------------------------------------------
-bool FillHolesFilter::needUpdate(Output::Id id) const
+void FillHolesFilter::execute()
 {
-  if (id != 0) throw Undefined_Output_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("FillHolesFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
 
-  // TODO: When input exists, check its timeStamp
-  return m_outputs.isEmpty() || !validOutput(id);
-}
-
-//-----------------------------------------------------------------------------
-void FillHolesFilter::execute(Output::Id id)
-{
-  Q_ASSERT(0 == id);
-  Q_ASSERT(m_inputs.size() == 1);
-
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+    throw EspinaException(what, details);
+  }
 
   auto input       = m_inputs[0];
-  auto inputVolume = volumetricData(input->output());
-  if (!inputVolume) throw Invalid_Input_Data_Exception();
+  auto inputVolume = readLockVolume(input->output());
+  if (!inputVolume->isValid())
+  {
+    auto what    = QObject::tr("Invalid input volume");
+    auto details = QObject::tr("FillHolesFilter::execute(id) -> Invalid input volume");
 
-  emit progress(0);
+    throw EspinaException(what, details);
+  }
+
+  reportProgress(0);
   if (!canExecute()) return;
 
   BinaryFillholeFilter::Pointer filter = BinaryFillholeFilter::New();
@@ -99,29 +78,20 @@ void FillHolesFilter::execute(Output::Id id)
   filter->SetInput(inputVolume->itkImage());
   filter->Update();
 
-  emit progress(100);
+  reportProgress(100);
   if (!canExecute()) return;
 
   auto output  = filter->GetOutput();
   auto spacing = input->output()->spacing();
 
-  auto volume = DefaultVolumetricDataSPtr{sparseCopy<itkVolumeType>(output)};
-  auto mesh   = MeshDataSPtr{new MarchingCubesMesh<itkVolumeType>(volume)};
+  auto volume = sparseCopy<itkVolumeType>(output);
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+    m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
   }
 
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(mesh);
-
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
-}
-
-//-----------------------------------------------------------------------------
-bool FillHolesFilter::areEditedRegionsInvalidated()
-{
-  // TODO
-  return false;
 }

@@ -25,92 +25,103 @@
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Query.h>
+#include <Core/Factory/CoreFactory.h>
+#include <GUI/Utils/Format.h>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
 
 const SegmentationExtension::Type EdgeDistance::TYPE = "EdgeDistance";
 
-const SegmentationExtension::InfoTag EdgeDistance::LEFT_DISTANCE   = "Left Distance";
-const SegmentationExtension::InfoTag EdgeDistance::TOP_DISTANCE    = "Top Distance";
-const SegmentationExtension::InfoTag EdgeDistance::FRONT_DISTANCE  = "Front Distance";
-const SegmentationExtension::InfoTag EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
-const SegmentationExtension::InfoTag EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
-const SegmentationExtension::InfoTag EdgeDistance::BACK_DISTANCE   = "Back Distance";
+const SegmentationExtension::Key EdgeDistance::LEFT_DISTANCE   = "Left Distance";
+const SegmentationExtension::Key EdgeDistance::TOP_DISTANCE    = "Top Distance";
+const SegmentationExtension::Key EdgeDistance::FRONT_DISTANCE  = "Front Distance";
+const SegmentationExtension::Key EdgeDistance::RIGHT_DISTANCE  = "Right Distance";
+const SegmentationExtension::Key EdgeDistance::BOTTOM_DISTANCE = "Bottom Distance";
+const SegmentationExtension::Key EdgeDistance::BACK_DISTANCE   = "Back Distance";
+const SegmentationExtension::Key EdgeDistance::TOUCH_EDGES     = "Touch Edge";
 
 //-----------------------------------------------------------------------------
-EdgeDistance::EdgeDistance(const SegmentationExtension::InfoCache& cache, const State& state)
-: SegmentationExtension(cache)
+EdgeDistance::EdgeDistance(CoreFactory *factory, const SegmentationExtension::InfoCache& cache, const State& state)
+: SegmentationExtension{cache}
+, m_factory            {factory}
 {
-}
-
-//-----------------------------------------------------------------------------
-EdgeDistance::~EdgeDistance()
-{
+  Q_ASSERT(factory);
 }
 
 //-----------------------------------------------------------------------------
 State EdgeDistance::state() const
 {
-  State state;
-
-  return state;
+  return State();
 }
 
 //-----------------------------------------------------------------------------
 Snapshot EdgeDistance::snapshot() const
 {
-  Snapshot snapshot;
-
-  return snapshot;
+  return Snapshot();
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtension::InfoTagList EdgeDistance::availableInformations() const
+const SegmentationExtension::InformationKeyList EdgeDistance::availableInformation() const
 {
-  InfoTagList tags;
+  InformationKeyList keys;
 
-  tags << LEFT_DISTANCE;
-  tags << RIGHT_DISTANCE;
-  tags << TOP_DISTANCE;
-  tags << BOTTOM_DISTANCE;
-  tags << FRONT_DISTANCE;
-  tags << BACK_DISTANCE;
+  keys << createKey(LEFT_DISTANCE);
+  keys << createKey(RIGHT_DISTANCE);
+  keys << createKey(TOP_DISTANCE);
+  keys << createKey(BOTTOM_DISTANCE);
+  keys << createKey(FRONT_DISTANCE);
+  keys << createKey(BACK_DISTANCE);
+  keys << createKey(TOUCH_EDGES);
 
-  return tags;
+  return keys;
 }
 
 //------------------------------------------------------------------------
-void EdgeDistance::onExtendedItemSet(Segmentation* segmentation)
+QVariant EdgeDistance::cacheFail(const InformationKey& key) const
 {
-}
+  if(key.value() == TOUCH_EDGES)
+  {
+    isOnEdge();
+  }
+  else
+  {
+    updateDistances();
+  }
 
-//------------------------------------------------------------------------
-QVariant EdgeDistance::cacheFail(const QString& tag) const
-{
-  updateDistances();
-
-  return cachedInfo(tag);
+  return cachedInfo(key);
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::edgeDistance(Nm distances[6]) const
 {
-  distances[0] = information(LEFT_DISTANCE).toDouble();
-  distances[1] = information(RIGHT_DISTANCE).toDouble();
-  distances[2] = information(TOP_DISTANCE).toDouble();
-  distances[3] = information(BOTTOM_DISTANCE).toDouble();
-  distances[4] = information(FRONT_DISTANCE).toDouble();
-  distances[5] = information(BACK_DISTANCE).toDouble();
+  QStringList labels{LEFT_DISTANCE, RIGHT_DISTANCE, TOP_DISTANCE, BOTTOM_DISTANCE, FRONT_DISTANCE, BACK_DISTANCE};
+  for(auto label: labels)
+  {
+    auto info = information(createKey(label));
+    bool ok = false;
+    auto conversion = info.toDouble(&ok);
+    auto position = labels.indexOf(label);
+
+    if(!ok || (info.canConvert(QVariant::String) && info.toString() == "Unavailable"))
+    {
+      distances[position] = -1;
+    }
+    else
+    {
+      distances[position] = conversion;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
 void EdgeDistance::updateDistances() const
 {
-  //qDebug() << "Updating" << m_seg->data().toString() << EdgeDistanceID;
-  // Preven updating if all available information is already computed
+  // Prevent updating if all available information is already computed
   if (readyInformation().size() < 6)
   {
     QMutexLocker lock(&m_mutex);
@@ -122,8 +133,7 @@ void EdgeDistance::updateDistances() const
       Nm distances[6];
       auto channel = channels.first();
 
-      ChannelEdgesSPtr edgesExtension = retrieveOrCreateExtension<ChannelEdges>(channel);
-
+      auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(channel, m_factory);
       if (edgesExtension->useDistanceToBounds())
       {
         edgesExtension->distanceToBounds(m_extendedItem, distances);
@@ -140,11 +150,86 @@ void EdgeDistance::updateDistances() const
       updateInfoCache(FRONT_DISTANCE , distances[4]);
       updateInfoCache(BACK_DISTANCE  , distances[5]);
     }
+    else
+    {
+      auto text = tr("Unavailable");
+      updateInfoCache(LEFT_DISTANCE  , text);
+      updateInfoCache(RIGHT_DISTANCE , text);
+      updateInfoCache(TOP_DISTANCE   , text);
+      updateInfoCache(BOTTOM_DISTANCE, text);
+      updateInfoCache(FRONT_DISTANCE , text);
+      updateInfoCache(BACK_DISTANCE  , text);
+    }
   }
 }
 
 //-----------------------------------------------------------------------------
-EdgeDistancePtr ESPINA::edgeDistance(SegmentationExtensionPtr extension)
+const QString EdgeDistance::toolTipText() const
 {
-  return dynamic_cast<EdgeDistancePtr>(extension);
+  QString tooltip;
+
+  if (m_infoCache.contains(TOUCH_EDGES) && isOnEdge())
+  {
+    QString description = "<font color=\"red\">" + tr("Touches Stack Edge") + "</font>";
+    tooltip = tooltip.append(GUI::Utils::Format::createTable(":/touchStackEdge.svg", description));
+  }
+
+  return tooltip;
+}
+
+//-----------------------------------------------------------------------------
+bool EdgeDistance::isOnEdge() const
+{
+  bool isOnEdge  = false;
+
+  if (m_infoCache.contains(TOUCH_EDGES) && m_infoCache[TOUCH_EDGES].isValid())
+  {
+    isOnEdge = m_infoCache[TOUCH_EDGES].toBool();
+  }
+  else
+  {
+    auto channels = QueryRelations::channels(m_extendedItem);
+	
+	ChannelSPtr channel = nullptr;
+
+	switch(channels.size())
+	{
+	  case 0:
+	    qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any stack, cannot get edges information.";
+		break;
+	  default:
+	    qWarning() << "Tiling not supported by Stereological Inclusion Extension";
+	    // no break
+	  case 1:
+	    channel = channels.first();
+		break;
+	}
+
+    if(channel != nullptr)
+    {
+      auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(channel, m_factory);
+      auto spacing        = channel->output()->spacing();
+      const NmVector3 DELTA{ 0.5 * spacing[0], 0.5 * spacing[1], 0.5 * spacing[2] };
+
+      Nm distances[6];
+      if (edgesExtension->useDistanceToBounds())
+      {
+        edgesExtension->distanceToBounds(m_extendedItem, distances);
+      }
+      else
+      {
+        edgesExtension->distanceToEdges(m_extendedItem, distances);
+      }
+
+      for(int i = 0; i < 3; ++i)
+      {
+        isOnEdge |= (distances[2*i]     <= DELTA[i]);
+        isOnEdge |= (distances[(2*i)+1] <= DELTA[i]);
+      }
+    }
+  }
+
+  updateInfoCache(TOUCH_EDGES, isOnEdge ? 1 : 0);
+
+  return isOnEdge;
 }

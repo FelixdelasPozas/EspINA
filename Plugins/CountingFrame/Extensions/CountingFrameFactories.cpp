@@ -19,34 +19,47 @@
  *
  */
 
+// Plugin
 #include "CountingFrameFactories.h"
 #include "CountingFrameExtension.h"
 
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-ChannelExtensionFactoryCF::ChannelExtensionFactoryCF(CountingFrameManager* manager, SchedulerSPtr scheduler)
-: m_manager(manager)
-, m_scheduler(scheduler)
+CFStackExtensionFactory::CFStackExtensionFactory(Core::SegmentationExtensionFactorySPtr factory, CountingFrameManager* manager, SchedulerSPtr scheduler)
+: StackExtensionFactory{nullptr}
+, m_extensionfactory   {factory}
+, m_manager            {manager}
+, m_scheduler          {scheduler}
 {
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr ChannelExtensionFactoryCF::createChannelExtension(const ChannelExtension::Type      &type,
-                                                                       const ChannelExtension::InfoCache &cache,
-                                                                       const State& state) const
+StackExtensionSPtr CFStackExtensionFactory::createExtension(const StackExtension::Type      &type,
+                                                            const StackExtension::InfoCache &cache,
+                                                            const State                     &state) const
 {
   if (type != CountingFrameExtension::TYPE)
-    throw Extension_Not_Provided_Exception();
+  {
+    auto what    = QObject::tr("Unable to create stack extension, extension type:  %1").arg(type);
+    auto details = QObject::tr("ChannelExtensionFactoryCF::createChannelExtension() -> Unable to create stack extension, extension type:  %1").arg(type);
 
-  return m_manager->createExtension(m_scheduler, state);
+    throw EspinaException(what, details);
+  }
+
+  return StackExtensionSPtr{new CountingFrameExtension(m_manager, m_scheduler, m_extensionfactory, state)};
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionTypeList ChannelExtensionFactoryCF::providedExtensions() const
+StackExtension::TypeList CFStackExtensionFactory::providedExtensions() const
 {
-  ChannelExtensionTypeList extensions;
+  StackExtension::TypeList extensions;
 
   extensions << CountingFrameExtension::TYPE;
 
@@ -54,26 +67,31 @@ ChannelExtensionTypeList ChannelExtensionFactoryCF::providedExtensions() const
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionFactoryCF::SegmentationExtensionFactoryCF()
+CFSegmentationExtensionFactory::CFSegmentationExtensionFactory()
+: SegmentationExtensionFactory{nullptr}
 {
-
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionSPtr SegmentationExtensionFactoryCF::createSegmentationExtension(const SegmentationExtension::Type      &type,
-                                                                                      const SegmentationExtension::InfoCache &cache,
-                                                                                      const State& state) const
+SegmentationExtensionSPtr CFSegmentationExtensionFactory::createExtension(const SegmentationExtension::Type      &type,
+                                                                          const SegmentationExtension::InfoCache &cache,
+                                                                          const State& state) const
 {
   if (type != StereologicalInclusion::TYPE)
-    throw Extension_Not_Provided_Exception();
+  {
+    auto what    = QObject::tr("Unable to create segmentation extension, extension type:  %1").arg(type);
+    auto details = QObject::tr("ChannelExtensionFactoryCF::createSegmentationExtension() -> Unable to create segmentation extension, extension type:  %1").arg(type);
+
+    throw EspinaException(what, details);
+  }
 
   return SegmentationExtensionSPtr{new StereologicalInclusion(cache)};
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionTypeList SegmentationExtensionFactoryCF::providedExtensions() const
+SegmentationExtension::TypeList CFSegmentationExtensionFactory::providedExtensions() const
 {
-  SegmentationExtensionTypeList extensions;
+  SegmentationExtension::TypeList extensions;
 
   extensions << StereologicalInclusion::TYPE;
 

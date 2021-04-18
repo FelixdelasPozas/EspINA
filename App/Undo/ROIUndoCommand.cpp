@@ -24,13 +24,26 @@
 namespace ESPINA
 {
   //-----------------------------------------------------------------------------
-  AddROIUndoCommand::AddROIUndoCommand(ROIToolsGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
+  AddROIUndoCommand::AddROIUndoCommand(RestrictToolGroup *toolsGroup, const BinaryMaskSPtr<unsigned char> mask)
   : m_newROI   {nullptr}
   , m_toolGroup{toolsGroup}
   , m_mask     {mask}
+  , m_image    {nullptr}
   {
-    if(m_toolGroup->currentROI() == nullptr)
-      m_newROI = ROISPtr{new ROI{mask}};
+    auto roi = m_toolGroup->currentROI();
+    if(roi == nullptr)
+    {
+      m_newROI = std::make_shared<ROI>(mask);
+    }
+    else
+    {
+      m_bounds = roi->bounds();
+      if(intersect(m_bounds, m_mask->bounds()))
+      {
+        auto bounds = intersection(m_bounds, m_mask->bounds());
+        m_image = roi->itkImage(bounds);
+      }
+    }
   }
 
   //-----------------------------------------------------------------------------
@@ -62,12 +75,18 @@ namespace ESPINA
     }
     else
     {
-      m_toolGroup->currentROI()->undo();
+      auto roi = m_toolGroup->currentROI();
+      roi->resize(m_bounds);
+
+      if(m_image)
+      {
+        roi->draw(m_image);
+      }
     }
   }
 
   //-----------------------------------------------------------------------------
-  ClearROIUndoCommand::ClearROIUndoCommand(ROIToolsGroup *toolsGroup)
+  ClearROIUndoCommand::ClearROIUndoCommand(RestrictToolGroup *toolsGroup)
   : m_toolGroup{toolsGroup}
   , m_roi      {nullptr}
   {}

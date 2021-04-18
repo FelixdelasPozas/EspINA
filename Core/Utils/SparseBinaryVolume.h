@@ -24,7 +24,7 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include "BinaryMask.hxx"
 
@@ -80,7 +80,7 @@ namespace ESPINA
      *
      */
     explicit SparseBinaryVolume(const Bounds& bounds = Bounds(),
-                                const NmVector3 spacing = NmVector3{1,1,1}) throw(Invalid_Image_Bounds_Exception);
+                                const NmVector3 spacing = NmVector3{1,1,1});
 
     /** \brief SparseBinaryVolume class constructor to create the equivalent mask from a vtkImageData.
      * \param[in] image, vtkImageData smart pointer.
@@ -88,7 +88,7 @@ namespace ESPINA
      *
      */
     explicit SparseBinaryVolume(const vtkSmartPointer<vtkImageData> image,
-                                const unsigned char backgroundValue = 0) throw(Invalid_Image_Bounds_Exception);
+                                const unsigned char backgroundValue = 0);
 
     /** \brief SparseBinaryVolume class constructor to create the equivalent mask from a templated itk::Image.
      * \param[in] image, itkImage smart pointer.
@@ -143,7 +143,7 @@ namespace ESPINA
      * \param[in] bounds, bounds of the volume region to return.
      *
      */
-    itkVolumeType::Pointer itkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception);
+    itkVolumeType::Pointer itkImage(const Bounds& bounds) const;
 
     /** \brief Return the mask image as a vtkImageData of unsigned char scalars.
      *
@@ -154,7 +154,7 @@ namespace ESPINA
      * \param[in] bounds, bounds of the volume region to return.
      *
      */
-    vtkSmartPointer<vtkImageData> vtkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception);
+    vtkSmartPointer<vtkImageData> vtkImage(const Bounds& bounds) const;
 
     /** \brief Draw method to modify mask using a implicit function.
      * \param[in] brush, vtkImplicitFunction raw pointer.
@@ -196,12 +196,12 @@ namespace ESPINA
     /** \brief Undo interface to revert the changes made by the draw methods to the mask.
      *
      */
-    void undo() throw(Cant_Undo_Exception);
+    void undo();
 
     /** \brief Redo interface to revert the changes made by the undo method to the mask.
      *
      */
-    void redo() throw(Cant_Redo_Exception);
+    void redo();
 
     /** \brief Persistent Interface to save the mask state.
      *
@@ -320,7 +320,7 @@ namespace ESPINA
     /** \brief Class internal method to compute bounding box
      * \param[in] bounds, bounds to add to compute the bounding box.
      */
-    void updateBlocksBoundingBox(const Bounds& bounds) throw(Invalid_Internal_State_Exception);
+    void updateBlocksBoundingBox(const Bounds& bounds);
 
   private:
     NmVector3 m_origin;
@@ -345,7 +345,7 @@ namespace ESPINA
          *
          * NOTE: it creates a mask for the whole region to iterate. In this case, the whole image.
          */
-        iterator(SparseBinaryVolumeSPtr mask)
+        explicit iterator(SparseBinaryVolumeSPtr mask)
         : m_it(mask->computeMask(mask->bounds()).get(), mask->bounds())
         , m_mask(mask)
         {
@@ -423,7 +423,7 @@ namespace ESPINA
          *  one-past-the-end element of the mask.
          *
          */
-        bool Get() const throw(Out_Of_Bounds_Exception)
+        bool Get() const
         {
           if (isAtEnd())
             throw Out_Of_Bounds_Exception();
@@ -447,7 +447,7 @@ namespace ESPINA
          *  one-past-the-end element of the mask.
          *
          */
-        void Set() throw(Out_Of_Bounds_Exception)
+        void Set()
         {
           if (isAtEnd())
             throw Out_Of_Bounds_Exception();
@@ -464,7 +464,7 @@ namespace ESPINA
          *  one-past-the-end element of the mask.
          *
          */
-        void Unset() throw(Out_Of_Bounds_Exception)
+        void Unset()
         {
           if (isAtEnd())
             throw Out_Of_Bounds_Exception();
@@ -481,7 +481,7 @@ namespace ESPINA
          *  the beginning of the mask.
          *
          */
-        iterator& operator--() throw(Underflow_Exception)
+        iterator& operator--()
         { --m_it; return *this; }
 
         /** \brief Increments the iterator position.
@@ -490,7 +490,7 @@ namespace ESPINA
          *  one-past-the-end element of the mask.
          *
          */
-        iterator &operator++() throw (Overflow_Exception)
+        iterator &operator++()
         { ++m_it; return *this; }
 
       protected:
@@ -518,7 +518,7 @@ namespace ESPINA
         /** \brief const_iterator constructor.
          * \param[in] mask, SparseBinaryVolume smart pointer.
          */
-        const_iterator(SparseBinaryVolumeSPtr mask)
+        explicit const_iterator(SparseBinaryVolumeSPtr mask)
         : iterator(mask)
         {};
 
@@ -530,13 +530,13 @@ namespace ESPINA
         /** \brief Forbidden Set() will throw a Const_Violation_Exception exception.
          *
          */
-        void Set() throw(Const_Violation_Exception)
+        void Set()
         { throw Const_Violation_Exception(); }
 
         /** \brief Forbidden Unset() will throw a Const_Violation_Exception exception.
          *
          */
-        void Unset() throw(Const_Violation_Exception)
+        void Unset()
         { throw Const_Violation_Exception(); }
     };
 
@@ -552,7 +552,7 @@ namespace ESPINA
          *  NOTE: Can throw a Region_Not_Contained_In_Mask if the given region is not
          *        inside the largest possible region of the mask.
          */
-        region_iterator(SparseBinaryVolumeSPtr mask, const Bounds &bounds) throw (Region_Not_Contained_In_Mask_Exception)
+        region_iterator(SparseBinaryVolumeSPtr mask, const Bounds &bounds)
         : iterator(mask, bounds)
         {
           if (bounds != intersection(mask->bounds(), bounds))
@@ -591,13 +591,13 @@ namespace ESPINA
         /** \brief Forbidden Set() will throw a Const_Violation_Exception exception.
          *
          */
-        void Set() throw(Const_Violation_Exception)
+        void Set()
         { throw Const_Violation_Exception(); }
 
         /** \brief Forbidden Unet() will throw a Const_Violation_Exception exception.
          *
          */
-        void Unset() throw(Const_Violation_Exception)
+        void Unset()
         { throw Const_Violation_Exception(); }
     };
 

@@ -1,29 +1,22 @@
 /*
-    Copyright (c) 2013, Jorge Peña Pastor <jpena@cesvima.upm.es>
-    All rights reserved.
 
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-        * Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
-        * Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
-        * Neither the name of the <organization> nor the
-        names of its contributors may be used to endorse or promote products
-        derived from this software without specific prior written permission.
+ Copyright (C) 2014 Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    THIS SOFTWARE IS PROVIDED BY Jorge Peña Pastor <jpena@cesvima.upm.es> ''AS IS'' AND ANY
-    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL Jorge Peña Pastor <jpena@cesvima.upm.es> BE LIABLE FOR ANY
-    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-    ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ This file is part of ESPINA.
+
+ ESPINA is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 // ESPINA
 #include "Output.h"
@@ -31,9 +24,13 @@
 #include "DataProxy.h"
 #include "Analysis.h"
 #include "Segmentation.h"
+#include <Core/Utils/EspinaException.h>
 
 // VTK
 #include <vtkMath.h>
+
+// Qt
+#include <QString>
 
 using namespace ESPINA;
 
@@ -43,7 +40,8 @@ TimeStamp Output::s_tick = 0;
 
 //----------------------------------------------------------------------------
 Output::Output(FilterPtr filter, const Output::Id& id, const NmVector3 &spacing)
-: m_filter{filter}
+: m_mutex{QMutex::Recursive}
+, m_filter{filter}
 , m_id{id}
 , m_spacing{spacing}
 , m_timeStamp{s_tick++}
@@ -60,34 +58,23 @@ void Output::setSpacing(const NmVector3& spacing)
 {
   if (m_spacing != spacing)
   {
-    m_spacing = spacing;
-
-    for(auto data : m_data)
+    for(auto type : m_data.keys())
     {
-      if (data->isValid())
-      {
-        data->setSpacing(spacing);
-      }
+      auto data = writeLockData<Data>(type);
+      data->setSpacing(spacing);
     }
 
+    // NOTE: spacing change must be set after propagating it to the data
+    // so the data can get the old spacing to scale if needed.
+    m_spacing = spacing;
     updateModificationTime();
   }
 }
 
 //----------------------------------------------------------------------------
-NmVector3 Output::spacing() const
+const NmVector3 Output::spacing() const
 {
   return m_spacing;
-//   NmVector3 result = m_spacing;
-//
-//   if (result == NmVector3{0,0,0})
-//   {
-//     if (m_data.isEmpty()) throw Invalid_Bounds_Exception();
-//
-//     result = m_data[m_data.keys().first()]->spacing();
-//   }
-//
-//  return result;
 }
 
 //----------------------------------------------------------------------------
@@ -101,17 +88,32 @@ Snapshot Output::snapshot(TemporalStorageSPtr storage,
 
   for(auto data : m_data)
   {
+    const auto bounds = data->bounds();
+    auto dependencies = QStringList{data->dependencies()};
+
     xml.writeStartElement("Data");
     xml.writeAttribute("type",    data->type());
-    xml.writeAttribute("bounds",  data->bounds().toString());
+    xml.writeAttribute("bounds",  bounds.bounds().toString());
+    xml.writeAttribute("depends", dependencies.join(";"));
 
-    for(int i = 0; i < data->editedRegions().size(); ++i)
+    if(bounds.areValid())
     {
-      auto region = data->editedRegions()[i];
-      xml.writeStartElement("EditedRegion");
-      xml.writeAttribute("id",     QString::number(i));
-      xml.writeAttribute("bounds", region.toString());
-      xml.writeEndElement();
+      for(int i = 0; i < data->editedRegions().size(); ++i)
+      {
+        // We need to crop the edited regions bounds in case
+        // the data bounds have been reduced to prevent
+        // out of bounds data requests
+        if(!intersect(bounds, data->editedRegions().at(i))) continue;
+
+        auto editedBounds = intersection(bounds, data->editedRegions().at(i));
+        if (editedBounds.areValid())
+        {
+          xml.writeStartElement("EditedRegion");
+          xml.writeAttribute("id",     QString::number(i));
+          xml.writeAttribute("bounds", editedBounds.toString());
+          xml.writeEndElement();
+        }
+      }
     }
     xml.writeEndElement();
 
@@ -148,12 +150,16 @@ Bounds Output::bounds() const
 
   for(auto data : m_data)
   {
-    if (bounds.areValid())
+    if (data->isValid() && data->bounds().areValid())
     {
-      bounds = boundingBox(bounds, data->bounds());
-    } else
-    {
-      bounds = data->bounds();
+      if (bounds.areValid())
+      {
+        bounds = boundingBox(bounds, data->bounds());
+      }
+      else
+      {
+        bounds = data->bounds();
+      }
     }
   }
 
@@ -196,57 +202,41 @@ bool Output::isValid() const
 }
 
 //----------------------------------------------------------------------------
+void Output::updateModificationTime()
+{
+  m_timeStamp = s_tick++;
+
+  emit modified();
+}
+
+//----------------------------------------------------------------------------
 void Output::onDataChanged()
 {
-  emit modified();
+  updateModificationTime();
 }
 
 //----------------------------------------------------------------------------
 void Output::setData(Output::DataSPtr data)
 {
-  Data::Type type = data->type();
+  const auto type = data->type();
 
   if (!m_data.contains(type))
   {
     m_data[type] = data->createProxy();
   }
 
-  auto base  = m_data.value(type).get();
-  auto proxy = dynamic_cast<DataProxy *>(base);
-  proxy->set(data);
-  data->setOutput(this);
-
-  // Alternatively we could keep the previous edited regions
-  // but at the moment I can't find any scenario where it could be useful
-  BoundsList regions;
-  regions << data->bounds();
-  data->setEditedRegions(regions);
-
-  updateModificationTime();
-  emit modified();
+  proxy(type)->set(data);
 
   connect(data.get(), SIGNAL(dataChanged()),
-          this, SLOT(onDataChanged()));
+          this,       SLOT(onDataChanged()));
+
+  updateModificationTime();
 }
 
 //----------------------------------------------------------------------------
 void Output::removeData(const Data::Type& type)
 {
   m_data.remove(type);
-}
-
-//----------------------------------------------------------------------------
-Output::DataSPtr Output::data(const Data::Type& type) const
-throw (Unavailable_Output_Data_Exception)
-{
-  if (m_data.contains(type))
-  {
-    return m_data.value(type);
-  }
-  else
-  {
-    throw Unavailable_Output_Data_Exception();
-  }
 }
 
 //----------------------------------------------------------------------------
@@ -273,11 +263,18 @@ unsigned int Output::numberOfDatas() const
 //----------------------------------------------------------------------------
 void Output::update()
 {
-  for (auto data : m_data)
+  if (m_data.isEmpty())
   {
-    if (!data->isValid())
+    m_filter->update();
+  }
+  else
+  {
+    for (auto data : m_data)
     {
-      update(data->type());
+      if (!data->isValid())
+      {
+        update(data->type());
+      }
     }
   }
 }
@@ -285,35 +282,50 @@ void Output::update()
 //----------------------------------------------------------------------------
 void Output::update(const Data::Type &type)
 {
-  auto requestedData = data(type);
+  auto requestedData = data<Data>(type);
+
+  m_mutex.lock();
 
   if (!requestedData->isValid())
   {
-    BoundsList editedRegions = requestedData->editedRegions();
-
-    if (requestedData->fetchData())
-    {
-      requestedData->setEditedRegions(editedRegions);
-    }
-    else
+    if (!requestedData->fetchData())
     {
       auto dependencies = requestedData->dependencies();
 
-      for (auto dependencyType : dependencies)
+      if(!dependencies.empty())
       {
-        update(dependencyType);
-      }
+        // TODO: this can make another thread to enter and request an
+        // update to the same data. FIX.
+        m_mutex.unlock();
 
-      auto currentData = data(type);
-      if (dependencies.isEmpty() || requestedData == currentData)
+        for (auto dependencyType : dependencies)
+        {
+          update(dependencyType);
+        }
+
+        update(type);
+
+        m_mutex.lock();
+      }
+      else
       {
         m_filter->update();
       }
     }
+
+    if(!requestedData->isValid())
+    {
+      m_mutex.unlock();
+
+      auto message = tr("Invalid %1 data updating output from filter %2 (%3)").arg(type).arg(this->filter()->name()).arg(filter()->uuid().toString());
+      auto details = tr("Output::update() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+    }
   }
+
+  m_mutex.unlock();
 }
-
-
 
 //----------------------------------------------------------------------------
 bool Output::isSegmentationOutput() const
@@ -324,14 +336,19 @@ bool Output::isSegmentationOutput() const
     auto content  = analysis->content();
     auto outEdges = content->outEdges(m_filter, QString::number(m_id));
 
-    for (auto edge : outEdges)
-    {
-      if (std::dynamic_pointer_cast<Segmentation>(edge.target))
-      {
-        return true;
-      }
-    }
+    auto booleanOp = [](const DirectedGraph::Edge &edge) { return (nullptr != std::dynamic_pointer_cast<Segmentation>(edge.target)); };
+    auto exists = std::any_of(outEdges.constBegin(), outEdges.constEnd(), booleanOp);
+
+    return exists;
   }
 
   return false;
+}
+
+//----------------------------------------------------------------------------
+DataProxy *Output::proxy(const Data::Type &type)
+{
+  auto base  = m_data.value(type).get();
+
+  return dynamic_cast<DataProxy *>(base);
 }

@@ -22,6 +22,9 @@
 // ESPINA
 #include "AddCategoryCommand.h"
 
+// Qt
+#include <QVariant>
+
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
@@ -35,6 +38,7 @@ AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,
 , m_color         {category->color()}
 , m_category      {category}
 , m_parentCategory{parentCategory}
+, m_roiSize       {Vector3<long long>{500,500,500}}
 {
 }
 
@@ -50,7 +54,29 @@ AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,
 , m_color         {color}
 , m_category      {nullptr}
 , m_parentCategory{parentCategory}
+, m_roiSize       {Vector3<long long>{500,500,500}}
 {
+}
+
+//------------------------------------------------------------------------
+AddCategoryCommand::AddCategoryCommand(CategoryAdapterSPtr parentCategory,
+                                       const QString&      name,
+                                       ModelAdapterSPtr    model,
+                                       QColor              color,
+                                       Vector3<long long>  roi,
+                                       QUndoCommand*       parent)
+: QUndoCommand    {parent}
+, m_model         {model}
+, m_name          {name}
+, m_color         {color}
+, m_category      {nullptr}
+, m_parentCategory{parentCategory}
+, m_roiSize       {roi}
+{
+  if(roi[0] <= 0 || roi[1] <= 0 || roi[2] <= 0)
+  {
+    m_roiSize = Vector3<long long>{500,500,500};
+  }
 }
 
 //------------------------------------------------------------------------
@@ -65,15 +91,18 @@ void AddCategoryCommand::redo()
   {
     m_category = m_model->createCategory(m_name, m_parentCategory);
     m_category->setColor(m_color);
+    m_category->addProperty(Category::DIM_X(), m_roiSize[0]);
+    m_category->addProperty(Category::DIM_Y(), m_roiSize[1]);
+    m_category->addProperty(Category::DIM_Z(), m_roiSize[2]);
   }
   else
   {
-    m_model->addCategory(m_parentCategory, m_category);
+    m_model->addCategory(m_category, m_parentCategory);
   }
 }
 
 //------------------------------------------------------------------------
 void AddCategoryCommand::undo()
 {
-  m_model->removeCategory(m_parentCategory, m_category);
+  m_model->removeCategory(m_category, m_parentCategory);
 }

@@ -27,8 +27,9 @@
 #include "ui_GeneralSettingsDialog.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
-#include <Support/Settings/SettingsPanel.h>
+#include <Core/Types.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <Support/Types.h>
 
 namespace ESPINA
 {
@@ -39,46 +40,40 @@ namespace ESPINA
     Q_OBJECT
   public:
     /** \brief GeneralSettingsDialog class constructor.
-     * \param[in] parent, parent widget raw pointer.
-     * \param[in] flags, dialog flags.
+     * \param[in] parent widget raw pointer.
+     * \param[in] flags dialog flags.
      *
      */
-    explicit GeneralSettingsDialog(QWidget *parent = nullptr,
+    explicit GeneralSettingsDialog(QWidget *parent = GUI::DefaultDialogs::defaultParentWidget(),
                                    Qt::WindowFlags flags  = 0);
 
-    /** \brief Overrides QDialog::accept()
-     *
-     */
     virtual void accept() override;
 
-    /** \brief Overrides QDialog::reject()
-     *
-     */
     virtual void reject() override;
 
     /** \brief Adds a panel to the dialog.
-     * \param[in] panel, settings panel smart pointer.
+     * \param[in] panel settings panel.
      *
      */
-    void registerPanel(SettingsPanelSPtr panel);
+    void registerPanel(Support::Settings::SettingsPanelSPtr panel);
 
   private:
     /** \brief Helper method to return a smart pointer of the
      *        panel with the passed short description.
-     * \param[in] shortDesc, short description of the panel.
+     * \param[in] shortDesc short description of the panel.
      *
      */
-    SettingsPanelSPtr panel(const QString &shortDesc);
+    Support::Settings::SettingsPanelSPtr panel(const QString &shortDesc);
 
   public slots:
-		/** \brief Changes the panel in view.
-		 * \param[in] panel, panel index in the m_panels list.
-		 */
+    /** \brief Changes the panel in view.
+     * \param[in] panel, panel index in the m_panels list.
+     */
     void changePreferencePanel(int panel);
 
   private:
-    SettingsPanelPtr   m_activePanel;
-    SettingsPanelSList m_panels;
+    Support::Settings::SettingsPanelPtr   m_activePanel;
+    Support::Settings::SettingsPanelSList m_panels;
   };
 
 } // namespace ESPINA

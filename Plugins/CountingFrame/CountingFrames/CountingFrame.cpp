@@ -18,47 +18,73 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Plugin
 #include "CountingFrames/CountingFrame.h"
-
-#include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
+#include "vtkCountingFrameSliceWidget.h"
+
+// ESPINA
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Utils/VolumeBounds.h>
+#include <Extensions/EdgeDistances/ChannelEdges.h>
+#include <Extensions/ExtensionUtils.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
 
+// VTK
+#include <vtkRenderWindow.h>
+
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
-CountingFrame::CountingFrame(CountingFrameExtension *extension,
-                             Nm                      inclusion[3],
-                             Nm                      exclusion[3],
-                             SchedulerSPtr           scheduler)
-: INCLUSION_FACE(255)
-, EXCLUSION_FACE(0)
-, m_scheduler(scheduler)
-, m_inclusionVolume(0)
-, m_totalVolume(0)
-, m_extension(extension)
-, m_command{vtkSmartPointer<vtkCountingFrameCommand>::New()}
-, m_visible(true)
-, m_enable(true)
-, m_highlight(false)
+CountingFrame::CountingFrame(CountingFrameExtension                *extension,
+                             Nm                                     inclusion[3],
+                             Nm                                     exclusion[3])
+: INCLUSION_FACE   {255}
+, EXCLUSION_FACE   {0}
+, m_countingFrame  {nullptr}
+, m_innerFrame     {nullptr}
+, m_channelEdges   {nullptr}
+, m_inclusionVolume{0}
+, m_totalVolume    {0}
+, m_extension      {extension}
+, m_id             {"Global"}
+, m_command        {vtkSmartPointer<vtkCountingFrameCommand>::New()}
+, m_visible        {true}
+, m_enable         {true}
+, m_highlight      {false}
+, m_editable       {true}
 {
   QWriteLocker lock(&m_marginsMutex);
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 
-  m_command->setWidget(this);
+  m_command->setCountingFrame(this);
+
+  auto itemExtensions = extension->extendedItem()->readOnlyExtensions();
+  Q_ASSERT(itemExtensions->hasExtension(ChannelEdges::TYPE));
+
+  // TODO: the channel edges extension is accessed every time, even if the Counting Frame
+  //       is orthogonal, triggering computation that may be unneeded.
+  auto edgesExtension = retrieveExtension<ChannelEdges>(itemExtensions);
+  m_channelEdges = edgesExtension->channelEdges();
 }
 
 //-----------------------------------------------------------------------------
 CountingFrame::~CountingFrame()
 {
-  m_widgets2D.clear();
-  m_widgets3D.clear();
+  for(auto widget: m_widgets2D)
+  {
+    deleteSliceWidget(widget);
+  }
+
+  for(auto widget: m_widgets3D)
+  {
+    deleteWidget(widget);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -76,13 +102,16 @@ void CountingFrame::deleteFromExtension()
 //-----------------------------------------------------------------------------
 void CountingFrame::setMargins(Nm inclusion[3], Nm exclusion[3])
 {
+  if(m_editable)
   {
-    QWriteLocker lock(&m_marginsMutex);
-    memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
-    memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
-  }
+    {
+      QWriteLocker lock(&m_marginsMutex);
+      memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
+      memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+    }
 
-  updateCountingFrame();
+    updateCountingFrame();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -100,25 +129,37 @@ QString CountingFrame::description() const
   auto spacing  = channel->output()->spacing();
   Nm   voxelVol = spacing[0]*spacing[1]*spacing[2];
 
-  int  totalVoxelVolume     = totalVolume()     / voxelVol;
-  int  inclusionVoxelVolume = inclusionVolume() / voxelVol;
-  int  exclusionVoxelVolume = exclusionVolume() / voxelVol;
+  unsigned long long totalVoxelVolume     = totalVolume()     / voxelVol;
+  unsigned long long inclusionVoxelVolume = inclusionVolume() / voxelVol;
+  unsigned long long exclusionVoxelVolume = exclusionVolume() / voxelVol;
+  long int  frontSl                       = int(front()/spacing[2]);
+  long int  backSl                        = int(back()/spacing[2]);
+  auto constraint                         = categoryConstraint().isEmpty() ? "None (Global)" : categoryConstraint();
 
   QString cube = QString::fromUtf8("\u00b3");
   QString br = "\n";
   QString desc;
-  desc += tr("CF:   %1"            ).arg(m_id)                             + br;
-  desc += tr("Type: %1"            ).arg(typeName())                       + br;
-  desc += tr("Volume information:" )                                       + br;
-  desc += tr("  Total Volume:"     )                                       + br;
-  desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                 + br;
-  desc += tr("    %1 nm"           ).arg(totalVolume(),0,'f',2)     + cube + br;
-  desc += tr("  Inclusion Volume:" )                                       + br;
-  desc += tr("    %1 voxel"        ).arg(inclusionVoxelVolume)             + br;
-  desc += tr("    %1 nm"           ).arg(inclusionVolume(),0,'f',2) + cube + br;
-  desc += tr("  Exclusion Volume:" )                                       + br;
-  desc += tr("    %1 voxel"        ).arg(exclusionVoxelVolume)             + br;
-  desc += tr("    %1 nm"           ).arg(exclusionVolume(),0,'f',2) + cube + br;
+  desc += tr("CF id : %1"               ).arg(id())                             + br;
+  desc += tr("Type: %1"                 ).arg(typeName())                       + br;
+  desc += tr("Constraint: %1"           ).arg(constraint)                       + br;
+  desc += tr("Stack: %1"                ).arg(channel->name())                  + br;
+  desc += tr("Volume information:"      )                                       + br;
+  desc += tr("  Total Volume:"          )                                       + br;
+  desc += tr("    %1 voxel"             ).arg(totalVoxelVolume)                 + br;
+  desc += tr("    %1 nm"                ).arg(totalVolume(),0,'f',2)     + cube + br;
+  desc += tr("  Inclusion Volume:"      )                                       + br;
+  desc += tr("    %1 voxel"             ).arg(inclusionVoxelVolume)             + br;
+  desc += tr("    %1 nm"                ).arg(inclusionVolume(),0,'f',2) + cube + br;
+  desc += tr("  Exclusion Volume:"      )                                       + br;
+  desc += tr("    %1 voxel"             ).arg(exclusionVoxelVolume)             + br;
+  desc += tr("    %1 nm"                ).arg(exclusionVolume(),0,'f',2) + cube + br;
+  desc += tr("Margins:"                 )                                       + br;
+  desc += tr("  Left %1 nm"             ).arg(left())                           + br;
+  desc += tr("  Top %1 nm"              ).arg(top())                            + br;
+  desc += tr("  Right %1 nm"            ).arg(right())                          + br;
+  desc += tr("  Bottom %1 nm"           ).arg(bottom())                         + br;
+  desc += tr("  Front %1 nm (%2 slices)").arg(front()).arg(frontSl)             + br;
+  desc += tr("  Back %1 nm (%2 slices)" ).arg(back()).arg(backSl)               + br;
 
   return desc;
 }
@@ -126,31 +167,45 @@ QString CountingFrame::description() const
 //-----------------------------------------------------------------------------
 void CountingFrame::setVisible(bool visible)
 {
-  QWriteLocker lockState(&m_stateMutex);
-  m_visible = visible;
-
-  QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D.values())
+  if(m_visible != visible)
   {
-    wa->SetEnabled(m_visible && m_enable);
-  }
+    QWriteLocker lockState(&m_stateMutex);
 
-  emit changedVisibility();
+    m_visible = visible;
+
+    QMutexLocker lock(&m_widgetMutex);
+    for (auto wa : m_widgets2D)
+    {
+      wa->SetEnabled(m_visible && m_enable);
+      wa->setVisible(m_visible);
+    }
+
+    for(auto wa: m_widgets3D)
+    {
+      wa->SetEnabled(m_visible && m_enable);
+      wa->setVisible(m_visible);
+    }
+
+    emit changedVisibility();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrame::setEnabled(bool enable)
 {
-  QWriteLocker lockState(&m_stateMutex);
-  m_enable = enable;
-
-  QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D.values())
+  if(m_enable != enable)
   {
-    wa->SetEnabled(m_visible && m_enable);
-  }
+    QWriteLocker lockState(&m_stateMutex);
+    m_enable = enable;
 
-  emit changedVisibility();
+    QMutexLocker lock(&m_widgetMutex);
+    for (auto wa : m_widgets2D)
+    {
+      wa->SetEnabled(m_visible && m_enable);
+    }
+
+    emit changedVisibility();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -160,7 +215,7 @@ void CountingFrame::setHighlighted(bool highlight)
   m_highlight = highlight;
 
   QMutexLocker lock(&m_widgetMutex);
-  for (auto wa : m_widgets2D.values())
+  for (auto wa : m_widgets2D)
   {
     wa->SetHighlighted(m_highlight);
   }
@@ -169,9 +224,94 @@ void CountingFrame::setHighlighted(bool highlight)
 //-----------------------------------------------------------------------------
 void CountingFrame::setCategoryConstraint(const QString& category)
 {
-  m_categoryConstraint = category;
+  bool changed = false;
+  {
+    QWriteLocker lock(&m_countingFrameMutex);
+    if(m_categoryConstraint != category)
+    {
+      m_categoryConstraint = category;
+      changed = true;
+    }
+  }
 
-  emit modified(this);
+  if(changed) emit modified(this);
+}
+
+//-----------------------------------------------------------------------------
+vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
+{
+  QMutexLocker lock(&m_widgetMutex);
+
+  auto view2D = view2D_cast(view);
+  Q_ASSERT(view2D);
+  auto slice  = view2D->crosshair()[normalCoordinateIndex(view2D->plane())];
+  auto spacing = m_extension->extendedItem()->output()->spacing();
+
+  auto widget = CountingFrame2DWidgetAdapter::New();
+
+  widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
+  widget->SetCurrentRenderer(view2D->mainRenderer());
+  widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());
+  widget->SetPlane(view2D->plane());
+  widget->SetRepresentationDepth(view2D->widgetDepth());
+  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
+  widget->SetSlice(slice);
+  widget->SetEnabled(true);
+  widget->setEditable(m_editable);
+
+  m_widgets2D << widget;
+
+  return widget;
+}
+
+//-----------------------------------------------------------------------------
+vtkCountingFrame3DWidget *CountingFrame::createWidget(RenderView *view)
+{
+  QMutexLocker lock(&m_widgetMutex);
+
+  QReadLocker lockMargins(&m_marginsMutex);
+
+  Q_ASSERT(view3D_cast(view));
+
+  auto widget = CountingFrame3DWidgetAdapter::New();
+  auto spacing = m_extension->extendedItem()->output()->spacing();
+
+  widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion, spacing);
+  widget->SetCurrentRenderer(view->mainRenderer());
+  widget->SetInteractor(view->renderWindow()->GetInteractor());
+  widget->SetEnabled(true);
+
+  m_widgets3D << widget;
+
+  return widget;
+}
+
+//-----------------------------------------------------------------------------
+void CountingFrame::deleteSliceWidget(vtkCountingFrameSliceWidget *widget)
+{
+  widget->setVisible(false);
+  widget->SetEnabled(false);
+  widget->SetInteractor(nullptr);
+  widget->SetCurrentRenderer(nullptr);
+  widget->RemoveObserver(m_command);
+
+  m_widgets2D.removeOne(widget);
+
+  widget->Delete();
+}
+
+
+//-----------------------------------------------------------------------------
+void CountingFrame::deleteWidget(vtkCountingFrame3DWidget *widget)
+{
+  widget->setVisible(false);
+  widget->SetEnabled(false);
+  widget->SetInteractor(nullptr);
+  widget->SetCurrentRenderer(nullptr);
+
+  m_widgets3D.removeOne(widget);
+
+  widget->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -182,55 +322,49 @@ void CountingFrame::updateCountingFrame()
     updateCountingFrameImplementation();
   }
 
-  { // We need to unlock m_widgetMutex before emiting the signal
+  { // We need to unlock m_widgetMutex before emitting the signal
     QMutexLocker lockWidgets(&m_widgetMutex);
     QReadLocker  lockMargins(&m_marginsMutex);
+
+    auto spacing = m_extension->extendedItem()->output()->spacing();
+
+    for(auto widget : m_widgets2D)
     {
-      for(auto wa : m_widgets2D.values())
-      {
-        wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
-      }
+      widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
     }
 
+    for(auto widget : m_widgets3D)
     {
-      for(vtkCountingFrameWidget *widget : m_widgets3D.values())
-      {
-        widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
-      }
+      widget->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion, spacing);
     }
   }
 
   emit modified(this);
+
+  apply();
 }
 
 //-----------------------------------------------------------------------------
 void CountingFrame::apply()
 {
-  QMutexLocker lock(&m_applyMutex);
-  if (m_applyCountingFrame)
-  {
-    m_applyCountingFrame->abort();
-  }
-
-  m_applyCountingFrame = ApplyCountingFrameSPtr{new ApplyCountingFrame(this, m_scheduler)};
-  connect(m_applyCountingFrame.get(), SIGNAL(finished()),
-          this,                       SLOT(onCountingFrameApplied()));
-  Task::submit(m_applyCountingFrame);
+  emit apply(this);
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrame::onCountingFrameApplied()
+void CountingFrame::applied()
 {
-  emit modified(this);
+  emit applied(this);
 }
 
 //-----------------------------------------------------------------------------
 Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 {
   auto channel = m_extension->extendedItem();
-  auto volume  = volumetricData(channel->output());
+  auto volume  = readLockVolume(channel->output());
+  auto origin  = volume->bounds().origin();
+  auto spacing = volume->bounds().spacing();
 
-  VolumeBounds volumeBounds(bounds, volume->spacing(), volume->origin());
+  VolumeBounds volumeBounds(bounds, spacing, origin);
 
   return (volumeBounds[1]-volumeBounds[0])*(volumeBounds[3]-volumeBounds[2])* (volumeBounds[5]-volumeBounds[4]);
 }
@@ -239,11 +373,9 @@ Nm CountingFrame::equivalentVolume(const Bounds& bounds)
 vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
 {
   QReadLocker lock(&m_channelEdgesMutex);
-  //qDebug() << "Locking for copying edges" << thread();
 
-  vtkSmartPointer<vtkPolyData> edges = vtkSmartPointer<vtkPolyData>::New();
+  auto edges = vtkSmartPointer<vtkPolyData>::New();
   edges->DeepCopy(m_channelEdges);
-  //qDebug() << "Edges copied" << thread();
 
   return edges;
 }
@@ -252,40 +384,110 @@ vtkSmartPointer<vtkPolyData> CountingFrame::channelEdgesPolyData() const
 vtkSmartPointer<vtkPolyData> CountingFrame::countingFramePolyData() const
 {
   QReadLocker lock(&m_countingFrameMutex);
-  //qDebug() << "Locking for copying CF" << thread();
 
-  vtkSmartPointer<vtkPolyData> cf = vtkSmartPointer<vtkPolyData>::New();
-  cf->DeepCopy(m_countingFrame);
-  //qDebug() << "CF copied" << thread();
+  auto polydata = vtkSmartPointer<vtkPolyData>::New();
+  polydata->DeepCopy(m_countingFrame);
 
-  return cf;
+  return polydata;
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrame::sliceChanged(Plane plane, Nm pos)
+vtkSmartPointer<vtkPolyData> CountingFrame::innerFramePolyData() const
 {
-  auto view = qobject_cast<View2D *>(sender());
-  Q_ASSERT(m_widgets2D.keys().contains(view));
-  m_widgets2D[view]->SetSlice(pos);
+  QReadLocker lock(&m_countingFrameMutex);
+
+  auto polydata = vtkSmartPointer<vtkPolyData>::New();
+  if(m_innerFrame) polydata->DeepCopy(m_innerFrame);
+
+  return polydata;
 }
 
 //-----------------------------------------------------------------------------
-vtkAbstractWidget *CountingFrame::getWidget(RenderView *view)
+void CountingFrame::setId(Id id)
 {
-  auto view3d = dynamic_cast<View3D *>(view);
-  if(view3d && m_widgets3D.keys().contains(view3d))
-    return m_widgets3D[view3d];
+  bool changed = false;
 
-  auto view2d = dynamic_cast<View2D *>(view);
-  if(view2d && m_widgets2D.keys().contains(view2d))
-    return m_widgets2D[view2d];
+  {
+    QWriteLocker lock(&m_countingFrameMutex);
+    if(m_id != id)
+    {
+      m_id = id;
+      changed = true;
+    }
+  }
 
-  return nullptr;
+  if(changed) emit modified(this);
+}
+
+//-----------------------------------------------------------------------------
+const CountingFrame::Id& CF::CountingFrame::id() const
+{
+  QReadLocker lock(&m_countingFrameMutex);
+
+  return m_id;
+}
+
+//-----------------------------------------------------------------------------
+void CF::CountingFrame::setEditable(const bool value)
+{
+  bool changed = false;
+
+  {
+    QWriteLocker lockState(&m_stateMutex);
+    if(m_editable != value)
+    {
+      m_editable = value;
+      changed = true;
+
+      for(auto widget: m_widgets2D) widget->setEditable(value);
+    }
+  }
+
+  if(changed) emit modified(this);
+}
+
+//-----------------------------------------------------------------------------
+const bool CF::CountingFrame::isEditable() const
+{
+  QWriteLocker lockState(&m_stateMutex);
+  return m_editable;
+}
+
+//-----------------------------------------------------------------------------
+bool CF::lessThan(const CountingFrame *lhs, const CountingFrame *rhs)
+{
+  auto lhsParts = lhs->id().split(' ');
+  auto rhsParts = rhs->id().split(' ');
+
+  // identify id's with parts, assuming the last part could be a number (i.e. layer N)
+  if((lhsParts == rhsParts) && (lhsParts.size() > 1))
+  {
+    int pos = 0;
+
+    // at least one part is different, as they are unique ids.
+    while((lhsParts[pos] == rhsParts[pos]) && (pos < lhsParts.size())) ++pos;
+
+    Q_ASSERT(pos < lhsParts.size());
+    bool isOk = false;
+    auto lhsNum = lhsParts[pos].replace("[^\\d]","").toDouble(&isOk);
+
+    if(!isOk) return (lhsParts[pos] < rhsParts[pos]);
+
+    auto rhsNum = rhsParts[pos].replace("[^\\d]", "").toDouble(&isOk);
+
+    if(!isOk) return (lhsParts[pos] < rhsParts[pos]);
+
+    return (lhsNum < rhsNum);
+  }
+
+  return (lhs->id() < rhs->id());
 }
 
 //-----------------------------------------------------------------------------
 void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
+  if(!m_cf->isEditable()) return;
+
   auto widget = static_cast<vtkCountingFrameSliceWidget *>(caller);
 
   if (widget)
@@ -295,21 +497,23 @@ void vtkCountingFrameCommand::Execute(vtkObject* caller, long unsigned int event
     widget->GetExclusionOffset(exOffset);
 
     {
-      QWriteLocker lock(&m_widget->m_marginsMutex);
+      QWriteLocker lock(&m_cf->m_marginsMutex);
       for (int i = 0; i < 3; i++)
       {
-        m_widget->m_inclusion[i] = inOffset[i];
-        if (m_widget->m_inclusion[i] < 0)
-          m_widget->m_inclusion[i] = 0;
+        m_cf->m_inclusion[i] = inOffset[i];
+        if (m_cf->m_inclusion[i] < 0)
+        {
+          m_cf->m_inclusion[i] = 0;
+        }
 
-        m_widget->m_exclusion[i] = exOffset[i];
-        if (m_widget->m_exclusion[i] < 0)
-          m_widget->m_exclusion[i] = 0;
+        m_cf->m_exclusion[i] = exOffset[i];
+        if (m_cf->m_exclusion[i] < 0)
+        {
+          m_cf->m_exclusion[i] = 0;
+        }
       }
     }
 
-    m_widget->updateCountingFrame();
-    m_widget->apply();
+    m_cf->updateCountingFrame();
   }
 }
-

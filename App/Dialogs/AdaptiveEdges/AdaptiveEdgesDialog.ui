@@ -215,6 +215,13 @@
          </layout>
         </item>
         <item>
+         <widget class="QCheckBox" name="computeOptimal">
+          <property name="text">
+           <string>Compute optimal values</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer_4">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -244,7 +251,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt; &lt;br&gt;-  In case there is no outer frame, select the option to compute edges including outer frame. &lt;br&gt;- This option can be changed later in the Channel Inspector dialog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Note:&lt;/span&gt;&lt;br/&gt;- In case there is no outer frame, select the option to compute edges including outer frame.&lt;br&gt;- The computation of optimal values can result in an orthogonal edges if no frame is detected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>

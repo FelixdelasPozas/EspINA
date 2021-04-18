@@ -42,12 +42,20 @@ void EventHandler::setInUse(bool value)
 }
 
 //-----------------------------------------------------------------------------
+bool EventHandler::isInUse() const
+{
+  return m_inUse;
+}
+
+//-----------------------------------------------------------------------------
 bool EventHandler::filterEvent(QEvent *e, RenderView *view)
 {
   return false;
 }
 
-
-
-
-
+//-----------------------------------------------------------------------------
+void EventHandler::setCursor(const QCursor &cursor)
+{
+  m_cursor = cursor;
+  emit cursorChanged();
+}

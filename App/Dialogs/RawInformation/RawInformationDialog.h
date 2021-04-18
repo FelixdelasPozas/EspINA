@@ -25,27 +25,24 @@
 #include <QDialog>
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
+#include <Support/Context.h>
 
 namespace ESPINA
 {
-
+  /** \class RawInformationDialog
+   * \brief Shows the report dialog.
+   *
+   */
   class RawInformationDialog
   : public QDialog
   {
   public:
-  	/** \brief RawInformationDialog class constructor.
-  	 * \param[in] model model adapter smart pointer.
-  	 * \param[in] factory factory smart pointer.
-  	 * \param[in] viewmanager view manager smart pointer.
-  	 * \param[in] parent parent widget.
-  	 */
-    explicit RawInformationDialog(ModelAdapterSPtr model,
-                                  ModelFactorySPtr factory,
-                                  ViewManagerSPtr  viewManager,
-                                  QWidget         *parent = nullptr);
+    /** \brief RawInformationDialog class constructor.
+     * \param[in] parent parent widget.
+     */
+    explicit RawInformationDialog(SegmentationAdapterList input, Support::Context &context);
 
     /** \brief RawInformationDialog class destructor.
      *

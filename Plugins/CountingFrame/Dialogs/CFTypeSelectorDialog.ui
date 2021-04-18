@@ -140,7 +140,7 @@ QTreeView::indicator:unchecked {
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QRadioButton" name="ortogonalRadio">
+           <widget class="QRadioButton" name="orthogonalRadio">
             <property name="maximumSize">
              <size>
               <width>300</width>

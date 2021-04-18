@@ -26,49 +26,57 @@
 #include <Core/Analysis/DataProxy.h>
 #include <Core/MultiTasking/Scheduler.h>
 
-namespace ESPINA {
-  namespace Testing {
+namespace ESPINA
+{
+  namespace Testing
+  {
     class DummyFilter
     : public Filter
     {
-    public:
-      explicit DummyFilter();
+      public:
+        explicit DummyFilter();
+        explicit DummyFilter(InputSList input, Filter::Type type, SchedulerSPtr scheduler);
 
-      virtual void restoreState(const State& state) override {}
-      virtual State state() const                   override {return State();}
+        virtual void restoreState(const State& state) override {}
+        virtual State state() const                   override {return State();}
 
-    protected:
-      virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
-      virtual bool needUpdate() const               override {return false;}
-      virtual void execute()                        override {}
-      virtual bool ignoreStorageContent() const     override {return false;}
+      protected:
+        virtual Snapshot saveFilterSnapshot() const     override {return Snapshot(); }
+        virtual bool needUpdate() const               override {return false;}
+        virtual void execute()                        override {}
+        virtual bool ignoreStorageContent() const     override {return false;}
     };
   }
 
   class DummyData 
   : public Data
   {
-  public:
-    virtual Type type() const {return "DummyData";}
-    virtual bool isValid() const {return true;}
-    virtual bool isEmpty() const {return false;}
-    virtual Bounds bounds() const { return Bounds{0,1,0,1,0,1};}
-    virtual void setSpacing(const NmVector3& spacing){}
-    virtual NmVector3 spacing() const {return NmVector3{1,1,1};}
-    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const {return Snapshot();}
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const { return Snapshot();}
-    virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
-    virtual DataSPtr createProxy() const;
-    virtual size_t memoryUsage() const {return 0;}
-    virtual void undo() {};
+    public:
+      explicit DummyData()
+      : m_spacing{1, 1, 1}
+      {}
 
-  protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
-    { return false; }
+      virtual Type type() const {return "DummyData";}
+      virtual bool isValid() const {return true;}
+      virtual bool isEmpty() const {return false;}
+      virtual VolumeBounds bounds() const { return VolumeBounds(Bounds{0,1,0,1,0,1}, m_spacing);}
+      virtual void setSpacing(const NmVector3& spacing){ m_spacing = spacing; }
+      virtual NmVector3 spacing() const {return m_spacing;}
+      virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) {return Snapshot();}
+      virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) { return Snapshot();}
+      virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) {};
+      virtual DataSPtr createProxy() const;
+      virtual size_t memoryUsage() const {return 0;}
 
-  private:
-    virtual QList<Data::Type> updateDependencies() const
-    { return QList<Data::Type>(); }
+    protected:
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+      { return false; }
+
+    private:
+      virtual QList<Data::Type> updateDependencies() const
+      { return QList<Data::Type>(); }
+
+      NmVector3 m_spacing;
   };
 
   using DummyDataSPtr = std::shared_ptr<DummyData>;
@@ -77,22 +85,25 @@ namespace ESPINA {
   : public DummyData
   , public DataProxy
   {
-  public:
-    virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
-    { return std::dynamic_pointer_cast<DummyData>(proxy); }
+    public:
+      virtual DataSPtr dynamicCast(DataProxySPtr proxy) const
+      { return std::dynamic_pointer_cast<DummyData>(proxy); }
 
-    virtual void set(DataSPtr data)
-    { m_data = std::dynamic_pointer_cast<DummyData>(data); }
+      virtual void set(DataSPtr data)
+      { m_data = std::dynamic_pointer_cast<DummyData>(data); }
 
-    virtual Bounds bounds() const
-    { return m_data->bounds(); }
+      virtual VolumeBounds bounds() const
+      { return m_data->bounds(); }
 
-  protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id)
-    { return m_data->fetchData();}
+      virtual void setSpacing(const NmVector3& spacing)
+      { m_data->setSpacing(spacing); }
 
-  private:
-    DummyDataSPtr m_data;
+    protected:
+      virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+      { return m_data->fetchData();}
+
+    private:
+      DummyDataSPtr m_data;
   };
 }
 

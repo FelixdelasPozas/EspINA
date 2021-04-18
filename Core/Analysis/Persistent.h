@@ -29,108 +29,116 @@
 #ifndef ESPINA_PERSISTENT_H
 #define ESPINA_PERSISTENT_H
 
+// ESPINA
 #include "Core/EspinaCore_Export.h"
-
-#include <memory>
-#include <QString>
-#include <QDebug>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/QStringUtils.h>
 
-namespace ESPINA {
+// C++
+#include <memory>
 
+// Qt
+#include <QString>
+
+namespace ESPINA
+{
   using State = QString;
 
+  /** \class Persistent
+   * \brief Base class for objects that need persistent storage.
+   *
+   */
   class EspinaCore_EXPORT Persistent
   {
-  public:
-    using Uuid = QUuid;
+    public:
+      using Uuid = QUuid;
 
-  public:
-    /** \brief Persistent class constructor.
-     *
-     */
-    explicit Persistent()
-    : m_quuid{QUuid::createUuid()}
-    {}
+    public:
+      /** \brief Persistent class constructor.
+       *
+       */
+      explicit Persistent()
+      : m_quuid{QUuid::createUuid()}
+      {}
 
-    /** \brief Persistent class destructor.
-     *
-     */
-    virtual ~Persistent()
-    {}
+      /** \brief Persistent class destructor.
+       *
+       */
+      virtual ~Persistent()
+      {}
 
-    /** \brief Returns the unique id for this object.
-     *
-     */
-    Uuid uuid() const
-    { return m_quuid; }
+      /** \brief Returns the unique id for this object.
+       *
+       */
+      Uuid uuid() const
+      { return m_quuid; }
 
-    /** \brief Sets the unique id for this object.
-     * \param[in] id unique id.
-     *
-     */
-    void setUuid(Uuid id)
-    { m_quuid = id; }
+      /** \brief Sets the unique id for this object.
+       * \param[in] id unique id.
+       *
+       */
+      void setUuid(Uuid id)
+      { m_quuid = id; }
 
-    /** \brief Sets temporal storage for the object.
-     * \param[in] storage temporal storage object smart pointer.
-     *
-     */
-    void setStorage(TemporalStorageSPtr storage)
-    { m_storage = storage; }
+      /** \brief Sets temporal storage for the object.
+       * \param[in] storage temporal storage object smart pointer.
+       *
+       */
+      void setStorage(TemporalStorageSPtr storage)
+      { m_storage = storage; }
 
-    /** \brief Returns the temporal storage object.
-     *
-     */
-    TemporalStorageSPtr storage() const
-    {
-      if (!m_storage)
+      /** \brief Returns the temporal storage object.
+       *
+       */
+      TemporalStorageSPtr storage() const
       {
-        m_storage = TemporalStorageSPtr{new TemporalStorage()};
+        if (!m_storage)
+        {
+          // NOTE: last resort & for tests, temporal storage should be set on factory creation.
+          m_storage = std::make_shared<TemporalStorage>();
+        }
+        return m_storage;
       }
-      return m_storage;
-    }
 
-    /** \brief Sets the name of the object.
-     * \param[in] name object's name.
-     *
-     */
-    void setName(const QString& name)
-    { m_name = name; }
+      /** \brief Sets the name of the object.
+       * \param[in] name object's name.
+       *
+       */
+      void setName(const QString& name)
+      { m_name = Core::Utils::simplifyString(name); }
 
-    /** \brief Returns the name of the object.
-     *
-     */
-    QString name() const
-    { return m_name; }
+      /** \brief Returns the name of the object.
+       *
+       */
+      QString name() const
+      { return m_name; }
 
-    /** \brief Restores the internal state of this object.
-     * \param[in] state state data object.
-     *
-     */
-    virtual void restoreState(const State& state) = 0;
+      /** \brief Restores the internal state of this object.
+       * \param[in] state state data object.
+       *
+       */
+      virtual void restoreState(const State& state) = 0;
 
-    /** \brief Returns the state data of the object.
-     *
-     * NOTE: If we want to allow ReadOnly objects to keep state we need to avoid new lines.
-     */
-    virtual State state() const = 0;
+      /** \brief Returns the state data of the object.
+       *
+       * NOTE: If we want to allow ReadOnly objects to keep state we need to avoid new lines.
+       */
+      virtual State state() const = 0;
 
-    /** \brief Returns the snapshot data of this object.
-     *
-     */
-    virtual Snapshot snapshot() const = 0;
+      /** \brief Returns the snapshot data of this object.
+       *
+       */
+      virtual Snapshot snapshot() const = 0;
 
-    /** \brief Releases all resources loaded in memory.
-     *
-     */
-    virtual void unload() = 0;
+      /** \brief Releases all resources loaded in memory.
+       *
+       */
+      virtual void unload() = 0;
 
-  private:
-    Uuid                m_quuid;
-    QString             m_name;
-    mutable
-    TemporalStorageSPtr m_storage;
+    private:
+      Uuid                        m_quuid;   /** unique id for the object.                           */
+      QString                     m_name;    /** object's name.                                      */
+      mutable TemporalStorageSPtr m_storage; /** storage where the object will store/read it's data. */
   };
 
   using PersistentPtr = Persistent *;

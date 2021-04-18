@@ -26,6 +26,8 @@
 // ESPINA
 #include <Core/Analysis/DataFactory.h>
 #include <Core/Analysis/Data/MeshData.h>
+#include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 
 namespace ESPINA
 {
@@ -36,10 +38,41 @@ namespace ESPINA
       virtual DataSPtr createData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path, QXmlStreamAttributes info) override;
 
     protected:
-      /** \brief Helper method to fetch a mesh from storate.
+      /** \brief Helper method to fetch a volume from storage.
+       * \param[in] output output that has the data.
+       * \param[in] storage temporal storage with the data files.
+       * \param[in] path path to the data files.
+       * \param[in] bounds data bounds.
        *
        */
-      virtual MeshDataSPtr fetchMeshData(OutputSPtr output, TemporalStorageSPtr storage, const QString &path);
+      virtual DefaultVolumetricDataSPtr createVolumetricData(OutputSPtr          output,
+                                                             TemporalStorageSPtr storage,
+                                                             const QString      &path,
+                                                             const VolumeBounds &bounds);
+
+      /** \brief Helper method to fetch a mesh from storage.
+       * \param[in] output output that has the data.
+       * \param[in] storage temporal storage with the data files.
+       * \param[in] path path to the data files.
+       * \param[in] bounds data bounds.
+       *
+       */
+      virtual MeshDataSPtr createMeshData(OutputSPtr          output,
+                                          TemporalStorageSPtr storage,
+                                          const QString      &path,
+                                          const VolumeBounds &bounds);
+
+      /** \brief Helper method to fetch a skeleton from storage.
+       * \param[in] output output that has the data.
+       * \param[in] storage temporal storage with the data files.
+       * \param[in] path path to the data files.
+       * \param[in] bounds data bounds.
+       *
+       */
+      virtual SkeletonDataSPtr createSkeletonData(OutputSPtr          output,
+                                                  TemporalStorageSPtr storage,
+                                                  const QString      &path,
+                                                  const VolumeBounds &bounds);
   };
 
 } // namespace ESPINA

@@ -39,28 +39,29 @@
 
 namespace ESPINA
 {
+  class ModelFactory;
+
+  /** \class ChangeSegmentationTags
+   * \brief Undo command to modify the tags information of a segmentation.
+   */
   class EspinaUndo_EXPORT ChangeSegmentationTags
   : public QUndoCommand
   {
   public:
-  	/** \brief ChangeSegmentationTags class constructor.
-  	 * \param[in] segmentation, raw pointer of the segmentation adapter.
-  	 * \param[in] tags, list of new tags.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
-    explicit ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
-                                    const QStringList&  tags,
-                                    QUndoCommand*       parent = nullptr);
-
-    /** \brief Overrides QUndoCommand::redo().
+    /** \brief ChangeSegmentationTags class constructor.
+     * \param[in] segmentation whose tags are managed
+     * \param[in] tags added to the segmentation
+     * \param[in] factory model factory to create tags extensions.
+     * \param[in] parent undo command
      *
      */
+    explicit ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
+                                    const QStringList&     tags,
+                                    ModelFactory          *factory,
+                                    QUndoCommand*          parent = nullptr);
+
     virtual void redo() override;
 
-    /** \brief Overrides QUndoCommand::undo().
-     *
-     */
     virtual void undo() override;
 
   private:
@@ -70,8 +71,9 @@ namespace ESPINA
     void swapTags();
 
   private:
-    SegmentationAdapterPtr m_segmentation;
-    QStringList            m_formerTags;
+    SegmentationAdapterPtr m_segmentation; /** segmentation to change tags.      */
+    QStringList            m_tags;         /** tags to set to the segmentation.  */
+    ModelFactory          *m_factory;      /** factory to create tags extension. */
   };
 } // namespace ESPINA
 

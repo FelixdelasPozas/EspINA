@@ -1,94 +1,155 @@
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
+find_package(XLSLIB REQUIRED)
+
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_BINARY_DIR}     # Generated EspinaConfig.h
   ${CMAKE_BINARY_DIR}/GUI # Generated UI files
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
+  ${XLSLIB_INCLUDE_DIRS}
   )
 
 #------------------------------------------------------------------------------
 # Add Qt Resource files
-qt4_add_resources(ESPINA_RCC
+qt5_add_resources(ESPINA_RCC
   rsc/espina.qrc
+  rsc/darktheme/style.qrc
   )
 
 # Create header's MOC files
-qt4_wrap_cpp (ESPINA_MOC
+qt5_wrap_cpp (ESPINA_MOC
+  AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
-  Dialogs/ChannelInspector/ChannelInspector.h
-  Dialogs/CheckAnalysis/CheckAnalysis.h
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
+  Dialogs/ConnectionCount/ConnectionCountDialog.h
+  Dialogs/ConnectionCount/ConnectionCriteriaDialog.h
+  Dialogs/ColorEngineSelector/ColorEngineSelector.h
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.h
+  Dialogs/CustomFileOpenDialog/CustomFileDialog.h
+  Dialogs/CustomFileOpenDialog/OptionsPanel.h
+  Dialogs/StackInspector/StackInspector.h
+  Dialogs/StackInspector/SLICRepresentation2D.h
+  Dialogs/Dialog3D/Dialog3D.h
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.h
+  Dialogs/DistanceInformation/DistanceInformationTabularReport.h
+  Dialogs/HueSelector/HueSelector.h
+  Dialogs/IssueList/CheckAnalysis.h
+  Dialogs/LogDialog/LogDialog.h
   Dialogs/SegmentationInspector/SegmentationInspector.h
   Dialogs/Settings/GeneralSettingsDialog.h
-  Docks/ChannelExplorer/ChannelExplorer.h
-  Docks/SegmentationExplorer/Layouts/ClassificationLayout.h
-  Docks/SegmentationExplorer/SegmentationExplorer.h
-  Docks/SegmentationExplorer/SegmentationExplorerLayout.h
-  Docks/SegmentationHistory/DefaultHistory.h
-  Docks/SegmentationHistory/EmptyHistory.h
-  Docks/SegmentationHistory/HistoryDock.h
+  Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.h
+  Dialogs/SkeletonInspector/SkeletonInspector.h
+  Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h
+  Dialogs/SpinesInformation/SpinesInformationDialog.h
+  Dialogs/UpdateAnnouncementDialog/UpdateAnnouncementDialog.h
+  Panels/StackExplorer/StackExplorer.h
+  Panels/SegmentationExplorer/Layouts/ClassificationLayout.h
+  Panels/SegmentationExplorer/Layouts/LocationLayout.h
+  Panels/SegmentationExplorer/SegmentationExplorer.h
+  Panels/SegmentationExplorer/SegmentationExplorerLayout.h
+  Panels/SegmentationProperties/NoFilterRefiner.h
+  Panels/SegmentationProperties/SegmentationProperties.h
   EspinaMainWindow.h
-  Menus/CamerasMenu.h
   Menus/ColorEngineMenu.h
   Menus/DefaultContextualMenu.h
-  Menus/RenderersMenu.h
+  Settings/GeneralSettings/GeneralSettingsPanel.h
   Settings/ROI/ROISettingsPanel.h
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.h
-  Settings/View2D/View2DRenderersPanel.h
-  Settings/View2D/View2DSettingsPanel.h
-  Settings/View3D/View3DSettingsPanel.h
-  ToolGroups/Edition/CODEHistory.h
-  ToolGroups/Edition/CODEHistoryWidget.h
-  ToolGroups/Edition/CODETool.h
-  ToolGroups/Edition/EditionTools.h
-  ToolGroups/Edition/EditionTools.h
-  ToolGroups/Edition/ManualEditionTool.h
-  ToolGroups/Edition/MorphologicalEditionTool.h
-  ToolGroups/Edition/MorphologicalEditionTool.h
-  ToolGroups/Edition/SplitTool.h
-  ToolGroups/Measures/MeasuresTools.h
-  ToolGroups/ROI/CleanROITool.h
-  ToolGroups/ROI/ManualROITool.h
-  ToolGroups/ROI/OrthogonalROITool.h
-  ToolGroups/ROI/ROITools.h
-  ToolGroups/Segmentation/CustomROIWidget.h
-  ToolGroups/Segmentation/SeedGrowSegmentationHistory.h
-  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.h
-  ToolGroups/Segmentation/SeedGrowSegmentationSettings.h
-  ToolGroups/Segmentation/SeedGrowSegmentationTool.h
-  ToolGroups/Segmentation/SeedThreshold.h
-  ToolGroups/ViewState/ResetZoom.h
-  ToolGroups/ViewState/ToggleCrosshairVisibility.h
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.h
-  ToolGroups/ViewState/ViewTools.h
-  ToolGroups/ViewState/ZoomArea.h
-  Tools/Brushes/CircularBrushROISelector.h
-  Tools/Brushes/SphericalBrushROISelector.h
-  Tools/Measure/MeasureTool.h
-  Tools/Ruler/RulerTool.h
-  Undo/BrushUndoCommand.h
+  ToolGroups/Analyze/ConnectionCount/ConnectionCountTool.h
+  ToolGroups/Analyze/Reports/ReportSelectorDialog.h
+  ToolGroups/Analyze/Reports/DistanceInformationReport.h
+  ToolGroups/Analyze/Reports/ReportsTool.h
+  ToolGroups/Analyze/AnalyzeToolGroup.h
+  ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.h
+  ToolGroups/Explore/ResetViewTool.h
+  ToolGroups/Explore/PositionMarksTool.h
+  ToolGroups/Explore/ZoomRegionTool.h
+  ToolGroups/Edit/CleanSegmentationTool.h
+  ToolGroups/Edit/CODERefineWidget.h
+  ToolGroups/Edit/CODERefiner.h
+  ToolGroups/Edit/CODETool.h
+  ToolGroups/Edit/FillHoles2DTool.h
+  ToolGroups/Edit/FillHolesTool.h
+  ToolGroups/Edit/ImageLogicTool.h
+  ToolGroups/Edit/ManualEditionTool.h
+  ToolGroups/Edit/EditToolGroup.h
+  ToolGroups/Edit/SplitTool.h
+  ToolGroups/Edit/SkeletonEditionTool.h
+  ToolGroups/Edit/SliceInterpolationTool.h
+  ToolGroups/Edit/CleanSegmentationTool.h
+  ToolGroups/Session/FileOpenTool.h
+  ToolGroups/Session/FileSaveTool.h
+  ToolGroups/Session/LogTool.h
+  ToolGroups/Session/UndoRedoTools.h
+  ToolGroups/Restrict/DeleteROITool.h
+  ToolGroups/Restrict/FreehandROITool.h
+  ToolGroups/Restrict/OrthogonalROITool.h
+  ToolGroups/Restrict/RestrictToolGroup.h
+  ToolGroups/Segment/Manual/ManualSegmentTool.h
+  ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.h
+  ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.h
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.h
+  ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.h
+  ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.h
+  ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.h
+  ToolGroups/ToolGroup.h
+  ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h
+  ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
+  ToolGroups/Visualize/FullscreenTool.h
+  ToolGroups/Visualize/DayNightTool.h
+  ToolGroups/Visualize/Representations/Switches/CrosshairSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.h
+  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.h
+  ToolGroups/Analyze/MeasureLength/MeasureLengthTool.h
+  ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.h
+  Undo/DrawUndoCommand.h
+  Utils/UpdateCheck.h
   Views/DefaultView.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 # Create Interface files
-qt4_wrap_ui (ESPINA_UI
+qt5_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
-  Dialogs/ChannelInspector/ChannelInspector.ui
-  Dialogs/CheckAnalysis/CheckAnalysisDialog.ui
-  Dialogs/ProblemList/ProblemListDialog.ui
+  Dialogs/ColorEngineSelector/ColorEngineSelector.ui
+  Dialogs/ConnectionCount/ConnectionCountDialog.ui
+  Dialogs/ConnectionCount/ConnectionCriteriaDialog.ui
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.ui
+  Dialogs/CustomFileOpenDialog/OptionsPanel.ui
+  Dialogs/StackInspector/StackInspector.ui
+  Dialogs/Dialog3D/Dialog3D.ui
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.ui
+  Dialogs/HueSelector/HueSelectorDialog.ui
+  Dialogs/IssueList/IssueListDialog.ui
+  Dialogs/LogDialog/LogDialog.ui
   Dialogs/SegmentationInspector/SegmentationInspector.ui
   Dialogs/Settings/GeneralSettingsDialog.ui
-  Docks/ChannelExplorer/ChannelExplorer.ui
-  Docks/SegmentationExplorer/SegmentationExplorer.ui
-  Docks/SegmentationHistory/DefaultHistory.ui
-  Docks/SegmentationHistory/EmptyHistory.ui
+  Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.ui
+  Dialogs/SkeletonInspector/SkeletonInspector.ui
+  Dialogs/UpdateAnnouncementDialog/UpdateAnnouncementDialog.ui
+  Panels/StackExplorer/StackExplorer.ui
+  Panels/SegmentationExplorer/SegmentationExplorer.ui
+  Panels/SegmentationProperties/IssueProperty.ui
+  Panels/SegmentationProperties/NoFilterRefiner.ui
+  Panels/SegmentationProperties/SegmentationProperties.ui
   Settings/GeneralSettings/GeneralSettingsPanel.ui
   Settings/ROI/OrthogonalROISettings.ui
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.ui
-  Settings/View2D/View2DSettingsPanel.ui
-  Settings/View3D/View3DSettingsPanel.ui
-  ToolGroups/Edition/CODEHistoryWidget.ui
-  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.ui
+  ToolGroups/Analyze/Reports/ReportSelectorDialog.ui
+  ToolGroups/Edit/CODERefineWidget.ui
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.ui
+  ${ESPINA_INCLUDE}/Support/Widgets/TabularReportEntry.ui
   )
 
 if (METADONA_FOUND)
@@ -102,72 +163,130 @@ set (ESPINA_SOURCES
   ${ESPINA_MOC}
   ${ESPINA_UI}
   ${METADONA_SOURCES}
-  main.cpp
+  AutoSave.cpp
   Dialogs/About/AboutDialog.cpp
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.cpp
-  Dialogs/ChannelInspector/ChannelInspector.cpp
-  Dialogs/CheckAnalysis/CheckAnalysis.cpp
-  Dialogs/ProblemList/ProblemListDialog.cpp
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixDialog.cpp
+  Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.cpp
+  Dialogs/ColorEngineSelector/ColorEngineSelector.cpp
+  Dialogs/ConnectionCount/ConnectionCountDialog.cpp
+  Dialogs/ConnectionCount/ConnectionCriteriaDialog.cpp
+  Dialogs/CreateCategoryDialog/CreateCategoryDialog.cpp
+  Dialogs/CustomFileOpenDialog/CustomFileDialog.cpp
+  Dialogs/CustomFileOpenDialog/OptionsPanel.cpp
+  Dialogs/StackInspector/StackInspector.cpp
+  Dialogs/StackInspector/SLICRepresentation2D.cpp
+  Dialogs/HueSelector/HueSelector.cpp
+  Dialogs/IssueList/CheckAnalysis.cpp
+  Dialogs/IssueList/IssueListDialog.cpp
+  Dialogs/LogDialog/LogDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationOptionsDialog.cpp
+  Dialogs/DistanceInformation/DistanceInformationTabularReport.cpp
+  Dialogs/RawInformation/RawInformationDialog.cpp
   Dialogs/SegmentationInspector/SegmentationInspector.cpp
   Dialogs/Settings/GeneralSettingsDialog.cpp
-  Dialogs/RawInformation/RawInformationDialog.cpp
-  Docks/ChannelExplorer/ChannelExplorer.cpp
-  Docks/SegmentationExplorer/Layouts/ClassificationLayout.cpp
-  Docks/SegmentationExplorer/SegmentationExplorer.cpp
-  Docks/SegmentationExplorer/SegmentationExplorerLayout.cpp
-  Docks/SegmentationHistory/DefaultHistory.cpp
-  Docks/SegmentationHistory/EmptyHistory.cpp
-  Docks/SegmentationHistory/HistoryDock.cpp
+  Dialogs/Dialog3D/Dialog3D.cpp
+  Dialogs/SkeletonStrokeDefinition/StrokeDefinitionDialog.cpp
+  Dialogs/SkeletonInspector/SkeletonInspector.cpp
+  Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.cpp
+  Dialogs/SpinesInformation/SpinesInformationDialog.cpp
+  Dialogs/UpdateAnnouncementDialog/UpdateAnnouncementDialog.cpp
   EspinaErrorHandler.cpp
   EspinaMainWindow.cpp
   IO/SegFileReader.cpp
-  Menus/CamerasMenu.cpp
   Menus/ColorEngineMenu.cpp
   Menus/DefaultContextualMenu.cpp
-  Menus/RenderersMenu.cpp
+  Panels/SegmentationExplorer/Layouts/ClassificationLayout.cpp
+  Panels/SegmentationExplorer/Layouts/LocationLayout.cpp
+  Panels/SegmentationExplorer/SegmentationExplorer.cpp
+  Panels/SegmentationExplorer/SegmentationExplorerLayout.cpp
+  Panels/SegmentationProperties/IssueProperty.cpp
+  Panels/SegmentationProperties/NoFilterRefiner.cpp
+  Panels/SegmentationProperties/SegmentationProperties.cpp
+  Panels/StackExplorer/StackExplorer.cpp
   RecentDocuments.cpp
-  Settings/DefaultView/DefaultViewSettingsPanel.cpp
-  Settings/GeneralSettings/GeneralSettings.cpp
   Settings/GeneralSettings/GeneralSettingsPanel.cpp
   Settings/ROI/ROISettings.cpp
   Settings/ROI/ROISettingsPanel.cpp
   Settings/SeedGrowSegmentation/SeedGrowSegmentationSettingsPanel.cpp
-  Settings/View2D/View2DRenderersPanel.cpp
-  Settings/View2D/View2DSettingsPanel.cpp
-  Settings/View3D/View3DSettingsPanel.cpp
-  ToolGroups/Edition/CODEHistory.cpp
-  ToolGroups/Edition/CODEHistoryWidget.cpp
-  ToolGroups/Edition/CODETool.cpp
-  ToolGroups/Edition/EditionTools.cpp
-  ToolGroups/Edition/ManualEditionTool.cpp
-  ToolGroups/Edition/MorphologicalEditionTool.cpp
-  ToolGroups/Edition/SplitTool.cpp
-  ToolGroups/Measures/MeasuresTools.cpp
-  ToolGroups/ROI/CleanROITool.cpp
-  ToolGroups/ROI/ManualROITool.cpp
-  ToolGroups/ROI/OrthogonalROITool.cpp
-  ToolGroups/ROI/ROITools.cpp
-  ToolGroups/Segmentation/CustomROIWidget.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationHistory.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationHistoryWidget.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationSettings.cpp
-  ToolGroups/Segmentation/SeedGrowSegmentationTool.cpp
-  ToolGroups/Segmentation/SeedThreshold.cpp
-  ToolGroups/Segmentation/SegmentationTools.cpp
-  ToolGroups/ViewState/ResetZoom.cpp
-  ToolGroups/ViewState/ToggleCrosshairVisibility.cpp
-  ToolGroups/ViewState/ToggleSegmentationsVisibility.cpp
-  ToolGroups/ViewState/ViewTools.cpp
-  ToolGroups/ViewState/ZoomArea.cpp
-  Tools/Brushes/CircularBrushROISelector.cpp
-  Tools/Brushes/ROISelectorBase.cpp
-  Tools/Brushes/SphericalBrushROISelector.cpp
-  Tools/Measure/MeasureTool.cpp
-  Tools/Ruler/RulerTool.cpp
-  Undo/BrushUndoCommand.cpp
+  Settings/Utils.cpp
+  ToolGroups/Analyze/AnalyzeToolGroup.cpp
+  ToolGroups/Analyze/ConnectionCount/ConnectionCountTool.cpp
+  ToolGroups/Analyze/MeasureLength/MeasureLengthTool.cpp
+  ToolGroups/Analyze/Reports/DistanceInformationReport.cpp
+  ToolGroups/Analyze/Reports/RawInformationReport.cpp
+  ToolGroups/Analyze/Reports/ReportSelectorDialog.cpp
+  ToolGroups/Analyze/Reports/ReportsTool.cpp
+  ToolGroups/Analyze/Reports/SpineInformationReport.cpp
+  ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
+  ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
+  ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.cpp
+  ToolGroups/Edit/CleanSegmentationTool.cpp
+  ToolGroups/Edit/CODERefineWidget.cpp
+  ToolGroups/Edit/CODERefiner.cpp
+  ToolGroups/Edit/CODETool.cpp
+  ToolGroups/Edit/EditToolGroup.cpp
+  ToolGroups/Edit/FillHoles2DTool.cpp
+  ToolGroups/Edit/FillHolesTool.cpp
+  ToolGroups/Edit/ImageLogicTool.cpp
+  ToolGroups/Edit/ManualEditionTool.cpp
+  ToolGroups/Edit/SliceEditionPipeline.cpp
+  ToolGroups/Edit/SliceInterpolationTool.cpp
+  ToolGroups/Edit/SplitTool.cpp
+  ToolGroups/Edit/SkeletonEditionTool.cpp
+  ToolGroups/Edit/CleanSegmentationTool.cpp
+  ToolGroups/Explore/PositionMarksTool.cpp
+  ToolGroups/Explore/ResetViewTool.cpp
+  ToolGroups/Explore/ZoomRegionTool.cpp
+  ToolGroups/Restrict/DeleteROITool.cpp
+  ToolGroups/Restrict/FreehandROITool.cpp
+  ToolGroups/Restrict/OrthogonalROITool.cpp
+  ToolGroups/Restrict/RestrictToolGroup.cpp
+  ToolGroups/Segment/Manual/ManualSegmentTool.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/CustomROIWidget.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationRefineWidget.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedTemporalPrototype.cpp
+  ToolGroups/Segment/SeedGrowSegmentation/SeedThreshold.cpp
+  ToolGroups/Segment/Skeleton/SkeletonCreationTool.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolsUtils.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolsEventHandler.cpp
+  ToolGroups/Segment/Skeleton/ConnectionPointsTemporalRepresentation2D.cpp
+  ToolGroups/Segment/Skeleton/SkeletonToolWidget2D.cpp
+  ToolGroups/Session/ChunkReporter.cpp
+  ToolGroups/Session/FileOpenTool.cpp
+  ToolGroups/Session/FileSaveTool.cpp
+  ToolGroups/Session/LogTool.cpp
+  ToolGroups/Session/UndoRedoTools.cpp
+  ToolGroups/ToolGroup.cpp
+  ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.cpp
+  ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
+  ToolGroups/Visualize/FullscreenTool.cpp
+  ToolGroups/Visualize/DayNightTool.cpp
+  ToolGroups/Visualize/GenericTogglableTool.cpp
+  ToolGroups/Visualize/Representations/StackRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/SegmentationRepresentationFactory.cpp
+  ToolGroups/Visualize/Representations/Switches/CrosshairSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationMeshSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationVolumetricSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationSliceSwitch.cpp
+  ToolGroups/Visualize/Representations/Switches/SegmentationSkeletonSwitch.cpp
+  Undo/ChangeCategoryColorCommand.cpp
+  Undo/DragChannelsCommand.cpp
+  Undo/DrawUndoCommand.cpp
+  Undo/ModifySkeletonCommand.cpp
   Undo/ROIUndoCommand.cpp
   Undo/RenameSegmentationsCommand.cpp
+  Undo/RemoveChannel.cpp
+  Utils/TagUtils.cpp
+  Utils/UpdateCheck.cpp
   Views/DefaultView.cpp
+  main.cpp
   )
 
 set (ESPINA_LIBRARIES
@@ -181,6 +300,7 @@ set (ESPINA_LIBRARIES
 
 set (EXTERNAL_LIBRARIES
   ${METADONA_LIBRARIES}
+  ${XLSLIB_LIBRARIES}
 )
 
 if(DEFINED MINGW OR DEFINED MSVC)

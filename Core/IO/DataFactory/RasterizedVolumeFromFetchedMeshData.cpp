@@ -21,63 +21,106 @@
 // ESPINA
 #include "RasterizedVolumeFromFetchedMeshData.h"
 #include <Core/Analysis/Data/Volumetric/RasterizedVolume.hxx>
+#include <Core/Analysis/Data/Skeleton/RawSkeleton.h>
+#include <Core/Utils/EspinaException.h>
 
-namespace ESPINA
+using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
+
+//---------------------------------------------------------------------------
+DataSPtr RasterizedVolumeFromFetchedMeshData::createData(OutputSPtr           output,
+                                                         TemporalStorageSPtr  storage,
+                                                         const QString       &path,
+                                                         QXmlStreamAttributes info)
 {
-  //---------------------------------------------------------------------------
-  DataSPtr RasterizedVolumeFromFetchedMeshData::createData(OutputSPtr           output,
-                                                           TemporalStorageSPtr  storage,
-                                                           const QString       &path,
-                                                           QXmlStreamAttributes info)
+  const Data::Type requestedType = info.value("type").toString();
+  VolumeBounds bounds(Bounds(info.value("bounds").toString()), output->spacing());
+
+  DataSPtr data;
+  if(MeshData::TYPE == requestedType)
   {
-    DataSPtr data;
+    data = createMeshData(output, storage, path, bounds);
+  }
+  else if(VolumetricData<itkVolumeType>::TYPE == requestedType)
+  {
+    data = createVolumetricData(output, storage, path, bounds);
+  }
+  else if(SkeletonData::TYPE == requestedType)
+  {
+    data = createSkeletonData(output, storage, path, bounds);
+  }
+  else
+  {
+    auto message = QObject::tr("Unknown data type for data factory: %1").arg(requestedType);
+    auto details = QObject::tr("RasterizedVolumeFromFetchedMeshData::createData() -> ") + message;
 
-    if ("MeshData" == info.value("type"))
+    throw EspinaException(message, details);
+  }
+
+  return data;
+}
+
+//----------------------------------------------------------------------------
+MeshDataSPtr RasterizedVolumeFromFetchedMeshData::createMeshData(OutputSPtr          output,
+                                                                 TemporalStorageSPtr storage,
+                                                                 const QString      &path,
+                                                                 const VolumeBounds &bounds)
+{
+  if (!hasMeshData(output))
+  {
+    auto data = std::make_shared<RawMesh>();
+
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+    output->setData(data);
+  }
+
+  auto mesh = writeLockMesh(output, DataUpdatePolicy::Ignore);
+
+  return mesh;
+}
+
+//----------------------------------------------------------------------------
+DefaultVolumetricDataSPtr RasterizedVolumeFromFetchedMeshData::createVolumetricData(OutputSPtr          output,
+                                                                                    TemporalStorageSPtr storage,
+                                                                                    const QString      &path,
+                                                                                    const VolumeBounds &bounds)
+{
+  if(!hasVolumetricData(output))
+  {
+    auto data = std::make_shared<SparseVolume<itkVolumeType>>();
+
+    output->setData(data);
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
+
+    if (!data->fetchData())
     {
-      data = fetchMeshData(output, storage, path);
-    }
-    else if ("VolumetricData" == info.value("type"))
-    {
-      data = std::make_shared<SparseVolume<itkVolumeType>>();
+      auto mesh       = createMeshData(output, storage, path, bounds);
+      auto meshBounds = mesh->bounds();
+      auto spacing    = meshBounds.spacing();
 
-      output->setData(data);
-
-      data->setFetchContext(storage, path, QString::number(output->id()));
-      if (!data->fetchData())
+      if (mesh)
       {
-        auto mesh    = fetchMeshData(output, storage, path);
-        auto spacing = mesh->spacing();
-        auto bounds  = mesh->bounds();
-
-        if (mesh)
-        {
-          data = std::make_shared<RasterizedVolume<itkVolumeType>>(mesh, bounds, spacing);
-        }
+        data = std::make_shared<RasterizedVolume<itkVolumeType>>(output.get(), meshBounds, spacing);
       }
     }
-
-
-    return data;
   }
 
-  //----------------------------------------------------------------------------
-  MeshDataSPtr ESPINA::RasterizedVolumeFromFetchedMeshData::fetchMeshData(OutputSPtr          output,
-                                                                          TemporalStorageSPtr storage,
-                                                                          const QString      &path)
+  return writeLockVolume(output, DataUpdatePolicy::Ignore);
+}
+
+//----------------------------------------------------------------------------
+SkeletonDataSPtr RasterizedVolumeFromFetchedMeshData::createSkeletonData(OutputSPtr          output,
+                                                                         TemporalStorageSPtr storage,
+                                                                         const QString      &path,
+                                                                         const VolumeBounds &bounds)
+{
+  if(!hasSkeletonData(output))
   {
-    MeshDataSPtr data;
+    auto data = std::make_shared<RawSkeleton>(bounds.spacing(), bounds.origin());
+    data->setFetchContext(storage, path, QString::number(output->id()), bounds);
 
-    if (!hasMeshData(output))
-    {
-      data = std::make_shared<RawMesh>();
-
-      data->setFetchContext(storage, path, QString::number(output->id()));
-      output->setData(data);
-    }
-
-    data = meshData(output, DataUpdatePolicy::Ignore);
-
-    return data;
+    output->setData(data);
   }
 
-} // namespace ESPINA
+  return writeLockSkeleton(output, DataUpdatePolicy::Ignore);
+}

@@ -1,0 +1,7 @@
+{
+  "name": "SEGMHA Reader",
+  "description" : "Reader of old EspINA 1.x SEGMHA files.",
+  "organization" : "Universidad Politécnica de Madrid.", 
+  "maintainer" : "felix.delaspozas@ctb.upm.es",
+  "version" : "1.0.0"
+}

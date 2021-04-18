@@ -25,9 +25,9 @@
 
 namespace ESPINA
 {
-  const QString DEFAULT_ROI_X("DefaultOrthogonalROI::X");
-  const QString DEFAULT_ROI_Y("DefaultOrthogonalROI::Y");
-  const QString DEFAULT_ROI_Z("DefaultOrthogonalROI::Z");
+  const QString DEFAULT_ROI_X_SIZE_KEY("X Size");
+  const QString DEFAULT_ROI_Y_SIZE_KEY("Y Size");
+  const QString DEFAULT_ROI_Z_SIZE_KEY("Z Size");
   const QString ROI_SETTINGS_GROUP("Orthogonal ROI Settings");
 
   class ROISettings
@@ -48,40 +48,47 @@ namespace ESPINA
      * \param[in] value X size value.
      *
      */
-    void setXSize(int value);
+    void setXSize(long long value);
 
     /** \brief Returns the value of the X size.
      *
      */
-    int xSize() const
+    long long xSize() const
     {return m_xSize;}
 
     /** \brief Sets Y size.
      * \param[in] value Y size value.
      *
      */
-    void setYSize(int value);
+    void setYSize(long long value);
 
     /** \brief Returns the value of the Y size.
      *
      */
-    int ySize() const
+    long long ySize() const
     {return m_ySize;}
 
     /** \brief Sets Z size.
      * \param[in] value Z size value.
      *
      */
-    void setZSize(int value);
+    void setZSize(long long value);
 
     /** \brief Returns the value of the Z size.
      *
      */
-    int zSize() const
+    long long zSize() const
     {return m_zSize;}
 
   private:
-    int m_xSize, m_ySize, m_zSize;
+    /** \brief Helper method to set the values to ESPINA general settings.
+     * \param[in] key key string reference.
+     * \param[in] value integer value.
+     *
+     */
+    void set(const QString &key, long long value);
+
+    long long m_xSize, m_ySize, m_zSize;
   };
 
 }

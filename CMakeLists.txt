@@ -1,62 +1,79 @@
-cmake_minimum_required (VERSION 2.8.6)
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+#   EspINA
+#   2018 (c) Universidad Politécnica de Madrid
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+cmake_minimum_required( VERSION 3.1.0 )
 
 if(CMAKE_MAJOR_VERSION EQUAL 3 OR CMAKE_MAJOR_VERSION GREATER 3)
   cmake_policy(SET CMP0048 OLD) # Don't use project version
 endif()
 
-project (ESPINA)
-
-
+project(ESPINA)
+# You can set the version: project( ESPINA VERSION 1.0.0 )
+# Compilation definitions.
 add_definitions(
   -std=c++11
-  -fpermissive
-  )
+  -fpermissive)
+  
+# MINGW.  
+if(DEFINED MINGW)
+	add_definitions(-mwindows)
+else(DEFINED MINGW)
+	add_definitions(-rdynamic)
+endif(DEFINED MINGW)
 
+list( APPEND CMAKE_MODULE_PATH
+ ${PROJECT_SOURCE_DIR}/CMake/Modules )
+
+# Packages.
 find_package(QuaZip REQUIRED)
-#if (NOT DEFINED MINGW AND NOT DEFINED MSVC)
-#  include(${QUAZIP_USE_FILE})
-#endif (NOT DEFINED MINGW AND NOT DEFINED MSVC)
-
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
-
-find_package (VTK REQUIRED)
+include_directories(${QUAZIP_INCLUDE_DIR})
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Concurrent Test)
+#include(${QT_USE_FILE})
+set (QT_LIBRARIES
+  Qt5::Core 
+  Qt5::Gui 
+  Qt5::Network 
+  Qt5::Widgets 
+  Qt5::Concurrent
+)
+set (QT_TEST_LIBRARY
+  Qt5::Test
+)
+find_package(VTK REQUIRED NO_MODULE)
 include (${VTK_USE_FILE})
-
-find_package (ITK REQUIRED)
+find_package(ITK REQUIRED)
 include (${ITK_USE_FILE})
-
-find_package(Boost REQUIRED COMPONENTS  graph regex)
-link_directories ( ${Boost_LIBRARY_DIRS} )
+find_package(Boost REQUIRED COMPONENTS graph regex)
+set(Boost_USE_MULTITHREADED ON)
+link_directories (${Boost_LIBRARY_DIRS})
+include_directories(${Boost_INCLUDE_DIR})
 
 # Notify basic plugins to avoid searching for ESPINA CMake files
 set (COMPILING_ESPINA 1)
 
 set (AUTOMATIC_VERSION TRUE CACHE BOOL "Detect ESPINA version automatically from git tags")
 
+if(DEFINED MINGW)
+	set(AUTOMATIC_VERSION FALSE)
+endif(DEFINED MINGW)
+
 if (AUTOMATIC_VERSION)
- 
   execute_process(COMMAND git describe --tags COMMAND cut -d. -f1 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE ESPINA_VERSION_MAJOR OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND git describe --tags COMMAND cut -d. -f2 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE ESPINA_VERSION_MINOR OUTPUT_STRIP_TRAILING_WHITESPACE)
   execute_process(COMMAND git describe --tags COMMAND cut -d. -f3 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} OUTPUT_VARIABLE ESPINA_VERSION_PATCH OUTPUT_STRIP_TRAILING_WHITESPACE)
-
 endif ()
 
-if (NOT AUTOMATIC_VERSION
-    OR  ESPINA_VERSION_MAJOR STREQUAL ""
-    OR  ESPINA_VERSION_MINOR STREQUAL ""
-    OR  ESPINA_VERSION_PATCH STREQUAL "")
-  
+if (NOT AUTOMATIC_VERSION OR ESPINA_VERSION_MAJOR STREQUAL "" OR  ESPINA_VERSION_MINOR STREQUAL "" OR  ESPINA_VERSION_PATCH STREQUAL "")
   # Version Number
   set (ESPINA_VERSION_MAJOR ${FOUND_ESPINA_VERSION_MAJOR} CACHE INTEGER "ESPINA major version")
   set (ESPINA_VERSION_MINOR ${FOUND_ESPINA_VERSION_MINOR} CACHE INTEGER "ESPINA minor version")
   set (ESPINA_VERSION_PATCH ${FOUND_ESPINA_VERSION_PATCH} CACHE INTEGER "ESPINA patch version")
-
 endif ()
 
-set (ESPINA_VERSION
-  ${ESPINA_VERSION_MAJOR}.${ESPINA_VERSION_MINOR}.${ESPINA_VERSION_PATCH}
-  )
+set (ESPINA_VERSION ${ESPINA_VERSION_MAJOR}.${ESPINA_VERSION_MINOR}.${ESPINA_VERSION_PATCH})
 message(STATUS "ESPINA Version: ${ESPINA_VERSION}")
 
 # Offer the user the choice of overriding the installation directories
@@ -87,8 +104,6 @@ list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib"
 if("${isSystemDir}" STREQUAL "-1")
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 endif("${isSystemDir}" STREQUAL "-1")
-
-
 
 # Make relative paths absolute (needed later on)
 foreach(p LIB BIN INCLUDE CMAKE)
@@ -168,16 +183,13 @@ configure_file(
 if (NOT DEFINED MINGW)
   set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 else(NOT DEFINED MINGW)
-  if (DEFINED MINGW)
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/tools/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/tools/inno-setup/EspINA-Mingw64.iss")
-  endif (DEFINED MINGW)
+  configure_file("${CMAKE_CURRENT_SOURCE_DIR}/ToolsDev/inno-setup/EspINA-Mingw64.iss.in" "${CMAKE_CURRENT_BINARY_DIR}/ToolsDev/inno-setup/EspINA-Mingw64.iss")
 endif (NOT DEFINED MINGW)
 
 if (UNIX AND NOT DEFINED APPLE AND NOT DEFINED MSVC) # Check if it works on OS X, it has only been tested in Unix
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
   message(STATUS "CXX_FLAGS" ${CMAKE_CXX_FLAGS})
 endif()
-
 
 add_subdirectory( Core       )
 add_subdirectory( Extensions )
@@ -187,6 +199,7 @@ add_subdirectory( Support    )
 add_subdirectory( Undo       )
 add_subdirectory( App        )
 add_subdirectory( Plugins    )
+add_subdirectory( ToolsDev   )
 
 if (BUILD_TESTING)
   include (CTest)
@@ -225,22 +238,22 @@ export(TARGETS
 # (this registers the build-tree with a global CMake-registry)
 export(PACKAGE ESPINA)
  
+get_property(inc_directories DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+ 
 # Create the ESPINAConfig.cmake and ESPINAConfigVersion files
-file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}/espina"
-   "${INSTALL_INCLUDE_DIR}")
-file(RELATIVE_PATH REL_LIBRARIES_DIR "${INSTALL_CMAKE_DIR}/espina"
-   "${INSTALL_LIB_DIR}")
+file(RELATIVE_PATH REL_INCLUDE_DIR   "${INSTALL_CMAKE_DIR}" "${INSTALL_INCLUDE_DIR}")
+file(RELATIVE_PATH REL_LIBRARIES_DIR "${INSTALL_CMAKE_DIR}" "${INSTALL_LIB_DIR}")
 # ... for the build tree
 set(CONF_CMAKE_DIR      "${PROJECT_SOURCE_DIR}")
 set(CONF_LIBRARIES_DIRS "${LIBRARY_OUTPUT_PATH}")
-set(CONF_INCLUDE_DIRS   "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}")
+set(CONF_INCLUDE_DIRS   "${PROJECT_SOURCE_DIR}" "${PROJECT_BINARY_DIR}" ${inc_directories})
 configure_file (
   ESPINAConfig.cmake.in
   "${PROJECT_BINARY_DIR}/ESPINAConfig.cmake"
   )
 # ... for the install tree
 set(CONF_CMAKE_DIR      "\${ESPINA_CMAKE_DIR}")
-set(CONF_LIBRARIES_DIRS "\${ESPINA_CMAKE_DIR}/${REL_LIBRARIES_DIR}")
+set(CONF_LIBRARIES_DIRS "\${ESPINA_CMAKE_DIR}/${REL_LIBRARIES_DIR}/espina")
 set(CONF_INCLUDE_DIRS   "\${ESPINA_CMAKE_DIR}/${REL_INCLUDE_DIR}/espina")
 configure_file(
   ESPINAConfig.cmake.in
@@ -270,42 +283,3 @@ install(EXPORT ESPINATargets DESTINATION
 #  add_custom_target(es DEPENDS es_ES.qm)
 #  add_dependencies(espina es)
 
-
-#LINUX INSTALATION
-#if (UNIX)
-#  file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
-#  file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
-#  file (GLOB QUAZIPFILES ${Quazip_DIR}/*.so*)
-#
-#  #install (FILES ${PROJECT_SOURCE_DIR}/frontend/translationFiles/es.qm DESTINATION share/espina/)
-#
-#  set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})
-#  set (CPACK_PACKAGE_VERSION_MINOR ${ESPINA_VERSION_MINOR})
-#  set (CPACK_PACKAGE_VERSION_PATCH ${ESPINA_VERSION_PATCH})
-#  set (CPACK_PACKAGE_NAME "EspINA")
-#  set (CPACK_GENERATOR "DEB")
-#  set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
-#  set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "EspINA: EspINA Interactive Neuron Analyzer")
-#  set (CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.46.1,
-#        libboost-filesystem1.46.1,
-#        libboost-graph1.46.1,
-#        quazip,
-#        itk-review,
-#        vtk-paraview (>= 5.8),
-#        paraview (>= 3.14),
-#        libqt4-webkit,
-#        libqt4-test,
-#        libqt4-svg,
-#        libqt4-help,
-#        libqt4-xmlpatterns")
-#        #libopenmpi1.3")
-#  set (CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
-#
-##  set (CPACK_COMPONENTS_ALL espina SeedGrowSegmentation)
-##  set (CPACK_COMPONENT_ESPINA_DISPLAY_NAME "EspINA Interactive Neuron Analyser")
-##  set (CPACK_COMPONENT_ESPINA_DESCRIPTION  "Interactive Analysis Tool for FEM images")
-##
-##  set(CPACK_DEB_COMPONENT_INSTALL ON)
-#
-#  include (CPack)
-#endif (UNIX)

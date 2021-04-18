@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -21,19 +21,28 @@
 // // ESPINA
 #include "SegmentationAdapter.h"
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <GUI/Model/CategoryAdapter.h>
 #include <Extensions/Notes/SegmentationNotes.h>
+#include <Extensions/Issues/Issues.h>
+#include <Extensions/Issues/ItemIssues.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Utils/MiscUtils.h>
 
 // Qt
 #include <QPixmap>
-#include <QPainter>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Model::Utils;
 
 //------------------------------------------------------------------------
 SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
 : ViewItemAdapter(segmentation)
-, m_segmentation{segmentation}
+, m_segmentation {segmentation}
+, m_category     {nullptr}
+, m_colorEngine  {nullptr}
 {
   connect(m_segmentation.get(), SIGNAL(outputModified()),
           this,                 SIGNAL(outputModified()));
@@ -42,8 +51,8 @@ SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
 //------------------------------------------------------------------------
 SegmentationAdapter::~SegmentationAdapter()
 {
-  connect(m_segmentation.get(), SIGNAL(outputModified()),
-          this,                 SIGNAL(outputModified()));
+  disconnect(m_segmentation.get(), SIGNAL(outputModified()),
+             this,                 SIGNAL(outputModified()));
 }
 
 //------------------------------------------------------------------------
@@ -71,39 +80,21 @@ unsigned int SegmentationAdapter::number() const
 }
 
 //------------------------------------------------------------------------
-bool SegmentationAdapter::hasExtension(const SegmentationExtension::Type& type) const
-{
-  return m_segmentation->hasExtension(type);
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionSPtr SegmentationAdapter::extension(const SegmentationExtension::Type& type) const
-{
-  return m_segmentation->extension(type);
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionSList SegmentationAdapter::extensions() const
-{
-  return m_segmentation->extensions();
-}
-
-//------------------------------------------------------------------------
 Bounds SegmentationAdapter::bounds() const
 {
   return m_segmentation->bounds();
 }
 
 //------------------------------------------------------------------------
-void SegmentationAdapter::addExtension(SegmentationExtensionSPtr extension)
+SegmentationAdapter::ReadLockExtensions SegmentationAdapter::readOnlyExtensions() const
 {
-  m_segmentation->addExtension(extension);
+  return m_segmentation->readOnlyExtensions();
 }
 
 //------------------------------------------------------------------------
-void SegmentationAdapter::deleteExtension(SegmentationExtensionSPtr extension)
+SegmentationAdapter::WriteLockExtensions SegmentationAdapter::extensions()
 {
-  m_segmentation->deleteExtension(extension);
+  return m_segmentation->extensions();
 }
 
 //------------------------------------------------------------------------
@@ -119,58 +110,68 @@ QVariant SegmentationAdapter::data(int role) const
   {
     case Qt::DisplayRole:
     {
-      QString value = m_segmentation->alias();
-
-      if(value.isEmpty())
-        value = m_segmentation->name();
+      auto value = m_segmentation->alias().isEmpty() ? m_segmentation->name() : m_segmentation->alias();
 
       if (value.isEmpty())
-        value = QString("%1 %2").arg(m_category?m_category->name():"Unknown Category")
-                                .arg(m_segmentation->number());
+      {
+        value = categoricalName(const_cast<SegmentationAdapterPtr>(this));
+
+        m_segmentation->setName(value);
+        m_segmentation->setAlias(value);
+      }
 
       return value;
     }
     case Qt::DecorationRole:
     {
-      const unsigned char WIDTH = 3;
-      QPixmap segIcon(WIDTH, 16);
-      segIcon.fill(m_category->color());
+      QPixmap icon(3, 16);
 
-      if ( hasExtension(SegmentationNotes::TYPE)
-        && !information(SegmentationNotes::NOTES).toString().isEmpty())
+      // Category icon
+      if(m_category) icon.fill(m_category->color());
+      else           icon.fill(Qt::red);
+
+      // We should let the extensions decorate
+      if (hasInformation(SegmentationIssues::ISSUES))
       {
-        QPixmap noteIcon(":/espina/note.png");
-        noteIcon = noteIcon.scaled(16, 16, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-
-        const unsigned char SP = 5;
-        QPixmap tmpIcon(WIDTH + SP + noteIcon.width(),16);
-        tmpIcon.fill(Qt::white);
-        QPainter painter(&tmpIcon);
-        painter.drawPixmap(0,0, segIcon);
-        painter.drawPixmap(WIDTH + SP,0, noteIcon);
-
-        segIcon = tmpIcon;
+        if (information(SegmentationIssues::CRITICAL).toInt() > 0)
+        {
+          icon = GUI::Utils::appendImage(icon, SegmentationIssues::severityIcon(Issue::Severity::CRITICAL, true), true);
+        }
+        else if (information(SegmentationIssues::WARNING).toInt() > 0)
+        {
+          icon = GUI::Utils::appendImage(icon, SegmentationIssues::severityIcon(Issue::Severity::WARNING, true), true);
+        }
       }
 
-      return segIcon;
+      if (!information(SegmentationNotes::NOTES).toString().isEmpty())
+      {
+        icon = GUI::Utils::appendImage(icon, ":/espina/note.svg");
+      }
+
+      return icon;
     }
     case Qt::ToolTipRole:
     {
       const QString WS  = "&nbsp;"; // White space
       const QString TAB = WS+WS+WS;
       QString boundsInfo;
-      QString filterInfo;
-      //if (m_filter && output()->isValid())
+
       if (output()->isValid()) // It shouldn't exist a segmentation without filter as it was checked before, but maybe there is some weird condition in which we should check it
       {
-        Bounds bounds = output()->bounds();
+        Bounds bounds;
+        if(hasVolumetricData(output()))
+        {
+          // voxel bounds are the preferred ones to show.
+          bounds = readLockVolume(output())->bounds();
+        }
+        else
+        {
+          bounds = output()->bounds();
+        }
         boundsInfo = tr("<b>Bounds:</b><br>");
-        boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm)<br>").arg(bounds[0]).arg(bounds[1]);
-        boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm)<br>").arg(bounds[2]).arg(bounds[3]);
-        boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm)").arg(bounds[4]).arg(bounds[5]);
-
-//         //filterInfo = tr("<b>Filter:</b><br> %1<br>").arg(TAB+filter()->data().toString());
-//         filterInfo = m_filter->data(Qt::ToolTipRole).toString();
+        boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm]<br>").arg(bounds[0]).arg(bounds[1]);
+        boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm]<br>").arg(bounds[2]).arg(bounds[3]);
+        boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm]<br>").arg(bounds[4]).arg(bounds[5]);
       }
 
       QString categoryInfo;
@@ -182,60 +183,69 @@ QVariant SegmentationAdapter::data(int role) const
       QString tooltip;
       tooltip = tooltip.append("<center><b>%1</b></center>").arg(data().toString());
       tooltip = tooltip.append(categoryInfo);
-      //tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append(boundsInfo);
-      bool addBreakLine = false;
 
-      if (!filterInfo.isEmpty())
+      auto cleanTextBR = [] (QString &text)
       {
-        tooltip      = tooltip.append(filterInfo);
-        addBreakLine = true;
-      }
-
-      for(auto extension : m_segmentation->extensions())
-      {
-//         if (extension->isEnabled())
-//         {
-        QString extToolTip = extension->toolTipText();
-        if (!extToolTip.isEmpty())
+        while(text.endsWith("<br>"))
         {
-          if (addBreakLine && !extToolTip.contains("</table>")) tooltip = tooltip.append("<br>");
+          auto index = text.lastIndexOf("<br>");
+          if(index != -1)
+          {
+            text = text.remove(index, 4);
+          }
+          else
+          {
+            break;
+          }
+        }
+      };
 
-          tooltip = tooltip.append(extToolTip);
-
-          addBreakLine = true;
-//           }
+      QString extTooltip;
+      for(auto extension : m_segmentation->readOnlyExtensions())
+      {
+        auto extensionTooltip = extension->toolTipText();
+        if (!extensionTooltip.isEmpty())
+        {
+          cleanTextBR(extensionTooltip);
+          extTooltip = extTooltip.append(extensionTooltip).append("<br>");
         }
       }
+
+      if(!extTooltip.isEmpty())
+      {
+        tooltip = tooltip.append(tr("<b>Extensions:</b><br>%1").arg(extTooltip));
+      }
+
+      cleanTextBR(tooltip);
+
       return tooltip;
     }
     case Qt::CheckStateRole:
       return isVisible() ? Qt::Checked : Qt::Unchecked;
     case TypeRole:
       return typeId(Type::SEGMENTATION);
-    case NumberRole:
-      return number();
     default:
       return QVariant();
   }
 }
 
 //------------------------------------------------------------------------
-QVariant SegmentationAdapter::information(const SegmentationExtension::InfoTag& tag) const
+QVariant SegmentationAdapter::information(const SegmentationExtension::InformationKey &key) const
 {
-  return m_segmentation->information(tag);
+  return m_segmentation->information(key);
 }
 
 //------------------------------------------------------------------------
-bool SegmentationAdapter::isInformationReady(const SegmentationExtension::InfoTag& tag) const
+bool SegmentationAdapter::isReady(const SegmentationExtension::InformationKey &key) const
 {
-  return m_segmentation->isInformationReady(tag);
+  return m_segmentation->readOnlyExtensions()->isReady(key);
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList SegmentationAdapter::informationTags() const
+const Extension<Segmentation>::InformationKeyList SegmentationAdapter::availableInformation() const
 {
-  return m_segmentation->informationTags();
+  return m_segmentation->readOnlyExtensions()->availableInformation();
 }
 
 //------------------------------------------------------------------------
@@ -262,10 +272,6 @@ bool SegmentationAdapter::setData(const QVariant& value, int role)
     case Qt::CheckStateRole:
       setVisible(value.toBool());
       return true;
-    case TypeRole: // Before it had the same value but it was SelectionRole
-      Q_ASSERT(false);
-      //setSelected(value.toBool());
-      return true;
     default:
       return false;
   }
@@ -275,6 +281,27 @@ bool SegmentationAdapter::setData(const QVariant& value, int role)
 QStringList SegmentationAdapter::users() const
 {
   return m_segmentation->users();
+}
+
+//------------------------------------------------------------------------
+GUI::ColorEngines::ColorEngineSPtr SegmentationAdapter::colorEngine() const
+{
+  return m_colorEngine;
+}
+
+//------------------------------------------------------------------------
+void SegmentationAdapter::setColorEngine(GUI::ColorEngines::ColorEngineSPtr engine)
+{
+  if(engine && engine != m_colorEngine)
+  {
+    m_colorEngine = engine;
+  }
+}
+
+//------------------------------------------------------------------------
+void ESPINA::SegmentationAdapter::clearColorEngine()
+{
+  m_colorEngine = nullptr;
 }
 
 //------------------------------------------------------------------------
@@ -289,7 +316,6 @@ bool ESPINA::operator==(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
   return lhs == rhs->m_segmentation;
 }
 
-
 //------------------------------------------------------------------------
 bool ESPINA::operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs)
 {
@@ -300,10 +326,4 @@ bool ESPINA::operator!=(SegmentationAdapterSPtr lhs, SegmentationSPtr rhs)
 bool ESPINA::operator!=(SegmentationSPtr lhs, SegmentationAdapterSPtr rhs)
 {
   return !operator==(lhs, rhs);
-}
-
-//------------------------------------------------------------------------
-SegmentationAdapterPtr ESPINA::segmentationPtr(ItemAdapterPtr item)
-{
-  return dynamic_cast<SegmentationAdapterPtr>(item);
 }

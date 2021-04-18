@@ -21,21 +21,19 @@
 // ESPINA
 #include "MorphologicalEditionFilter.h"
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 
 // Qt
 #include <QDebug>
 
 using namespace ESPINA;
-
-const unsigned int LABEL_VALUE = 255;
-
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
-MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList    inputs,
-                                                       Filter::Type  type,
-                                                       SchedulerSPtr scheduler)
+MorphologicalEditionFilter::MorphologicalEditionFilter(InputSList          inputs,
+                                                       const Filter::Type &type,
+                                                       SchedulerSPtr       scheduler)
 : Filter         {inputs, type, scheduler}
 , m_radius       {0}
 , m_prevRadius   {m_radius}
@@ -54,12 +52,13 @@ void MorphologicalEditionFilter::restoreState(const State& state)
   for (auto token : state.split(';'))
   {
     QStringList tokens = token.split('=');
-    if (tokens.size() != 2)
-      continue;
 
-    if ("Radius" == tokens[0])
+    if (tokens.size() == 2)
     {
-      m_prevRadius = m_radius = tokens[1].toInt();
+      if ("Radius" == tokens[0])
+      {
+        m_prevRadius = m_radius = tokens[1].toInt();
+      }
     }
   }
 }
@@ -74,6 +73,13 @@ State MorphologicalEditionFilter::state() const
   return state;
 }
 
+//-----------------------------------------------------------------------------
+void MorphologicalEditionFilter::setRadius(int value)
+{
+  m_radius = static_cast<unsigned int>(value);
+
+  emit radiusModified(value);
+}
 
 //-----------------------------------------------------------------------------
 Snapshot MorphologicalEditionFilter::saveFilterSnapshot() const
@@ -93,28 +99,15 @@ bool MorphologicalEditionFilter::needUpdate() const
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate(Output::Id id) const
 {
-  if (id != 0) throw Undefined_Output_Exception();
+  if (id != 0)
+  {
+    auto what    = QObject::tr("Invalid output id, id: %1").arg(id);
+    auto details = QObject::tr("MorphologicalEditionFilter::needUpdate() -> Invalid output id, id: %1").arg(id);
 
-  // TODO: When input exists, check its timeStamp
+    throw EspinaException(what, details);
+  }
+
   return m_outputs.isEmpty() || !validOutput(id) || ignoreStorageContent();
-//   bool update = Filter::needUpdate(oId);
-//
-//   if (!update)
-//   {
-//     Q_ASSERT(m_outputs.size() == 1);
-//
-//     VolumetricDataSPtr<T> outputVolume = segmentationVolume(m_outputs[0]);
-//     Q_ASSERT(outputVolume.get());
-//     Q_ASSERT(outputVolume->toITK().IsNotNull());
-//     if (!m_inputs.isEmpty())
-//     {
-//       Q_ASSERT(m_inputs.size() == 1);
-//       SegmentationVolumeSPtr inputVolume = segmentationVolume(m_inputs[0]);
-//       update = outputVolume->timeStamp() < inputVolume->timeStamp();
-//     }
-//   }
-//
-//   return update;
 }
 
 //-----------------------------------------------------------------------------
@@ -143,16 +136,14 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
 
     if (!m_outputs.contains(0))
     {
-      m_outputs[0] = OutputSPtr(new Output(this, 0, spacing));
+      m_outputs[0] = std::make_shared<Output>(this, 0, spacing);
     }
 
-    DefaultVolumetricDataSPtr volume{new SparseVolume<itkVolumeType>(bounds, spacing)};
+    auto volume = std::make_shared<SparseVolume<itkVolumeType>>(bounds, spacing);
     volume->draw(output, bounds);
 
-    MeshDataSPtr mesh{new MarchingCubesMesh<itkVolumeType>(volume)};
-
     m_outputs[0]->setData(volume);
-    m_outputs[0]->setData(mesh);
+    m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
     m_outputs[0]->setSpacing(spacing); // it may change after re-execution
 
     m_prevRadius = m_radius;
@@ -160,5 +151,6 @@ void MorphologicalEditionFilter::finishExecution(itkVolumeType::Pointer output)
   else
   {
     qWarning() << "MorphologicalEditionFilter: Empty Output;";
+    m_outputs.remove(0);
   }
 }

@@ -17,83 +17,84 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #ifndef ESPINA_SEGMHA_IMPORTER_H
 #define ESPINA_SEGMHA_IMPORTER_H
 
 #include "SegmhaImporterPlugin_Export.h"
 
-// Plugin
-#include "SegmhaReader.h"
-
 // ESPINA
-#include <Support/Plugin.h>
+#include <Core/Plugin.h>
+#include "SegmhaReader.h"
 
 // Qt
 #include <QUndoCommand>
 
 namespace ESPINA
 {
-  class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
-  : public Plugin
-  {
-    Q_OBJECT
-    Q_INTERFACES(ESPINA::Plugin)
-
-  public:
-    explicit SegmhaImporterPlugin();
-    virtual ~SegmhaImporterPlugin();
-
-    virtual void init(ModelAdapterSPtr model,
-                      ViewManagerSPtr  viewManager,
-                      ModelFactorySPtr factory,
-                      SchedulerSPtr    scheduler,
-                      QUndoStack*      undoStack);
-
-    virtual NamedColorEngineSList colorEngines() const;
-
-    virtual QList< ToolGroup* > toolGroups() const;
-
-    virtual QList<DockWidget *> dockWidgets() const;
-
-    virtual ChannelExtensionFactorySList channelExtensionFactories() const;
-
-    virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
-
-    virtual FilterFactorySList filterFactories() const;
-
-    virtual AnalysisReaderSList analysisReaders() const;
-
-    virtual RendererSList renderers() const;
-
-    virtual SettingsPanelSList settingsPanels() const;
-
-    virtual QList<MenuEntry> menuEntries() const;
-
-  private:
-    ModelAdapterSPtr m_model;
-    ViewManagerSPtr  m_viewManager;
-    ModelFactorySPtr m_factory;
-    SchedulerSPtr    m_scheduler;
-    QUndoStack*      m_undoStack;
-
-    SegmhaReaderSPtr  m_reader;
-    FilterFactorySPtr m_filterFactory;
-  };
-
-  class SegmhaFilterFactory
+  /** \class SegmhaFilterFactory
+   * \brief Factory for Segmha importer filters.
+   *
+   */
+  class SegmhaImporterPlugin_EXPORT SegmhaFilterFactory
   : public FilterFactory
   {
     public:
-      virtual ~SegmhaFilterFactory()
-      {};
+      static const Filter::Type SEGMHA_FILTER;    /** segmha filter signature. */
+      static const Filter::Type SEGMHA_FILTER_V4; /** segmha filter old signature. */
 
-      virtual FilterSPtr createFilter(InputSList          inputs,
-                                      const Filter::Type& filter,
-                                      SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception);
+      virtual const FilterTypeList providedFilters() const;
 
-      virtual FilterTypeList providedFilters() const;
+      virtual FilterSPtr createFilter(InputSList inputs, const Filter::Type& filter, SchedulerSPtr scheduler) const;
+    private:
+      mutable DataFactorySPtr m_dataFactory; /** data factory for this filters provider */
   };
 
+  /** \class SegmhaImporterPlugin
+   * \brief Plugin to import old segmha EspINA files.
+   *
+   */
+  class SegmhaImporterPlugin_EXPORT SegmhaImporterPlugin
+  : public Core::CorePlugin
+  {
+      Q_INTERFACES(ESPINA::Core::CorePlugin)
+      Q_OBJECT
+      Q_PLUGIN_METADATA(IID "es.upm.cesvima.ESPINA.Core.Plugin/1.0" FILE "plugin.json")
+
+    public:
+      /** \brief Class SegmhaImporterPlugin class constructor.
+       *
+       */
+      explicit SegmhaImporterPlugin();
+
+      /** \brief Class SegmhaImporterPlugin class virtual destructor.
+       *
+       */
+      virtual ~SegmhaImporterPlugin()
+      {};
+
+      virtual const QString name() const
+      { return tr("SEGMHA Reader"); }
+
+      virtual const QString description() const
+      { return tr("Reader of old EspINA 1.x SEGMHA files."); }
+
+      virtual const QString organization() const
+      { return tr("Universidad Politécnica de Madrid."); }
+
+      virtual const QString maintainer() const
+      { return tr("felix.delaspozas@ctb.upm.es"); }
+
+      virtual FilterFactorySList filterFactories() const;
+
+      virtual AnalysisReaderSList analysisReaders() const;
+
+      virtual void init(SchedulerSPtr scheduler = nullptr) {};
+
+    private:
+      FilterFactorySPtr  m_factory;
+      AnalysisReaderSPtr m_reader;
+  };
 } // namespace ESPINA
 
 #endif// SEGMHAIMPORTER_H

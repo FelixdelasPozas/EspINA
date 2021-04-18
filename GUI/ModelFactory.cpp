@@ -27,21 +27,22 @@
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Factory/CoreFactory.h>
 
+using namespace std;
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
 
 //------------------------------------------------------------------------
 ModelFactory::ModelFactory(CoreFactorySPtr factory,
                            SchedulerSPtr scheduler)
-: m_factory(factory)
-, m_scheduler(scheduler)
-, m_channelRepresentationFactory(new RepresentationFactoryGroup(scheduler))
-, m_segmentationRepresentationFactory(new RepresentationFactoryGroup(scheduler))
+: m_factory  {factory}
+, m_scheduler{scheduler}
 {
   if (!m_factory)
   {
-    m_factory = CoreFactorySPtr{new CoreFactory()};
+    m_factory = make_shared<CoreFactory>();
   }
-
 }
 
 //------------------------------------------------------------------------
@@ -56,7 +57,7 @@ void ModelFactory::registerFilterFactory(FilterFactorySPtr factory)
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
+void ModelFactory::registerExtensionFactory(StackExtensionFactorySPtr factory)
 {
   m_factory->registerExtensionFactory(factory);
 }
@@ -68,73 +69,39 @@ void ModelFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr fac
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerAnalysisReader(AnalysisReaderPtr reader)
+void ModelFactory::registerAnalysisReader(AnalysisReaderSPtr reader)
 {
-  auto extensions = reader->supportedFileExtensions();
-  for(auto description : extensions.keys())
-  {
-    for(auto fileExtension : extensions[description])
-    {
-      m_readerExtensions[fileExtension] << reader;
-    }
-  }
-  m_readers << reader;
+  m_factory->registerAnalysisReader(reader);
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerChannelRepresentationFactory(RepresentationFactorySPtr factory)
+StackExtension::TypeList ModelFactory::availableStackExtensions() const
 {
-  m_channelRepresentationFactory->addRepresentationFactory(factory);
+  return m_factory->availableStackExtensions();
 }
 
 //------------------------------------------------------------------------
-void ModelFactory::registerSegmentationRepresentationFactory(RepresentationFactorySPtr factory)
-{
-  m_segmentationRepresentationFactory->addRepresentationFactory(factory);
-}
-
-//------------------------------------------------------------------------
-ChannelExtensionTypeList ModelFactory::availableChannelExtensions() const
-{
-  return m_factory->availableChannelExtensions();
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionTypeList ModelFactory::availableSegmentationExtensions() const
+SegmentationExtension::TypeList ModelFactory::availableSegmentationExtensions() const
 {
   return m_factory->availableSegmentationExtensions();
 }
 
 //------------------------------------------------------------------------
-FileExtensions ModelFactory::supportedFileExtensions()
+SupportedFormats ModelFactory::supportedFileExtensions()
 {
-  FileExtensions extensions;
-
-  for(auto extension : m_readerExtensions.keys())
-  {
-    extensions << QString("*.%1").arg(extension);
-  }
-
-  extensions = QStringList(QObject::tr("All Supported Files (%1)").arg(extensions.join(" ")));
-
-  for(auto loader : m_readers)
-  {
-    extensions << loader->fileExtensionDescriptions();
-  }
-
-  return extensions;
+  return m_factory->supportedFileExtensions();
 }
 
 //------------------------------------------------------------------------
-AnalysisReaderList ModelFactory::readers(const QFileInfo& file)
+AnalysisReaderSList ModelFactory::readers(const QFileInfo& file)
 {
-  return m_readerExtensions[file.suffix()];
+  return m_factory->readers(file);
 }
 
 //------------------------------------------------------------------------
 SampleAdapterSPtr ModelFactory::createSample(const QString& name) const
 {
-  SampleSPtr sample{m_factory->createSample(name)};
+  auto sample = m_factory->createSample(name);
 
   return adaptSample(sample);
 }
@@ -148,9 +115,9 @@ ChannelAdapterSPtr ModelFactory::createChannel(FilterSPtr filter, Output::Id out
 }
 
 //------------------------------------------------------------------------
-ChannelExtensionSPtr ModelFactory::createChannelExtension(const ChannelExtension::Type &type)
+StackExtensionSPtr ModelFactory::createStackExtension(const StackExtension::Type &type)
 {
-  return m_factory->createChannelExtension(type);
+  return m_factory->createStackExtension(type);
 }
 
 //------------------------------------------------------------------------
@@ -176,19 +143,23 @@ SampleAdapterSPtr ModelFactory::adaptSample(SampleSPtr sample) const
 //------------------------------------------------------------------------
 ChannelAdapterSPtr ModelFactory::adaptChannel(ChannelSPtr channel) const
 {
-  ChannelAdapterSPtr adapter{new ChannelAdapter(channel)};
-
-  adapter->setRepresentationFactory(m_channelRepresentationFactory);
-
-  return adapter;
+  return ChannelAdapterSPtr{new ChannelAdapter(channel)};
 }
 
 //------------------------------------------------------------------------
 SegmentationAdapterSPtr ModelFactory::adaptSegmentation(SegmentationSPtr segmentation) const
 {
-  SegmentationAdapterSPtr adapter{new SegmentationAdapter(segmentation)};
+  return SegmentationAdapterSPtr{new SegmentationAdapter(segmentation)};
+}
 
-  adapter->setRepresentationFactory(m_segmentationRepresentationFactory);
+//------------------------------------------------------------------------
+void ModelFactory::setTemporalDirectory(const QDir &directory)
+{
+  m_factory->setTemporalDirectory(directory);
+}
 
-  return adapter;
+//------------------------------------------------------------------------
+TemporalStorageSPtr ModelFactory::createTemporalStorage()
+{
+  return m_factory->createTemporalStorage();
 }

@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -33,10 +33,6 @@ namespace ESPINA
   class EspinaCore_EXPORT FilterFactory
   {
   public:
-    struct Unknown_Filter_Exception{};
-    struct Filter_Not_Provided_Exception{};
-
-  public:
     /** \brief FilterFactory class destructor.
      *
      */
@@ -51,12 +47,12 @@ namespace ESPINA
      */
     virtual FilterSPtr createFilter(InputSList          inputs,
                                     const Filter::Type& filter,
-                                    SchedulerSPtr       scheduler) const throw (Unknown_Filter_Exception) = 0;
+                                    SchedulerSPtr       scheduler) const = 0;
 
     /** \brief Returns a list types of filter this factory can create.
      *
      */
-    virtual FilterTypeList providedFilters() const = 0;
+    virtual const FilterTypeList providedFilters() const = 0;
   };
 
   using FilterFactoryPtr  = FilterFactory *;

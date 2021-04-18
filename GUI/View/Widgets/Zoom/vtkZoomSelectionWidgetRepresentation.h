@@ -25,55 +25,64 @@
 
 // ESPINA
 #include "vtkZoomSelectionWidget.h"
+#include <Core/Utils/Spatial.h>
 
 // VTK
 #include <vtkWidgetRepresentation.h>
 #include <vtkSmartPointer.h>
 
 class vtkPoints;
-class vtkActor;
+class vtkActor2D;
 
-class EspinaGUI_EXPORT vtkZoomSelectionWidgetRepresentation
-: public vtkWidgetRepresentation
+namespace ESPINA
 {
-  vtkTypeMacro(vtkZoomSelectionWidgetRepresentation,vtkWidgetRepresentation);
+  namespace GUI
+  {
+    namespace View
+    {
+      namespace Widgets
+      {
 
-  public:
-    static vtkZoomSelectionWidgetRepresentation *New();
+        class EspinaGUI_EXPORT vtkZoomSelectionWidgetRepresentation
+        : public vtkWidgetRepresentation
+        {
+          vtkTypeMacro(vtkZoomSelectionWidgetRepresentation,vtkWidgetRepresentation);
 
-    virtual void SetWidgetType(vtkZoomSelectionWidget::WidgetType type);
+          public:
+            static vtkZoomSelectionWidgetRepresentation *New();
 
+            void SetWidgetType(vtkZoomSelectionWidget::WidgetType type);
 
-    // Description:
-    // These are methods that satisfy vtkWidgetRepresentation's API.
-    virtual void BuildRepresentation();
-    virtual int ComputeInteractionState(int X, int Y, int modify = 0);
-    virtual void StartWidgetInteraction(double e[2]);
-    virtual void WidgetInteraction(double e[2]);
-    virtual void EndWidgetInteraction(double e[2]);
+            // Description:
+            // These are methods that satisfy vtkWidgetRepresentation's API.
+            virtual void BuildRepresentation();
+            virtual int ComputeInteractionState(int X, int Y, int modify = 0);
+            virtual void StartWidgetInteraction(double e[2]);
+            virtual void WidgetInteraction(double e[2]);
+            virtual void EndWidgetInteraction(double e[2]);
 
-    // Description:
-    // Methods required by vtkProp superclass.
-    virtual void ReleaseGraphicsResources(vtkWindow *w);
-    virtual int RenderOverlay(vtkViewport *viewport);
-    virtual int RenderOpaqueGeometry(vtkViewport *viewport);
+            // Description:
+            // Methods required by vtkProp superclass.
+            virtual void ReleaseGraphicsResources(vtkWindow *w);
+            virtual int RenderOverlay(vtkViewport *viewport);
+            virtual int RenderOpaqueGeometry(vtkViewport *viewport);
 
-  protected:
-    vtkZoomSelectionWidgetRepresentation();
-    virtual ~vtkZoomSelectionWidgetRepresentation();
+          protected:
+            vtkZoomSelectionWidgetRepresentation();
+            virtual ~vtkZoomSelectionWidgetRepresentation();
 
-    // attributes
-    vtkZoomSelectionWidget::WidgetType m_type;
-    vtkSmartPointer<vtkPoints> m_displayPoints;
-    vtkSmartPointer<vtkPoints> m_worldPoints;
-    vtkSmartPointer<vtkActor> m_lineActor;
+            // attributes
+            vtkZoomSelectionWidget::WidgetType m_type;
+            vtkSmartPointer<vtkPoints>         m_worldPoints;
+            vtkSmartPointer<vtkActor2D>        m_lineActor;
 
-  private:
-    // helper methods
-    void DisplayPointsToWorldPoints();
+          private:
+            vtkZoomSelectionWidgetRepresentation(const vtkZoomSelectionWidgetRepresentation&);  //Not implemented
+            void operator=(const vtkZoomSelectionWidgetRepresentation&);  //Not implemented
+        };
 
-    vtkZoomSelectionWidgetRepresentation(const vtkZoomSelectionWidgetRepresentation&);  //Not implemented
-    void operator=(const vtkZoomSelectionWidgetRepresentation&);  //Not implemented
-};
-
+      }
+    }
+  }
+}
 #endif /* VTKZOOMSELECTIONWIDGETREPRESENTATION_H_ */

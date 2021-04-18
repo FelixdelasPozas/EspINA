@@ -24,11 +24,12 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/Spatial.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
+#include <vtkCommand.h>
 #include <vtkSmartPointer.h>
 
 class vtkHandleWidget;
@@ -38,162 +39,223 @@ class vtkLineSource;
 
 namespace ESPINA
 {
-  class vtkPlanarSplitWidgetCallback;
-  class vtkPlanarSplitRepresentation2D;
-
-  class EspinaGUI_EXPORT vtkPlanarSplitWidget
-  : public vtkAbstractWidget
+  namespace GUI
   {
-  public:
-  	/** \brief Creates a new instance.
-  	 *
-  	 */
-    static vtkPlanarSplitWidget *New();
+    namespace View
+    {
+      namespace Widgets
+      {
+        class vtkPlanarSplitRepresentation2D;
+        class vtkPlanarSplitWidgetCallback;
 
-    vtkTypeMacro(vtkPlanarSplitWidget,vtkAbstractWidget);
+        /** \class vtkPlanarSplitWidget
+         * \brief Implements planar widget for split tool in VTK.
+         *
+         */
+        class EspinaGUI_EXPORT vtkPlanarSplitWidget
+        : public vtkAbstractWidget
+        {
+        public:
+          /** \brief Creates a new instance.
+           *
+           */
+          static vtkPlanarSplitWidget *New();
 
-    /** \brief Overrides vtkAbstractWidget::SetEnabled().
-     *
-     */
-    virtual void SetEnabled(int) override;
+          vtkTypeMacro(vtkPlanarSplitWidget,vtkAbstractWidget);
 
-  	/** \brief Specify an instance of vtkWidgetRepresentation used to represent this
-  	 * widget in the scene. Note that the representation is a subclass of vtkProp
-  	 * so it can be added to the renderer independent of the widget.
-  	 *
-  	 */
-    void SetRepresentation(vtkPlanarSplitRepresentation2D *r)
-    {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
+          virtual void SetEnabled(int) override;
 
-    /** \brief Overrides vtkAbstractWidget::SetProcessEvents().
-     *
-     */
-    virtual void SetProcessEvents(int) override;
+          /** \brief Specify an instance of vtkWidgetRepresentation used to represent this
+           *          widget in the scene. The representation is a subclass of vtkProp so
+           *          it can be added to the renderer independent of the widget.
+           *
+           */
+          void SetRepresentation(vtkPlanarSplitRepresentation2D *r)
+          {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
 
-  	/** \brief Implements vtkAbstractWidget::CreateDefaultRepresentation().
-  	 *
-  	 */
-    void CreateDefaultRepresentation();
+          virtual void SetProcessEvents(int) override;
 
-  	/** \brief Enum defining the state of the widget. By default the widget is in Start mode,
-  	 * and expects to be interactively placed. While placing the points the widget
-  	 * transitions to Define state. Once placed, the widget enters the Manipulate state.
-  	 *
-  	 */
-    //BTX
-    enum {Start=0,Define,Manipulate};
-    //ETX
+          void CreateDefaultRepresentation();
 
-  	/** \brief Set the state of the widget. If the state is set to "Manipulate" then it
-  	 * is assumed that the widget and its representation will be initialized
-  	 * programmatically and is not interactively placed. Initially the widget
-  	 * state is set to "Start" which means nothing will appear and the user
-  	 * must interactively place the widget with repeated mouse selections. Set
-  	 * the state to "Start" if you want interactive placement. Generally state
-  	 * changes must be followed by a Render() for things to visually take
-  	 * effect.
-  	 *
-  	 */
-    virtual void SetWidgetStateToStart();
-    virtual void SetWidgetStateToManipulate();
+          /** \brief Enum defining the state of the widget. By default the widget is in Start mode,
+           * and expects to be interactively placed. While placing the points the widget
+           * transitions to Define state. Once placed, the widget enters the Manipulate state.
+           *
+           */
+          //BTX
+          enum {Start=0,Define,Manipulate};
+          //ETX
 
-  	/** \brief Return the current widget state.
-  	 *
-  	 */
-    virtual int GetWidgetState()
-    {return this->WidgetState;}
+          /** \brief Set the state of the widget. If the state is set to "Manipulate" then it
+           * is assumed that the widget and its representation will be initialized
+           * programmatically and is not interactively placed. Initially the widget
+           * state is set to "Start" which means nothing will appear and the user
+           * must interactively place the widget with repeated mouse selections. Set
+           * the state to "Start" if you want interactive placement. Generally state
+           * changes must be followed by a Render() for things to visually take
+           * effect.
+           *
+           */
+          virtual void SetWidgetStateToStart();
+          virtual void SetWidgetStateToManipulate();
 
-  	/** \brief Set the widget segment points.
-  	 * \param[in] points.
-  	 *
-  	 */
-    //
-    virtual void setPoints(vtkSmartPointer<vtkPoints> points);
+          /** \brief Return the current widget state.
+           *
+           */
+          virtual int GetWidgetState()
+          {return this->WidgetState;}
 
-    /** \brief Returns the points of the segment.
-     *
-     */
-    vtkSmartPointer<vtkPoints> getPoints();
+          /** \brief Set the widget segment points.
+           * \param[in] points
+           *
+           */
+          virtual void setPoints(vtkSmartPointer<vtkPoints> points);
 
-  	/** \brief Sets widget orientation.
-  	 * \param[in] orientantion, orientation plane.
-  	 *
-  	 */
-    virtual void setOrientation(Plane orientation);
+          /** \brief Returns the points of the segment.
+           *
+           */
+          vtkSmartPointer<vtkPoints> getPoints();
 
-    /** \brief Returns the widget orientation.
-     *
-     */
-    virtual Plane getOrientation() const
-    { return m_plane; }
+          /** \brief Sets widget orientation.
+           * \param[in] plane orientation plane.
+           *
+           */
+          virtual void setPlane(Plane plane);
 
-  	/** \brief Overrides vtkAbstractWidget::PrintSelf().
-  	 *
-  	 */
-    virtual void PrintSelf(ostream &os, vtkIndent indent) override;
+          /** \brief Sets the distance of the widget over the rest of the view's representations.
+           * \param[in] depth view's wigets' depth value.
+           *
+           */
+          virtual void setRepresentationDepth(const Nm shift);
 
-  	/** \brief Disables the widget.
-  	 *
-  	 */
-    virtual void disableWidget();
+          /** \brief Returns the widget's plane.
+           *
+           */
+          virtual Plane getPlane() const
+          { return m_plane; }
 
-  	/** \brief Sets the segmentations bounds to draw the widget.
-  	 * \param[in] bounds, pointer to a vector of six double values.
-  	 *
-  	 */
-    virtual void setSegmentationBounds(double *bounds);
+          virtual void PrintSelf(ostream &os, vtkIndent indent) override;
 
-  	/** \brief Sets the slice of the widget.
-  	 * \param[in] slice, slice of the view of the widget.
-  	 *
-  	 */
-    virtual void setSlice(double slice);
+          /** \brief Disables the widget.
+           *
+           */
+          virtual void disableWidget();
 
-  protected:
-  	/** \brief vtkPlanarSplitWidget class constructor.
-  	 *
-  	 */
-    vtkPlanarSplitWidget();
+          /** \brief Sets the segmentations bounds to draw the widget.
+           * \param[in] bounds pointer to a vector of six double values.
+           *
+           */
+          virtual void setSegmentationBounds(double *bounds);
 
-  	/** \brief vtkPlanarSplitWidget class destructor.
-  	 *
-  	 */
-    virtual ~vtkPlanarSplitWidget();
+          /** \brief Sets the slice of the widget.
+           * \param[in] slice slice of the view of the widget.
+           *
+           */
+          virtual void setSlice(double slice);
 
-    // The state of the widget
-    int WidgetState;
-    int CurrentHandle;
-    Plane  m_plane;
-    double m_segmentationBounds[6];
-    double m_slice;
+          /** \brief Returns the current slice point.
+           *
+           */
+          Nm slice() const
+          { return m_slice; }
 
-    /** \brief Callback interface to capture events when
-     * placing the widget.
-     *
-     */
-    static void AddPointAction(vtkAbstractWidget*);
-    static void MoveAction(vtkAbstractWidget*);
-    static void EndSelectAction(vtkAbstractWidget*);
+        protected:
+          /** \brief vtkPlanarSplitWidget class constructor.
+           *
+           */
+          vtkPlanarSplitWidget();
 
-    // The positioning handle widgets
-    vtkHandleWidget *m_point1Widget;
-    vtkHandleWidget *m_point2Widget;
-    vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback1;
-    vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback2;
+          /** \brief vtkPlanarSplitWidget class destructor.
+           *
+           */
+          virtual ~vtkPlanarSplitWidget();
 
-  	/** \brief Method invoked when the handles at the
-  	 * end points of the widget are manipulated
-  	 *
-  	 */
-    void StartHandleInteraction(int handleNum);
-    void HandleInteraction(int handleNum);
-    void StopHandleInteraction(int handleNum);
+          // The state of the widget
+          int    WidgetState;             /** current state of the widget.          */
+          int    CurrentHandle;           /** index of current interaction handle.  */
+          double m_segmentationBounds[6]; /** bounds of the segmentation to split.  */
+          Plane  m_plane;                 /** representation's orientation plane.   */
+          Nm     m_slice;                 /** representation's current slice point. */
+          Nm     m_depth;                 /** representation's depth in the view.   */
 
-    friend class vtkPlanarSplitWidgetCallback;
+          /** \brief Callback when adding a point.
+           * \param[in] w calling widget.
+           *
+           */
+          static void AddPointAction(vtkAbstractWidget *w);
 
-    bool m_permanentlyDisabled;
-  };
+          /** \brief Callback when moving a point.
+           * \param[in] w calling widget.
+           *
+           */
+          static void MoveAction(vtkAbstractWidget *w);
 
+          /** \brief Callback when ending a interaction.
+           * \param[in] w calling widget.
+           *
+           */
+          static void EndSelectAction(vtkAbstractWidget *w);
+
+          vtkHandleWidget              *m_point1Widget;               /** handle 1 widget.       */
+          vtkHandleWidget              *m_point2Widget;               /** handle 2 widget.       */
+          vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback1; /** callback for handle 1. */
+          vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback2; /** callback for handle 2. */
+
+          /** \brief Method invoked when the handles at the
+           * end points of the widget are manipulated
+           *
+           */
+          void StartHandleInteraction(int handleNum);
+          void HandleInteraction(int handleNum);
+          void StopHandleInteraction(int handleNum);
+
+          friend class vtkPlanarSplitWidgetCallback;
+
+          bool m_permanentlyDisabled;
+        };
+
+        /** \class vtkPlanarSplitWidgetCallback
+         * \brief The vtkPlanarSplitWidget class observes it's two handles.
+         *        Here we create the command/observer classes to respond to the handle widgets.
+         *
+         */
+        class EspinaGUI_EXPORT vtkPlanarSplitWidgetCallback
+        : public vtkCommand
+        {
+          public:
+            /** \brief Creates a new instance of vtkPlanarSplitWidgetCallback class.
+             *
+             */
+            static vtkPlanarSplitWidgetCallback *New()
+            {
+              return new vtkPlanarSplitWidgetCallback;
+            }
+
+            vtkTypeMacro(vtkPlanarSplitWidgetCallback,vtkCommand);
+
+            virtual void Execute(vtkObject*, unsigned long eventId, void*)
+            {
+              switch (eventId)
+              {
+                case vtkCommand::StartInteractionEvent:
+                  this->m_widget->StartHandleInteraction(this->m_handleNumber);
+                  break;
+                case vtkCommand::InteractionEvent:
+                  this->m_widget->HandleInteraction(this->m_handleNumber);
+                  break;
+                case vtkCommand::EndInteractionEvent:
+                  this->m_widget->StopHandleInteraction(this->m_handleNumber);
+                  break;
+              }
+            }
+
+            int                   m_handleNumber; /** handler number.       */
+            vtkPlanarSplitWidget *m_widget;       /** widget to respond to. */
+        };
+
+      } // namespace Widgets
+    } // namespace View
+  } // namespace GUI
 } // namespace ESPINA
 
 #endif /* VTKPLANARSPLITWIDGET_H_ */

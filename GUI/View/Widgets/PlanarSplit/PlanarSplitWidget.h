@@ -24,12 +24,11 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget.h>
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Spatial.h>
 #include <Core/Utils/Bounds.h>
-
-// VTK
+#include <Core/Utils/Vector3.hxx>
+#include <GUI/Representations/Managers/TemporalManager.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkCommand.h>
 #include <vtkObjectFactory.h>
@@ -48,189 +47,132 @@ class vtkImageStencilData;
 
 namespace ESPINA
 {
-  class PlanarSplitSliceWidget;
-  class vtkSplitCommand;
-  class View2D;
-
-  class EspinaGUI_EXPORT PlanarSplitWidget
-  : public QObject
-  , public EspinaWidget
+  namespace GUI
   {
-    Q_OBJECT
-    public:
-      /** \brief Enumeration of widget types.
-       *
-       */
-      enum SplitWidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
-
-      /** \brief PlanarSplitWidget class virtual destructor.
-       *
-       */
-      virtual ~PlanarSplitWidget();
-
-      /** \brief VTK-style New() class constructor.
-       *
-       */
-      static PlanarSplitWidget *New()
-      {return new PlanarSplitWidget();};
-
-      /** \brief Implements EspinaWidget::registerView().
-       *
-       */
-      void registerView(RenderView *view);
-
-      /** \brief Implements EspinaWidget::unregisterView().
-       *
-       */
-      void unregisterView(RenderView *view);
-
-      /** \brief Implements EspinaWidget::manipulatesSegmentations().
-       *
-       */
-      virtual bool manipulatesSegmentations() const
-      { return true; };
-
-      /** \brief Implmements EspinaWidget::setEnabled()
-       *
-       */
-      virtual void setEnabled(bool enable);
-
-      /** \brief Set plane points.
-       * \param[in] points
-       *
-       */
-      virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points);
-
-      /** \brief Get plane points.
-       *
-       */
-      virtual vtkSmartPointer<vtkPoints> getPlanePoints() const;
-
-      /** \brief Returns the vtkPlane defined in the tool.
-       * \param[in] spacing
-       */
-      virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 spacing) const;
-
-      /** \brief Sets the bounds of the segmentation to be splitted.
-       * \param[in] bounds, bounds of the segmentation.
-       *
-       */
-      virtual void setSegmentationBounds(const Bounds bounds);
-
-      /** \brief Returns true if the defined plane is valid.
-       *
-       */
-      virtual bool planeIsValid() const;
-
-      /** \brief Returns the ESPINA::Plane equivalent to the SplitWidgetType type specified as parameter.
-       * \param[in] type, SplitWidgetType value.
-       *
-       */
-      static Plane toPlane(const SplitWidgetType type)
+    namespace View
+    {
+      namespace Widgets
       {
-        switch(type)
+        class PlanarSplitEventHandler;
+        using PlanarSplitEventHandlerPtr = PlanarSplitEventHandler *;
+
+        class vtkSplitCommand;
+
+        class PlanarSplitWidget;
+        using PlanarSplitWidgetPtr  = PlanarSplitWidget *;
+        using PlanarSplitWidgetSPtr = std::shared_ptr<PlanarSplitWidget>;
+
+        class EspinaGUI_EXPORT PlanarSplitWidget
         {
-          case AXIAL_WIDGET:
-            return Plane::XY;
-          case CORONAL_WIDGET:
-            return Plane::XZ;
-          case SAGITTAL_WIDGET:
-            return Plane::YZ;
-          default:
-            Q_ASSERT(false);
-            break;
-        }
-        return Plane::UNDEFINED;
-      }
+          public:
+            /** \brief PlanarSplitWidget class constructor.
+             * \param[in] handler PlanarSplitEventHandler raw pointer.
+             *
+             */
+            explicit PlanarSplitWidget(PlanarSplitEventHandler *handler);
 
-      /** \brief Returns the SplitWidgetType equivalent to the ESPINA::Plane type specified as parameter.
-       * \param[in] plane, ESPINA::Plane value.
-       *
-       */
-      static SplitWidgetType toSplitType(const Plane plane)
-      {
-        switch(plane)
+            /** \brief PlanarSplitWidget class virtual destructor.
+             *
+             */
+            virtual ~PlanarSplitWidget()
+            {};
+
+            /** \brief Disables the widget permanently.
+             *
+             */
+            virtual void disableWidget() = 0;
+
+            /** \brief Set plane points.
+             * \param[in] points
+             *
+             */
+            virtual void setPlanePoints(vtkSmartPointer<vtkPoints> points) = 0;
+
+            /** \brief Get plane points.
+             *
+             */
+            virtual vtkSmartPointer<vtkPoints> getPlanePoints() const = 0;
+
+            /** \brief Returns the vtkPlane defined in the tool.
+             * \param[in] spacing
+             */
+            virtual vtkSmartPointer<vtkPlane> getImplicitPlane(const NmVector3 &spacing) const = 0;
+
+            /** \brief Sets the bounds of the segmentation to be splitted.
+             * \param[in] bounds bounds of the segmentation.
+             *
+             */
+            virtual void setSegmentationBounds(const Bounds &bounds) = 0;
+
+            /** \brief Returns true if the defined plane is valid.
+             *
+             */
+            virtual bool planeIsValid() const = 0;
+
+          protected:
+            PlanarSplitEventHandler *m_handler;
+
+            friend class vtkSplitCommand;
+        };
+
+        /** \class vtkSplitCommand
+         * \brief Handles VTK events regarding the VTK widgets.
+         *
+         */
+        class EspinaGUI_EXPORT vtkSplitCommand
+        : public vtkCommand
         {
-          case Plane::XY:
-            return SplitWidgetType::AXIAL_WIDGET;
-            break;
-          case Plane::XZ:
-            return SplitWidgetType::CORONAL_WIDGET;
-            break;
-          case Plane::YZ:
-            return SplitWidgetType::SAGITTAL_WIDGET;
-            break;
-          default:
-            Q_ASSERT(false);
-            break;
-        }
+          public:
+            vtkTypeMacro(vtkSplitCommand, vtkCommand)
+            ;
 
-        return SplitWidgetType::NONE;
-      }
+            /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
+             *
+             */
+            static vtkSplitCommand *New()
+            {
+              return new vtkSplitCommand();
+            }
 
-    public slots:
-			/** \brief Updates the widget when the slice of the view changes.
-			 *
-			 */
-      void changeSlice(Plane plane, Nm slice);
+            /** \brief Implements vtkEspinaCommand::Execute().
+             *
+             */
+            virtual void Execute(vtkObject *caller, unsigned long eventId, void *callData);
 
-    private:
-      /** \brief PlanarSplitWidget class private constructor.
-       *
-       */
-      explicit PlanarSplitWidget();
+            /** \brief Implements vtkEspinaCommand::setWidget()
+             *
+             */
+            virtual void setWidget(PlanarSplitWidgetPtr widget)
+            {
+              m_widget = widget;
+            }
 
-      friend class vtkSplitCommand;
+            virtual void setHandler(PlanarSplitEventHandlerPtr handler)
+            {
+              m_handler = handler;
+            }
 
-      QMap<RenderView *, vtkAbstractWidget *> m_widgets;
-      SplitWidgetType                         m_mainWidget;
-      vtkAlgorithmOutput                     *m_vtkVolumeInformation;
-      vtkSmartPointer<vtkSplitCommand>        m_command;
-  };
+          private:
+            /** \brief vtkSplitCommand private class constructor.
+             *
+             */
+            vtkSplitCommand()
+            : m_widget {nullptr}
+            , m_handler{nullptr}
+            {};
 
-  using PlanarSplitWidgetPtr = PlanarSplitWidget *;
-  using PlanarSplitWidgetSPtr = std::shared_ptr<PlanarSplitWidget>;
+            /** \brief vtkSplitCommand class private destructor.
+             *
+             */
+            virtual ~vtkSplitCommand()
+            {};
 
-  class vtkSplitCommand
-  : public vtkEspinaCommand
-  {
-    public:
-      vtkTypeMacro(vtkSplitCommand, vtkEspinaCommand);
-
-      /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
-       *
-       */
-      static vtkSplitCommand *New()
-      { return new vtkSplitCommand(); }
-
-      /** \brief Implements vtkEspinaCommand::Execute().
-       *
-       */
-      virtual void Execute (vtkObject *caller, unsigned long eventId, void *callData);
-
-      /** \brief Implements vtkEspinaCommand::setWidget()
-       *
-       */
-      virtual void setWidget(EspinaWidgetPtr widget)
-      { m_widget = dynamic_cast<PlanarSplitWidgetPtr>(widget); }
-
-    private:
-      /** \brief vtkSplitCommand private class constructor.
-       *
-       */
-      vtkSplitCommand()
-      : m_widget{nullptr}
-      {};
-
-      /** \brief vtkSplitCommand class private destructor.
-       *
-       */
-      virtual ~vtkSplitCommand()
-      {};
-
-      PlanarSplitWidgetPtr m_widget;
-  };
-
-}// namespace ESPINA
+            PlanarSplitWidgetPtr m_widget;
+            PlanarSplitEventHandlerPtr m_handler;
+        };
+      } // namespace Widgets
+    } // namespace View
+  } // namespace GUI
+} // namespace ESPINA
 
 #endif /* PLANARSPLITWIDGET_H_ */

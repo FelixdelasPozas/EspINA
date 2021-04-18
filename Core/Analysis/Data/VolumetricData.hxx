@@ -43,7 +43,7 @@ class vtkImplicitFunction;
 namespace ESPINA
 {
   template<typename T>
-  class EspinaCore_EXPORT VolumetricData
+  class VolumetricData
   : public Data
   {
   public:
@@ -54,7 +54,7 @@ namespace ESPINA
      *
      */
     explicit VolumetricData()
-    : m_bgValue(0)
+    : m_bgValue{SEG_BG_VALUE}
     {}
 
     /** \brief VolumetricData class destructor.
@@ -63,24 +63,17 @@ namespace ESPINA
     virtual ~VolumetricData()
     {}
 
-    virtual Bounds bounds() const = 0;
-
     virtual Data::Type type() const final
     { return TYPE; }
 
     virtual DataSPtr createProxy() const final
-    { return DataSPtr{new VolumetricDataProxy<T>()}; }
+    { return std::make_shared<VolumetricDataProxy<T>>(); }
 
     /** \brief Set the origin of the image.
      * \param[in] origin origin of this image.
      *
      */
     virtual void setOrigin(const NmVector3& origin) = 0;
-
-    /** \brief Returns the origin of the image.
-     *
-     */
-    virtual NmVector3 origin() const = 0;
 
     /** \brief Return a read only ItkImage equivalent to the whole volume representation.
      *
@@ -100,7 +93,7 @@ namespace ESPINA
      *
      */
     virtual void setBackgroundValue(const typename T::ValueType value)
-    {  m_bgValue = value; }
+    { m_bgValue = value; }
 
     /** \brief Return volume background value
      *
@@ -118,8 +111,8 @@ namespace ESPINA
      *
      *  Draw methods are constrained to sparse volume bounds.
      */
-    virtual void draw(const vtkImplicitFunction*  brush,
-                      const Bounds&               bounds,
+    virtual void draw(vtkImplicitFunction        *brush,
+                      const Bounds               &bounds,
                       const typename T::ValueType value) = 0;
 
     /** \brief Method to modify the volume using an itk image.
@@ -143,8 +136,8 @@ namespace ESPINA
      * \param[in] value new value.
      *
      */
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
+    virtual void draw(const typename T::IndexType &index,
+                      const typename T::ValueType  value = SEG_VOXEL_VALUE) = 0;
 
      /** \brief Set all voxels inside bounds to given value
      * \param[in] value new value.
@@ -162,7 +155,7 @@ namespace ESPINA
      *  Draw methods are constrained to sparse volume bounds.
      */
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
-                      const typename T::ValueType value = SEG_VOXEL_VALUE) = 0;
+                      const typename T::ValueType                 value = SEG_VOXEL_VALUE) = 0;
 
     /** \brief Resize the volume to the given bounds.
      * \param[in] bounds new bounds.
@@ -183,18 +176,30 @@ namespace ESPINA
   template<class T> using VolumetricDataPtr  = VolumetricData<T> *;
   template<class T> using VolumetricDataSPtr = std::shared_ptr<VolumetricData<T>>;
 
-  using DefaultVolumetricDataSPtr = std::shared_ptr<VolumetricData<itkVolumeType>>;
+  using DefaultVolumetricData     = VolumetricData<itkVolumeType>;
+  using DefaultVolumetricDataSPtr = std::shared_ptr<DefaultVolumetricData>;
 
   /** \brief Obtains and returns the VolumetricData smart pointer in the specified Output.
    * \param[in] output Output object smart pointer.
    *
    *  This function ensures the output is up to date by callig ouput::update() first
    */
-  DefaultVolumetricDataSPtr EspinaCore_EXPORT volumetricData(OutputSPtr output, DataUpdatePolicy policy = DataUpdatePolicy::Request) throw (Unavailable_Output_Data_Exception);
+  Output::ReadLockData<DefaultVolumetricData> EspinaCore_EXPORT readLockVolume(Output          *output,
+                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request);
+
+  Output::ReadLockData<DefaultVolumetricData> EspinaCore_EXPORT readLockVolume(OutputSPtr       output,
+                                                                               DataUpdatePolicy policy = DataUpdatePolicy::Request);
+
+  Output::WriteLockData<DefaultVolumetricData> EspinaCore_EXPORT writeLockVolume(Output          *output,
+                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request);
+
+  Output::WriteLockData<DefaultVolumetricData> EspinaCore_EXPORT writeLockVolume(OutputSPtr       output,
+                                                                                 DataUpdatePolicy policy = DataUpdatePolicy::Request);
 
   /** \brief Returns true if the output has a volumetric data and false otherwise.
    * \param[in] output, Output object smart pointer.
    *
+   *  This function ensures the output is up to date by callig ouput::update() first
    */
   bool EspinaCore_EXPORT hasVolumetricData(OutputSPtr output);
 

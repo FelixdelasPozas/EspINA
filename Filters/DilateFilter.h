@@ -28,27 +28,32 @@
 
 namespace ESPINA
 {
+  /** \class DilateFilter
+   * \brief Implements morpholofical dilate operation.
+   *
+   */
   class EspinaFilters_EXPORT DilateFilter
   : public MorphologicalEditionFilter
   {
-  public:
-    /** \brief DilateFilter class constructor.
-     * \param[in] inputs list of input smart pointers.
-     * \param[in] type DilateFilter type.
-     * \param[in] scheduler scheduler smart pointer.
-     *
-     */
-    explicit DilateFilter(InputSList    inputs,
-                          Filter::Type  type,
-                          SchedulerSPtr scheduler);
+    public:
+      /** \brief DilateFilter class constructor.
+       * \param[in] inputs list of input smart pointers.
+       * \param[in] type DilateFilter type.
+       * \param[in] scheduler scheduler smart pointer.
+       *
+       */
+      explicit DilateFilter(InputSList          inputs,
+                            const Filter::Type &type,
+                            SchedulerSPtr       scheduler);
 
-    /** \brief DilateFilter class virtual destructor.
-     *
-     */
-    virtual ~DilateFilter();
+      /** \brief DilateFilter class virtual destructor.
+       *
+       */
+      virtual ~DilateFilter()
+      {}
 
-  protected:
-    virtual void execute();
+    protected:
+      virtual void execute();
   };
 
 } // namespace ESPINA

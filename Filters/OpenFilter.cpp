@@ -20,8 +20,8 @@
 
 // ESPINA
 #include "OpenFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
@@ -32,23 +32,17 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using BinaryOpenFilter       = itk::BinaryMorphologicalOpeningImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-OpenFilter::OpenFilter(InputSList    inputs,
-                             Filter::Type  type,
-                             SchedulerSPtr scheduler)
+OpenFilter::OpenFilter(InputSList          inputs,
+                       const Filter::Type &type,
+                       SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
-}
-
-
-//-----------------------------------------------------------------------------
-OpenFilter::~OpenFilter()
-{
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -57,13 +51,25 @@ void OpenFilter::execute(Output::Id id)
   Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("OpenFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
+
+    throw EspinaException(what, details);
+  }
 
   auto input       = m_inputs[0];
-  auto inputVolume = volumetricData(input->output());
-  if (!inputVolume) throw Invalid_Input_Data_Exception();
+  auto inputVolume = readLockVolume(input->output());
+  if (!inputVolume->isValid())
+  {
+    auto what    = QObject::tr("Invalid input volume");
+    auto details = QObject::tr("OpenFilter::execute(id) ->Invalid input volume");
 
-  emit progress(0);
+    throw EspinaException(what, details);
+  }
+
+  reportProgress(0);
   if (!canExecute()) return;
 
   //qDebug() << "Compute Image Opening";
@@ -81,7 +87,7 @@ void OpenFilter::execute(Output::Id id)
 
   filter->Update();
 
-  emit progress(100);
+  reportProgress(100);
   if (!canExecute()) return;
 
   finishExecution(filter->GetOutput());

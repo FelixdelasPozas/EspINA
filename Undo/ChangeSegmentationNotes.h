@@ -39,39 +39,40 @@
 
 namespace ESPINA
 {
+  class ModelFactory;
+
+  /** \class ChangeSegmentationNotes
+   * \brief Undo command to modify the notes information of a segmentation.
+   *
+   */
   class EspinaUndo_EXPORT ChangeSegmentationNotes
   : public QUndoCommand
   {
-  public:
-  	/** \brief ChangeSegmentationNotes class constructor.
-  	 * \param[in] segmentation, segmentation adapter raw pointer.
-  	 * \param[in] note, new note.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
-    explicit ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
-                                     const QString&         note,
-                                     QUndoCommand*          parent = nullptr);
+    public:
+      /** \brief ChangeSegmentationNotes class constructor.
+       * \param[in] segmentation, segmentation adapter raw pointer.
+       * \param[in] note, new note.
+       * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
+       *
+       */
+      explicit ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
+                                       const QString&         note,
+                                       ModelFactory          *factory,
+                                       QUndoCommand*          parent = nullptr);
 
-    /** \brief Overrides QUndoCommand::redo().
-     *
-     */
-    virtual void redo() override;
+      virtual void redo() override;
+      virtual void undo() override;
 
-    /** \brief Overrides QUndoCommand::undo().
-     *
-     */
-    virtual void undo() override;
+    private:
+      /** \brief Helper method to swap new-old notes.
+       *
+       */
+      void swapNotes();
 
-  private:
-    /** \brief Helper method to swap new-old notes.
-     *
-     */
-    void swapNotes();
-
-  private:
-    SegmentationAdapterPtr m_segmentation;
-    QString                m_formerNote;
+    private:
+      SegmentationAdapterPtr m_segmentation; /** segmentation to modify the notes information. */
+      QString                m_formerNote;   /** previous note information.                    */
+      ModelFactory          *m_factory;      /** model factory to create notes extension.      */
   };
 } // namespace ESPINA
 

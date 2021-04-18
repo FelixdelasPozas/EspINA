@@ -20,71 +20,62 @@
 
 // ESPINA
 #include "MorphologicalInformation.h"
-#include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Segmentation.h>
 
 // ITK
 #include <itkShapeLabelObject.h>
+#include <vtkMeshQuality.h>
+#include <vtkSmartPointer.h>
 
 // Qt
 #include <QApplication>
-#include <QDebug>
+
+// VTK
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+#include <vtkMeshQuality.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::Core;
 
 const SegmentationExtension::Type EspinaExtensions_EXPORT MorphologicalInformation::TYPE = "MorphologicalInformation";
 
-// NOTE: Should it be public?
-const SegmentationExtension::InfoTag MORPHOLOGICAL_SIZE  = "Size";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_PS    = "Physical Size";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Cx    = "Centroid X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Cy    = "Centroid Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Cz    = "Centroid Z";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Rx    = "Region X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Ry    = "Region Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_Rz    = "Region Z";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPMx  = "Binary Principal Moments X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPMy  = "Binary Principal Moments Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPMz  = "Binary Principal Moments Z";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA00 = "Binary Principal Axes (0 0)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA01 = "Binary Principal Axes (0 1)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA02 = "Binary Principal Axes (0 2)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA10 = "Binary Principal Axes (1 0)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA11 = "Binary Principal Axes (1 1)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA12 = "Binary Principal Axes (1 2)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA20 = "Binary Principal Axes (2 0)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA21 = "Binary Principal Axes (2 1)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_BPA22 = "Binary Principal Axes (2 2)";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_FD    = "Feret Diameter";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDx  = "Equivalent Ellipsoid Diameter X";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid Diameter Y";
-const SegmentationExtension::InfoTag MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
+const SegmentationExtension::Key MORPHOLOGICAL_SIZE  = "Size";
+const SegmentationExtension::Key MORPHOLOGICAL_PS    = "Physical Size";
+const SegmentationExtension::Key MORPHOLOGICAL_Cx    = "Centroid X";
+const SegmentationExtension::Key MORPHOLOGICAL_Cy    = "Centroid Y";
+const SegmentationExtension::Key MORPHOLOGICAL_Cz    = "Centroid Z";
+const SegmentationExtension::Key MORPHOLOGICAL_Rx    = "Region X";
+const SegmentationExtension::Key MORPHOLOGICAL_Ry    = "Region Y";
+const SegmentationExtension::Key MORPHOLOGICAL_Rz    = "Region Z";
+const SegmentationExtension::Key MORPHOLOGICAL_BPMx  = "Binary Principal Moments X";
+const SegmentationExtension::Key MORPHOLOGICAL_BPMy  = "Binary Principal Moments Y";
+const SegmentationExtension::Key MORPHOLOGICAL_BPMz  = "Binary Principal Moments Z";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA00 = "Binary Principal Axes (0 0)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA01 = "Binary Principal Axes (0 1)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA02 = "Binary Principal Axes (0 2)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA10 = "Binary Principal Axes (1 0)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA11 = "Binary Principal Axes (1 1)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA12 = "Binary Principal Axes (1 2)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA20 = "Binary Principal Axes (2 0)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA21 = "Binary Principal Axes (2 1)";
+const SegmentationExtension::Key MORPHOLOGICAL_BPA22 = "Binary Principal Axes (2 2)";
+const SegmentationExtension::Key MORPHOLOGICAL_FD    = "Feret Diameter";
+const SegmentationExtension::Key MORPHOLOGICAL_EEDx  = "Equivalent Ellipsoid Diameter X";
+const SegmentationExtension::Key MORPHOLOGICAL_EEDy  = "Equivalent Ellipsoid Diameter Y";
+const SegmentationExtension::Key MORPHOLOGICAL_EEDz  = "Equivalent Ellipsoid Diameter Z";
+const SegmentationExtension::Key MORPHOLOGICAL_AREA  = "Surface Area";
 
-//TODO: Review values to be used from new ITK version
-//TODO: Make thread safe
+//TODO: Review values to be used from new ITK version (Elongation & Flatness, Perimeter & Perimeter on border?)
 //------------------------------------------------------------------------
 MorphologicalInformation::MorphologicalInformation(const SegmentationExtension::InfoCache &cache,
                                                    const State &state)
 : SegmentationExtension{cache}
 , m_statistic          {nullptr}
-, m_validFeret         {false}
-, Size                 {-1}
-, PhysicalSize         {-1}
-, FeretDiameter        {-1}
 {
   m_labelMap = Image2LabelFilterType::New();
   m_labelMap->SetComputeFeretDiameter(false);
-
-  for(int i=0; i<3; i++)
-  {
-    Centroid[i] = -1;
-    //Region[i]   = -1;
-    BinaryPrincipalMoments[i]  = -1;
-    EquivalentEllipsoidSize[i] = -1;
-  }
-  for(int i=0; i<3; i++)
-    for(int j=0; j<3; j++)
-      BinaryPrincipalAxes[i][j] = -1;
 }
 
 //------------------------------------------------------------------------
@@ -105,21 +96,25 @@ Snapshot MorphologicalInformation::snapshot() const
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList MorphologicalInformation::availableInformations() const
+const SegmentationExtension::InformationKeyList MorphologicalInformation::availableInformation() const
 {
-  InfoTagList tags;
+  InformationKeyList keys;
 
-  tags << MORPHOLOGICAL_SIZE;
-  tags << MORPHOLOGICAL_PS;
-  tags << MORPHOLOGICAL_Cx << MORPHOLOGICAL_Cy << MORPHOLOGICAL_Cz;
-  tags << MORPHOLOGICAL_BPMx << MORPHOLOGICAL_BPMy << MORPHOLOGICAL_BPMz;
-  tags << MORPHOLOGICAL_BPA00 << MORPHOLOGICAL_BPA01 << MORPHOLOGICAL_BPA02;
-  tags << MORPHOLOGICAL_BPA10 << MORPHOLOGICAL_BPA11 << MORPHOLOGICAL_BPA12;
-  tags << MORPHOLOGICAL_BPA20 << MORPHOLOGICAL_BPA21 << MORPHOLOGICAL_BPA22;
-  tags << MORPHOLOGICAL_FD;
-  tags << MORPHOLOGICAL_EEDx << MORPHOLOGICAL_EEDy << MORPHOLOGICAL_EEDz;
+  for (auto value : {MORPHOLOGICAL_SIZE,
+                     MORPHOLOGICAL_PS,
+                     MORPHOLOGICAL_Cx, MORPHOLOGICAL_Cy, MORPHOLOGICAL_Cz,
+                     MORPHOLOGICAL_BPMx, MORPHOLOGICAL_BPMy, MORPHOLOGICAL_BPMz,
+                     MORPHOLOGICAL_BPA00, MORPHOLOGICAL_BPA01, MORPHOLOGICAL_BPA02,
+                     MORPHOLOGICAL_BPA10, MORPHOLOGICAL_BPA11, MORPHOLOGICAL_BPA12,
+                     MORPHOLOGICAL_BPA20, MORPHOLOGICAL_BPA21, MORPHOLOGICAL_BPA22,
+                     MORPHOLOGICAL_FD,
+                     MORPHOLOGICAL_EEDx, MORPHOLOGICAL_EEDy, MORPHOLOGICAL_EEDz,
+                     MORPHOLOGICAL_AREA})
+  {
+    keys << createKey(value);
+  }
 
-  return tags;
+  return keys;
 }
 
 //------------------------------------------------------------------------
@@ -128,33 +123,48 @@ void MorphologicalInformation::onExtendedItemSet(Segmentation* item)
 }
 
 //------------------------------------------------------------------------
-QVariant MorphologicalInformation::cacheFail(const QString& tag) const
+QVariant MorphologicalInformation::cacheFail(const InformationKey& key) const
 {
-  if (tag == MORPHOLOGICAL_FD)
+  if (key.value() == MORPHOLOGICAL_FD)
   {
+    QWriteLocker lock(&m_mutex);
     m_labelMap->SetComputeFeretDiameter(true);
   }
 
-  updateInformation();
+  QVariant info;
 
-  if (availableInformations().contains(tag))
-    return information(tag);
-  else
-    return QVariant();
+  if (hasVolumetricData(m_extendedItem->output()) && hasMeshData(m_extendedItem->output()))
+  {
+    updateInformation();
+
+    if (availableInformation().contains(key))
+    {
+      info = information(key);
+    }
+  }
+
+  return info;
 }
 
 //------------------------------------------------------------------------
 void MorphologicalInformation::updateInformation() const
 {
-//   qDebug() << "Updating" << m_seg->data().toString() << ID;
-  auto segVolume = volumetricData(m_extendedItem->output());
+  QWriteLocker lock(&m_mutex);
+  Q_ASSERT(hasVolumetricData(m_extendedItem->output()) && hasMeshData(m_extendedItem->output()));
 
-  bool          validInfo = segVolume != nullptr;
+  itkVolumeType::Pointer segVolume = nullptr;
+
+  {
+    auto data = readLockVolume(m_extendedItem->output());
+    segVolume = data->itkImage();
+  }
+
+  bool          validInfo = (segVolume != nullptr);
   LabelMapType *labelMap  = nullptr;
 
   if (validInfo)
   {
-    m_labelMap->SetInput(segVolume->itkImage());
+    m_labelMap->SetInput(segVolume);
     m_labelMap->Update();
     m_labelMap->ReleaseDataFlagOn();
     m_labelMap->Modified();
@@ -199,5 +209,24 @@ void MorphologicalInformation::updateInformation() const
     {
       updateInfoCache(MORPHOLOGICAL_FD, m_statistic->GetFeretDiameter());
     }
+  }
+
+  vtkSmartPointer<vtkPolyData> mesh = nullptr;
+  {
+    auto data = readLockMesh(m_extendedItem->output());
+    mesh = data->mesh();
+  }
+
+  if(mesh != nullptr)
+  {
+    double area = 0.0;
+
+    for(long long i = 0; i < mesh->GetNumberOfCells(); ++i)
+    {
+      auto cell = mesh->GetCell(i);
+      area += vtkMeshQuality::TriangleArea(cell);
+    }
+
+    updateInfoCache(MORPHOLOGICAL_AREA, area);
   }
 }

@@ -25,11 +25,6 @@
 #include <Core/Analysis/Data/Mesh/MeshProxy.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
 
-// VTK
-#include <vtkAlgorithmOutput.h>
-#include <vtkPolyData.h>
-#include <vtkAlgorithm.h>
-
 using namespace ESPINA;
 
 const Data::Type MeshData::TYPE = "MeshData";
@@ -40,39 +35,16 @@ MeshData::MeshData()
 }
 
 //----------------------------------------------------------------------------
-Bounds MeshData::bounds() const
-{
-  Bounds result;
-
-  auto meshPolyData = mesh();
-
-  if (meshPolyData)
-  {
-    Nm bounds[6];
-
-    meshPolyData->GetBounds(bounds);
-
-    result = Bounds{bounds[0], bounds[1], bounds[2], bounds[3], bounds[4], bounds[5]};
-  }
-
-  return result;
-}
-
-//----------------------------------------------------------------------------
-bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
+bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
 {
   bool dataFetched = false;
 
-  // TODO: Fetch old file names
-  // QString fileName = storage->absoluteFilePath(prefix + QString(MESHDATA_FILE).arg(m_output->id()));
-
-
-  for (auto filename : {snapshotFilename   (path, id),
-                        oldSnapshotFilename(path, id)})
+  for (const auto filename : {snapshotFilename   (path, id),
+                              oldSnapshotFilename(path, id)})
   {
     QFileInfo meshFile(storage->absoluteFilePath(filename));
 
-    if(meshFile.exists())
+    if(meshFile.exists() && meshFile.isReadable())
     {
       setMesh(PolyDataUtils::readPolyDataFromFile(meshFile.absoluteFilePath()));
       dataFetched = true;
@@ -80,15 +52,19 @@ bool MeshData::fetchDataImplementation(TemporalStorageSPtr storage, const QStrin
     }
   }
 
+  Q_ASSERT((!m_bounds.areValid() && !bounds.areValid()) || m_bounds == bounds);
+  m_bounds = bounds;
+
   return dataFetched;
 }
 
 //----------------------------------------------------------------------------
-Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, const QString& id)
 {
   Snapshot snapshot;
 
   auto currentMesh = mesh();
+
   if (currentMesh)
   {
     QString fileName = snapshotFilename(path, id);
@@ -103,14 +79,31 @@ Snapshot MeshData::snapshot(TemporalStorageSPtr storage, const QString& path, co
 //----------------------------------------------------------------------------
 DataSPtr MeshData::createProxy() const
 {
-  return DataSPtr{ new MeshProxy() };
+  return std::make_shared<MeshProxy>();
 }
 
 //----------------------------------------------------------------------------
-ESPINA::MeshDataSPtr ESPINA::meshData(OutputSPtr output, DataUpdatePolicy policy)
-throw (Unavailable_Output_Data_Exception)
+Output::ReadLockData<MeshData> ESPINA::readLockMesh(OutputSPtr output, DataUpdatePolicy policy)
 {
-  return outputData<MeshData>(output, policy);
+  return outputReadLockData<MeshData>(output.get(), policy);
+}
+
+//----------------------------------------------------------------------------
+Output::ReadLockData<MeshData> ESPINA::readLockMesh(Output *output, DataUpdatePolicy policy)
+{
+  return outputReadLockData<MeshData>(output, policy);
+}
+
+//----------------------------------------------------------------------------
+Output::WriteLockData<MeshData> ESPINA::writeLockMesh(Output *output, DataUpdatePolicy policy)
+{
+  return outputWriteLockData<MeshData>(output, policy);
+}
+
+//----------------------------------------------------------------------------
+Output::WriteLockData<MeshData> ESPINA::writeLockMesh(OutputSPtr output, DataUpdatePolicy policy)
+{
+  return outputWriteLockData<MeshData>(output.get(), policy);
 }
 
 //----------------------------------------------------------------------------

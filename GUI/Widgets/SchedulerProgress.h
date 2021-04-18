@@ -26,83 +26,93 @@
 
 // ESPINA
 #include "GUI/Widgets/TaskProgress.h"
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 // Qt
 #include <QScrollArea>
 #include <ui_SchedulerProgress.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
+  /** \class SchedulerProgress
+   * \brief Implements a  widget that shows the progress of tasks running in the application sheduler.
+   *
+   */
   class EspinaGUI_EXPORT SchedulerProgress
   : public QWidget
   , private Ui::SchedulerProgress
   {
-    Q_OBJECT
-  public:
-    struct Duplicated_Task_Exception{};
+      Q_OBJECT
+    public:
+      /** \brief SchedulerProgree class constructor.
+       * \param[in] scheduler application task scheduler.
+       * \param[in] parent QWidget parent of this one.
+       * \param[in] flags window flags.
+       */
+      explicit SchedulerProgress(SchedulerSPtr   scheduler,
+                                 QWidget        *parent = nullptr,
+                                 Qt::WindowFlags flags = Qt::WindowFlags());
 
-  public:
-    /** \brief SchedulerProgree class constructor.
-     * \param[in] scheduler, scheduler smart pointer.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
-     */
-    explicit SchedulerProgress(SchedulerSPtr   scheduler,
-                               QWidget        *parent = nullptr,
-                               Qt::WindowFlags f = 0);
+      /** \brief SchedulerProgress class virtual destructor.
+       *
+       */
+      virtual ~SchedulerProgress();
 
-    /** \brief SchedulerProgress class virtual destructor.
-     *
-     */
-    virtual ~SchedulerProgress();
+    private slots:
+      /** \brief Modifies the internal data when a task is added to the scheduler.
+       *
+       */
+      void onTaskAdded(TaskSPtr task);
 
-  private slots:
-  	/** \brief Modifies the internal data when a task is added to the scheduler.
-  	 *
-  	 */
-    void onTaskAdded(TaskSPtr task) throw (Duplicated_Task_Exception);
+      /** \brief Modifies the internal data when a task is removed from the scheduler.
+       *
+       */
+      void onTaskRemoved(TaskSPtr task);
 
-    /** \brief Modifies the internal data when a task is removed from the scheduler.
-  	 *
-  	 */
-    void onTaskRemoved(TaskSPtr task);
+      /** \brief Shows/hides the individual task progress.
+       * \param[in] visible, true to show the progress, false otherwise.
+       *
+       */
+      void showTaskProgress(bool visible);
 
-  	/** \brief Shows/hides the individual task progress.
-  	 * \param[in] visible, true to show the progress, false otherwise.
-  	 *
-  	 */
-    void showTaskProgress(bool visible);
+      /** \brief Updates the progress bar.
+       *
+       */
+      void updateProgress();
 
-  	/** \brief Updates the progress bar.
-  	 *
-  	 */
-    void updateProgress();
+      /** \brief Aborts a task.
+       *
+       * Aborting a task will remove it from the scheduler progress
+       * but the task may remain executing until task abort is handled.
+       *
+       */
+      void onProgressAborted();
 
-  	/** \brief Aborts a task.
-  	 *
-  	 * Aborting a task will remove it from the scheduler progress
-  	 * but the task may remain executing until task abort is handled.
-  	 *
-  	 */
-    void onProgressAborted();
+      /** \brief Aborts all running tasks.
+       *
+       * Aborting a task will remove it from the scheduler progress
+       * but the task may remain executing until task abort is handled.
+       *
+       */
+      void abortAllTasks();
 
-  private:
-  	/** \brief Updates the values of the task progress notification widget.
-  	 *
-  	 */
-    void updateNotificationWidget();
+    private:
+      /** \brief Updates the values of the task progress notification widget.
+       *
+       */
+      void updateNotificationWidget();
 
-  private:
-    SchedulerSPtr m_scheduler;
+    private:
+      SchedulerSPtr m_scheduler;
 
-    QMap<TaskSPtr, TaskProgressSPtr> m_tasks;
-    QWidget                       *m_notification;
-    std::shared_ptr<QScrollArea>   m_notificationArea;
-
-    int m_width;
-    int m_height;
-    unsigned int m_taskProgress;
-    unsigned int m_taskTotal;
+      QMutex                           m_mutex;             /** task data mutex.               */
+      QMap<TaskSPtr, TaskProgressSPtr> m_tasks;             /** registered tasks to watch.     */
+      QWidget                         *m_notification;      /** notification widget.           */
+      std::shared_ptr<QScrollArea>     m_notificationArea;  /** notification area.             */
+      int                              m_width;             /** notification area width.       */
+      int                              m_height;            /** notification area max height.  */
+      unsigned int                     m_taskProgress;      /** last task progress on removal. */
+      unsigned int                     m_taskTotal;         /** number of watched tasks.       */
   };
 
   using SchedulerProgressSPtr = std::shared_ptr<SchedulerProgress>;

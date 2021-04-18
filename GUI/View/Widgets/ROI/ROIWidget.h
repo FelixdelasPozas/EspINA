@@ -22,13 +22,8 @@
 #define ESPINA_ROI_WIDGET_H_
 
 #include "GUI/EspinaGUI_Export.h"
-
-// ESPINA
 #include <Core/Analysis/Data/Volumetric/ROI.h>
-#include <Core/Utils/NmVector3.h>
-#include <Core/Utils/Spatial.h>
-#include <GUI/View/RenderView.h>
-#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
+#include <Core/Utils/vtkVoxelContour2D.h>
 #include <GUI/View/Widgets/EspinaWidget.h>
 
 // VTK
@@ -39,79 +34,101 @@
 
 // Qt
 #include <QObject>
+#include <QColor>
 
 namespace ESPINA
 {
-  class ViewManager;
-  class View2D;
-  class RenderView;
-
-  class EspinaGUI_EXPORT ROIWidget
-  : public QObject
-  , public EspinaWidget
+  namespace GUI
   {
-    Q_OBJECT
-    public:
-      /** \brief ROIWidget class constructor.
-       * \param[in] roi Region of interest object smart pointer.
-       *
-       */
-      explicit ROIWidget(ROISPtr roi);
-
-      /** \brief ROIWidget class virtual destructor.
-       *
-       */
-      virtual ~ROIWidget();
-
-      /** \brief Implements EspinaWidget::registerView().
-       *
-       */
-      virtual void registerView  (RenderView *view);
-
-      /** \brief Implements EspinaWidget::unregisterView().
-       *
-       */
-      virtual void unregisterView(RenderView *view);
-
-      /** \brief Implements EspinaWidget::setEnabled().
-       *
-       */
-      virtual void setEnabled(bool enable);
-
-      void setColor(const QColor &color);
-
-    private slots:
-      /** \brief Update the representation when the view changes the slice.
-       * \parma[in] plane, orientation plane.
-       * \param[in] pos new plane position.
-       */
-      void sliceChanged(Plane plane, Nm pos);
-
-      /** \brief Updates the representations.
-       *
-       */
-      void updateROIRepresentations();
-
-    private:
-      void updateActor(View2D *view);
-
-      struct Pipeline
+    namespace View
+    {
+      namespace Widgets
       {
-        vtkSmartPointer<vtkVoxelContour2D> contour;
-        vtkSmartPointer<vtkPolyDataMapper> mapper;
-        vtkSmartPointer<vtkActor>          actor;
+        namespace ROI
+        {
+          /** \class ROIWidget
+           * \brief Interactive widget for the representation of regions of interest.
+           *
+           */
+          class EspinaGUI_EXPORT ROIWidget
+          : public Representations::Managers::TemporalRepresentation2D
+          {
+              Q_OBJECT
+            public:
+              /** \brief ROIWidget class constructor.
+               * \param[in] roi ROI to use as source for the widget representations.
+               *
+               */
+              explicit ROIWidget(ROISPtr roi);
 
-        Pipeline() {}
+              /** \brief ROIWidget class virtual destructor.
+               *
+               */
+              virtual ~ROIWidget();
 
-        ~Pipeline() {}
-      };
+              virtual void initialize(RenderView *view) override;
 
-      QMap<View2D *, Pipeline> m_representations;
+              virtual void uninitialize() override;
 
-      ROISPtr m_ROI;
-      QColor  m_color;
-  };
+              virtual void show() override;
 
+              virtual void hide() override;
+
+              virtual bool acceptCrosshairChange(const NmVector3& crosshair) const override;
+
+              virtual bool acceptSceneResolutionChange(const NmVector3& resolution) const override;
+
+              virtual bool acceptSceneBoundsChange(const Bounds& bounds) const override;
+
+              virtual bool acceptInvalidationFrame(const Representations::FrameCSPtr frame) const;
+
+              virtual void setPlane(Plane plane) override;
+
+              virtual void setRepresentationDepth(Nm depth) override;
+
+              virtual void display(const GUI::Representations::FrameCSPtr& frame) override;
+
+              /** \brief Sets the color of the widget's representations.
+               * \param[in] color color.
+               *
+               */
+              void setColor(const QColor &color);
+
+            private:
+              /** \brief Returns the vtkPolyData of the current slice.
+               *
+               */
+              vtkSmartPointer<vtkImageData> currentSlice() const;
+
+              virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation() override;
+
+              /** \brief Updates the representation for the current slice.
+               *
+               */
+              void updateCurrentSlice();
+
+            private slots:
+              /** \brief Updates the representation when the ROI changes.
+               *
+               */
+              void onROIChanged();
+
+            private:
+              bool                               m_active;       /** true if visible and false otherwise.                                     */
+              ROISPtr                            m_ROI;          /** ROI object to represent.                                                 */
+              QColor                             m_color;        /** color of the representation.                                             */
+              Nm                                 m_depth;        /** distance from the current slice where the representations must be shown. */
+              Nm                                 m_reslicePoint; /** current representation's reslicing position.                             */
+              int                                m_index;        /** represenation's plane index.                                             */
+              vtkSmartPointer<vtkVoxelContour2D> m_contour;      /** voxel contour filter.                                                    */
+              vtkSmartPointer<vtkPolyDataMapper> m_mapper;       /** representation's mapper.                                                 */
+              vtkSmartPointer<vtkActor>          m_actor;        /** representation's actor.                                                  */
+              RenderView                        *m_view;         /** view where the representations will be shown.                            */
+          };
+        }
+      }
+    }
+  }
 } // namespace ESPINA
 
 #endif // ESPINA_ROI_WIDGET_H_

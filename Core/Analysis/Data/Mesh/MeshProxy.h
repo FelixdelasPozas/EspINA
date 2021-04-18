@@ -54,64 +54,67 @@ namespace ESPINA
     virtual ~MeshProxy()
     {}
 
-    virtual void set(DataSPtr data)
+    virtual void set(DataSPtr data) override
     {
+      if (m_data)
+      {
+        data->copyFetchContext(m_data);
+      }
       m_data = std::dynamic_pointer_cast<MeshData>(data);
-      m_data->setOutput(this->m_output);
     }
 
-    virtual Bounds bounds() const override
+    virtual void setFetchContext(const TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
+    { return m_data->setFetchContext(storage, path, id, bounds); }
+
+    virtual bool needFetch() const override
+    { return m_data->needFetch(); }
+
+    virtual VolumeBounds bounds() const override
     { return m_data->bounds(); }
 
-    virtual void setSpacing(const NmVector3& spacing)
+    virtual void setSpacing(const NmVector3& spacing) override
     { m_data->setSpacing(spacing); }
 
-    virtual NmVector3 spacing() const
-    { return m_data->spacing(); }
-
-    virtual TimeStamp lastModified() override
+    virtual TimeStamp lastModified() const override
     { return m_data->lastModified(); }
 
     virtual BoundsList editedRegions() const override
     { return m_data->editedRegions(); }
 
-    virtual void setEditedRegions(const BoundsList& regions)
+    virtual void setEditedRegions(const BoundsList& regions) override
     { m_data->setEditedRegions(regions); }
 
     virtual void clearEditedRegions() override
     { m_data->clearEditedRegions(); }
 
-    virtual bool isValid() const
+    virtual bool isValid() const override
     { return m_data->isValid(); }
 
-    virtual bool isEmpty() const
+    virtual bool isEmpty() const override
     { return m_data->isEmpty(); }
 
     virtual Snapshot snapshot(TemporalStorageSPtr storage,
                               const QString      &path,
-                              const QString      &id) const override
+                              const QString      &id) override
     { return m_data->snapshot(storage, path, id); }
 
-    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const override
+    virtual Snapshot editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) override
    { return m_data->editedRegionsSnapshot(storage, path, id); }
 
-   virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
+   virtual void restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id) override
    { return m_data->restoreEditedRegions(storage, path, id); }
 
-    virtual void undo()
-    { m_data->undo(); }
-
-    virtual size_t memoryUsage() const
+    virtual size_t memoryUsage() const override
     { return m_data->memoryUsage(); }
 
     virtual vtkSmartPointer<vtkPolyData> mesh() const       override
     { return m_data->mesh(); }
 
-    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh) override
-    { m_data->setMesh(mesh); }
+    virtual void setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify = true) override
+    { m_data->setMesh(mesh, notify); }
 
   protected:
-    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id) override
+    virtual bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override
     { return m_data->fetchData(); }
 
   private:

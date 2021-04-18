@@ -1,6 +1,5 @@
 /*
 
-    Copyright (C) 2014  Jaime Fernandez <jfernandez@cesvima.upm.es>
     Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
@@ -24,17 +23,19 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// Qt dependencies
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+
+// Qt
 #include <QMap>
 #include <QStringList>
+#include <QObject>
 
 // C++
 #include <memory>
 
 namespace ESPINA
 {
-  struct Already_Defined_Node_Exception{};
-
   /** \class Tree
    *  \brief Tree-like structure representing categorical relationships.
    */
@@ -50,7 +51,7 @@ namespace ESPINA
      * \param[in] name, tree name.
      *
      */
-    explicit Tree(const QString& name=QString());
+    explicit Tree(const QString &name = QString());
 
     /** \brief Class tree destructor.
      *
@@ -71,15 +72,15 @@ namespace ESPINA
     { return m_name; }
 
     /** \brief Creates a node in the tree.
-     * \param[in] name, name of the node.
-     * \param[in] parent, parent node object.
+     * \param[in] name name of the node.
+     * \param[in] parent parent node object.
      *
      */
     Node createNode(const QString &relativeName,
                     Node parent = Node());
 
     /** \brief Removes a node from the tree.
-     * \param[in] node, node object to remove.
+     * \param[in] node node object to remove.
      *
      */
     void removeNode(Node element);
@@ -90,13 +91,13 @@ namespace ESPINA
     Node  root() const {return m_root;}
 
     /** \brief Returns the node with the specified name.
-     * \param[in] name, node name.
+     * \param[in] name node name.
      *
      */
     Node  node(const QString &name);
 
     /** \brief Returns the parent node of the specified one.
-     * \param[in] node, node to find the parent.
+     * \param[in] node node to find the parent.
      *
      */
     Node  parent(const Node node) const;
@@ -107,8 +108,8 @@ namespace ESPINA
   };
 
   /** \brief Prints the tree as a QString.
-   * \param[in] tree, tree object.
-   * \param[in] indent, indentation value.
+   * \param[in] tree tree object.
+   * \param[in] indent indentation value.
    *
    */
   template<typename T>
@@ -126,7 +127,6 @@ namespace ESPINA
   template<typename T>
   Tree<T>::~Tree()
   {
-     //qDebug() << "Destroy classification";
   }
 
   //-----------------------------------------------------------------------------
@@ -148,7 +148,11 @@ namespace ESPINA
         requestedNode = parentNode->subCategory(path.at(i));
         if (i == path.size() - 1 && requestedNode != nullptr)
         {
-          throw Already_Defined_Node_Exception();
+
+          auto what = QObject::tr("Attempt to create an already defined node, node: %1").arg(relativeName);
+          auto details = QObject::tr("Tree::createNode() -> Attempt to create an already defined node, node: %1").arg(relativeName);
+
+          throw Core::Utils::EspinaException(what, details);
         }
 
         if (!requestedNode)
@@ -223,7 +227,7 @@ namespace ESPINA
   //-----------------------------------------------------------------------------
   // WARNING: Untested
   template<typename T>
-  std::shared_ptr<Tree<T>> copy(const std::shared_ptr<Tree<T>> tree)
+  std::shared_ptr<Tree<T>> copy(const std::shared_ptr<Tree<T>> &tree)
   {
     std::shared_ptr<Tree<T>> result;
 

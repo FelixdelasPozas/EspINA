@@ -25,18 +25,24 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include "Core/IO/SegFileInterface.h"
-#include <Core/Analysis/Extension.h>
+#include <Core/IO/SegFileInterface.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Analysis/Output.h>
 #include <Core/Analysis/DataFactory.h>
+#include <Core/Analysis/Extensions.h>
 
-namespace ESPINA {
+namespace ESPINA
+{
+  namespace IO
+  {
+    class ProgressReporter;
 
-  namespace IO {
-
-    namespace SegFile {
-
+    namespace SegFile
+    {
+      /** \class SegFile_V5
+       * \brief Interface to load/save EspINA SEG files version 5.
+       *
+       */
       class EspinaCore_EXPORT SegFile_V5
       : public SegFileInterface
       {
@@ -46,124 +52,148 @@ namespace ESPINA {
          */
         class Loader
         {
-        public:
-          /* SegFile_V5::Loader class constructor.
-           * \param[in] zip, QuaZip handler.
-           * \param[in] factory, core factory smart pointer.
-           * \param[in] handler, error handler smart pointer.
-           */
-          Loader(QuaZip &zip,
-                 CoreFactorySPtr factory = CoreFactorySPtr(),
-                 ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+          public:
+            /* SegFile_V5::Loader class constructor.
+             * \param[in] zip, QuaZip handler.
+             * \param[in] factory, core factory smart pointer.
+             * \param[in] handler, error handler smart pointer.
+             */
+            Loader(QuaZip &zip,
+                   CoreFactorySPtr   factory  = CoreFactorySPtr(),
+                   ProgressReporter *reporter = nullptr,
+                   ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                   const LoadOptions options  = LoadOptions());
 
-          /** \brief Process the data and returns an analysis.
-           *
-           */
-          AnalysisSPtr load();
-        private:
-          /** \brief Finds and returns the vertex that match the uuid.
-           * \param[in] vertices, directed graph vertices group.
-           * \param[in] uuid, unique id.
-           *
-           */
-          static DirectedGraph::Vertex findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid);
+            /** \brief Process the data and returns an analysis.
+             *
+             */
+            AnalysisSPtr load();
 
-          /** \brief Creates and returns a sample smart pointer from the information in the given vertes.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          SampleSPtr createSample(DirectedGraph::Vertex roVertex);
+          private:
+            /** \brief Finds and returns the vertex that match the uuid.
+             * \param[in] vertices, directed graph vertices group.
+             * \param[in] uuid, unique id.
+             *
+             */
+            static DirectedGraph::Vertex findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid);
 
-          /** \brief Creates and returns a filter smart pointer from the information in the given vertex.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
+            /** \brief Creates and returns a sample smart pointer from the information in the given vertes.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            SampleSPtr createSample(DirectedGraph::Vertex roVertex);
 
-          /** \brief Finds an returns the output that serves as input of the given vertex.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex roVertex);
+            /** \brief Creates and returns a filter smart pointer from the information in the given vertex.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            FilterSPtr createFilter(DirectedGraph::Vertex roVertex);
 
-          /** \brief Creates and returns a channel smart pointer from the information in the given vertex.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
+            /** \brief Finds an returns the output that serves as input of the given vertex.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            QPair<FilterSPtr, Output::Id> findOutput(DirectedGraph::Vertex roVertex);
 
-          /** \brief Returns the category name from a given state of a vertex.
-           * \param[in] state, state of a vertex.
-           *
-           */
-          static QString parseCategoryName(const State& state);
+            /** \brief Creates and returns a channel smart pointer from the information in the given vertex.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            ChannelSPtr createChannel(DirectedGraph::Vertex roVertex);
 
-          /** \brief Creates and returns a segmentation smart pointer from the information in the given vertex.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
+            /** \brief Returns the category name from a given state of a vertex.
+             * \param[in] state, state of a vertex.
+             *
+             */
+            static QString parseCategoryName(const State& state);
 
-          /** \brief Creates the analysis object specified in the given vertex an resturns it.
-           * \param[in] roVertex, read only vertex.
-           *
-           */
-          DirectedGraph::Vertex inflateVertex(DirectedGraph::Vertex roVertex);
+            /** \brief Creates and returns a segmentation smart pointer from the information in the given vertex.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            SegmentationSPtr createSegmentation(DirectedGraph::Vertex roVertex);
 
-          /** \brief Creates the content graph of an analysis.
-           *
-           */
-          void loadContent();
+            /** \brief Creates the analysis object specified in the given vertex an resturns it.
+             * \param[in] roVertex, read only vertex.
+             *
+             */
+            DirectedGraph::Vertex inflateVertex(DirectedGraph::Vertex roVertex);
 
-          /** \brief Creates the relationship graph of an anlysis.
-           *
-           */
-          void loadRelations();
+            /** \brief Creates the content graph of an analysis.
+             *
+             */
+            void loadContent();
 
-          /** \brief Creates a channel extension.
-           * \param[in] channel, smart pointer of the channel that has the extension.
-           * \param[in] type, type of the channel extension.
-           * \param[in] cache, cache object.
-           * \param[in] state, state of the extension.
-           *
-           */
-          void createChannelExtension(ChannelSPtr channel,
-                                      const ChannelExtension::Type &type,
-                                      const ChannelExtension::InfoCache &cache,
+            /** \brief Creates the relationship graph of an analysis.
+             *
+             */
+            void loadRelations();
+
+            /** \brief Loads the connections information from the temporal storage.
+             *
+             */
+            void loadConnections();
+
+            /** \brief Creates a channel extension.
+             * \param[in] channel, smart pointer of the channel that has the extension.
+             * \param[in] type, type of the channel extension.
+             * \param[in] cache, cache object.
+             * \param[in] state, state of the extension.
+             *
+             */
+            void createStackExtension(ChannelSPtr channel,
+                                      const Core::StackExtension::Type &type,
+                                      const Core::StackExtension::InfoCache &cache,
                                       const State &state);
 
-          /** \brief Loads and creates the extensions of a given channel.
-           * \param[in] channel, channel smart pointer.
-           *
-           */
-          void loadExtensions(ChannelSPtr channel);
+            /** \brief Loads and creates the extensions of a given channel.
+             * \param[in] channel, channel smart pointer.
+             *
+             */
+            void loadExtensions(ChannelSPtr channel);
 
-          /** \brief Creates a segmentation extension.
-           * \param[in] segmentation, smart pointer of the segmentation that has the extension.
-           * \param[in] type, type of the segmentation extension.
-           * \param[in] cache, cache object.
-           * \param[in] state, state of the extension.
-           *
-           */
-          void createSegmentationExtension(SegmentationSPtr segmentation,
-                                           const SegmentationExtension::Type &type,
-                                           const SegmentationExtension::InfoCache &cache,
-                                           const State &state);
+            /** \brief Creates a segmentation extension.
+             * \param[in] segmentation, smart pointer of the segmentation that has the extension.
+             * \param[in] type, type of the segmentation extension.
+             * \param[in] cache, cache object.
+             * \param[in] state, state of the extension.
+             *
+             */
+            void createSegmentationExtension(SegmentationSPtr segmentation,
+                                             const Core::SegmentationExtension::Type &type,
+                                             const Core::SegmentationExtension::InfoCache &cache,
+                                             const State &state);
 
-          /** \brief Loads and creates the extensions of a given segmentation.
-           * \param[in] segmentation, segmentation smart pointer.
-           *
-           */
-          void loadExtensions(SegmentationSPtr segmentation);
+            /** \brief Loads and creates the extensions of a given segmentation.
+             * \param[in] segmentation, segmentation smart pointer.
+             *
+             */
+            void loadExtensions(SegmentationSPtr segmentation);
 
-          QuaZip                 &m_zip;
-          CoreFactorySPtr         m_factory;
-          ErrorHandlerSPtr        m_handler;
-          AnalysisSPtr            m_analysis;
-          TemporalStorageSPtr     m_storage;
-          DataFactorySPtr         m_dataFactory;
-          DirectedGraphSPtr       m_content;
-          DirectedGraph::Vertices m_loadedVertices;
+            /** \brief Fix introduced in EspINA version 2.1.8 to change the old apposition surface
+             *         extension signature.
+             * \param[in] type type of the segmentation extension.
+             */
+            void fixVersion2_1_8(Core::SegmentationExtension::Type &type);
+
+            /** \brief Reports the progress passed as parameter.
+             * \param[in] progress progress value in [0-100].
+             */
+            void reportProgress(unsigned int progress);
+
+            QuaZip                 &m_zip;            /** SEG file.                           */
+            CoreFactorySPtr         m_factory;        /** object factory.                     */
+            ProgressReporter       *m_reporter;       /** progress reporter.                  */
+            ErrorHandlerSPtr        m_handler;        /** error handler.                      */
+            const LoadOptions       m_options;        /** loading options.                    */
+            AnalysisSPtr            m_analysis;       /** analysis object.                    */
+            TemporalStorageSPtr     m_storage;        /** storage for files.                  */
+            DataFactorySPtr         m_dataFactory;    /** data factory.                       */
+            DirectedGraphSPtr       m_content;        /** content graph.                      */
+            DirectedGraph::Vertices m_loadedVertices; /** loaded vertices from content graph. */
+
+            bool m_fixSourceInputs;
+            ChannelSPtr m_sourceInput;
         };
 
       public:
@@ -175,18 +205,15 @@ namespace ESPINA {
          */
         SegFile_V5();
 
-        /** \brief Implements SegFileInterface::load().
-         *
-         */
-        virtual AnalysisSPtr load(QuaZip&          zip,
-                                  CoreFactorySPtr  factory = CoreFactorySPtr(),
-                                  ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+        virtual AnalysisSPtr load(QuaZip&           zip,
+                                  CoreFactorySPtr   factory  = CoreFactorySPtr(),
+                                  ProgressReporter *reporter = nullptr,
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                  const LoadOptions options  = LoadOptions());
 
-        /** \brief Implements SegFileInterface::save().
-         *
-         */
         virtual void save(AnalysisPtr      analysis,
                           QuaZip&          zip,
+                          ProgressReporter *reporter = nullptr,
                           ErrorHandlerSPtr handler = ErrorHandlerSPtr());
       };
     }

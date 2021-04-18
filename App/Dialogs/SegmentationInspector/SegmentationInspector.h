@@ -19,144 +19,192 @@
 */
 
 #ifndef ESPINA_SEGMENTATION_INSPECTOR_H
-#define EPSINA_SEGMENTATION_INSPECTOR_H
+#define ESPINA_SEGMENTATION_INSPECTOR_H
 
 // ESPINA
 #include "ui_SegmentationInspector.h"
-#include <Docks/SegmentationExplorer/SegmentationExplorerLayout.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <QWidget>
+
+#include <Panels/SegmentationExplorer/SegmentationExplorerLayout.h>
+#include <Support/Widgets/TabularReport.h>
+#include <Support/Representations/RepresentationFactory.h>
+#include <GUI/View/View3D.h>
+#include <GUI/Representations/ManualPipelineSources.h>
 
 // Qt
-#include <QWidget>
 #include <QScrollArea>
 #include <QSortFilterProxyModel>
+#include <QToolBar>
 
 class QUndoStack;
 
 namespace ESPINA
 {
-  class TabularReport;
-  class View3D;
-
+  /** \class SegmentationInspector
+   * \brief Dialog to inspect the properties of a segmentation.
+   *
+   */
   class SegmentationInspector
-  : public QWidget
+  : public QDialog
   , public Ui::SegmentationInspector
+  , private Support::WithContext
   {
-    Q_OBJECT
-  public:
-    /** \brief SegmentationInspector class constructor.
-     * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
-     * \param[in] model model smart pointer containing the segmentations.
-     * \param[in] factory factory smart pointer.
-     * \param[in] viewManager view manager smart pointer.
-     * \param[in] undoStack QUndoStack object raw pointer.
-     * \param[in] parent parent widget pointer.
-     * \param[in] flags flags of the dialog.
-     */
-    SegmentationInspector(SegmentationAdapterList   segmentations,
-                          ModelAdapterSPtr          model,
-                          ModelFactorySPtr          factory,
-                          FilterDelegateFactorySPtr delegateFactory,
-                          ViewManagerSPtr           viewManager,
-                          QUndoStack*               undoStack,
-                          QWidget*                  parent = nullptr,
-                          Qt::WindowFlags           flags  = 0);
+      Q_OBJECT
+    public:
+      /** \brief SegmentationInspector class constructor.
+       * \param[in] segmentations list of segmentation adapters of the segmentations to be inspected.
+       * \param[in] context ESPINA context
+       */
+      SegmentationInspector(SegmentationAdapterList segmentations,
+                            Support::Context       &context);
 
-    /** \brief SegmentationInspector class destructor.
-     *
-     */
-    virtual ~SegmentationInspector();
+      /** \brief SegmentationInspector class destructor.
+       *
+       */
+      virtual ~SegmentationInspector()
+      {};
 
-    /** \brief Adds a segmentation to the dialog and connects signals.
-     * \param[in] segmentation segmentation adapter raw pointer.
-     *
-     */
-    virtual void addSegmentation(SegmentationAdapterPtr segmentation);
+      /** \brief Adds a segmentation to the dialog and connects signals.
+       * \param[in] segmentation segmentation adapter raw pointer.
+       *
+       */
+      void addSegmentation(SegmentationAdapterPtr segmentation);
 
-    /** \brief Removes a segmentation from the dialog and disconnects signals.
-     * \param[in] segmentation segmentation adapter raw pointer.
-     *
-     */
-    virtual void removeSegmentation(SegmentationAdapterPtr segmentation);
+      /** \brief Removes a segmentation from the dialog and disconnects signals.
+       * \param[in] segmentation segmentation adapter raw pointer.
+       *
+       */
+      void removeSegmentation(SegmentationAdapterPtr segmentation);
 
-    /** \brief Adds a channel to the dialog.
-     * \param[in] channel channel adapter raw pointer.
-     *
-     */
-    virtual void addChannel(ChannelAdapterPtr channel);
+      /** \brief Adds a channel to the dialog.
+       * \param[in] channel channel adapter raw pointer.
+       *
+       */
+      void addChannel(ChannelAdapterPtr channel);
 
-    /** \brief Removes a channel from the dialog.
-     * \param[in] channel channel adapter raw pointer.
-     *
-     */
-    virtual void removeChannel(ChannelAdapterPtr channel);
+      /** \brief Removes a channel from the dialog.
+       * \param[in] channel channel adapter raw pointer.
+       *
+       */
+      void removeChannel(ChannelAdapterPtr channel);
 
-    /** \brief Implments drag enter events in the dialog.
-     * \param[in] event drag enter event raw pointer.
-     *
-     */
-    virtual void dragEnterEvent(QDragEnterEvent *event) override;
+      /** \brief Implments drag enter events in the dialog.
+       * \param[in] event drag enter event raw pointer.
+       *
+       */
+      virtual void dragEnterEvent(QDragEnterEvent *event) override;
 
-    /** \brief Implements drop events in the dialog.
-     * \param[in] event drop event raw pointer.
-     *
-     */
-    virtual void dropEvent(QDropEvent *event) override;
+      /** \brief Implements drop events in the dialog.
+       * \param[in] event drop event raw pointer.
+       *
+       */
+      virtual void dropEvent(QDropEvent *event) override;
 
-    /** \brief Implements drag move events in the dialog.
-     * \param[in] event drag move event raw pointer.
-     *
-     */
-    virtual void dragMoveEvent(QDragMoveEvent *event) override;
+      /** \brief Implements drag move events in the dialog.
+       * \param[in] event drag move event raw pointer.
+       *
+       */
+      virtual void dragMoveEvent(QDragMoveEvent *event) override;
 
-  public slots:
-    /** \brief Updates the representations of the item in the view of the dialog.
-     * \param[in] item item adapter raw pointer of the item to update.
-     *
-     */
-    void updateScene(ItemAdapterPtr item);
+      /** \brief Returns the list of segmentations in the view.
+       *
+       */
+      const SegmentationAdapterList segmentations() const
+      { return m_segmentations; }
 
-  signals:
-    void inspectorClosed(SegmentationInspector *inspector);
+    signals:
+      void inspectorClosed(SegmentationInspector *inspector);
+      void segmentationsUpdated();
+      void connectionAdded(Connection connection);
+      void connectionRemoved(Connection connection);
+      void aboutToBeReset();
 
-  protected:
-    /** \brief Overrides QWidget::showEvent.
-     *
-     */
-    virtual void showEvent(QShowEvent *event) override;
+    protected:
+      virtual void showEvent(QShowEvent *event) override;
 
-    /** \brief Overrides QWidget::closeEvent();
-     *
-     */
-    virtual void closeEvent(QCloseEvent *e) override;
+      virtual void closeEvent(QCloseEvent *e) override;
 
-  private:
-    /** \brief Helper method that changes the dialog title based on the items shown.
-     *
-     */
-    void generateWindowTitle();
+    protected slots:
+      /** \brief Removes the given view items from the view. Closes the dialog if there are no more segmentations on the view.
+       * \param[in] segmentations List of view items to remove from the view.
+       *
+       */
+      void onSegmentationsRemoved(ViewItemAdapterSList segmentations);
 
-  private slots:
-    /** \brief Updates which information is displayed according to current selection
-     *
-     */
-    void updateSelection();
+      /** \brief Emits a connection added signal if the given connection belongs to any shown segmentation.
+       * \param[in] connection Connection object.
+       *
+       */
+      void onConnectionAdded(Connection connection);
 
-  private:
+      /** \brief Emits a connection removed signal if the given connection belongs to any shown segmentation.
+       * \param[in] connection Connection object.
+       *
+       */
+      void onConnectionRemoved(Connection connection);
 
-    ModelAdapterSPtr          m_model;
-    ModelFactorySPtr          m_factory;
-    FilterDelegateFactorySPtr m_delegateFactory;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack*               m_undoStack;
+    private:
+      /** \brief Helper method to connect the QObject signals to its respective slots.
+       *
+       */
+      void connectSignals();
 
-    SegmentationAdapterList m_segmentations;
-    ChannelAdapterList      m_channels;
+      /** \brief Updates the window title with the names of the inspected segmentations.
+       *
+       */
+      void updateWindowTitle();
 
-    SegmentationAdapterPtr  m_selectedSegmentation;
+      /** \brief Initializes the 3D view with the given representation factories.
+       * \param[in] representations Representations factories and buttons.
+       *
+       */
+      void initView3D(RepresentationFactorySList representations);
 
-    View3D*        m_view;
-    TabularReport* m_tabularReport;
+      /** \brief Helper method to initialize the tabular report widget.
+       *
+       */
+      void initReport();
+
+      /** \brief Helper method to configure the layout and add the toolbar.
+       *
+       */
+      void configureLayout();
+
+      /** \brief Helper method to restore the dialog geometry and position.
+       *
+       */
+      void restoreGeometryState();
+
+      /** \brief Helper method to save the dialog geometry and position.
+       *
+       */
+      void saveGeometryState();
+
+      /** \brief Helper method to create and return the view layout.
+       *
+       */
+      QHBoxLayout *createViewLayout();
+
+      /** \brief Helper method to create and return the report layout.
+       *
+       */
+      QHBoxLayout *createReportLayout();
+
+      /** \brief Helper method to emit the connections to the connection managers.
+       *
+       */
+      void emitConnectionSignals();
+
+    private:
+      SegmentationAdapterList m_segmentations;        /** list of segmentations in the view.                     */
+      ChannelAdapterList      m_channels;             /** list of channels in the view.                          */
+      SegmentationAdapterPtr  m_selectedSegmentation; /** Pointer to selected segmentation.                      */
+      ManualPipelineSources   m_channelSources;       /** list of channels as sources for pipelines.             */
+      ManualPipelineSources   m_segmentationSources;  /** list of segmentations as sources for pipelines.        */
+      RepresentationList      m_representations;      /** list of view's representations factories and switches. */
+      QToolBar               *m_toolbar;              /** view's toolbar with representations switches.          */
+      View3D                  m_view;                 /** 3D View.                                               */
+      TabularReport           m_tabularReport;        /** Tabular report.                                        */
   };
 
 } // namespace ESPINA

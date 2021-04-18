@@ -28,7 +28,7 @@ namespace ESPINA
   : m_output{output}
   {
     Q_ASSERT(output->hasData(type));
-    m_data = output->data(type);
+    //TODO BUG m_data = output->writeLockData<Data>(type);
   }
 
   //----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ namespace ESPINA
   {
     if(m_output->hasData(m_data->type()))
     {
-      m_oldData = m_output->data(m_data->type());
+      //TODO BUG m_oldData = m_output->data(m_data->type());
     }
 
     m_output->setData(m_data);

@@ -27,6 +27,7 @@
 
 // ESPINA
 #include "NoteEditor.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <ui_NoteEditor.h>
@@ -34,7 +35,13 @@
 #include <QTextStream>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
+using namespace ESPINA::GUI;
 
+/** \class NoteEditor::GUI
+ * \brief Chessire-cat implementation.
+ *
+ */
 class NoteEditor::GUI
 : public  Ui::NoteEditor
 {
@@ -51,7 +58,7 @@ NoteEditor::NoteEditor(const QString &title,
   m_gui->setupUi(this);
 
   setWindowTitle(tr("%1 Notes").arg(title));
-  setWindowIcon(QIcon(":/espina/note.png"));
+  setWindowIcon(QIcon(":/espina/note.svg"));
 
   m_gui->textEdit->setText(text);
 
@@ -81,17 +88,28 @@ QString NoteEditor::text()
 //----------------------------------------------------------------------------
 void NoteEditor::exportNote()
 {
-  QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export %1").arg(windowTitle()),
-                                                  QString("%1.txt").arg(windowTitle()),
-                                                  tr("Text File (*.txt)"));
-  if (fileName.isEmpty())
-    return;
 
-  QFile file(fileName);
-  file.open(QIODevice::WriteOnly |  QIODevice::Text);
-  QTextStream out(&file);
+  auto title      = tr("Export %1").arg(windowTitle());
+  auto suggestion = QString("%1.txt").arg(windowTitle());
+  auto formats    = SupportedFormats().addTxtFormat();
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".txt", suggestion);
 
-  out << m_gui->textEdit->toPlainText();
-  file.close();
+  if (!fileName.isEmpty())
+  {
+    QFile file(fileName);
+    file.open(QIODevice::WriteOnly|QIODevice::Text);
+    QTextStream out(&file);
+
+    out << m_gui->textEdit->toPlainText();
+    file.close();
+
+    if(file.error() != QFile::NoError)
+    {
+      auto message    = tr("Couldn't save file '%1'. Cause: %2").arg(fileName.split('/').last()).arg(file.errorString());
+      auto errorTitle = tr("EspINA");
+
+      DefaultDialogs::InformationMessage(message, errorTitle);
+    }
+
+  }
 }

@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -22,8 +22,15 @@
 // ESPINA
 #include "ChannelAdapter.h"
 #include <Core/Analysis/Channel.h>
+#include <Extensions/Issues/ItemIssues.h>
+#include <GUI/Utils/MiscUtils.h>
+
+// Qt
+#include <QPixmap>
+#include <QColor>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //------------------------------------------------------------------------
 ChannelAdapter::ChannelAdapter(ChannelSPtr channel)
@@ -46,6 +53,82 @@ QVariant ChannelAdapter::data(int role) const
       return m_channel->name();
     case Qt::CheckStateRole:
       return isVisible()?Qt::Checked:Qt::Unchecked;
+    case Qt::DecorationRole:
+    {
+      QPixmap icon(0, 16);
+      icon.fill(Qt::transparent);
+      bool usesIcon = false;
+
+      if(hue() != -1)
+      {
+        auto color = QColor::fromHsv(hue()*359,255,255,255);
+        icon = QPixmap(16,16);
+        icon.fill(color);
+        usesIcon = true;
+      }
+
+      // We should let the extensions decorate
+      if (readOnlyExtensions()->hasExtension(StackIssues::TYPE))
+      {
+        auto extension = readOnlyExtensions()->get<StackIssues>();
+
+        if (extension->information(StackIssues::CRITICAL).toInt() > 0)
+        {
+          icon = GUI::Utils::appendImage(icon, StackIssues::severityIcon(Issue::Severity::CRITICAL, true), true);
+        }
+        else if (extension->information(StackIssues::WARNING).toInt() > 0)
+        {
+          icon = GUI::Utils::appendImage(icon, StackIssues::severityIcon(Issue::Severity::WARNING, true), true);
+        }
+
+        usesIcon = true;
+      }
+
+      if(usesIcon)
+      {
+        return icon;
+      }
+      return QVariant();
+    }
+    case Qt::ToolTipRole:
+    {
+      QString tooltip;
+      tooltip = tooltip.append("<center><b>%1</b></center>").arg(data().toString());
+
+      const QString WS  = "&nbsp;"; // White space
+      const QString TAB = WS+WS+WS;
+      QString boundsInfo;
+
+      if (output()->isValid())
+      {
+        Bounds bounds = output()->bounds();
+        boundsInfo = tr("<b>Bounds:</b><br>");
+        boundsInfo = boundsInfo.append(TAB+"X: [%1 nm, %2 nm)<br>").arg(bounds[0]).arg(bounds[1]);
+        boundsInfo = boundsInfo.append(TAB+"Y: [%1 nm, %2 nm)<br>").arg(bounds[2]).arg(bounds[3]);
+        boundsInfo = boundsInfo.append(TAB+"Z: [%1 nm, %2 nm)<br>").arg(bounds[4]).arg(bounds[5]);
+      }
+      tooltip = tooltip.append(boundsInfo);
+
+      QString extensionsInfo = tr("<b>Extensions:</b>");
+      QString extensionsData;
+      for(auto extension : m_channel->readOnlyExtensions())
+      {
+        QString extToolTip = extension->toolTipText();
+        if (!extToolTip.isEmpty())
+        {
+          extensionsData += "<br>" + extToolTip;
+        }
+      }
+
+      if(extensionsData.isEmpty())
+      {
+        extensionsData += tr("<br>None present.");
+      }
+
+      tooltip += extensionsInfo + extensionsData;
+
+      return tooltip;
+    }
     default:
       return QVariant();
   }
@@ -57,6 +140,7 @@ bool ChannelAdapter::setData(const QVariant& value, int role)
   switch (role)
   {
     case Qt::EditRole:
+      m_channel->setName(value.toString());
       return true;
     case Qt::CheckStateRole:
       setVisible(value.toBool());
@@ -93,7 +177,7 @@ NmVector3 ChannelAdapter::position() const
 //------------------------------------------------------------------------
 void ChannelAdapter::setHue(double hue)
 {
-  return m_channel->setHue(hue);
+  m_channel->setHue(hue);
 }
 
 //------------------------------------------------------------------------
@@ -162,13 +246,6 @@ QString ChannelAdapter::metadata() const
   return m_channel->metadata();
 }
 
-
-//------------------------------------------------------------------------
-void ChannelAdapter::addExtension(ChannelExtensionSPtr extension)
-{
-  m_channel->addExtension(extension);
-}
-
 //------------------------------------------------------------------------
 Bounds ChannelAdapter::bounds() const
 {
@@ -176,21 +253,15 @@ Bounds ChannelAdapter::bounds() const
 }
 
 //------------------------------------------------------------------------
-void ChannelAdapter::deleteExtension(ChannelExtensionSPtr extension)
+ChannelAdapter::ReadLockExtensions ChannelAdapter::readOnlyExtensions() const
 {
-  m_channel->deleteExtension(extension);
+  return m_channel->readOnlyExtensions();
 }
 
 //------------------------------------------------------------------------
-bool ChannelAdapter::hasExtension(const ChannelExtension::Type& type) const
+ChannelAdapter::WriteLockExtensions ChannelAdapter::extensions()
 {
-  return m_channel->hasExtension(type);
-}
-
-//------------------------------------------------------------------------
-ChannelExtensionSPtr ChannelAdapter::extension(const ChannelExtension::Type& type)
-{
-  return m_channel->extension(type);
+  return m_channel->extensions();
 }
 
 //------------------------------------------------------------------------
@@ -220,5 +291,41 @@ bool ESPINA::operator!=(ChannelSPtr lhs, ChannelAdapterSPtr rhs)
 //------------------------------------------------------------------------
 ChannelAdapterPtr ESPINA::channelPtr(ItemAdapterPtr item)
 {
-  return static_cast<ChannelAdapterPtr>(item);
+  return dynamic_cast<ChannelAdapterPtr>(item);
+}
+
+//------------------------------------------------------------------------
+ConstChannelAdapterPtr ESPINA::channelPtr(ConstItemAdapterPtr item)
+{
+  return dynamic_cast<ConstChannelAdapterPtr>(item);
+}
+
+
+//------------------------------------------------------------------------
+bool ESPINA::isChannel(const ItemAdapterPtr item)
+{
+  return item && (ItemAdapter::Type::CHANNEL == item->type());
+}
+
+//------------------------------------------------------------------------
+ViewItemAdapterSList ESPINA::toViewItemSList(const ChannelAdapterSPtr channel)
+{
+  ViewItemAdapterSList result;
+
+  result << channel;
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+ViewItemAdapterSList ESPINA::toViewItemSList(const ChannelAdapterSList channels)
+{
+  ViewItemAdapterSList result;
+
+  for (auto channel : channels)
+  {
+    result << channel;
+  }
+
+  return result;
 }

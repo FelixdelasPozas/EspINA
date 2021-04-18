@@ -35,24 +35,29 @@
 #include <unistd.h>
 
 // Qt
-#include <QCoreApplication>
 #include <QThread>
+#include <QDebug>
+#include <QCoreApplication>
 
 using namespace ESPINA;
 
 //-----------------------------------------------------------------------------
 Task::Task(SchedulerSPtr scheduler)
-: m_scheduler{scheduler}
-, m_priority{Priority::NORMAL}
-, m_pendingPause{false}
+: m_scheduler       {scheduler}
+, m_thread          {nullptr}
+, m_executingThread {nullptr}
+, m_submitted       {false}
+, m_priority        {Priority::NORMAL}
+, m_isRunning       {false}
+, m_pendingPause    {false}
 , m_pendingUserPause{false}
-, m_isAborted{false}
-, m_hasFinished{false}
-, m_isPaused{false}
-, m_isWaiting{false}
-, m_id {0}
-, m_isThreadAttached{false}
-, m_hidden{false}
+, m_isAborted       {false}
+, m_hasFinished     {false}
+, m_isPaused        {false}
+, m_needsRestart    {false}
+, m_id              {0}
+, m_hidden          {false}
+, m_progress        {0}
 {
   prepareToRun();
 
@@ -60,6 +65,9 @@ Task::Task(SchedulerSPtr scheduler)
   {
     moveToThread(m_scheduler->thread());
   }
+
+  connect(this, SIGNAL(finished()),
+          this, SLOT(onTaskFinished()));
 }
 
 //-----------------------------------------------------------------------------
@@ -67,8 +75,21 @@ Task::~Task()
 {
   //std::cout << m_id << ": Destroying " << m_description.toStdString() << " in " << (m_isThreadAttached?"attached":"") << " thread " << QThread::currentThread() << std::endl;
   QMutexLocker lock(&m_mutex);
-  if (m_isThreadAttached)
-    thread()->quit();
+
+  if (m_executingThread)
+  {
+    qWarning() << "Someone did it!";
+    m_executingThread->deleteLater();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void Task::reportProgress(int value)
+{
+  auto adjusted = std::min(100, std::max(0, value));
+  m_progress = adjusted;
+
+  emit progress(adjusted);
 }
 
 //-----------------------------------------------------------------------------
@@ -80,33 +101,18 @@ void Task::setPriority(Priority value)
   {
     m_priority = value;
 
-    if (m_scheduler != nullptr)
+    QMutexLocker lock(&m_submissionMutex);
+    if (m_submitted && m_scheduler)
+    {
       m_scheduler->changePriority(this, previous);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void Task::submit(TaskSPtr task)
-{
-  task->prepareToRun();
-
-  if (task->m_scheduler != nullptr)
-  {
-    task->m_scheduler->addTask(task);
-  }
-  else
-  {
-    task->runWrapper();
+    }
   }
 }
 
 //-----------------------------------------------------------------------------
 void Task::pause()
 {
-  m_mutex.lock();
-//  std::cout << m_description.toStdString() << " has been paused by the user" << std::endl;
   m_pendingUserPause = true;
-  m_mutex.unlock();
 
   dispatcherPause();
 }
@@ -114,8 +120,6 @@ void Task::pause()
 //-----------------------------------------------------------------------------
 void Task::resume()
 {
-  QMutexLocker lock(&m_mutex);
-//  std::cout << m_description.toStdString() << " has been resumed by the user" << std::endl;
   m_pendingUserPause = false;
 }
 
@@ -126,12 +130,65 @@ bool Task::isPendingPause() const
 }
 
 //-----------------------------------------------------------------------------
+void Task::restart()
+{
+  m_needsRestart = true;
+}
+
+//-----------------------------------------------------------------------------
+bool Task::isRunning() const
+{
+  return m_isRunning && !isPendingPause();
+}
+
+//-----------------------------------------------------------------------------
+bool Task::isAborted() const
+{
+  return m_isAborted;
+}
+
+//-----------------------------------------------------------------------------
+bool Task::hasFinished() const
+{
+  return m_hasFinished && !m_needsRestart;
+}
+
+//-----------------------------------------------------------------------------
+void Task::submit(TaskSPtr task)
+{
+  if (task->m_scheduler != nullptr)
+  {
+    QMutexLocker lock(&task->m_submissionMutex);
+
+    if (!task->m_submitted)
+    {
+      task->prepareToRun();
+      task->m_scheduler->addTask(task);
+      task->m_submitted = true;
+    }
+    else
+    {
+      // Submitting an already submitted task implies a restart
+      task->restart();
+    }
+  }
+  else
+  {
+    task->runWrapper();
+  }
+}
+
+//-----------------------------------------------------------------------------
 void Task::abort()
 {
-  QMutexLocker lock(&m_mutex);
-//  std::cout << m_description.toStdString() << " has been cancelled" << std::endl;
-  m_isAborted = true;
-  onAbort();
+  if(!m_isAborted)
+  {
+    m_isAborted = true;
+
+    onAbort();
+
+    emit aborted();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -146,26 +203,58 @@ bool Task::canExecute()
     bool notify = m_pendingUserPause;
 
     if (notify)
+    {
       emit paused();
+    }
 
-    m_isPaused = true;
+    m_isRunning    = false;
+    m_isPaused     = true;
     m_pauseCondition.wait(&m_mutex);
-    m_isPaused = false;
+    m_isRunning    = true;
+    m_isPaused     = false;
     m_pendingPause = false;
 
     if (notify)
+    {
       emit resumed();
+    }
   }
 
-  return !m_isAborted;
+  return !(m_isAborted || m_needsRestart);
+}
+
+//-----------------------------------------------------------------------------
+void Task::setFinished(bool value)
+{
+  m_hasFinished = value;
+
+  emit finished();
+
+  if (isExecutingOnThread())
+  {
+    QCoreApplication::sendPostedEvents();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void Task::runWrapper()
 {
-  if(!isAborted())
-    run();
+  m_isRunning    = true;
+  m_needsRestart = true;
 
+  while (m_needsRestart)
+  {
+    m_needsRestart = false;
+
+    if(!isAborted())
+    {
+      run();
+
+      canExecute();
+    }
+  }
+
+  m_isRunning        = false;
   m_pendingPause     = false;
   m_pendingUserPause = false;
 
@@ -175,8 +264,7 @@ void Task::runWrapper()
 //-----------------------------------------------------------------------------
 void Task::dispatcherPause()
 {
-  QMutexLocker lock(&m_mutex);
-  //std::cout << m_description.toStdString() << " has been paused" << std::endl;
+//   qDebug() << m_id << " paused by scheduler";
   m_pendingPause = true;
 }
 
@@ -185,8 +273,9 @@ void Task::dispatcherResume()
 {
   if (!m_pendingUserPause)
   {
-    //std::cout << m_description.toStdString() << " has been resumed" << std::endl;
+//     qDebug() << m_id << " resumed by scheduler";
     m_pauseCondition.wakeAll();
+    m_pendingPause = false;
   }
 }
 
@@ -195,6 +284,13 @@ bool Task::isDispatcherPaused()
 {
   return m_pendingPause;
 }
+
+//-----------------------------------------------------------------------------
+bool Task::needsRestart() const
+{
+  return m_needsRestart;
+}
+
 
 class TestThread: public QThread
 {
@@ -208,33 +304,65 @@ class TestThread: public QThread
 //-----------------------------------------------------------------------------
 void Task::prepareToRun()
 {
-  m_pendingPause = false;
-  m_pendingUserPause =false;
-  m_isAborted = false;
-  m_hasFinished = false;
-  m_isPaused = false;
-  m_isWaiting = false;
-  m_isThreadAttached = false;
+  m_isRunning        = false;
+  m_pendingPause     = false;
+  m_pendingUserPause = false;
+  m_isAborted        = false;
+  m_hasFinished      = false;
+  m_isPaused         = false;
+
+  m_progress = 0;
 }
 
 //-----------------------------------------------------------------------------
-void Task::start()
+void Task::startThreadExecution()
 {
   QMutexLocker lock(&m_mutex);
 
-  //std::cout << "Starting " << description().toStdString() << " inside thread " << thread() << std::endl;
+  Q_ASSERT(!m_executingThread);
 
-  if (!m_isThreadAttached)
+  m_thread          = thread();
+  m_executingThread = new TestThread();
+
+  moveToThread(m_executingThread);
+
+  connect(m_executingThread, SIGNAL(started()),
+          this,              SLOT(runWrapper()));
+  connect(m_executingThread, SIGNAL(finished()),
+          m_executingThread, SLOT(deleteLater()));
+
+  m_executingThread->start();
+}
+
+//-----------------------------------------------------------------------------
+void Task::onTaskFinished()
+{
+  if (m_needsRestart)
   {
-    TestThread *thread = new TestThread();
-
-    m_isThreadAttached = true;
-
-    moveToThread(thread);
-
-    connect(thread, SIGNAL(started()), this, SLOT(runWrapper()));
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-
-    thread->start();
+    runWrapper();
   }
+  else if (isExecutingOnThread())
+  {
+    finishThreadExecution();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void Task::finishThreadExecution()
+{
+  QMutexLocker lock(&m_mutex);
+
+//   std::cout << description().toStdString() << " finishing executing thread " << m_executingThread << std::endl;
+  Q_ASSERT(m_executingThread);
+
+  moveToThread(m_thread);
+
+  m_executingThread->quit();
+  m_executingThread = nullptr;
+}
+
+//-----------------------------------------------------------------------------
+bool Task::isExecutingOnThread() const
+{
+  return m_executingThread != nullptr;
 }

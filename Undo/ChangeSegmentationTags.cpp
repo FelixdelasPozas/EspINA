@@ -27,18 +27,24 @@
 
 // ESPINA
 #include "ChangeSegmentationTags.h"
+
+#include <Core/Analysis/Segmentation.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Tags/SegmentationTags.h>
+#include <GUI/ModelFactory.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //------------------------------------------------------------------------
 ChangeSegmentationTags::ChangeSegmentationTags(SegmentationAdapterPtr segmentation,
                                                const QStringList&     tags,
+                                               ModelFactory          *factory,
                                                QUndoCommand*          parent)
 : QUndoCommand  {parent}
 , m_segmentation{segmentation}
-, m_formerTags  {tags}
+, m_tags        {tags}
+, m_factory     {factory}
 {
 }
 
@@ -59,28 +65,35 @@ void ChangeSegmentationTags::swapTags()
 {
   QStringList currentTags;
 
-  if (m_segmentation->hasExtension(SegmentationTags::TYPE))
+  auto extensions = m_segmentation->extensions();
+
+  if (extensions->hasExtension(SegmentationTags::TYPE))
   {
-    currentTags = m_segmentation->information(SegmentationTags::TAGS).toString().split(";");
+    currentTags = retrieveExtension<SegmentationTags>(extensions)->tags();
   }
 
-  if (currentTags.isEmpty() && !m_formerTags.isEmpty())
+  if(!m_tags.isEmpty())
   {
-    auto extension = retrieveOrCreateExtension<SegmentationTags>(m_segmentation);
-    extension->setTags(m_formerTags);
-    m_formerTags.clear();
+    SegmentationTagsSPtr tagsExtension = nullptr;
+
+    if (!extensions->hasExtension(SegmentationTags::TYPE))
+    {
+      auto extension = m_factory->createSegmentationExtension(SegmentationTags::TYPE);
+      extensions->add(extension);
+    }
+
+    tagsExtension = retrieveExtension<SegmentationTags>(extensions);
+    tagsExtension->setTags(m_tags);
   }
-  else if (!currentTags.isEmpty() && !m_formerTags.isEmpty())
+  else
   {
-    auto extension = retrieveExtension<SegmentationTags>(m_segmentation);
-    extension->setTags(m_formerTags);
-    m_formerTags = currentTags;
+    if(!currentTags.isEmpty())
+    {
+      safeDeleteExtension<SegmentationTags>(m_segmentation);
+    }
   }
-  if (!currentTags.isEmpty() && m_formerTags.isEmpty())
-  {
-    auto extension = retrieveExtension<SegmentationTags>(m_segmentation);
-    m_segmentation->deleteExtension(extension);
-    m_formerTags = currentTags;
-  }
+
+  m_tags = currentTags;
+
   m_segmentation->notifyModification();
 }

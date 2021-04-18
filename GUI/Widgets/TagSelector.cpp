@@ -30,7 +30,6 @@
 
 // Qt
 #include <ui_TagSelector.h>
-#include <QFileDialog>
 #include <QInputDialog>
 #include <QTextStream>
 
@@ -79,7 +78,7 @@ void TagSelector::createTag()
   bool ok;
   QString newTag = QInputDialog::getText(this,
                                          tr("Add New Tag"),
-                                            tr("Introduce Tag name"),
+                                         tr("Introduce Tag name"),
                                          QLineEdit::Normal,
                                          "",
                                          &ok);

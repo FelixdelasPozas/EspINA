@@ -28,7 +28,9 @@
 #ifndef NOTEEDITOR_H
 #define NOTEEDITOR_H
 
+// ESPINA
 #include "GUI/EspinaGUI_Export.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDialog>
@@ -51,7 +53,7 @@ namespace ESPINA
      */
     explicit NoteEditor(const QString &title,
                         const QString &text,
-                        QWidget *parent = nullptr,
+                        QWidget *parent = ESPINA::GUI::DefaultDialogs::defaultParentWidget(),
                         Qt::WindowFlags flags = 0);
 
     /** \brief NoteEditor class virtual destructor.

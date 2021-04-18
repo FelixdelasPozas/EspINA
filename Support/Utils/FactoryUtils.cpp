@@ -22,15 +22,18 @@
 // ESPINA
 #include "FactoryUtils.h"
 #include <Core/Factory/CoreFactory.h>
-#include <Support/Factory/DefaultChannelExtensionFactory.h>
+#include <Extensions/ExtensionUtils.h>
+#include <Extensions/LibraryExtensionFactory.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 ESPINA::CoreFactorySPtr ESPINA::espinaCoreFactory(SchedulerSPtr scheduler)
 {
-  CoreFactorySPtr factory{new CoreFactory(scheduler)};
+  auto factory = std::make_shared<CoreFactory>(scheduler);
 
-  factory->registerExtensionFactory(ChannelExtensionFactorySPtr{new DefaultChannelExtensionFactory(scheduler)});
+  factory->registerExtensionFactory(std::make_shared<LibrarySegmentationExtensionFactory>(factory.get()));
+  factory->registerExtensionFactory(std::make_shared<LibraryStackExtensionFactory>(factory.get()));
 
   return factory;
 }

@@ -21,19 +21,37 @@
 #ifndef ABOUTDIALOG_H
 #define ABOUTDIALOG_H
 
-// Qt
-#include <QDialog>
+// ESPINA
 #include "ui_AboutDialog.h"
 
-class AboutDialog
-: public QDialog
-, public Ui::AboutDialog
-{
-	public:
-		/** \brief AboutDialog class constructor.
-		 *
-		 */
-		explicit AboutDialog();
-};
+// Qt
+#include <QDialog>
 
+class QEvent;
+
+namespace ESPINA
+{
+  /** \class AboutDialog
+   * \brief Application about... dialog.
+   *
+   */
+  class AboutDialog
+  : public QDialog
+  , public Ui::AboutDialog
+  {
+    public:
+      /** \brief AboutDialog class constructor.
+       *
+       */
+      explicit AboutDialog();
+
+      /** \brief AboutDialog class virtual destructor.
+       *
+       */
+      virtual ~AboutDialog()
+      {};
+
+      virtual bool eventFilter(QObject *object, QEvent *event) override;
+  };
+}
 #endif // ABOUTDIALOG_H

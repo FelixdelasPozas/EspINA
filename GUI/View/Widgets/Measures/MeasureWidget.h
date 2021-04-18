@@ -24,8 +24,9 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <GUI/View/Widgets/EspinaWidget.h>
+#include "MeasureEventHandler.h"
 #include <GUI/View/EventHandler.h>
+#include <GUI/View/Widgets/EspinaWidget.h>
 
 // VTK
 #include <vtkCommand.h>
@@ -35,114 +36,78 @@
 // Qt
 #include <QMap>
 
+class vtkDistanceWidget;
+class vtkProperty2D;
+class vtkHandleRepresentation;
+class vtkDistanceRepresentation2D;
 class vtkAbstractWidget;
 class vtkDistanceWidget;
-class vtkMeasureWidget;
 class vtkCamera;
-class vtkRenderWindowInteractor;
 
 class QEvent;
 
 namespace ESPINA
 {
-  class RenderView;
-  class MeasureWidget;
-  class vtkDistanceCommand;
-
-  class EspinaGUI_EXPORT MeasureWidget
-  : public EspinaWidget
-  , public EventHandler
+  namespace GUI
   {
-  public:
-    /** \brief Class MeasureWidget destructor.
-     *
-     */
-    explicit MeasureWidget();
+    namespace View
+    {
+      namespace Widgets
+      {
+        namespace Measures
+        {
+          class EspinaGUI_EXPORT MeasureWidget
+          : public EspinaWidget2D
+          {
+            Q_OBJECT
 
-    /** \brief MeasureWidget class destructor.
-     *
-     */
-    virtual ~MeasureWidget();
+            class vtkDistanceCommand;
 
-    /** \brief Implements EspinaWidget::registerView()
-     *
-     */
-    virtual void registerView(RenderView *view);
+          public:
+            /** \brief Class MeasureWidget constructor.
+             *
+             */
+            explicit MeasureWidget(MeasureEventHandler *eventHandler);
 
-    /** \brief Implements EspinaWidget::unregisterView()
-     *
-     */
-    virtual void unregisterView(RenderView *view);
+            /** \brief MeasureWidget class destructor.
+             *
+             */
+            virtual ~MeasureWidget();
 
-    /** \brief Implements EspinaWidget::setEnabled.
-     *
-     */
-    virtual void setEnabled(bool enable);
+            virtual void setPlane(Plane plane);
 
-    /** \brief Overrides EventHandler::filterEvent.
-     *
-     */
-    bool filterEvent(QEvent *e, RenderView *view) override;
+            virtual void setRepresentationDepth(Nm depth);
 
-    /** \brief Overrides EventHandler::setInUse()
-     *
-     */
-    void setInUse(bool value) override;
+          protected:
+            virtual bool acceptCrosshairChange(const NmVector3 &crosshair) const;
 
-  private:
-    friend class vtkDistanceCommand;
+            virtual bool acceptSceneResolutionChange(const NmVector3 &resolution) const;
 
-    /** \brief Computes optimal tick distance in the ruler given the length.
-     * \param[in] length, numerical value.
-     *
-     */
-    double ComputeRulerTickDistance(double lenght);
+            virtual bool acceptSceneBoundsChange(const Bounds &bounds) const;
 
-    vtkSmartPointer<vtkDistanceCommand>          m_command;
-    QMap<vtkDistanceWidget *, QList<vtkCamera*>> m_cameras;
-    QMap<RenderView *, vtkDistanceWidget *>      m_widgets;
+            virtual bool acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const;
 
-  };
+            virtual void initializeImplementation(RenderView *view);
 
-  class vtkDistanceCommand
-  : public vtkCommand
-  {
-    vtkTypeMacro(vtkDistanceCommand, vtkCommand);
+            virtual void uninitializeImplementation();
 
-    /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
-     *
-     */
-    static vtkDistanceCommand* New()
-    { return new vtkDistanceCommand(); }
+            virtual vtkAbstractWidget *vtkWidget();
 
-    /** \brief Implements vtkEspinaCommand::Execute
-     *
-     */
-    virtual void Execute(vtkObject *, unsigned long int, void*);
+          private slots:
+            void onClear();
 
-    /** \brief Implements vtkEspinaCommand::setWidget
-     *
-     */
-    void setWidget(EspinaWidgetPtr widget)
-    { m_widget = dynamic_cast<MeasureWidget *>(widget); }
+          private:
+            virtual Representations::Managers::TemporalRepresentation2DSPtr cloneImplementation();
 
-    private:
-     /** \brief Class vtkDistanceCommand class private constructor.
-      *
-      */
-     explicit vtkDistanceCommand()
-     : m_widget{nullptr}
-     {}
-
-     /** \brief Class vtkDistanceCommand class private destructor.
-      *
-      */
-     virtual ~vtkDistanceCommand()
-     {}
-
-     ESPINA::MeasureWidget *m_widget;
-  };
-
+          private:
+            MeasureEventHandler                *m_eventHandler;
+            vtkSmartPointer<vtkDistanceCommand> m_command;
+            vtkSmartPointer<vtkDistanceWidget>  m_widget;
+          };
+        }
+      }
+    }
+  }
 }// namespace ESPINA
 
 #endif // ESPINA_MEASURE_WIDGET_H_

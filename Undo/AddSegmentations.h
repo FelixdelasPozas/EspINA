@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPIN_ADD_SEGMENTATION_H
-#define ESPIN_ADD_SEGMENTATION_H
+#ifndef ESPINA_ADD_SEGMENTATION_H
+#define ESPINA_ADD_SEGMENTATION_H
 
 #include "Undo/EspinaUndo_Export.h"
 
@@ -35,46 +35,50 @@ namespace ESPINA
   : public QUndoCommand
   {
   public:
-  	/** \brief AddSegmentations class constructor.
-  	 * \param[in] segmentation, smart pointer of the segmentation adapter to add.
-  	 * \param[in] samples, list of sample adapter smart pointer related to the segmentation.
-  	 * \param[in] model, model adapter smart pointer.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief AddSegmentations class constructor.
+     * \param[in] segmentation smart pointer of the segmentation adapter to add.
+     * \param[in] samples list of sample adapter smart pointer related to the segmentation.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] connections list of segmentation connections.
+     * \param[in] parent raw pointer of the QUndoCommand parent of this one.
+     *
+     */
     explicit AddSegmentations(SegmentationAdapterSPtr segmentation,
                               SampleAdapterSList      samples,
                               ModelAdapterSPtr        model,
+                              ConnectionList          connections = ConnectionList(),
                               QUndoCommand           *parent = nullptr);
 
-  	/** \brief AddSegmentations class constructor.
-  	 * \param[in] segmentations, list of smart pointers of the segmentation adapters to add.
-  	 * \param[in] samples, list of sample adapter smart pointer related to the segmentations.
-  	 * \param[in] model, model adapter smart pointer.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief AddSegmentations class constructor.
+     * \param[in] segmentations list of smart pointers of the segmentation adapters to add.
+     * \param[in] samples list of sample adapter smart pointer related to the segmentations.
+     * \param[in] model model adapter smart pointer.
+     * \param[in] connections list of segmentation connections.
+     * \param[in] parent raw pointer of the QUndoCommand parent of this one.
+     *
+     */
     explicit AddSegmentations(SegmentationAdapterSList segmentations,
                               SampleAdapterSList       samples,
                               ModelAdapterSPtr         model,
+                              ConnectionList           connections = ConnectionList(),
                               QUndoCommand            *parent = nullptr);
 
-    /** \brief Overrides QUndoCommand::redo().
-     *
-     */
     virtual void redo() override;
 
-    /** \brief Overrides QUndoCommand::undo().
-     *
-     */
     virtual void undo() override;
 
   private:
+    /** \brief Helper method to invalidate synapse connection related extensions.
+     * \param[in] connection Skeleton connection to a synapse.
+     *
+     */
+    void invalidateSynapseExtensions(const Connection& connection);
     SampleAdapterSList m_samples;
-    ModelAdapterSPtr m_model;
+    ModelAdapterSPtr   m_model;
+    ConnectionList     m_connections;
 
     SegmentationAdapterSList m_segmentations;
   };
 } // namespace ESPINA
 
-#endif // ESPIN_ADD_SEGMENTATION_H
+#endif // ESPINA_ADD_SEGMENTATION_H

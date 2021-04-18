@@ -21,28 +21,33 @@
 // ESPINA
 #include "CategoryColorEngine.h"
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-QColor CategoryColorEngine::color(SegmentationAdapterPtr seg)
+QColor CategoryColorEngine::color(ConstSegmentationAdapterPtr seg)
 {
+  QColor color(Qt::red);
+
   if (seg && seg->category())
-    return seg->category()->color();
-  else
-    return Qt::red;
+  {
+    color = seg->category()->color();
+  }
+
+  return color;
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
+LUTSPtr CategoryColorEngine::lut(ConstSegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName;
-  if (seg && seg->category())
-    lutName = seg->category()->classificationName();
+  if (seg && seg->category()) lutName = seg->category()->classificationName();
 
   LUTSPtr seg_lut = nullptr;
 
@@ -61,26 +66,31 @@ LUTSPtr CategoryColorEngine::lut(SegmentationAdapterPtr seg)
 
     m_LUT.insert(lutName, seg_lut);
 
-    // TODO: review signals use
+    // TODO 2015-04-20: Check signals
     if (lutName != "")
+    {
       connect(seg->category().get(), SIGNAL(colorChanged(CategoryElementPtr)),
-              this, SLOT(updateCategoryColor(CategoryElementPtr)));
+              this,                  SLOT(updateCategoryColor(CategoryElementPtr)));
+    }
   }
   else
   {
-    Q_ASSERT(false);
+    // TODO 2015-04-20:sometimes happens, segs without category, fixed?
     // fix a corner case when a segmentation and it's category have been deleted
     // but the lookuptable hasn't, so when the segmentation and category are
     // created again with a different color the ColorEngine returns the lookuptable
     // with the old color.
-    if (seg->category()) // TODO: sometimes happens, segs without category, fixed?
+    Q_ASSERT(false);
+    if (seg->category())
     {
       double rgb[3];
       m_LUT[lutName]->GetColor(1, rgb);
       auto segColor = seg->category()->color();
 
       if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+      {
         m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+      }
 
       seg_lut = m_LUT[lutName];
     }
@@ -95,16 +105,14 @@ void CategoryColorEngine::updateCategoryColor(CategoryAdapterSPtr category)
   auto lutName = category->classificationName();
   auto c = category->color();
 
-  if (!m_LUT.contains(lutName))
-    return;
+  if (!m_LUT.contains(lutName)) return;
 
   m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), UNSELECTED_ALPHA);
   m_LUT[lutName]->Modified();
 
   lutName.append("_selected");
 
-  if (!m_LUT.contains(lutName))
-    return;
+  if (!m_LUT.contains(lutName)) return;
 
   m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), SELECTED_ALPHA);
   m_LUT[lutName]->Modified();

@@ -27,18 +27,24 @@
 
 // ESPINA
 #include "ChangeSegmentationNotes.h"
+#include <Core/Analysis/Segmentation.h>
+#include <Extensions/ExtensionUtils.h>
 #include <Extensions/ExtensionUtils.h>
 #include <Extensions/Notes/SegmentationNotes.h>
+#include <GUI/Model/CategoryAdapter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //------------------------------------------------------------------------
 ChangeSegmentationNotes::ChangeSegmentationNotes(SegmentationAdapterPtr segmentation,
                                                  const QString&         note,
+                                                 ModelFactory          *factory,
                                                  QUndoCommand*          parent)
 : QUndoCommand  {parent}
 , m_segmentation{segmentation}
 , m_formerNote  {note}
+, m_factory     {factory}
 {
 }
 
@@ -59,28 +65,37 @@ void ChangeSegmentationNotes::swapNotes()
 {
   QString currentNote;
 
-  if (m_segmentation->hasExtension(SegmentationNotes::TYPE))
   {
-    currentNote = m_segmentation->information(SegmentationNotes::NOTES).toString();
+    auto extensions = m_segmentation->extensions();
+
+    if (extensions->hasExtension(SegmentationNotes::TYPE))
+    {
+      currentNote = extensions->get<SegmentationNotes>()->notes();
+    }
   }
 
   if (currentNote.isEmpty() && !m_formerNote.isEmpty())
   {
-    auto extension = retrieveOrCreateExtension<SegmentationNotes>(m_segmentation);
-    extension->setNotes(m_formerNote);
-    m_formerNote = "";
+    auto notesExtension = retrieveOrCreateSegmentationExtension<SegmentationNotes>(m_segmentation, m_factory);
+    notesExtension->setNotes(m_formerNote);
   }
-  else if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
+  else
   {
-    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
-    extension->setNotes(m_formerNote);
-    m_formerNote = currentNote;
+    if (!currentNote.isEmpty() && !m_formerNote.isEmpty())
+    {
+      auto notesExtension = retrieveOrCreateSegmentationExtension<SegmentationNotes>(m_segmentation, m_factory);
+      notesExtension->setNotes(m_formerNote);
+    }
+    else
+    {
+      if (!currentNote.isEmpty() && m_formerNote.isEmpty())
+      {
+        safeDeleteExtension<SegmentationNotes>(m_segmentation);
+      }
+    }
   }
-  if (!currentNote.isEmpty() && m_formerNote.isEmpty())
-  {
-    auto extension = retrieveExtension<SegmentationNotes>(m_segmentation);
-    m_segmentation->deleteExtension(extension);
-    m_formerNote = currentNote;
-  }
+
+  m_formerNote = currentNote;
+
   m_segmentation->notifyModification();
 }

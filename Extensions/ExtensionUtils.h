@@ -23,53 +23,49 @@
 #define ESPINA_EXTENSION_UTILS_H
 
 // ESPINA
+#include <Core/Factory/CoreFactory.h>
+#include <Core/Factory/ExtensionFactory.h>
+#include <Extensions/LibraryExtensionFactory.h>
 #include <GUI/Model/SegmentationAdapter.h>
+#include <GUI/ModelFactory.h>
 
 namespace ESPINA
 {
-	/** \brief Templatized extension retrieval. The extended item must
-	 * be extended by the templated extension.
-	 * \param[in] item, extended item.
-	 *
-	 */
-  template<typename Extension, typename Extendible>
-  std::shared_ptr<Extension> retrieveExtension(Extendible item)
+  namespace Extensions
   {
-    Q_ASSERT(item->hasExtension(Extension::TYPE));
-
-    auto base      = item->extension(Extension::TYPE);
-    auto extension = std::dynamic_pointer_cast<Extension>(base);
-
-    Q_ASSERT(extension);
-
-    return extension;
-  };
-
-	/** \brief Templatized extension retrieval. In the case the extended item
-	 * haven't got the extension, it's created and returned.
-	 * \param[in] item, extended item.
-	 *
-	 */
-  template<typename Extension, typename Extendible>
-  std::shared_ptr<Extension> retrieveOrCreateExtension(Extendible item)
-  {
-    std::shared_ptr<Extension> extension;
-
-    if (!item->hasExtension(Extension::TYPE))
+    /** \brief Templatized extension retrieval. The extended item must
+     * be extended by the templated extension.
+     * \param[in] extensions extension list locked object.
+     *
+     */
+    template<typename Extension, typename Extensions>
+    std::shared_ptr<Extension> retrieveExtension(Extensions extensions)
     {
-      extension = std::shared_ptr<Extension>{new Extension()};
-      item->addExtension(extension);
-    } else
+      Q_ASSERT(extensions->hasExtension(Extension::TYPE));
+
+      auto base      = extensions[Extension::TYPE];
+      auto extension = std::dynamic_pointer_cast<Extension>(base);
+
+      Q_ASSERT(extension);
+
+      return extension;
+    };
+
+    /** \brief Safe delete extension from item
+     * \param[in] item to get the extension deleted from
+     *
+     */
+    template<typename Extension, typename Extensible>
+    void safeDeleteExtension(Extensible item)
     {
-      auto base = item->extension(Extension::TYPE);
-      extension = std::dynamic_pointer_cast<Extension>(base);
+      auto extensions = item->extensions();
+
+      if (extensions->hasExtension(Extension::TYPE))
+      {
+        extensions->remove(Extension::TYPE);
+      }
     }
-
-    Q_ASSERT(extension);
-
-    return extension;
-  };
-
-} // ESPINA
+  } // namespace Extensions
+} // namespace ESPINA
 
 #endif // ESPINA_CF_EXTENSION_UTILS_H

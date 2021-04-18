@@ -23,21 +23,33 @@
 #include "SegFile_V5.h"
 #include "SegFile.h"
 #include "ClassificationXML.h"
-#include "ReadOnlyFilter.h"
-#include "ReadOnlyChannelExtension.h"
-#include "ReadOnlySegmentationExtension.h"
+#include "ProgressReporter.h"
 #include <EspinaConfig.h>
 #include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Connections.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Graph/DirectedGraph.h>
 #include <Core/Analysis/Persistent.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Utils/TemporalStorage.h>
+#include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
+#include <Core/Analysis/Extensions/ReadOnlySegmentationExtension.h>
+#include <Core/Analysis/Extensions/ReadOnlyStackExtension.h>
+#include <Core/Analysis/Filters/VolumetricStreamReader.h>
+#include <Core/Analysis/Filters/ReadOnlyFilter.h>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Core/IO/DataFactory/FetchRawData.h>
+#include <Core/IO/DataFactory/RawDataFactory.h>
+#include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Utils/QStringUtils.h>
+
+// Qt
+#include <QDataStream>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 using namespace ESPINA::IO::SegFile;
 using namespace ESPINA::IO::Graph;
@@ -47,11 +59,21 @@ const QString SegFile::SegFile_V5::FORMAT_INFO_FILE = "formatInfo.ini";
 const QString CONTENT_FILE        = "content.dot";
 const QString RELATIONS_FILE      = "relations.dot";
 const QString CLASSIFICATION_FILE = "classification.xml";
-const QString SEG_FILE_VERSION    = "5";
+const QString CONNECTIONS_FILE    = ConnectionStorage::connectionsFileName();
+const QString CURRENT_SEG_FILE_VERSION = "6";
 
-struct Vertex_Not_Found_Exception{};
+const int FIX_SOURCE_INPUTS_SEG_FILE_VERSION = 5;
 
-struct Invalid_Input_Exception{};
+const unsigned CLASSIFICATION_PROGRESS =  5;
+const unsigned SNAPSHOT_PROGRESS       = 20;
+const unsigned CONTENT_PROGRESS        = 70;
+const unsigned RELATIONS_PROGRESS      = 99;
+
+const float SNAPSHOT_PROGRESS_CHUNK  = SNAPSHOT_PROGRESS  - CLASSIFICATION_PROGRESS;
+const float CONTENT_PROGRESS_CHUNK   = CONTENT_PROGRESS   - SNAPSHOT_PROGRESS;
+const float RELATIONS_PROGRESS_CHUNK = RELATIONS_PROGRESS - CONTENT_PROGRESS;
+
+const QString SEG_FILE_VERSION = "SegFile Version";
 
 //-----------------------------------------------------------------------------
 QByteArray formatInfo()
@@ -60,63 +82,110 @@ QByteArray formatInfo()
 
   QTextStream infoStream(&info);
 
-  infoStream << QString("SegFile Version=%1").arg(SEG_FILE_VERSION) << endl;
+  infoStream << QString("%1=%2").arg(SEG_FILE_VERSION).arg(CURRENT_SEG_FILE_VERSION) << endl;
   infoStream << QString("ESPINA Version=%1").arg(ESPINA_VERSION) << endl;
 
   return info;
 }
 
 //-----------------------------------------------------------------------------
-SegFile_V5::Loader::Loader(QuaZip &zip, CoreFactorySPtr factory, ErrorHandlerSPtr handler)
-: m_zip        (zip)
-, m_factory    {factory}
-, m_handler    {handler}
-, m_analysis   {new Analysis()}
-, m_dataFactory{new FetchRawData()}
+int segFileVersion(const QString &info)
+{
+  const int EQUAL_LENGTH = 1;
+  auto start = info.indexOf(SEG_FILE_VERSION)
+             + SEG_FILE_VERSION.length()
+             + EQUAL_LENGTH;
+  auto n     = info.indexOf("\n", start) - start;
+
+  return info.mid(start, n).toInt();
+}
+
+//-----------------------------------------------------------------------------
+SegFile_V5::Loader::Loader(QuaZip           &zip,
+                           CoreFactorySPtr  factory,
+                           ProgressReporter *reporter,
+                           ErrorHandlerSPtr  handler,
+                           const LoadOptions options)
+: m_zip            (zip)
+, m_factory        {factory}
+, m_reporter       {reporter}
+, m_handler        {handler}
+, m_options        {options}
+, m_analysis       {new Analysis()}
+, m_dataFactory    {new RawDataFactory()}
+, m_fixSourceInputs{false}
 {
 }
 
 //-----------------------------------------------------------------------------
 AnalysisSPtr SegFile_V5::Loader::load()
 {
-  m_storage = std::make_shared<TemporalStorage>();
+  reportProgress(0);
+
+  m_storage = m_factory->createTemporalStorage();
 
   if (!m_zip.setCurrentFile(CLASSIFICATION_FILE))
   {
     if (m_handler)
+    {
       m_handler->error(QObject::tr("Could not load analysis classification"));
+    }
 
-    throw(Classification_Not_Found_Exception());
+    auto what    = QObject::tr("Classification not found.");
+    auto details = QObject::tr("SegFile_V5::load() -> Can't load classification.");
+    throw EspinaException(what, details);
   }
 
   try
   {
-    auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-    m_analysis->setClassification(ClassificationXML::parse(currentFile, m_handler));
+    auto currentFile    = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+    auto classification = ClassificationXML::parse(currentFile, m_handler);
+    m_analysis->setClassification(classification);
   }
-  catch (const ClassificationXML::Parse_Exception &e)
+  catch (const EspinaException &e)
   {
     if (m_handler)
+    {
       m_handler->error(QObject::tr("Error while loading classification"));
+    }
 
-    throw(Parse_Exception());
+    throw(e);
   }
+
+  reportProgress(CLASSIFICATION_PROGRESS);
+
+  unsigned long i = 0;
+  const unsigned long total = m_zip.getFileNameList().size();
 
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
   {
     QString file = m_zip.getCurrentFileName();
 
-    if (file != FORMAT_INFO_FILE &&
-      file != CLASSIFICATION_FILE &&
-      file != CONTENT_FILE &&
-      file != RELATIONS_FILE)
+    if (file == FORMAT_INFO_FILE)
     {
-      auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
-      m_storage->saveSnapshot(SnapshotData(file, currentFile));
+      auto info = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+      if (segFileVersion(info) <= FIX_SOURCE_INPUTS_SEG_FILE_VERSION)
+      {
+        m_fixSourceInputs = true;
+      }
+    }
+    else
+    {
+      if (file != CLASSIFICATION_FILE && file != CONTENT_FILE && file != RELATIONS_FILE)
+      {
+        auto currentFile = SegFileInterface::readCurrentFileFromZip(m_zip, m_handler);
+
+        // FIX: Windows doesn't allow some characters in filenames that Linux does and were used in previous versions.
+        file = file.replace(">", "_"); // TabularReport save key information file.
+
+        m_storage->saveSnapshot(SnapshotData(file, currentFile));
+      }
     }
 
     hasFile = m_zip.goToNextFile();
+
+    reportProgress(CLASSIFICATION_PROGRESS + (SNAPSHOT_PROGRESS_CHUNK*(++i)/total));
   }
 
   loadContent();
@@ -125,17 +194,18 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
   m_analysis->setStorage(m_storage);
 
+  loadConnections();
+
+  reportProgress(100);
+
   return m_analysis;
 }
 
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
 {
-  for (auto vertex : vertices)
-  {
-    if (vertex->uuid() == uuid)
-      return vertex;
-  }
+  auto it = std::find_if(vertices.constBegin(), vertices.constEnd(), [&uuid](const DirectedGraph::Vertex &vertex) {return vertex->uuid() == uuid; });
+  if(it != vertices.constEnd()) return *it;
 
   return DirectedGraph::Vertex();
 }
@@ -158,11 +228,11 @@ SampleSPtr SegFile_V5::Loader::createSample(DirectedGraph::Vertex roVertex)
 //-----------------------------------------------------------------------------
 FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
 {
-  DirectedGraph::Edges inputConections = m_content->inEdges(roVertex);
+  DirectedGraph::Edges inputConnections = m_content->inEdges(roVertex);
 
   InputSList inputs;
   int lastOutput = -1; // Debug
-  for (auto edge : inputConections)
+  for (auto edge : inputConnections)
   {
     auto input  = inflateVertex(edge.source);
 
@@ -180,7 +250,8 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
       id = ids[1].toInt();
     }
 
-    if (inputNumber <= lastOutput) {
+    if (inputNumber <= lastOutput)
+    {
       qWarning() << "Unordered outputs";
     }
     lastOutput = inputNumber;
@@ -192,16 +263,46 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   try
   {
     filter = m_factory->createFilter(inputs, roVertex->name());
+
+    // NOTE: These modify the original 'inputs' value adding a default one, but only if 'inputs' is empty.
+    //       Fixes SourceFilter inputs and ReadOnlyFilters (belonging to SegmhaImporter). Could be done in
+    //       another way but it's better not to reference or hack directly values (like using the TYPE of
+    //       SegmhaImporter plugin, not known to Core library).
+    if(m_fixSourceInputs && inputs.isEmpty() && m_sourceInput != nullptr)
+    {
+      inputs << m_sourceInput->asInput();
+
+      auto sourceFilter = dynamic_cast<SourceFilter *>(filter.get());
+      if (sourceFilter)
+      {
+        sourceFilter->setInputs(inputs);
+      }
+
+      auto readOnlyFilter = dynamic_cast<ReadOnlyFilter *>(filter.get());
+      if(readOnlyFilter)
+      {
+        readOnlyFilter->setInputs(inputs);
+      }
+    }
   }
-  catch (const CoreFactory::Unknown_Type_Exception &e)
+  catch (const EspinaException &e)
   {
     filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
     filter->setDataFactory(m_dataFactory);
   }
+
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());
   filter->restoreState(roVertex->state());
+
+  auto reader = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
+  if(reader)
+  {
+    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
+                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+  }
+
   filter->setStorage(m_storage);
   filter->restorePreviousOutputs();
 
@@ -213,10 +314,10 @@ QPair<FilterSPtr, Output::Id> SegFile_V5::Loader::findOutput(DirectedGraph::Vert
 {
   QPair<FilterSPtr, Output::Id> output;
 
-  DirectedGraph::Edges inputConections = m_content->inEdges(roVertex);
+  auto inputConections = m_content->inEdges(roVertex);
   Q_ASSERT(inputConections.size() == 1);
 
-  DirectedGraph::Edge edge = inputConections.first();
+  auto edge = inputConections.first();
 
   auto input = inflateVertex(edge.source);
 
@@ -233,11 +334,7 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 
   auto filter   = roOutput.first;
   auto outputId = roOutput.second;
-
-  //filter->update(outputId); // No tiene que hacer falta ya que ahora todos los filtros
-                              // van a restaurar su outputs
-
-  ChannelSPtr channel = m_factory->createChannel(filter, outputId);
+  auto channel  = m_factory->createChannel(filter, outputId);
 
   channel->setName(roVertex->name());
   channel->setUuid(roVertex->uuid());
@@ -254,9 +351,10 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 //-----------------------------------------------------------------------------
 QString SegFile_V5::Loader::parseCategoryName(const State& state)
 {
-  QStringList params = state.split(";");
+  const auto params = state.split(";");
+  const auto name = params[2].split("=")[1];
 
-  return params[2].split("=")[1];
+  return Core::Utils::simplifyString(name);
 }
 
 //-----------------------------------------------------------------------------
@@ -269,7 +367,9 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
 
   if (!filter)
   {
-    throw Invalid_Input_Exception();
+    auto what    = QObject::tr("Invalid input, filter is null in vertex %1").arg(roVertex->name());
+    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+    throw EspinaException(what, details);
   }
 
   auto segmentation = m_factory->createSegmentation(filter, outputId);
@@ -288,6 +388,12 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
 
     segmentation->setCategory(category);
   }
+  else
+  {
+    auto what    = QObject::tr("Invalid input, category is null in vertex %1").arg(roVertex->name());
+    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+    throw EspinaException(what, details);
+  }
 
   loadExtensions(segmentation);
 
@@ -299,11 +405,11 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex roVertex)
 {
-  DirectedGraph::Vertex vertex = findVertex(m_loadedVertices, roVertex->uuid());
+  auto vertex = findVertex(m_loadedVertices, roVertex->uuid());
 
   if (!vertex)
   {
-    ReadOnlyVertex *rov = dynamic_cast<ReadOnlyVertex *>(roVertex.get());
+    auto rov = dynamic_cast<ReadOnlyVertex *>(roVertex.get());
     switch (rov->type())
     {
       case VertexType::SAMPLE:
@@ -313,7 +419,20 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
       }
       case VertexType::CHANNEL:
       {
-        vertex = createChannel(roVertex);
+        try
+        {
+          vertex = m_sourceInput = createChannel(roVertex);
+        }
+        catch (const EspinaException &e)
+        {
+          auto what    = QObject::tr("Failed to create channel: %1. ").arg(roVertex->name());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+
+          what += QString(e.what());
+          details += e.details();
+
+          throw EspinaException(what, details);
+        }
         break;
       }
       case VertexType::FILTER:
@@ -321,9 +440,16 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         try
         {
           vertex = createFilter(roVertex);
-        } catch (...)
+        }
+        catch (const EspinaException &e)
         {
-          qDebug() << "Failed to create filter: " << roVertex->uuid() << roVertex->name() << roVertex->state();
+          auto what    = QObject::tr("Failed to create filter: %1. ").arg(roVertex->name());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+
+          what += QString(e.what());
+          details += e.details();
+
+          throw EspinaException(what, details);
         }
         break;
       }
@@ -332,21 +458,36 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         try
         {
           vertex = createSegmentation(roVertex);
-        } catch (...)
+        }
+        catch (const EspinaException &e)
         {
-          qDebug() << "Failed to create segmentation: " << roVertex->name() << roVertex->state();
+          auto what    = QObject::tr("Failed to create segmentation: %1. ").arg(roVertex->name());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+
+          what += QString(e.what());
+          details += e.details();
+
+          throw EspinaException(what, details);
         }
         break;
       }
       default:
-        throw Graph::Unknown_Type_Found();
+        auto what    = QObject::tr("Unknown vertex type: %1. ").arg(static_cast<int>(rov->type()));
+        auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+
+        throw EspinaException(what, details);
         break;
     }
 
-    if (vertex != nullptr)
+    if (vertex == nullptr)
     {
-      m_loadedVertices << vertex;
+       auto what    = QObject::tr("Unable to inflate vertex, type: %1. ").arg(static_cast<int>(rov->type()));
+       auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unable to inflate vertex, type %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+
+       throw EspinaException(what, details);
     }
+	
+	m_loadedVertices << vertex;
   }
 
   return vertex;
@@ -364,9 +505,36 @@ void SegFile_V5::Loader::loadContent()
 
   DirectedGraph::Vertices loadedVertices;
 
-  for (DirectedGraph::Vertex roVertex : m_content->vertices())
+  auto vertices = m_content->vertices();
+  const unsigned long total = vertices.size();
+
+  auto sorter = [](const DirectedGraph::Vertex &lv, const DirectedGraph::Vertex &rv)
+  {
+    auto dlv = dynamic_cast<IO::Graph::ReadOnlyVertex *>(lv.get());
+    auto drv = dynamic_cast<IO::Graph::ReadOnlyVertex *>(rv.get());
+
+    if(!dlv || !drv) return false;
+
+    if(dlv->type() == IO::Graph::VertexType::SAMPLE) return true;
+    if(drv->type() == IO::Graph::VertexType::SAMPLE) return false;
+
+    if(dlv->type() == IO::Graph::VertexType::CHANNEL)
+    {
+      return drv->type() != IO::Graph::VertexType::CHANNEL;
+    }
+
+    return drv->type() == IO::Graph::VertexType::CHANNEL;
+  };
+
+  // NOTE: loads channel elements first.
+  std::sort(vertices.begin(), vertices.end(), sorter);
+
+  unsigned long i = 0;
+  for (DirectedGraph::Vertex roVertex : vertices)
   {
     inflateVertex(roVertex);
+
+    reportProgress(SNAPSHOT_PROGRESS + (CONTENT_PROGRESS_CHUNK*(++i)/total));
   }
 }
 //-----------------------------------------------------------------------------
@@ -379,51 +547,65 @@ void SegFile_V5::Loader::loadRelations()
   std::istringstream stream(textStream.readAll().toStdString().c_str());
   read(stream, relations);
 
-  DirectedGraph::Vertices loadedVertices = m_analysis->content()->vertices();
+  auto loadedVertices = m_analysis->content()->vertices();
 
+  unsigned long i = 0;
+  const unsigned long total = relations->edges().size();
   for (auto edge : relations->edges())
   {
     PersistentSPtr source = findVertex(loadedVertices, edge.source->uuid());
     PersistentSPtr target = findVertex(loadedVertices, edge.target->uuid());
 
     m_analysis->addRelation(source, target, edge.relationship.c_str());
+
+    reportProgress(CONTENT_PROGRESS + (RELATIONS_PROGRESS_CHUNK*(++i)/total));
   }
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::Loader::createChannelExtension(ChannelSPtr channel,
-                                                const ChannelExtension::Type &type,
-                                                const ChannelExtension::InfoCache &cache,
-                                                const State &state)
+void SegFile_V5::Loader::createStackExtension(ChannelSPtr channel,
+                                              const StackExtension::Type &type,
+                                              const StackExtension::InfoCache &cache,
+                                              const State &state)
 {
-  ChannelExtensionSPtr extension;
+  StackExtensionSPtr extension = nullptr;
+
   try
   {
-    extension = m_factory->createChannelExtension(type, cache, state);
-    //qDebug() << "Creating Channel Extension" << type;
-  } catch (const CoreFactory::Unknown_Type_Exception &e)
+    extension = m_factory->createStackExtension(type, cache, state);
+  }
+  catch (const EspinaException &e)
   {
-    //qDebug() << "Creating ReadOnlyChannelExtension" << type;
-    extension = std::make_shared<ReadOnlyChannelExtension>(type, cache, state);
+    extension = std::make_shared<ReadOnlyStackExtension>(type, cache, state);
   }
   Q_ASSERT(extension);
-  channel->addExtension(extension);
+
+  auto extensions = channel->extensions();
+  extensions->add(extension);
 }
 
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
 {
-  QString xmlFile = ChannelExtension::ExtensionFilePath(channel.get());
+  auto xmlFile = StackExtension::ExtensionFilePath(channel.get());
 
-  if (!channel->storage()->exists(xmlFile))
-    return;
+  if (!channel->storage()->exists(xmlFile)) return;
 
-  QByteArray extensions = channel->storage()->snapshot(xmlFile);
+  auto extensions = channel->storage()->snapshot(xmlFile);
+
+  // in some SEG files the extension xml files were corrupted, need to clean them or the extensions won't be created.
+  const auto token = QByteArray("</Channel>") + '\n';
+  if(!extensions.endsWith(token))
+  {
+    auto index = extensions.indexOf(token, 0);
+    Q_ASSERT(index != -1);
+    extensions.remove(index + token.length(), extensions.size() - index - token.length());
+  }
 
   QXmlStreamReader xml(extensions);
 
-  auto type = QString();
-  auto cache = ChannelExtension::InfoCache();
+  auto type  = QString();
+  auto cache = StackExtension::InfoCache();
   auto state = State();
 
   while (!xml.atEnd())
@@ -433,32 +615,40 @@ void SegFile_V5::Loader::loadExtensions(ChannelSPtr channel)
       if (xml.name() == "Extension")
       {
         type = xml.attributes().value("Type").toString();
-        cache = ChannelExtension::InfoCache();
+        cache = StackExtension::InfoCache();
         state = State();
       }
       else
+      {
         if (xml.name() == "Info")
         {
           QString name = xml.attributes().value("Name").toString();
           cache[name] = xml.readElementText();
         }
         else
+        {
           if (xml.name() == "State")
           {
             state = xml.readElementText();
           }
+        }
+      }
     }
     else
+    {
       if (xml.isEndElement() && xml.name() == "Extension")
       {
-        createChannelExtension(channel, type, cache, state);
+        createStackExtension(channel, type, cache, state);
       }
+    }
 
-      xml.readNext();
+    xml.readNext();
   }
 
   if (xml.hasError())
-    qDebug() << "channel loadExtensions error:" << xml.errorString();
+  {
+    qWarning() << "SEGFILE_V5 - Channel load extensions xml error:" << xml.errorString();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -471,29 +661,35 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
   try
   {
     extension = m_factory->createSegmentationExtension(type, cache, state);
-    //qDebug() << "Creating Segmentation Extension" << type;
-  } catch (const CoreFactory::Unknown_Type_Exception &e)
+  }
+  catch (const EspinaException &e)
   {
-    //qDebug() << "Creating ReadOnlySegmentationExtension" << type;
     extension = std::make_shared<ReadOnlySegmentationExtension>(type, cache, state);
   }
   Q_ASSERT(extension);
-  segmentation->addExtension(extension);
+  segmentation->extensions()->add(extension);
 }
 
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
 {
-  QString xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
+  auto xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid().toString());
 
-  if (!segmentation->storage()->exists(xmlFile))
-    return;
+  if (!segmentation->storage()->exists(xmlFile)) return;
 
-  QByteArray extensions = segmentation->storage()->snapshot(xmlFile);
+  auto extensions = segmentation->storage()->snapshot(xmlFile);
+
+  // in some SEG files the extension xml files were corrupted, need to clean them or the extensions won't be created.
+  const auto token = QByteArray("</Segmentation>") + '\n';
+  if(!extensions.endsWith(token))
+  {
+    auto index = extensions.indexOf(token, 0);
+    Q_ASSERT(index != -1);
+    extensions.remove(index + token.length(), extensions.size() - index - token.length());
+  }
 
   QXmlStreamReader xml(extensions);
 
-  //qDebug() << "Looking for" << segmentation->name() << "extensions:";
   auto type = QString();
   auto cache = SegmentationExtension::InfoCache();
   auto state = State();
@@ -505,10 +701,14 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
       if (xml.name() == "Extension")
       {
         type = xml.attributes().value("Type").toString();
+
+        fixVersion2_1_8(type);
+
         cache = SegmentationExtension::InfoCache();
         state = State();
       }
       else
+      {
         if (xml.name() == "Info")
         {
           auto name = xml.attributes().value("Name").toString().replace("_", " ");
@@ -521,22 +721,46 @@ void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
           in >> cache[name];
         }
         else
+        {
           if (xml.name() == "State")
           {
             state = xml.readElementText();
           }
+        }
+      }
     }
     else
+    {
       if (xml.isEndElement() && xml.name() == "Extension")
       {
         createSegmentationExtension(segmentation, type, cache, state);
       }
+    }
 
-      xml.readNext();
+    xml.readNext();
   }
 
   if (xml.hasError())
-    qDebug() << "segmentation loadExtensions error:" << xml.errorString();
+  {
+    qWarning() << "SEGFILE_V5 - Segmentation load extensions xml error:" << xml.errorString();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SegFile_V5::Loader::loadConnections()
+{
+  m_analysis->loadConnections();
+}
+
+//-----------------------------------------------------------------------------
+void SegFile_V5::Loader::reportProgress(unsigned int currentProgress)
+{
+  static unsigned int progress = std::numeric_limits<unsigned int>::max();
+  if (m_reporter && (progress != currentProgress))
+ {
+	progress = currentProgress;
+	m_reporter->setProgress(progress);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -545,26 +769,38 @@ SegFile_V5::SegFile_V5()
 }
 
 //-----------------------------------------------------------------------------
-AnalysisSPtr SegFile_V5::load(QuaZip&          zip,
-                              CoreFactorySPtr  factory,
-                              ErrorHandlerSPtr handler)
+AnalysisSPtr SegFile_V5::load(QuaZip&           zip,
+                              CoreFactorySPtr   factory,
+                              ProgressReporter *reporter,
+                              ErrorHandlerSPtr  handler,
+                              const LoadOptions options)
 {
-  Loader loader(zip, factory, handler);
+  Loader loader(zip, factory, reporter, handler, options);
 
   return loader.load();
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handler)
+void SegFile_V5::save(AnalysisPtr analysis,
+                      QuaZip& zip,
+                      ProgressReporter *reporter,
+                      ErrorHandlerSPtr handler)
 {
+  if (reporter)
+  {
+    reporter->setProgress(0);
+  }
+
   try
   {
     addFileToZip(FORMAT_INFO_FILE, formatInfo(), zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
+    {
       handler->error("Error while saving Analysis Format Information.");
+    }
 
     throw (e);
   }
@@ -574,10 +810,12 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   {
     classification = ClassificationXML::dump(analysis->classification(), handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
-      handler->error("Error while saving Analysis Classification.");
+    {
+      handler->error("Error while dumping Analysis classification to byte array.");
+    }
 
     throw(e);
   }
@@ -586,12 +824,38 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   {
     addFileToZip(CLASSIFICATION_FILE, classification, zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
-      handler->error("Error while saving Analysis Classification.");
+    {
+      handler->error("Error while saving Analysis classification.");
+    }
 
     throw(e);
+  }
+
+  if (reporter)
+  {
+    reporter->setProgress(CLASSIFICATION_PROGRESS);
+  }
+
+  auto storage = analysis->storage();
+
+  if(analysis->saveConnections())
+  {
+    try
+    {
+      addFileToZip(CONNECTIONS_FILE, storage->snapshot(CONNECTIONS_FILE), zip, handler);
+    }
+    catch(const EspinaException &e)
+    {
+      if (handler)
+      {
+        handler->error("Error while saving connections data.");
+      }
+
+      throw (e);
+    }
   }
 
   std::ostringstream content;
@@ -600,12 +864,19 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   {
     addFileToZip(CONTENT_FILE, content.str().c_str(), zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
-      handler->error("Error while saving Analysis Pipeline.");
+    {
+      handler->error("Error while saving analysis content graph.");
+    }
 
     throw (e);
+  }
+
+  if (reporter)
+  {
+    reporter->setProgress(40);
   }
 
   std::ostringstream relations;
@@ -614,44 +885,96 @@ void SegFile_V5::save(AnalysisPtr analysis, QuaZip& zip, ErrorHandlerSPtr handle
   {
     addFileToZip(RELATIONS_FILE, relations.str().c_str(), zip, handler);
   }
-  catch (const IO_Error_Exception &e)
+  catch (const EspinaException &e)
   {
     if (handler)
-      handler->error("Error while saving Analysis Pipeline.");
+    {
+      handler->error("Error while saving analysis relationships graph.");
+    }
 
     throw (e);
   }
 
+  if (reporter)
+  {
+    reporter->setProgress(60);
+  }
+
+  int i = 0;
+  int total = analysis->content()->vertices().size();
+
   for(auto v : analysis->content()->vertices())
   {
     PersistentPtr item = dynamic_cast<PersistentPtr>(v.get());
-    for(auto data : item->snapshot())
+
+    try
+    {
+      for(auto data : item->snapshot())
+      {
+        addFileToZip(data.first, data.second, zip, handler);
+      }
+    }
+    catch (const EspinaException &e)
+    {
+      if(handler)
+      {
+        handler->error(QObject::tr("Unable to save data to seg file."));
+      }
+
+      throw(e);
+    }
+
+    if (reporter)
+    {
+      reporter->setProgress(60 + 20*(++i)/total);
+    }
+  }
+
+  if(storage != nullptr)
+  {
+
+    Snapshot files;
+    files << storage->snapshots(QString("Extra"), TemporalStorage::Mode::RECURSIVE);
+    files << storage->snapshots(QString("Settings"), TemporalStorage::Mode::RECURSIVE);
+
+    i = 0;
+    total = files.size();
+
+    for (auto data : files)
     {
       try
       {
         addFileToZip(data.first, data.second, zip, handler);
       }
-      catch (const IO_Error_Exception &e)
+      catch (const EspinaException &e)
       {
+        if (handler)
+        {
+          handler->warning(QString("Error while saving storage additional contents: %1").arg(data.first));
+        }
+
         throw (e);
+      }
+
+      if (reporter)
+      {
+        reporter->setProgress(80 + 20*(++i)/total);
       }
     }
   }
 
-  if(analysis->storage() != nullptr)
-    for (auto data : analysis->storage()->snapshots(QString("Extra"), TemporalStorage::Mode::Recursive))
-    {
-      try
-      {
-        addFileToZip(data.first, data.second, zip, handler);
-      }
-      catch (const IO_Error_Exception &e)
-      {
-        if (handler)
-          handler->warning("Error while saving Extra content.");
-
-        throw (e);
-      }
-    }
+  if (reporter)
+  {
+    reporter->setProgress(100);
+  }
 }
 
+//--------------------------------------------------------------------
+void SegFile_V5::Loader::fixVersion2_1_8(Core::SegmentationExtension::Type& type)
+{
+  // NOTE: hard-coded signatures to avoid having a dependency with SAS plugin. Damn... I hate these things.
+  if(type == "AppositionSurfaceExtensionInformation")
+  {
+    type = "AppositionSurface";
+  }
+}

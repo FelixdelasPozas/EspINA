@@ -21,95 +21,161 @@
 #ifndef ESPINA_STEREOLOGICAL_INCLUSION_H
 #define ESPINA_STEREOLOGICAL_INCLUSION_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
+#include "CountingFrames/CountingFrame.h"
 
-#include <Core/Analysis/Extension.h>
+// ESPINA
 #include <Core/Utils/Bounds.h>
+#include <Core/Analysis/Extensions.h>
 
-#include <CountingFrames/CountingFrame.h>
+// C++
+#include <atomic>
 
-// Forward declaration
 class vtkPoints;
 class vtkPolyData;
 
 namespace ESPINA
 {
-  namespace CF {
-  class CountingFramePlugin_EXPORT StereologicalInclusion
-  : public SegmentationExtension
+  namespace CF
   {
-    Q_OBJECT
+    class CFSegmentationExtensionFactory;
 
-    static const QString FILE;
+    /** \brief StereologicalInclusion
+     * \brief Segmentation extension with the information of inclusion/exclusion from a counting frame.
+     *
+     */
+    class CountingFramePlugin_EXPORT StereologicalInclusion
+    : public Core::SegmentationExtension
+    {
+        Q_OBJECT
+      public:
+        static const Type TYPE;
 
-  public:
-    static const Type    TYPE;
+        inline InformationKey cfKey(CountingFrame *cf) const;
 
-    static InfoTag cfTag(CountingFrame *cf);
+      public:
+        /** \brief StereologicalInclusion class virtual destructor.
+         *
+         */
+        virtual ~StereologicalInclusion()
+        {}
 
-  public:
-    explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
+        virtual Type type() const
+        { return TYPE; }
 
-    virtual ~StereologicalInclusion();
+        virtual bool invalidateOnChange() const
+        { return true; }
 
-    virtual Type type() const
-    { return TYPE; }
+        virtual State state() const;
 
-    virtual bool invalidateOnChange() const
-    { return true; }
+        virtual Snapshot snapshot() const;
 
-    virtual State state() const;
+        virtual const TypeList dependencies() const;
 
-    virtual Snapshot snapshot() const;
+        virtual bool validCategory(const QString& classificationName) const
+        { return true; }
 
-    virtual TypeList dependencies() const;
+        virtual bool validData(const OutputSPtr output) const;
 
-    virtual bool validCategory(const QString& classificationName) const
-    { return true; }
+        virtual const InformationKeyList availableInformation() const;
 
-    virtual InfoTagList availableInformations() const;
+        virtual const QString toolTipText() const;
 
-//     virtual QVariant information(const InfoTag& tag) const;
+        /** \brief Adds the given CF to the list of CFs to check for inclusion.
+         * \param[in] cf counting frame object pointer.
+         *
+         */
+        void addCountingFrame(CountingFrame *cf);
 
-    virtual QString toolTipText() const;
+        /** \brief Removes the given CF from the list of CFs to check for inclusion.
+         * \param[in] cf counting frame object pointer.
+         *
+         */
+        void removeCountingFrame(CountingFrame *cf);
 
-    void addCountingFrame(CountingFrame *cf);
-    void removeCountingFrame(CountingFrame *cf);
-    //void setCountingFrames(CountingFrameList regions);
+        /** \brief Returns true if has CFs to check for inclusion.
+         *
+         */
+        bool hasCountingFrames() const;
 
-    // The Segmentation is excluded at least by a CF
-    bool isExcluded() const;
+        /** \brief Returns true if the segmentation is excluded at least by one CF.
+         *
+         */
+        bool isExcluded();
 
-    bool isOnEdge() const;
+        /** \brief NOTE: Fixes old SEG files that carry incorrect cache values that prevents the file from being saved later.
+         *
+         */
+        virtual InformationKeyList readyInformation() const override;
 
-  protected:
-    virtual QVariant cacheFail(const QString& tag) const;
+      protected:
+        virtual QVariant cacheFail(const InformationKey& tag) const;
 
-    virtual void onExtendedItemSet(Segmentation *segmentation);
+        virtual void onExtendedItemSet(Segmentation *segmentation);
 
-  public slots:
-    void evaluateCountingFrame(CountingFrame *cf);
-    void evaluateCountingFrames();
+      public slots:
+        /** \brief Evaluates the inclusion in the given counting frame.
+         * \param[in] cf counting frame object pointer.
+         *
+         */
+        void evaluateCountingFrame(CountingFrame *cf);
 
-  private:
-    bool isExcludedByCountingFrame(CountingFrame *cf);
-    bool isRealCollision(const Bounds& interscetion);
-    void checkSampleCountingFrames();
+        /** \brief Evaluates the inclusion in the list of stored CFs.
+         *
+         */
+        void evaluateCountingFrames();
 
-  private:
-    bool m_isInitialized;
-    bool m_isUpdated;
+      private:
+        /** \brief Returns true if the segmentation is excluded by the given CF.
+         * \param[in] cf counting frame object pointer.
+         *
+         */
+        bool isExcludedByCountingFrame(CountingFrame *cf);
 
-    QMutex m_mutex;
-    bool   m_isExcluded;
-    QMap<CountingFrame *, bool>   m_exclusionCFs;
-    QMap<CountingFrame::Id, bool> m_excludedByCF;
-  };
+        /** \brief Returns the list of CFs defined for the segmentation's sample.
+         *
+         */
+        void checkSampleCountingFrames();
 
-  using StereologicalInclusionPtr  = StereologicalInclusion *;
-  using StereologicalInclusionSPtr = std::shared_ptr<StereologicalInclusion>;
+        /** \brief Checks the validity of the counting frames regarding the extended item.
+         *
+         */
+        void checkCountingFrames();
 
-  StereologicalInclusionSPtr stereologicalInclusion(SegmentationExtensionSPtr extension);
+      private slots:
+        /** \brief Updates the info cache if a Counting Frame id changes.
+         *
+         * NOTE: doesn't invalidate cache and carries old value (if exists) to new id.
+         *
+         */
+        void onCountingFrameModified(CountingFrame *cf);
+
+        /** \brief Updates the counting frame when the output has been modified as
+         * the exclusion could have changed value.
+         *
+         */
+        void onOutputModified();
+
+      private:
+        /** \brief StereologicalInclusion class constructor.
+         * \param[in] infoCache information cache object.
+         *
+         */
+        explicit StereologicalInclusion(const InfoCache &infoCache = InfoCache());
+
+        std::atomic<bool>                        m_isUpdated;     /** true if the extension data is up to date.                */
+        mutable QMutex                           m_mutex;         /** lock for extension data computation.                     */
+        std::atomic<bool>                        m_isExcluded;    /** true if the segmentation is excluded by at least one CF. */
+        QMap<CountingFrame *, bool>              m_exclusionCFs;  /** maps CF pointer - exclusion information.                 */
+        QMap<CountingFrame *, CountingFrame::Id> m_cfIds;         /** maps CF with CF::id for key invalidation.                */
+        InformationKeyList                       m_keys;          /** informatio keys in this extension.                       */
+
+        friend class CFSegmentationExtensionFactory;
+    };
+
+    using StereologicalInclusionPtr  = StereologicalInclusion *;
+    using StereologicalInclusionSPtr = std::shared_ptr<StereologicalInclusion>;
 
   } // namespace CF
 } // namespace ESPINA

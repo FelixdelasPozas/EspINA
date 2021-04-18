@@ -5,32 +5,57 @@ include_directories(
 
 include (GenerateExportHeader)
 
-qt4_wrap_cpp(EXTENSIONS_MOC
+# Add Qt Resource files
+qt5_add_resources(EXTENSIONS_RCC
+  EdgeDistances/rsc/EdgeDistances.qrc
+  )
+
+qt5_wrap_cpp(EXTENSIONS_MOC
   EdgeDistances/ChannelEdges.h
+  SLIC/StackSLIC.h
+  Histogram/StackHistogram.h
 #   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
 set (EXTENSIONS_SOURCES
   ${EXTENSIONS_MOC}
   ${EXTENSIONS_UI}
+  ${EXTENSIONS_RCC}
   EdgeDistances/ChannelEdges.cpp
+  EdgeDistances/ChannelEdgesFactory.cpp
+  Histogram/StackHistogram.cpp
+  Histogram/StackHistogramFactory.cpp
+  Issues/Issues.cpp
+  Issues/ItemIssues.cpp
+  Issues/IssuesFactory.cpp
   EdgeDistances/AdaptiveEdgesCreator.cpp
   EdgeDistances/EdgesAnalyzer.cpp
   EdgeDistances/EdgeDistance.cpp
+  EdgeDistances/EdgeDistanceFactory.cpp
   Morphological/MorphologicalInformation.cpp
+  Morphological/MorphologicalInformationFactory.cpp
   Notes/SegmentationNotes.cpp
+  Notes/SegmentationNotesFactory.cpp
   Tags/SegmentationTags.cpp
+  Tags/SegmentationTagsFactory.cpp
+  SkeletonInformation/AxonInformation.cpp
+  SkeletonInformation/DendriteInformation.cpp
+  SkeletonInformation/SynapseInformation.cpp
+  SkeletonInformation/SkeletonInformationFactory.cpp
+  SLIC/StackSLIC.cpp
+  SLIC/StackSLICFactory.cpp
+  BasicInformation/BasicSegmentationInformation.cpp
+  BasicInformation/BasicSegmentationInformationFactory.cpp
+  LibraryExtensionFactory.cpp
   )
 
 set(EXTENSIONS_EXTERNAL_LIBS
   ${QT_LIBRARIES}
-#${Boost_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
 )
 
 if(DEFINED MINGW)
-
   if (CMAKE_BUILD_TYPE MATCHES Debug)
     SET (EXTENSIONS_EXTERNAL_LIBS ${EXTENSIONS_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
   endif (CMAKE_BUILD_TYPE MATCHES Debug)
@@ -41,7 +66,6 @@ if(DEFINED MINGW)
     set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -O coff -o <OBJECT> -i <SOURCE>")
     enable_language(RC)
   endif(DEFINED ESPINA_VERSION_MAJOR)
-
 endif(DEFINED MINGW)
 
 add_library (EspinaExtensions SHARED ${EXTENSIONS_SOURCES})

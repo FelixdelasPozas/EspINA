@@ -36,7 +36,7 @@ Input::Input(FilterSPtr filter, OutputSPtr output)
 //----------------------------------------------------------------------------
 InputSPtr ESPINA::getInput(FilterSPtr filter, Output::Id id)
 {
-  return InputSPtr{new Input(filter, filter->output(id))};
+  return std::make_shared<Input>(filter, filter->output(id));
 }
 
 //----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ InputSList ESPINA::getInputs(FilterSPtr filter)
 
   for(auto output : filter->outputs())
   {
-    outputs << InputSPtr{new Input(filter, output)};
+    outputs << std::make_shared<Input>(filter, output);
   }
 
   return outputs;

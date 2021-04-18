@@ -28,73 +28,76 @@
 
 namespace ESPINA
 {
-class EspinaGUI_EXPORT HueSelector
-: public QWidget
-{
-	Q_OBJECT
-	public:
-	  /** \brief HueSelector class constructor.
-	   * \param[in] parent, raw pointer of the QWidget parent of this one.
-	   *
-	   */
-		HueSelector(QWidget* parent = nullptr);
+  class EspinaGUI_EXPORT HueSelector
+  : public QWidget
+  {
+    Q_OBJECT
+    public:
+      /** \brief HueSelector class constructor.
+       * \param[in] parent, raw pointer of the QWidget parent of this one.
+       *
+       */
+      HueSelector(QWidget* parent = nullptr);
 
-		/** \brief HueSelector class destructor.
-		 *
-		 */
-		~HueSelector();
+      /** \brief HueSelector class destructor.
+       *
+       */
+      ~HueSelector();
 
-	public slots:
-	  /** \brief Sets the hue to the given value and updates the UI.
-	   * \param[in] h, new hue value.
-	   *
-	   */
-		void setHueValue(int h);
+      void reserveInitialValue(bool value)
+      { m_reserveInitialValue = value; }
 
-	signals:
-		void newHsv(int h, int s, int v);
+      /** \brief Returns the selected hue value.
+       *
+       */
+      const int hueValue() const
+      { return m_hue; }
 
-	protected:
-		/** \brief Overrides QWidget::paintEvent().
-		 *
-		 */
-		void paintEvent(QPaintEvent*) override;
+    public slots:
+      /** \brief Sets the hue to the given value and updates the UI.
+       * \param[in] h, new hue value.
+       *
+       */
+      void setHueValue(int h);
 
-		/** \brief Overrides QWidget::mouseMoveEvent().
-		 *
-		 */
-		void mouseMoveEvent(QMouseEvent *) override;
+      void setEnabled(bool value);
 
-		/** \brief Overrides QWidget::mousePressEvent().
-		 *
-		 */
-		void mousePressEvent(QMouseEvent *) override;
+    signals:
+      void newHsv(int h, int s, int v);
 
-	private:
-		int val;
-		int hue;
-		int sat;
+    protected:
+      void paintEvent(QPaintEvent*) override;
+      void mouseMoveEvent(QMouseEvent *) override;
+      void mousePressEvent(QMouseEvent *) override;
 
-		/** \brief Computes the equivalent value from the x value of the slider of the widget.
-		 * \param[in] y, slider value.
-		 *
-		 */
-		int x2val(int y);
+    private:
+      int m_val;
+      int m_hue;
+      int m_sat;
+      bool m_reserveInitialValue; // reserves the first value to -1.
 
-		/** \brief Computes the equivalent value from the hue value to the x coodinate of the slider.
-		 * \param[in] y, hue value.
-		 *
-		 */
-		int val2x(int val);
+      /** \brief Computes the equivalent value from the x value of the slider of the widget.
+       * \param[in] y slider value.
+       *
+       */
+      int x2val(int y);
 
-		/** \brief Sets the value of the slider of the widget.
-		 *
-		 */
-		void setVal(int v);
+      /** \brief Computes the equivalent value from the hue value to the x coodinate of the slider.
+       * \param[in] y hue value.
+       *
+       */
+      int val2x(int val);
 
-		QPixmap *pix;
-};
+      /** \brief Sets the value of the slider of the widget.
+       * \param[in] v slice value.
+       *
+       */
+      void setVal(int v);
 
+      QPixmap *m_pix;          /** color pixmap.                                                                  */
+      bool     m_enabled;      /** true if the widget is enabled, false otherwise.                                */
+      bool     m_needsRepaint; /** true if the widget is transitioning from enabled to disabled, false otherwise. */
+  };
 } // namespace ESPINA
 
 #endif // HUESELECTOR_H_

@@ -22,18 +22,22 @@
 #include "CoreFactory.h"
 #include "Core/Analysis/Sample.h"
 #include "Core/Analysis/Channel.h"
+#include <Core/Analysis/Extensions.h>
 #include <Core/Analysis/Segmentation.h>
-#include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Utils/SupportedFormats.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Core::Utils;
 
 //------------------------------------------------------------------------
 CoreFactory::CoreFactory(SchedulerSPtr scheduler)
-: m_scheduler{scheduler}
+: m_scheduler         {scheduler}
+, m_defaultStorage    {nullptr}
+, m_temporalStorageDir{nullptr}
 {
-  m_defaultStorage = TemporalStorageSPtr{new TemporalStorage()};
 }
-
 
 //-----------------------------------------------------------------------------
 CoreFactory::~CoreFactory()
@@ -42,11 +46,16 @@ CoreFactory::~CoreFactory()
 
 //-----------------------------------------------------------------------------
 void CoreFactory::registerFilterFactory(FilterFactorySPtr factory)
-throw (Factory_Already_Registered_Exception)
 {
   for(auto filter : factory->providedFilters())
   {
-    if (m_filterFactories.contains(filter)) throw Factory_Already_Registered_Exception();
+    if (m_filterFactories.contains(filter))
+    {
+      auto what    = QObject::tr("Attempt to register an already registered filter: %1").arg(filter);
+      auto details = QObject::tr("CoreFactory::registerFilterFactory() -> Filter type already registered: %1").arg(filter);
+
+      throw EspinaException(what, details);
+    }
 
     m_filterFactories[filter] = factory;
   }
@@ -56,22 +65,27 @@ throw (Factory_Already_Registered_Exception)
 //-----------------------------------------------------------------------------
 SampleSPtr CoreFactory::createSample(const QString& name) const
 {
-  return SampleSPtr{new Sample(name)};
+  return std::make_shared<Sample>(name);
 }
 
 //-----------------------------------------------------------------------------
 FilterSPtr CoreFactory::createFilter(InputSList inputs, const Filter::Type& type) const
-throw (Unknown_Type_Exception)
 {
   FilterSPtr filter;
 
-  if (m_filterFactories.contains(type))
+  if (!type.isEmpty() && m_filterFactories.contains(type))
   {
     filter = m_filterFactories[type]->createFilter(inputs, type, m_scheduler);
-    filter->setStorage(m_defaultStorage);
-  } else
+    filter->setStorage(defaultStorage());
+  }
+  else
   {
-    throw CoreFactory::Unknown_Type_Exception();
+	QString filterType = type.isEmpty() ? "Empty":type;
+
+    auto what    = QObject::tr("Unable to create filter: %1").arg(filterType);
+    auto details = QObject::tr("CoreFactory::createFilter() -> Unknown filter: %1").arg(filterType);
+
+    throw EspinaException(what, details);
   }
 
   return filter;
@@ -83,44 +97,52 @@ ESPINA::ChannelSPtr CoreFactory::createChannel(FilterSPtr filter, Output::Id id)
 {
   auto input = getInput(filter, id);
 
-  ChannelSPtr channel{new Channel(input)};
-
-  channel->setStorage(m_defaultStorage);
+  auto channel = std::make_shared<Channel>(input);
+  channel->setStorage(defaultStorage());
 
   return channel;
 }
 
 //-----------------------------------------------------------------------------
-void CoreFactory::registerExtensionFactory(ChannelExtensionFactorySPtr factory)
-throw (Factory_Already_Registered_Exception)
+void CoreFactory::registerExtensionFactory(StackExtensionFactorySPtr factory)
 {
   for(auto extension : factory->providedExtensions())
   {
-    if (m_channelExtensionFactories.contains(extension)) throw Factory_Already_Registered_Exception();
+    if (availableStackExtensions().contains(extension))
+    {
+      auto what    = QObject::tr("Attempt to register an already registered stack extension: %1").arg(extension);
+      auto details = QObject::tr("CoreFactory::registerExtensionFactory(stack extension) -> Stack extension type already registered: %1").arg(extension);
 
-    m_channelExtensionFactories[extension] = factory;
+      throw EspinaException(what, details);
+    }
+
+    m_stackExtensionFactories[extension] = factory;
   }
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionTypeList CoreFactory::availableChannelExtensions() const
+StackExtension::TypeList CoreFactory::availableStackExtensions() const
 {
-  return m_channelExtensionFactories.keys();
+  return m_stackExtensionFactories.keys();
 }
 
 //-----------------------------------------------------------------------------
-ChannelExtensionSPtr CoreFactory::createChannelExtension(const ChannelExtension::Type      &type,
-                                                         const ChannelExtension::InfoCache &cache,
-                                                         const State &state)
+Core::StackExtensionSPtr CoreFactory::createStackExtension(const StackExtension::Type      &type,
+                                                           const StackExtension::InfoCache &cache,
+                                                           const State &state)
 {
-  ChannelExtensionSPtr extension;
+  StackExtensionSPtr extension = nullptr;
 
-  if (m_channelExtensionFactories.contains(type))
+  if (availableStackExtensions().contains(type))
   {
-    extension = m_channelExtensionFactories[type]->createChannelExtension(type, cache, state);
-  } else
+    extension = m_stackExtensionFactories[type]->createExtension(type, cache, state);
+  }
+  else
   {
-    throw Unknown_Type_Exception();
+    auto what    = QObject::tr("Unable to create stack extension: %1").arg(type);
+    auto details = QObject::tr("CoreFactory::createStackExtension() -> Unknown extension type: %1").arg(type);
+
+    throw EspinaException(what, details);
   }
 
   return extension;
@@ -131,27 +153,31 @@ SegmentationSPtr CoreFactory::createSegmentation(FilterSPtr filter, Output::Id i
 {
   auto input = getInput(filter, id);
 
-  SegmentationSPtr segmentation{new Segmentation(input)};
-
-  segmentation->setStorage(m_defaultStorage);
+  auto segmentation = std::make_shared<Segmentation>(input);
+  segmentation->setStorage(defaultStorage());
 
   return segmentation;
 }
 
 //-----------------------------------------------------------------------------
 void CoreFactory::registerExtensionFactory(SegmentationExtensionFactorySPtr factory)
-throw (Factory_Already_Registered_Exception)
 {
   for(auto extension : factory->providedExtensions())
   {
-    if (m_segmentationExtensionFactories.contains(extension)) throw Factory_Already_Registered_Exception();
+    if (m_segmentationExtensionFactories.contains(extension))
+    {
+      auto what    = QObject::tr("Attempt to register an already registered segmentation extension: %1").arg(extension);
+      auto details = QObject::tr("CoreFactory::registerExtensionFactory(seg extension) -> Segmentation extension type already registered: %1").arg(extension);
+
+      throw EspinaException(what, details);
+    }
 
     m_segmentationExtensionFactories[extension] = factory;
   }
 }
 
 //-----------------------------------------------------------------------------
-SegmentationExtensionTypeList CoreFactory::availableSegmentationExtensions() const
+SegmentationExtension::TypeList CoreFactory::availableSegmentationExtensions() const
 {
   return m_segmentationExtensionFactories.keys();
 }
@@ -161,15 +187,112 @@ SegmentationExtensionSPtr CoreFactory::createSegmentationExtension(const Segment
                                                                    const SegmentationExtension::InfoCache &cache,
                                                                    const State &state)
 {
-  SegmentationExtensionSPtr extension;
+  SegmentationExtensionSPtr extension = nullptr;
 
-  if (m_segmentationExtensionFactories.contains(type))
+  if (availableSegmentationExtensions().contains(type))
   {
-    extension = m_segmentationExtensionFactories[type]->createSegmentationExtension(type, cache, state);
-  } else
+    extension = m_segmentationExtensionFactories[type]->createExtension(type, cache, state);
+  }
+  else
   {
-    throw Unknown_Type_Exception();
+    auto what    = QObject::tr("Unable to create segmentation extension: %1").arg(type);
+    auto details = QObject::tr("CoreFactory::createSegmentationExtension() -> Unknown extension type: %1").arg(type);
+
+    throw EspinaException(what, details);
   }
 
   return extension;
+}
+
+//-----------------------------------------------------------------------------
+TemporalStorageSPtr CoreFactory::createTemporalStorage() const
+{
+  return std::make_shared<TemporalStorage>(m_temporalStorageDir);
+}
+
+//-----------------------------------------------------------------------------
+void CoreFactory::setTemporalDirectory(const QDir &directory)
+{
+  auto newDirectory = directory.exists() ? directory : QDir::temp();
+
+  if(!m_temporalStorageDir || (newDirectory.absolutePath() != m_temporalStorageDir->absolutePath()))
+  {
+    for(auto storage: TemporalStorage::s_Storages)
+    {
+      auto baseDirectory = storage->rootDirectory();
+      if((baseDirectory.absolutePath() != newDirectory.absolutePath()) && !storage->move(newDirectory.absolutePath(), false))
+      {
+        auto what = QObject::tr("Unable to move files from %1 to %2").arg(baseDirectory.absolutePath()).arg(newDirectory.absolutePath());
+        auto details = QObject::tr("CoreFactory::setTemporalDirectory() -> Unable to move files from %1 to %2").arg(baseDirectory.absolutePath()).arg(newDirectory.absolutePath());
+
+        throw EspinaException(what, details);
+      }
+    }
+
+    if(m_temporalStorageDir)
+    {
+      delete m_temporalStorageDir;
+    }
+
+    m_temporalStorageDir = new QDir(newDirectory);
+  }
+}
+
+//-----------------------------------------------------------------------------
+TemporalStorageSPtr CoreFactory::defaultStorage() const
+{
+  if(!m_defaultStorage)
+  {
+    m_defaultStorage = createTemporalStorage();
+  }
+
+  return m_defaultStorage;
+}
+
+//-----------------------------------------------------------------------------
+void CoreFactory::registerAnalysisReader(AnalysisReaderSPtr reader)
+{
+  auto extensions = reader->supportedFileExtensions();
+
+  for(auto description : extensions.keys())
+  {
+    for(auto fileExtension : extensions[description])
+    {
+      m_readerExtensions[fileExtension] << reader;
+    }
+  }
+
+  m_readers << reader;
+}
+
+//-----------------------------------------------------------------------------
+const AnalysisReaderSList CoreFactory::readers(const QFileInfo& file) const
+{
+  return m_readerExtensions[file.suffix()];
+}
+
+//-----------------------------------------------------------------------------
+Core::Utils::SupportedFormats CoreFactory::supportedFileExtensions()
+{
+  SupportedFormats extensions;
+
+  QStringList supportedExtensions;
+
+  for(auto extension : m_readerExtensions.keys())
+  {
+    supportedExtensions << extension;
+  }
+
+  extensions.addFormat(QObject::tr("All Supported Files"), supportedExtensions);
+
+  for(auto loader : m_readers)
+  {
+    auto loaderExtensions = loader->supportedFileExtensions();
+    for (auto it = loaderExtensions.begin(); it != loaderExtensions.end(); ++it)
+    {
+      extensions.addFormat(it.key(), it.value());
+    }
+  }
+
+  return extensions;
 }

@@ -21,20 +21,24 @@
 #ifndef SAS_TABULAR_REPORT_H_
 #define SAS_TABULAR_REPORT_H_
 
+#include "AppositionSurfacePlugin_Export.h"
+
 // Plugin
 #include <Core/Extensions/AppositionSurfaceExtension.h>
 
 // ESPINA
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <GUI/ModelFactory.h>
 #include <Support/Widgets/TabularReport.h>
 #include <Support/Widgets/TabularReportEntry.h>
 
-// Qt
-#include <QDebug>
-
 namespace ESPINA
 {
-  class SASTabularReport
+  /** \class SASTabularReport
+   * \brief Implements a tabular report specially for crossing the data of a segmentation and it's SAS.
+   *
+   */
+  class AppositionSurfacePlugin_EXPORT SASTabularReport
   : public TabularReport
   {
     protected:
@@ -44,30 +48,31 @@ namespace ESPINA
       /** \brief SASTabularReport class constructor.
        *
        */
-      SASTabularReport(ModelAdapterSPtr model,
-                       ModelFactorySPtr factory,
-                       ViewManagerSPtr  viewManager,
-                       QWidget         *parent = nullptr,
-                       Qt::WindowFlags  flags = Qt::WindowFlags{Qt::WindowNoState})
-      : TabularReport(factory, viewManager, parent, flags)
-      , m_model{model}
-      , m_sasTags{factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations()}
-      {};
+      SASTabularReport(Support::Context &context,
+                       QWidget          *parent = GUI::DefaultDialogs::defaultParentWidget(),
+                       Qt::WindowFlags   flags = Qt::WindowFlags{Qt::WindowNoState})
+      : TabularReport(context, parent, flags)
+      , m_sasTags{context.factory()->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformation()}
+      {
+        setModel(context.model());
+      };
 
     protected slots:
-      void exportInformation();
+      virtual void exportInformation() override;
 
     private:
-      void createCategoryEntry(const QString &category);
+      virtual void createCategoryEntry(const QString &category);
 
       static QString extraPath(const QString &file = QString())
-      { return "Extra/SASInformation/" + file; }
+      {
+        return "Extra/SASInformation/" + file;
+      }
 
-      ModelAdapterSPtr m_model;
-      SegmentationExtension::InfoTagList m_sasTags;
-    };
+    private:
+      Core::SegmentationExtension::InformationKeyList m_sasTags;
+  };
 
-  class SASTabularReport::Entry
+  class AppositionSurfacePlugin_EXPORT SASTabularReport::Entry
   : public TabularReport::Entry
   {
     public:
@@ -76,18 +81,41 @@ namespace ESPINA
        */
       explicit Entry(const QString   &category,
                      ModelAdapterSPtr model,
-                     ModelFactorySPtr factory)
-      : TabularReport::Entry{category, model, factory}
+                     ModelFactorySPtr factory,
+                     QWidget         *parent)
+      : TabularReport::Entry{category, model, factory, parent}
       {};
 
-      InformationSelector::GroupedInfo availableInformation();
+      virtual GUI::InformationSelector::GroupedInfo availableInformation() override;
 
-      void setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder);
+      virtual void setInformation(GUI::InformationSelector::GroupedInfo extensionInformations, Core::SegmentationExtension::InformationKeyList informationOrder) override;
 
-    private slots:
-      void extractInformation();
+    protected slots:
+      virtual void extractInformation() override;
+
+    private:
+      Core::SegmentationExtension::KeyList keyValues(const Core::SegmentationExtension::InformationKeyList &keys) const;
+
+      bool isSASExtensions(const Core::SegmentationExtension::Type &type) const;
+
+      virtual QString selectedInformationFile() const override
+      {
+        QString path = m_category;
+
+        return SASTabularReport::extraPath(path.replace("/","_") + ".txt");
+      }
+
+      virtual const QString oldSelectedInformationFile() const override
+      {
+        QString path = m_category;
+
+        return SASTabularReport::extraPath(path.replace("/",">") + ".txt");
+      }
+
+      virtual Core::SegmentationExtension::InformationKeyList lastInformationOrder() override;
+
+      virtual GUI::InformationSelector::GroupedInfo lastDisplayedInformation() override;
   };
-
 } // namespace ESPINA
 
 #endif // SAS_TABULAR_REPORT_H_

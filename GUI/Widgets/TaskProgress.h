@@ -45,49 +45,62 @@ namespace ESPINA
 {
   class Task;
 
+  /** \class TaskProgress
+   * \brief Implements a progress widget for a task.
+   *
+   */
   class EspinaGUI_EXPORT TaskProgress
   : public QWidget
   , public Ui::TaskProgress
   {
-    Q_OBJECT
-  public:
-    /** \brief TaskProgress class constructor.
-     *
-     */
-    explicit TaskProgress(TaskSPtr task);
+      Q_OBJECT
+    public:
+      /** \brief TaskProgress class constructor.
+       *
+       */
+      explicit TaskProgress(TaskSPtr task);
 
-    /** \brief TaskProgress class virtual destructor.
-     *
-     */
-    virtual ~TaskProgress();
+      /** \brief TaskProgress class virtual destructor.
+       *
+       */
+      virtual ~TaskProgress();
 
-    /** \brief Returns the process of the task.
-     *
-     */
-    int progress()
-    { return m_progressBar->value(); }
+      /** \brief Returns the process of the task.
+       *
+       */
+      int progress()
+      { return m_progressBar->value(); }
 
-    /** \brief Returns the task smart pointer.
-     *
-     */
-    TaskSPtr task() const
-    { return m_task; }
+      /** \brief Returns the task smart pointer.
+       *
+       */
+      TaskSPtr task() const
+      { return m_task; }
 
-  signals:
-    void aborted();
+    signals:
+      void aborted();
 
-  protected:
-    /** \brief Overrides QWidget::showEvent().
-     *
-     */
-    virtual void showEvent(QShowEvent *event) override;
+    public slots:
+      /** \brief Aborts the task.
+       *
+       */
+      void onCancel();
 
-  private slots:
-    void updateProgress(int value);
-    void onCancel();
+    protected:
+      /** \brief Overrides QWidget::showEvent().
+       *
+       */
+      virtual void showEvent(QShowEvent *event) override;
 
-  private:
-    TaskSPtr m_task;
+    private slots:
+      /** \brief Updates the progress bar value and text
+       * \param[in] value progress value.
+       *
+       */
+      void updateProgress(int value);
+
+    private:
+      TaskSPtr m_task;
   };
 
   using TaskProgressSPtr = std::shared_ptr<TaskProgress>;

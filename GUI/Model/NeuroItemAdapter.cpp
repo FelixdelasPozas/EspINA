@@ -22,7 +22,6 @@
 // ESPINA
 #include "NeuroItemAdapter.h"
 #include <Core/Analysis/NeuroItem.h>
-#include <GUI/Representations/RepresentationFactory.h>
 
 using namespace ESPINA;
 

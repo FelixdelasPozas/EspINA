@@ -33,9 +33,6 @@ namespace ESPINA {
   namespace IO {
     namespace ClassificationXML
     {
-      struct IO_Exception{};
-      struct Parse_Exception{};
-
       /** \brief Loads a classification from a file.
        * \param[in] file, QFileInfo object with the file details.
        * \param[in] handler, error handler smart pointer.

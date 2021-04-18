@@ -28,13 +28,18 @@
 
 // ESPINA
 #include "VolumeBounds.h"
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/EspinaException.h>
 
 // VTK
 #include <vtkMath.h>
 
+// Qt
+#include <QDataStream>
+
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 VolumeBounds::VolumeBounds(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
@@ -64,17 +69,25 @@ void VolumeBounds::exclude(int idx, Nm value)
     {
       m_bounds[idx] += m_spacing[i];
 
-      if (areEqual(m_bounds[2*i], m_bounds[2*i+1]))
+      if (areEqual(m_bounds[2 * i], m_bounds[2 * i + 1]))
       {
         qWarning() << "WARNING: Empty bounds";
       }
-    } else if (m_bounds[idx] < value)
-    {
-      m_bounds[idx] = voxelBounds[idx] + m_spacing[i];
     }
-  } else if (value < m_bounds[idx])
+    else
+    {
+      if (m_bounds[idx] < value)
+      {
+        m_bounds[idx] = voxelBounds[idx] + m_spacing[i];
+      }
+    }
+  }
+  else
   {
-    m_bounds[idx] = voxelBounds[idx] - m_spacing[i];
+    if (value < m_bounds[idx])
+    {
+      m_bounds[idx] = voxelBounds[idx] - m_spacing[i];
+    }
   }
 }
 
@@ -93,17 +106,25 @@ void VolumeBounds::include(int idx, Nm value)
     {
       m_bounds[idx] += m_spacing[i];
 
-      if (areEqual(m_bounds[2*i], m_bounds[2*i+1]))
+      if (areEqual(m_bounds[2 * i], m_bounds[2 * i + 1]))
       {
         qWarning() << "WARNING: Empty bounds";
       }
-    } else if (m_bounds[idx] < value)
+    }
+    else
+    {
+      if (m_bounds[idx] < value)
+      {
+        m_bounds[idx] = voxelBounds[idx];
+      }
+    }
+  }
+  else
+  {
+    if (value < m_bounds[idx])
     {
       m_bounds[idx] = voxelBounds[idx];
     }
-  } else if (value < m_bounds[idx])
-  {
-    m_bounds[idx] = voxelBounds[idx];
   }
 }
 
@@ -126,11 +147,11 @@ bool ESPINA::isMultiple(Nm point, Nm spacing)
 //-----------------------------------------------------------------------------
 bool ESPINA::isAligned(Nm point, Nm origin, Nm spacing)
 {
-  Nm indexValue = (point - spacing/2.0 - origin) / spacing;
+  Nm indexValue = (point - (spacing/2.0) - origin) / spacing;
 
   Nm delta      = fabs(vtkMath::Round(indexValue) - indexValue);
 
-  return areEqual(delta, 0);
+  return areEqual(delta, 0, spacing);
 }
 
 //-----------------------------------------------------------------------------
@@ -199,9 +220,14 @@ bool ESPINA::intersect(const VolumeBounds& lhs, const VolumeBounds& rhs)
 
 //-----------------------------------------------------------------------------
 VolumeBounds ESPINA::intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
-throw (Incompatible_Volume_Bounds_Exception)
 {
-  if (!isCompatible(lhs, rhs)) throw Incompatible_Volume_Bounds_Exception();
+  if (!isCompatible(lhs, rhs))
+  {
+    auto what    = QObject::tr("Attempt to intersect incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+    auto details = QObject::tr("interction(Volumebounds, Volumebounds) -> Attempt to intersect incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+
+    throw EspinaException(what, details);
+  }
 
   Bounds bounds;
 
@@ -216,9 +242,14 @@ throw (Incompatible_Volume_Bounds_Exception)
 
 //-----------------------------------------------------------------------------
 VolumeBounds ESPINA::boundingBox(const VolumeBounds &lhs, const VolumeBounds &rhs)
-throw (Incompatible_Volume_Bounds_Exception)
 {
-  if (!isCompatible(lhs, rhs)) throw Incompatible_Volume_Bounds_Exception();
+  if (!isCompatible(lhs, rhs))
+  {
+    auto what    = QObject::tr("Attempt to make a bounding box of incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+    auto details = QObject::tr("boundingBox(Volumebounds, Volumebounds) -> Attempt to make a bounding box of incompatible bounds, lhs: %1, rhs: %2").arg(lhs.toString()).arg(rhs.toString());
+
+    throw EspinaException(what, details);
+  }
 
   return VolumeBounds(boundingBox(lhs.bounds(), rhs.bounds()), lhs.spacing(), lhs.origin());
 }
@@ -289,6 +320,29 @@ bool ESPINA::operator!=(const VolumeBounds &lhs, const VolumeBounds &rhs)
 bool ESPINA::areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs)
 {
   return areAdjacent(lhs.bounds(), rhs.bounds());
+}
+
+//-----------------------------------------------------------------------------
+VolumeBounds ESPINA::changeSpacing(const VolumeBounds &bounds, const NmVector3 &spacing)
+{
+  VolumeBounds result;
+
+  if (bounds.areValid())
+  {
+    auto origin      = bounds.origin();
+    auto prevSpacing = bounds.spacing();
+
+    auto region = equivalentRegion<itkVolumeType>(origin, prevSpacing, bounds);
+
+    result = volumeBounds<itkVolumeType>(origin, spacing, region);
+  }
+  else
+  {
+    result.setOrigin(bounds.origin()*spacing/bounds.spacing());
+    result.setSpacing(spacing);
+  }
+
+  return result;
 }
 
 //-----------------------------------------------------------------------------

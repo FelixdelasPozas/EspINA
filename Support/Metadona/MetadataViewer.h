@@ -29,36 +29,52 @@
 #include <Support/ui_MetadataViewer.h>
 #include <GUI/Model/ChannelAdapter.h>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   class MetadataLoader;
   using MetadataLoaderSPtr = std::shared_ptr<MetadataLoader>;
 
+  /** \class MetadataViewer
+   * \brief Class to show a dialog with metadata.
+   *
+   */
   class EspinaSupport_EXPORT MetadataViewer
   : public QWidget
   , private Ui::MatadataViewer
   {
     Q_OBJECT
   public:
+    /** \brief MetadataViewer class constructor.
+     * \param[in] channel stack of the metadata.
+     * \param[in] scheduler application task scheduler.
+     * \param[in] parent pointer of the widget parent of this one.
+     * \param[in] flags window flags
+     */
     explicit MetadataViewer(const ChannelAdapterPtr channel,
                             SchedulerSPtr           scheduler,
-                            QWidget*                parent = 0,
-                            Qt::WindowFlags         f = 0);
+                            QWidget*                parent = nullptr,
+                            Qt::WindowFlags         flags = 0);
 
     virtual void showEvent(QShowEvent *event);
 
   private slots:
-    void upadteMessage();
+    /** \brief Animates the waiting message.
+     *
+     */
+    void updateMessage();
 
+    /** \brief Updates the dialog with the recovered metadata.
+     *
+     */
     void metadataReady();
 
   private:
-    const ChannelAdapterPtr m_channel;
-    SchedulerSPtr           m_scheduler;
-    MetadataLoaderSPtr      m_task;
+    const ChannelAdapterPtr m_channel;        /** stack of the metadata.           */
+    SchedulerSPtr           m_scheduler;      /** application task scheduler.      */
+    MetadataLoaderSPtr      m_retrieverTask;  /** metadata retriever task.         */
 
-    QTimer                  m_animationTimer;
-    int                     m_animationStep;
+    QTimer                  m_animationTimer; /** timer for the animation message. */
+    int                     m_animationStep;  /** step of the animation.           */
   };
 
 } // namespace ESPINA

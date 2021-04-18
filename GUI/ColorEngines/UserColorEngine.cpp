@@ -21,19 +21,22 @@
 // ESPINA
 #include "UserColorEngine.h"
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Model/SegmentationAdapter.h>
 
 // VTK
 #include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
 //-----------------------------------------------------------------------------
-UserColorEngine::UserColorEngine() :
-m_lastColor(0)
+UserColorEngine::UserColorEngine()
+: ColorEngine("UserColorEngine", tr("Color by user that created the segmentation."))
+, m_lastColor(0)
 {
   m_colors << QColor( 31, 120, 180)
            << QColor( 51, 160,  44)
@@ -48,7 +51,7 @@ m_lastColor(0)
 }
 
 //-----------------------------------------------------------------------------
-QColor UserColorEngine::color(SegmentationAdapterPtr seg)
+QColor UserColorEngine::color(ConstSegmentationAdapterPtr seg)
 {
   auto user = seg->users().last();
 
@@ -61,7 +64,7 @@ QColor UserColorEngine::color(SegmentationAdapterPtr seg)
 }
 
 //-----------------------------------------------------------------------------
-LUTSPtr UserColorEngine::lut(SegmentationAdapterPtr seg)
+LUTSPtr UserColorEngine::lut(ConstSegmentationAdapterPtr seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   auto lutName = seg->users().join("");
@@ -95,7 +98,9 @@ LUTSPtr UserColorEngine::lut(SegmentationAdapterPtr seg)
     auto segColor = seg->category()->color();
 
     if (segColor != QColor(rgb[0], rgb[1], rgb[2]))
+    {
       m_LUT[lutName]->SetTableValue(1, segColor.redF(), segColor.greenF(), segColor.blueF(), (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA));
+    }
 
     seg_lut = m_LUT.find(lutName).value();
   }

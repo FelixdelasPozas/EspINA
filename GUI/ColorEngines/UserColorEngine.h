@@ -29,44 +29,44 @@
 
 namespace ESPINA
 {
-  class EspinaGUI_EXPORT UserColorEngine
-  : public ColorEngine
+  namespace GUI
   {
-  public:
-  	/** \brief UserColorEngine class constructor.
-  	 *
-  	 */
-    explicit UserColorEngine();
+    namespace ColorEngines
+    {
+      class EspinaGUI_EXPORT UserColorEngine
+      : public ColorEngine
+      {
+      public:
+        /** \brief UserColorEngine class constructor.
+         *
+         */
+        explicit UserColorEngine();
 
-    /** \brief Implements ColorEngine::color().
-     *
-     */
-    virtual QColor color(SegmentationAdapterPtr seg);
+        virtual QColor color(ConstSegmentationAdapterPtr seg);
 
-    /** \brief Implements ColorEngine::lut().
-     *
-     */
-    virtual LUTSPtr lut (SegmentationAdapterPtr seg);
+        virtual LUTSPtr lut(ConstSegmentationAdapterPtr seg);
 
-    /** \brief Implements ColorEngine::supportedComposition().
-     *
-     */
-    virtual ColorEngine::Composition supportedComposition() const
-    { return ColorEngine::Color; }
+        virtual ColorEngine::Composition supportedComposition() const
+        { return ColorEngine::Color; }
 
-  private:
-    /** \brief Returns the next unused color.
-     *
-     */
-    QColor nextColor();
+        virtual ColorEngineSPtr clone()
+        { return std::make_shared<UserColorEngine>(); }
 
-  private:
-    QMap<QString, QColor> m_userColors;
-    QList<QColor>         m_colors;
-    int                   m_lastColor;
-    LUTMap                m_LUT;
-  };
+      private:
+        /** \brief Returns the next unused color.
+         *
+         */
+        QColor nextColor();
 
+      private:
+        QMap<QString, QColor> m_userColors;
+        QList<QColor>         m_colors;
+        int                   m_lastColor;
+        LUTMap                m_LUT;
+      };
+    }
+
+  }
 }// namespace ESPINA
 
 #endif // ESPINA_USER_COLOR_ENGINE_H

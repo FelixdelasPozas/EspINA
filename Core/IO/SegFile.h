@@ -29,39 +29,43 @@
 #include <Core/Analysis/Analysis.h>
 #include <Core/Factory/AnalysisReader.h>
 
+// Qt
+#include <QMap>
+#include <QVariant>
+#include <QString>
+
 namespace ESPINA
 {
   namespace IO
   {
+    class ProgressReporter;
+
     namespace SegFile
     {
-      struct IO_Error_Exception{};
-
-      struct Classification_Not_Found_Exception{};
-
-      struct File_Not_Found_Exception{};
-
-      struct Parse_Exception{};
-
       /** \brief Loads an analysis from a file in disk.
-       * \param[in] file, QFileInfo object with the file info.
-       * \param[in] factory, factory smart pointer.
-       * \param[in] handler, error handler smart pointer.
+       * \param[in] file QFileInfo object with the file info.
+       * \param[in] factory factory smart pointer.
+       * \param[in] reporter progress reporter object.
+       * \param[in] handler error handler smart pointer.
        *
        */
-      AnalysisSPtr EspinaCore_EXPORT load(const QFileInfo& file,
-                                          CoreFactorySPtr  factory = CoreFactorySPtr(),
-                                          ErrorHandlerSPtr handler = ErrorHandlerSPtr());
+      AnalysisSPtr EspinaCore_EXPORT load(const QFileInfo  &file,
+                                          CoreFactorySPtr   factory  = CoreFactorySPtr(),
+                                          ProgressReporter *reporter = nullptr,
+                                          ErrorHandlerSPtr  handler  = ErrorHandlerSPtr(),
+                                          LoadOptions       options  = LoadOptions());
 
       /** \brief Saves an analysis to a file in disk.
-       * \param[in] analysis, analysis to save.
-       * \param[in] file, QFileInfo object with the file info.
-       * \param[in] handler, error handler smart pointer.
+       * \param[in] analysis analysis to save.
+       * \param[in] file QFileInfo object with the file info.
+       * \param[in] reporter progress reporter object.
+       * \param[in] handler error handler smart pointer.
        *
        */
       void EspinaCore_EXPORT save(AnalysisPtr       analysis,
                                   const QFileInfo&  file,
-                                  ErrorHandlerSPtr  handler = ErrorHandlerSPtr());
+                                  ProgressReporter *reporter = nullptr,
+                                  ErrorHandlerSPtr  handler  = ErrorHandlerSPtr());
     }
   }
 }

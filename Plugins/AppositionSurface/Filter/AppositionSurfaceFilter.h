@@ -28,7 +28,6 @@
 
 // ITK
 #include <itkConstantPadImageFilter.h>
-#include <itkExtractImageFilter.h>
 #include <itkGradientImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkSignedMaurerDistanceMapImageFilter.h>
@@ -53,8 +52,6 @@ namespace ESPINA
 {
   class SASDataFactory;
 
-  const Filter::Type AS_FILTER = "AppositionSurface::AppositionSurfaceFilter";
-
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceFilter
   : public Filter
   {
@@ -73,7 +70,6 @@ namespace ESPINA
 
     using itkVolumeIterator = itk::ImageRegionIterator<itkVolumeType>;
     using ItkToVtkFilterType = itk::ImageToVTKImageFilter<itkVolumeType>;
-    using ExtractFilterType = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
     using PadFilterType = itk::ConstantPadImageFilter<itkVolumeType, itkVolumeType>;
 
     using GridTransform = vtkSmartPointer<vtkGridTransform>;
@@ -108,6 +104,10 @@ namespace ESPINA
      *
      */
     virtual ~AppositionSurfaceFilter();
+
+    virtual bool hasErrors() const override;
+
+    virtual const QStringList errors() const override;
 
   protected:
     virtual void restoreState(const State& state)
@@ -180,10 +180,10 @@ namespace ESPINA
     bool m_converge;
     mutable PolyData m_ap;
 
-    itkVolumeType::Pointer m_input;
-
     bool m_alreadyFetchedData;
     TimeStamp m_lastModifiedMesh;
+
+    QStringList m_errorMessages;
 
     friend class SASDataFactory;
   };

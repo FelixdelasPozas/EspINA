@@ -27,12 +27,16 @@
 
 // ESPINA
 #include "SegmentationNotes.h"
-#include <GUI/Utils/Conditions.h>
+#include <GUI/Utils/Format.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Utils::Format;
 
-const QString                        SegmentationNotes::TYPE = "SegmentationNotes";
-const SegmentationExtension::InfoTag SegmentationNotes::NOTES = "Notes";
+const QString SegmentationNotes::TYPE  = "SegmentationNotes";
+
+const SegmentationExtension::InformationKey  SegmentationNotes::NOTES(SegmentationNotes::TYPE, "Notes");
 
 //------------------------------------------------------------------------
 SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
@@ -40,35 +44,30 @@ SegmentationNotes::SegmentationNotes(const InfoCache& infoCache)
 {
 }
 
-
 //------------------------------------------------------------------------
-SegmentationNotes::~SegmentationNotes()
+const SegmentationExtension::InformationKeyList SegmentationNotes::availableInformation() const
 {
+  InformationKeyList keys;
+
+  keys << NOTES;
+
+  return keys;
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList SegmentationNotes::availableInformations() const
-{
-  InfoTagList tags;
-
-  tags << NOTES;
-
-  return tags;
-}
-
-//------------------------------------------------------------------------
-QString SegmentationNotes::toolTipText() const
+const QString SegmentationNotes::toolTipText() const
 {
   const QString WS  = "&nbsp;"; // White space
   const QString TAB = WS+WS+WS;
 
   QString toolTip;
+
   if (!notes().isEmpty())
   {
     QString firstLine = notes().left(20);
     if (firstLine.length() == 20)
       firstLine = firstLine.replace(17, 3, "...");
-    toolTip = condition(":/espina/note.png", firstLine);
+    toolTip = createTable(":/espina/note.svg", firstLine);
   }
 
   return toolTip;
@@ -82,7 +81,7 @@ void SegmentationNotes::setNotes(const QString &note)
 }
 
 //------------------------------------------------------------------------
-QVariant SegmentationNotes::cacheFail(const QString& tag) const
+QVariant SegmentationNotes::cacheFail(const InformationKey& key) const
 {
   return QVariant();
 }

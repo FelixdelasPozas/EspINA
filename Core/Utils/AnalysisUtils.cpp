@@ -28,18 +28,22 @@
 
 // ESPINA
 #include "AnalysisUtils.h"
+#include <Core/Analysis/Category.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Analysis/Filter.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Factory/CoreFactory.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 {
-  AnalysisSPtr mergedAnalysis{new Analysis()};
-  mergedAnalysis->setStorage(TemporalStorageSPtr{new TemporalStorage()});
+  auto mergedAnalysis = std::make_shared<Analysis>();
+  mergedAnalysis->setStorage(lhs->storage());
 
   QMap<CategorySPtr, CategorySPtr> mergedCategory;
 
@@ -65,17 +69,25 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
   if (!classificationName1.isEmpty() && classificationName2.isEmpty())
   {
     classificationName = classificationName1;
-  } else if (classificationName1.isEmpty() && !classificationName2.isEmpty())
+  }
+  else
   {
-    classificationName = classificationName2;
-  } else if (!classificationName1.isEmpty())
-  {
-    classificationName = QObject::tr("%1 %2 merge").arg(classificationName1).arg(classificationName2);
+    if (classificationName1.isEmpty() && !classificationName2.isEmpty())
+    {
+      classificationName = classificationName2;
+    }
+    else
+    {
+      if (!classificationName1.isEmpty())
+      {
+        classificationName = QObject::tr("%1 %2 merge").arg(classificationName1).arg(classificationName2);
+      }
+    }
   }
 
   if (!roots.isEmpty())
   {
-    ClassificationSPtr classification{new Classification(classificationName)};
+    auto classification = std::make_shared<Classification>(classificationName);
     for(auto root : roots)
     {
       CategorySList categories;
@@ -87,7 +99,8 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
         {
           mergedCategory[category] = classification->createNode(category->classificationName());
           mergedCategory[category]->setColor(category->color());
-        } catch (Already_Defined_Node_Exception &e)
+        }
+        catch (const EspinaException &e)
         {
           mergedCategory[category] = classification->node(category->classificationName());
         }
@@ -115,7 +128,7 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
 
     for(auto channel : analysis->channels())
     {
-      // TODO: How to deal with different states (spacing) of same channels??
+      // DESIGN: How to deal with different states (spacing) of same channels??
       auto mergedChannel = findChannel(channel, mergedAnalysis->channels());
       if (!mergedChannel)
       {
@@ -150,6 +163,23 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
             succesor->setInputs(updatedInputs);
           }
         }
+
+        // NOTE: Merges channel extensions. It wont merge different extensions' data (like different counting frames),
+        // just adds missing extensions to the merged item.
+        QStringList mergedItemExtensionsTypes;
+        auto mergedItemExtensions = mergedChannel->extensions();
+        for(auto mergedExtension: mergedItemExtensions)
+        {
+          mergedItemExtensionsTypes << mergedExtension->type();
+        }
+
+        for(auto channelExtension: channel->extensions())
+        {
+          if(!mergedItemExtensionsTypes.contains(channelExtension->type()))
+          {
+            mergedItemExtensions->add(channelExtension);
+          }
+        }
       }
       mergedItems[channel] = mergedChannel;
     }
@@ -175,8 +205,10 @@ ESPINA::AnalysisSPtr ESPINA::merge(AnalysisSPtr& lhs, AnalysisSPtr& rhs)
       try
       {
         mergedAnalysis->addRelation(source, target, relationship);
-      } catch (Analysis::Existing_Relation_Exception &e)
+      }
+      catch (const EspinaException &e)
       {
+        // do nothing
       }
     }
   }
@@ -219,4 +251,56 @@ unsigned int ESPINA::firstUnusedSegmentationNumber(const AnalysisSPtr analysis)
       number = segmentation->number();
 
   return ++number;
+}
+
+//-----------------------------------------------------------------------------
+SegmentationSPtr ESPINA::axonOf(const SegmentationPtr synapse)
+{
+  SegmentationSPtr result = nullptr;
+
+  if(synapse)
+  {
+    auto model = synapse->analysis();
+    auto synapseSPtr = model->smartPointer(synapse);
+    if(synapseSPtr)
+    {
+      for(auto connection: model->connections(synapseSPtr))
+      {
+        auto candidate = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+
+        if(candidate && candidate->category()->classificationName().startsWith("Axon", Qt::CaseInsensitive))
+        {
+          return candidate;
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+SegmentationSPtr ESPINA::dendriteOf(const SegmentationPtr synapse)
+{
+  SegmentationSPtr result = nullptr;
+
+  if(synapse)
+  {
+    auto model = synapse->analysis();
+    auto synapseSPtr = model->smartPointer(synapse);
+    if(synapseSPtr)
+    {
+      for(auto connection: model->connections(synapseSPtr))
+      {
+        auto candidate = std::dynamic_pointer_cast<Segmentation>(connection.segmentation2);
+
+        if(candidate && candidate->category()->classificationName().startsWith("Dendrite", Qt::CaseInsensitive))
+        {
+          return candidate;
+        }
+      }
+    }
+  }
+
+  return result;
 }

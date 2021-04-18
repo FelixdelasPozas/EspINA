@@ -20,34 +20,26 @@
 
 // ESPINA
 #include "SeedGrowSegmentationFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Utils/StatePair.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // C++
 #include <unistd.h>
 
 // ITK
 #include <itkImage.h>
-#include <itkVTKImageToImageFilter.h>
-#include <itkImageToVTKImageFilter.h>
 #include <itkConnectedThresholdImageFilter.h>
-#include <itkStatisticsLabelObject.h>
-#include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>
-#include <itkExtractImageFilter.h>
 #include <itkImageRegionIteratorWithIndex.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
-using ExtractFilterType      = itk::ExtractImageFilter<itkVolumeType, itkVolumeType>;
 using ConnectedFilterType    = itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>;
-using LabelObjectType        = itk::StatisticsLabelObject<unsigned int, 3>;
-using LabelMapType           = itk::LabelMap<LabelObjectType>;
-using Image2LabelFilterType  = itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType>;
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using ClosingFilterType      = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
@@ -59,7 +51,7 @@ const QString ROI_DEFINED    = "ROI";
 const QString V4_ROI         = "VOI";
 
 //------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : Filter       {inputs, type, scheduler}
 , m_lowerTh    {0}
 , m_prevLowerTh{m_lowerTh}
@@ -81,13 +73,15 @@ void SeedGrowSegmentationFilter::restoreState(const State& state)
 {
   for (auto token : state.split(';'))
   {
-    QStringList tokens = token.split('=');
+    auto tokens = token.split('=');
     if (tokens.size() != 2)
+    {
       continue;
+    }
 
     if (SEED == tokens[0])
     {
-      QStringList seed = tokens[1].split(",");
+      auto seed = tokens[1].split(",");
       for(int i = 0; i < 3; ++i)
       {
         m_prevSeed[i] = m_seed[i] = seed[i].toDouble();
@@ -148,9 +142,57 @@ State SeedGrowSegmentationFilter::state() const
 }
 
 //------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::changeSpacing(const NmVector3 &origin, const NmVector3 &spacing)
+{
+  Q_ASSERT(m_outputs.size() == 1);
+
+  auto output     = this->output(0);
+  auto oldSpacing = output->spacing();
+
+  auto changeSeedSpacing = [&oldSpacing](const NmVector3 &seed, const NmVector3 &origin, const NmVector3 &spacing)
+  {
+    VolumeBounds seedBounds(Bounds(seed), oldSpacing, origin);
+
+    return centroid(ESPINA::changeSpacing(seedBounds, spacing));
+  };
+
+  m_seed     = changeSeedSpacing(m_seed, origin, spacing);
+  m_prevSeed = changeSeedSpacing(m_prevSeed, origin, spacing);
+
+  emit seedModified(m_seed);
+
+  if (m_prevROI && m_prevROI != m_ROI.get())
+  {
+    Q_ASSERT(m_ROI);
+    m_prevROI->setSpacing(spacing);
+  }
+
+  if (m_ROI)
+  {
+    m_ROI->setSpacing(spacing);
+  }
+
+  // TODO: current implementation of output->setData add an edited region
+  //       equivalent to the bounds of the data being added
+  //       This was done when datas could be added to outputs
+  //       Probably we should change that implementation when moving to
+  //       single data approach.
+  auto mesh = std::make_shared<MarchingCubesMesh>(output.get());
+  output->setData(mesh);
+  mesh->setEditedRegions(BoundsList());
+
+  Filter::changeSpacing(origin, spacing);
+}
+
+//------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setLowerThreshold(int th)
 {
-  m_lowerTh = th;
+  if(th != m_lowerTh)
+  {
+    m_lowerTh = th;
+
+    emit thresholdModified(m_lowerTh, m_upperTh);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -162,7 +204,12 @@ int SeedGrowSegmentationFilter::lowerThreshold() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setUpperThreshold(int th)
 {
-  m_upperTh = th;
+  if(th != m_upperTh)
+  {
+    m_upperTh = th;
+
+    emit thresholdModified(m_lowerTh, m_upperTh);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -174,7 +221,12 @@ int SeedGrowSegmentationFilter::upperThreshold() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setSeed(const NmVector3& seed)
 {
-  m_seed = seed;
+  if(seed != m_seed)
+  {
+    m_seed = seed;
+
+    emit seedModified(m_seed);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -186,9 +238,14 @@ NmVector3 SeedGrowSegmentationFilter::seed() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setROI(const ROISPtr roi)
 {
-  m_ROI        = roi;
-  m_hasROI     = m_ROI != nullptr;
-  m_touchesROI = false;
+  if(roi != m_ROI)
+  {
+    m_ROI        = roi;
+    m_hasROI     = (m_ROI != nullptr);
+    m_touchesROI = false;
+
+    emit roiModified(m_ROI);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -198,11 +255,17 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
   {
     m_ROI = std::make_shared<ROI>(Bounds(),NmVector3(), NmVector3());
 
-    m_ROI->setFetchContext(storage(), prefix(), roiId());
+    m_ROI->setFetchContext(storage(), prefix(), roiId(), VolumeBounds());
 
     if (!m_ROI->fetchData())
     {
       m_ROI.reset();
+      m_hasROI = false;
+      qWarning() << "Has a ROI but was unable to fetch the data.";
+    }
+    else
+    {
+      m_ROI->setSpacing(m_inputs[0]->output()->spacing());
     }
 
     m_prevROI = m_ROI.get();
@@ -214,7 +277,12 @@ ROISPtr SeedGrowSegmentationFilter::roi() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setClosingRadius(int radius)
 {
-  m_radius = radius;
+  if(radius != m_radius)
+  {
+    m_radius = radius;
+
+    emit radiusModified(m_radius);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -236,64 +304,71 @@ Snapshot SeedGrowSegmentationFilter::saveFilterSnapshot() const
   return snapshot;
 }
 
-// //----------------------------------------------------------------------------
-// bool SeedGrowSegmentationFilter::needUpdate() const
-// {
-//   return needUpdate(0);
-// }
-
 //----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return m_outputs.isEmpty() || !validOutput(0) || ignoreStorageContent();
+  return !validOutput(0) || ignoreStorageContent();
 }
-
-// //----------------------------------------------------------------------------
-// void SeedGrowSegmentationFilter::execute()
-// {
-//   execute(0);
-// }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::execute()
 {
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> Invalid number of inputs, number: %1").arg(m_inputs.size());
 
-  auto input = volumetricData(m_inputs[0]->output());
-  if (!input) throw Invalid_Input_Data_Exception();
+    throw EspinaException(what, details);
+  }
+
+  auto input = readLockVolume(m_inputs[0]->output());
+  if (!input->isValid())
+  {
+    auto what    = QObject::tr("Invalid input.");
+    auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> Invalid input.");
+
+    throw EspinaException(what, details);
+  }
 
   Q_ASSERT(contains(input->bounds(), m_seed));
 
-  emit progress(0);
+  reportProgress(0);
+
   if (!canExecute()) return;
 
-  Bounds seedBounds;
-  for (int i = 0; i < 3; ++i)
-  {
-    seedBounds[2*i] = seedBounds[2*i+1] = m_seed[i];
-  }
+  Bounds seedBounds(m_seed);
   seedBounds.setUpperInclusion(true);
 
-  itkVolumeType::Pointer   seedVoxel     = input->itkImage(seedBounds);
-  itkVolumeType::IndexType seedIndex     = seedVoxel->GetLargestPossibleRegion().GetIndex();
-  itkVolumeType::ValueType seedIntensity = seedVoxel->GetPixel(seedIndex);
+  auto seedVoxel               = input->itkImage(seedBounds);
+  const auto seedIndex         = seedVoxel->GetLargestPossibleRegion().GetIndex();
+  const auto seedIntensity     = seedVoxel->GetPixel(seedIndex);
+  itkVolumeType::Pointer image = nullptr;
 
-  int  outValue      = 0;
-  auto extractFilter = ExtractFilterType::New();
+  auto activeROI = roi();
 
-  if(m_ROI != nullptr)
+  if(activeROI && activeROI->isValid())
   {
-    auto image = input->itkImage();
-    auto intersectionBounds = intersection(input->bounds(), m_ROI->bounds());
-    auto extractRegion      = equivalentRegion<itkVolumeType>(input->itkImage(), intersectionBounds);
+    if(!intersect(input->bounds(), activeROI->bounds()))
+    {
+      auto message = QObject::tr("Channel bounds (%1) doesn't intersect ROI bounds (%2)").arg(input->bounds().toString()).arg(activeROI->bounds().toString());
+      auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> ") + message;
 
-    extractFilter->SetNumberOfThreads(1);
-    extractFilter->SetInput(image);
-    extractFilter->SetExtractionRegion(extractRegion);
-    extractFilter->ReleaseDataFlagOn();
-    extractFilter->Update();
+      throw EspinaException(message, details);
+    }
 
-    outValue = seedIntensity + m_upperTh + 1;
+    const auto intersectionBounds = intersection(input->bounds(), activeROI->bounds());
+
+    if(!intersectionBounds.areValid())
+    {
+      auto message = QObject::tr("Invalid intersection between Channel bounds (%1) and ROI bounds (%2)").arg(input->bounds().toString()).arg(activeROI->bounds().toString());
+      auto details = QObject::tr("SeedGrowSegmentationFilter::execute() -> ") + message;
+
+      throw EspinaException(message, details);
+    }
+
+    image = input->itkImage(intersectionBounds);
+
+    int outValue = seedIntensity + m_upperTh + 1;
 
     if (outValue > 255)
     {
@@ -302,22 +377,22 @@ void SeedGrowSegmentationFilter::execute()
 
     if (outValue >= 0)
     {
-      m_ROI->applyROI<itkVolumeType>(extractFilter->GetOutput(), outValue);
+      activeROI->applyROI<itkVolumeType>(image, outValue);
     }
   }
+  else
+  {
+    image = input->itkImage();
+  }
 
-  emit progress(25);
+  reportProgress(25);
+
   if (!canExecute()) return;
 
   auto connectedFilter = ConnectedFilterType::New();
 
   ITKProgressReporter<ConnectedFilterType> seedProgress(this, connectedFilter, 25, 50);
-
-  if(m_ROI != nullptr)
-    connectedFilter->SetInput(extractFilter->GetOutput());
-  else
-    connectedFilter->SetInput(input->itkImage());
-
+  connectedFilter->SetInput(image);
   connectedFilter->SetReplaceValue(SEG_VOXEL_VALUE);
   connectedFilter->SetLower(std::max(seedIntensity - m_lowerTh, 0));
   connectedFilter->SetUpper(std::min(seedIntensity + m_upperTh, 255));
@@ -326,40 +401,40 @@ void SeedGrowSegmentationFilter::execute()
   connectedFilter->ReleaseDataFlagOn();
   connectedFilter->Update();
 
-  emit progress(50);
+  reportProgress(50);
+
   if (!canExecute()) return;
 
   itkVolumeType::Pointer output = connectedFilter->GetOutput();
 
   if(m_radius > 0)
   {
-    auto closingFilter = ClosingFilterType::New();
-
-    ITKProgressReporter<ClosingFilterType> seedProgress(this, closingFilter, 50, 75);
-
-     //     qDebug() << "Closing Segmentation";
     StructuringElementType ball;
     ball.SetRadius(m_radius);
     ball.CreateStructuringElement();
 
+    auto closingFilter = ClosingFilterType::New();
     closingFilter->SetInput(output);
+    closingFilter->SetNumberOfThreads(1);
     closingFilter->SetKernel(ball);
     closingFilter->SetForegroundValue(SEG_VOXEL_VALUE);
     closingFilter->ReleaseDataFlagOn();
+
+    ITKProgressReporter<ClosingFilterType> closeProgress(this, closingFilter, 50, 75);
+
     closingFilter->Update();
 
     output = closingFilter->GetOutput();
   }
 
-  emit progress(75);
+  reportProgress(75);
 
   if (!canExecute()) return;
 
-  auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
-  auto spacing = m_inputs[0]->output()->spacing();
+  const auto bounds  = minimalBounds<itkVolumeType>(output, SEG_BG_VALUE);
+  const auto spacing = m_inputs[0]->output()->spacing();
 
   auto volume = std::make_shared<SparseVolume<itkVolumeType>>(output, bounds, spacing);
-  auto mesh   = std::make_shared<MarchingCubesMesh<itkVolumeType>>(volume);
 
   if (!m_outputs.contains(0))
   {
@@ -367,8 +442,7 @@ void SeedGrowSegmentationFilter::execute()
   }
 
   m_outputs[0]->setData(volume);
-  m_outputs[0]->setData(mesh);
-
+  m_outputs[0]->setData(std::make_shared<MarchingCubesMesh>(m_outputs[0].get()));
   m_outputs[0]->setSpacing(spacing);
 
   m_prevLowerTh = m_lowerTh;
@@ -384,7 +458,7 @@ void SeedGrowSegmentationFilter::execute()
 
   m_forceUpdate = false;
 
-  emit progress(100);
+  reportProgress(100);
 }
 
 //----------------------------------------------------------------------------
@@ -393,37 +467,31 @@ bool SeedGrowSegmentationFilter::ignoreStorageContent() const
   // TODO: Check if prevROI keeps true after two consecutive executions
   // recovering from storage
   return m_forceUpdate
-      || m_lowerTh   != m_prevLowerTh
-      || m_upperTh   != m_prevUpperTh
-      || m_seed      != m_prevSeed
-      || m_radius    != m_prevRadius
-      || m_ROI.get() != m_prevROI;
+      || (m_lowerTh   != m_prevLowerTh)
+      || (m_upperTh   != m_prevUpperTh)
+      || (m_seed      != m_prevSeed)
+      || (m_radius    != m_prevRadius)
+      || (m_ROI.get() != m_prevROI);
 }
-
-// //----------------------------------------------------------------------------
-// bool SeedGrowSegmentationFilter::areEditedRegionsInvalidated()
-// {
-//   return false;
-// }
 
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
 {
   if (!m_ROI) return false;
 
-  auto volume    = volumetricData(m_outputs[0], DataUpdatePolicy::Ignore);
-  auto spacing   = volume->spacing();
+  auto volume    = readLockVolume(m_outputs[0], DataUpdatePolicy::Ignore);
   auto boundsSeg = volume->bounds();
+  auto spacing   = boundsSeg.spacing();
 
   if(m_ROI->isOrthogonal())
   {
     auto boundsROI = m_ROI->bounds();
     for (int i = 0, j = 1; i < 6; i += 2, j += 2)
     {
-      if (areEqual(boundsSeg[i], boundsROI[i], spacing[i/2]) || areEqual(boundsSeg[j], boundsROI[j], spacing[i/2]))
+      if (areEqual(boundsSeg[i], boundsROI[i], spacing[i/2])
+       || areEqual(boundsSeg[j], boundsROI[j], spacing[i/2]))
       {
         return true;
-        break;
       }
     }
   }
@@ -435,14 +503,14 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
                           boundsSeg[4]-spacing[2], boundsSeg[5]+spacing[2]};
 
     // later the bounds are constrained to the channel bounds.
-    auto input = volumetricData(m_inputs[0]->output());
+    auto input       = readLockVolume(m_inputs[0]->output());
     auto validBounds = intersection(extendedBounds, input->bounds(), spacing);
 
     // correct intersection bounds.
     auto intersectionBounds = intersection(validBounds, m_ROI->bounds(), spacing);
-    auto roiImage = m_ROI->itkImage(intersectionBounds);
+    auto roiImage           = m_ROI->itkImage(intersectionBounds);
 
-    auto region = roiImage->GetLargestPossibleRegion();
+    auto region      = roiImage->GetLargestPossibleRegion();
     auto regionIndex = region.GetIndex();
     auto regionLimit = regionIndex;
 
@@ -466,7 +534,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto z = regionIndex.GetElement(2); z <= regionLimit.GetElement(2); ++z)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();
@@ -508,7 +576,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto y = regionIndex.GetElement(1); y <= regionLimit.GetElement(1); ++y)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();
@@ -550,7 +618,7 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
       {
         for(auto x = regionIndex.GetElement(0); x <= regionLimit.GetElement(0); ++x)
         {
-          itkVolumeType::IndexType index{x,y,z};
+          itkVolumeType::IndexType index{ {x,y,z} };
           roiIt.SetIndex(index);
           maskIt.SetIndex(index);
           auto value = roiIt.Value();
@@ -594,8 +662,10 @@ bool SeedGrowSegmentationFilter::computeTouchesROIValue() const
     roiCheckIt.GoToBegin();
     while(!imageIt.IsAtEnd())
     {
-      if((roiCheckIt.Value() == SEG_VOXEL_VALUE)
-         && (imageIt.Value() == SEG_VOXEL_VALUE)) return true;
+      if((roiCheckIt.Value() == SEG_VOXEL_VALUE) && (imageIt.Value() == SEG_VOXEL_VALUE))
+      {
+        return true;
+      }
 
       ++roiCheckIt;
       ++imageIt;

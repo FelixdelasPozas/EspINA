@@ -21,37 +21,53 @@
 #ifndef SAS_INFORMATION_PROXY_H_
 #define SAS_INFORMATION_PROXY_H_
 
+#include "AppositionSurfacePlugin_Export.h"
+
 // ESPINA
 #include <GUI/Model/Proxies/InformationProxy.h>
 
 namespace ESPINA
 {
-  class SASInformationProxy
+  /** \class SASInformationProxy
+   * \brief Implements the InformationProxy for SAS reports.
+   *
+   */
+  class AppositionSurfacePlugin_EXPORT SASInformationProxy
   : public InformationProxy
   {
-      class SASInformationFetcher;
+    class SASInformationFetcher;
 
-    public:
-      /** \brief SASInformationProxy class constructor.
-       *
-       */
-      explicit SASInformationProxy(ModelAdapterSPtr model, SegmentationExtension::InfoTagList sasTags, SchedulerSPtr scheduler)
-      : InformationProxy{scheduler}
-      , m_model         {model}
-      , m_sasTags       {sasTags}
-      {};
+  public:
+    /** \brief SASInformationProxy class constructor.
+     * \param[in] model application model adapter.
+     * \param[in] sasTags information tags of a SAS.
+     * \param[in] scheduler application task scheduler.
+     *
+     */
+    explicit SASInformationProxy(ModelAdapterSPtr model, Core::SegmentationExtension::InformationKeyList sasTags, SchedulerSPtr scheduler)
+    : InformationProxy{scheduler}
+    , m_model         {model}
+    , m_sasTags       {sasTags}
+    {};
 
-      /** \brief SASInformationProxy class virtual destructor.
-       *
-       */
-      virtual ~SASInformationProxy()
-      {};
+    /** \brief SASInformationProxy class virtual destructor.
+     *
+     */
+    virtual ~SASInformationProxy()
+    {};
 
-      virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
+    virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
-    protected:
-      ModelAdapterSPtr m_model;
-      SegmentationExtension::InfoTagList m_sasTags;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+
+  private:
+    QVariant information(SegmentationAdapterPtr segmentation,
+                         SegmentationAdapterPtr sas,
+                         Core::SegmentationExtension::InformationKey& key) const;
+
+  protected:
+    ModelAdapterSPtr                                m_model;   /** model adapter object.      */
+    Core::SegmentationExtension::InformationKeyList m_sasTags; /** information tags of a SAS. */
   };
 
 } // namespace ESPINA

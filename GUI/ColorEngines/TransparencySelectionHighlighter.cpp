@@ -19,14 +19,9 @@
 */
 
 // ESPINA
-#include "TransparencySelectionHighlighter.h"
+#include <GUI/ColorEngines/TransparencySelectionHighlighter.h>
 
-// Qt
-#include <QDebug>
-
-using namespace ESPINA;
-
-ColorEngine::LUTMap TransparencySelectionHighlighter::m_LUT;
+using namespace ESPINA::GUI::ColorEngines;
 
 //-----------------------------------------------------------------------------
 QColor TransparencySelectionHighlighter::color(const QColor& original,
@@ -40,46 +35,4 @@ QColor TransparencySelectionHighlighter::color(const QColor& original,
     suggestedColor.setAlphaF(suggestedColor.alphaF()*0.6);
 
   return suggestedColor;
-}
-
-//-----------------------------------------------------------------------------
-LUTSPtr TransparencySelectionHighlighter::lut(const QColor& original,
-                                             bool highlight)
-{
-  auto segColor = color(original, highlight);
-  auto key = colorKey(segColor);
-
-  if (!m_LUT.contains(key))
-  {
-//     qDebug() << "Generating LUT for:" << key;
-    double rgba[4] =
-    {
-      segColor.redF(),
-      segColor.greenF(),
-      segColor.blueF(),
-      segColor.alphaF()
-    };
-
-    auto segLUT = LUTSPtr::New();
-    segLUT->Allocate();
-    segLUT->SetNumberOfTableValues(2);
-    segLUT->Build();
-    segLUT->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-    segLUT->SetTableValue(1, rgba);
-    segLUT->Modified();
-
-    m_LUT.insert(key, segLUT);
-  }
-
-  return m_LUT[key];
-}
-
-//-----------------------------------------------------------------------------
-QString TransparencySelectionHighlighter::colorKey(const QColor& color) const
-{
-  return QString().sprintf("%03d%03d%03d%03d",
-                          color.red(),
-                          color.green(),
-                          color.blue(),
-                          color.alpha());
 }

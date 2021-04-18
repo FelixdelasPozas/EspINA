@@ -46,9 +46,6 @@ namespace ESPINA
        */
       virtual ~SpinBoxAction();
 
-      /** \brief Overrides QWidgetAction::createWidget().
-       *
-       */
       virtual QWidget* createWidget(QWidget* parent) override;
 
       /** \brief Returns widget's radius value.
@@ -63,11 +60,23 @@ namespace ESPINA
        */
       void setSpinBoxMinimum(int value);
 
+      /** \brief Returns the minimum value for the widget's QSpinBox.
+       *
+       */
+      int getSpinBoxMinimumValue()
+      { return m_minimumValue; }
+
       /** \brief Set maximum value for widget's QSpinBox.
        * \param[in] value, new value.
        *
        */
       void setSpinBoxMaximum(int value);
+
+      /** \brief Returns the maximum value for the widget's QSpinBox.
+       *
+       */
+      int getSpinBoxMaximumValue()
+      { return m_maximumValue; }
 
       /** \brief Set value for the widget's QLabel.
        * \param[in] label, new label.
@@ -81,9 +90,18 @@ namespace ESPINA
        */
       void setSuffix(const QString &suffix);
 
-      /** \brief Shadows QAction::setEnabled().
+      /** \brief Sets the spinbox increment value.
+       * \param[in] value new increment value.
        *
        */
+      void setStepping(int value);
+
+      /** \brief Returs the spinbox stepping value.
+       *
+       */
+      int getSpinBoxStepping()
+      { return m_step; }
+
       void setEnabled(bool value)
       {
         m_enabled = value;
@@ -95,9 +113,6 @@ namespace ESPINA
         }
       }
 
-      /** \brief Shadows QAction::isEnabled().
-       *
-       */
       bool isEnabled()
       { return m_enabled; }
 
@@ -115,7 +130,7 @@ namespace ESPINA
       { m_label = nullptr; m_spinBox = nullptr; }
 
     signals:
-      /** \brief Signal to propagate changes int the widget's values.
+      /** \brief Signal to propagate changes into the widget's values.
        *
        */
       void valueChanged(int);
@@ -130,6 +145,7 @@ namespace ESPINA
       bool      m_enabled;
       int       m_maximumValue;
       int       m_minimumValue;
+      int       m_step;
   };
 
 } // namespace ESPINA

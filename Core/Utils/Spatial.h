@@ -32,13 +32,26 @@
 // C++
 #include <iostream>
 #include <cstdint>
+#include <cmath>
 
 // Qt
 #include <QList>
+#include <QString>
+#include <QObject>
 
-namespace ESPINA {
-
-  enum class Axis: std::int8_t { X=0, Y=1, Z=2 };
+namespace ESPINA
+{
+  /** \class Axis
+   * \brief Axis direction enumeration.
+   *
+   */
+  enum class Axis: std::int8_t
+  {
+    X=0,
+    Y=1,
+    Z=2,
+    UNDEFINED=3
+  };
 
   /** \brief Returns the numerical index equivalent of the specified axis.
    * \param[in] axis.
@@ -46,7 +59,7 @@ namespace ESPINA {
    */
   constexpr int idx(const Axis axis)
   {
-    return axis == Axis::X? 0:(axis == Axis::Y?1:2);
+    return (axis == Axis::X ? 0 : (axis == Axis::Y ? 1 : (axis == Axis::Z ? 2 : 3)));
   }
 
   /** \brief Converts the numerical value to its Axis equivalent.
@@ -55,9 +68,30 @@ namespace ESPINA {
    */
   constexpr Axis toAxis(int idx)
   {
-    return idx == 0?Axis::X:(idx == 1?Axis::Y:Axis::Z);
+    return (idx == 0 ? Axis::X : (idx == 1 ? Axis::Y : (idx == 2 ? Axis::Z : Axis::UNDEFINED)));
   }
 
+  /** \brief Returns the text of the given direction
+   * \param[in] direction axis direction).
+   *
+   */
+  inline const QString toText(const Axis direction)
+  {
+    switch(direction)
+    {
+      case Axis::X: return QObject::tr("X");
+      case Axis::Y: return QObject::tr("Y");
+      case Axis::Z: return QObject::tr("Z");
+      default: break;
+    }
+
+    return QObject::tr("Undefined");
+  }
+
+  /** \class Plane
+   * \brief Plane surface enumeration.
+   *
+   */
   enum class Plane: std::int8_t
   {
     XY = 0,  // AXIAL
@@ -91,6 +125,21 @@ namespace ESPINA {
     return idx == 0?Plane::YZ:(idx == 1?Plane::XZ:( idx == 2?Plane::XY:Plane::UNDEFINED));
   }
 
+  /** \brief Returns the text of the given orthogonal plane
+   * \param[in] direction axis direction).
+   *
+   */
+  inline const QString toText(const Plane plane)
+  {
+    switch(plane)
+    {
+      case Plane::XY: return QObject::tr("Axial");
+      case Plane::XZ: return QObject::tr("Coronal");
+      case Plane::YZ: return QObject::tr("Sagittal");
+      default: return QObject::tr("Undefined");
+    }
+  }
+
   using Nm = double;
 
   /** \brief Returns true if both values are equal to some degree given by the delta and the spacing.
@@ -98,16 +147,28 @@ namespace ESPINA {
    * \param[in] rhs.
    * \param[in] spacing.
    *
-   * TODO: The spacing parameter is here to change the DELTA
+   * NOTE: The spacing parameter is here to change the DELTA
    * when checking VolumeBounds values, as their values should be
    * in fixed points (like in a grid) but aren't.
-   * Solve the problem with VolumeBounds and remove this ASAP.
+   * TODO: Solve the problem with VolumeBounds and remove this ASAP.
    */
-  inline bool areEqual(Nm lhs, Nm rhs, Nm spacing = 1.0)
+  inline bool areEqual(const Nm lhs, const Nm rhs, const Nm spacing = 1.0)
   {
     const double DELTA = 0.01 * spacing;
-    return fabs(lhs - rhs) < DELTA;
+    return std::fabs(lhs - rhs) < DELTA;
   }
+
+  /** \brief Returns true if the value is outside the given limits.
+   * \param[in] value
+   * \param[in] limitA
+   * \param[in] limitB
+   */
+  inline bool isOutsideLimits(double value, double limitA, double limitB)
+  {
+    double lower = std::min(limitA, limitB);
+    double upper = std::max(limitA, limitB);
+    return (value < lower || upper < value);
+  };
 
 }
 

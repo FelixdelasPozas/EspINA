@@ -23,19 +23,44 @@
 #include "ViewItemAdapter.h"
 #include "ModelAdapter.h"
 #include <Core/Analysis/NeuroItem.h>
-#include <GUI/Representations/RepresentationFactory.h>
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ViewItemAdapter::ViewItemAdapter(ViewItemSPtr item)
-: NeuroItemAdapter  {item}
-, m_viewItem        {item}
-, m_isSelected      {false}
-, m_isVisible       {true}
+: NeuroItemAdapter        {item}
+, m_viewItem              {item}
+, m_isSelected            {false}
+, m_isVisible             {true}
+, m_isBeingModified       {false}
+, m_temporalRepresentation{nullptr}
 {
   connect(output().get(), SIGNAL(modified()),
           this,           SLOT(onOutputModified()));
+}
+
+//------------------------------------------------------------------------
+void ViewItemAdapter::setTemporalRepresentation(RepresentationPipelineSPtr pipeline)
+{
+  m_temporalRepresentation = pipeline;
+}
+
+//------------------------------------------------------------------------
+void ViewItemAdapter::clearTemporalRepresentation()
+{
+  m_temporalRepresentation = nullptr;
+}
+
+//------------------------------------------------------------------------
+RepresentationPipelineSPtr ViewItemAdapter::temporalRepresentation() const
+{
+  return m_temporalRepresentation;
+}
+
+//------------------------------------------------------------------------
+void ViewItemAdapter::invalidateRepresentations()
+{
+  emit representationsInvalidated(this);
 }
 
 //------------------------------------------------------------------------
@@ -49,25 +74,7 @@ void ViewItemAdapter::changeOutput(InputSPtr input)
   connect(output().get(), SIGNAL(modified()),
           this,           SLOT(onOutputModified()));
 
-  m_representations.clear();
   onOutputModified();
-}
-
-//------------------------------------------------------------------------
-RepresentationSPtr ViewItemAdapter::representation(Representation::Type representation) const
-{
-  if (!m_representations.contains(representation))
-  {
-    m_representations[representation] = m_factory->createRepresentation(m_viewItem->output(), representation);
-  }
-
-  return m_representations[representation];
-}
-
-//------------------------------------------------------------------------
-RepresentationTypeList ViewItemAdapter::representationTypes() const
-{
-  return m_factory->representations();
 }
 
 //------------------------------------------------------------------------
@@ -79,5 +86,15 @@ void ViewItemAdapter::onOutputModified()
 //------------------------------------------------------------------------
 ViewItemAdapterPtr ESPINA::viewItemAdapter(ItemAdapterPtr item)
 {
-  return static_cast<ViewItemAdapterPtr>(item);
+  return dynamic_cast<ViewItemAdapterPtr>(item);
+}
+
+//------------------------------------------------------------------------
+ViewItemAdapterList ESPINA::toViewItemList(ItemAdapterPtr item)
+{
+  ViewItemAdapterList list;
+
+  list << viewItemAdapter(item);
+
+  return list;
 }

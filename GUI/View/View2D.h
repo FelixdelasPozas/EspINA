@@ -23,20 +23,22 @@
 
 // ESPINA
 #include "GUI/View/RenderView.h"
-#include <GUI/Model/ChannelAdapter.h>
-#include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Widgets/SliceSelector.h>
 
 // VTK
 #include <vtkSmartPointer.h>
 
+// Qt
+#include <QShortcut>
+
 //Forward declaration
+class vtkActor;
 class vtkPolyData;
 class vtkAxisActor2D;
 class vtkPropPicker;
 class vtkRenderer;
 class QVTKWidget;
-class QToolButton;
+class QPushButton;
 
 // GUI
 class QScrollBar;
@@ -47,56 +49,35 @@ class QPushButton;
 
 namespace ESPINA
 {
-  class Representation;
   class EspinaWidget;
   class ViewRendererMenu;
 
+  /** \class View2D
+   * \brief Implements an interactive orthogonal 2D view.
+   */
   class EspinaGUI_EXPORT View2D
   : public RenderView
   {
     Q_OBJECT
-    class State;
-    class AxialState;
-    class SagittalState;
-    class CoronalState;
-
-  public:
-    static const double SEGMENTATION_SHIFT;
-    static const double WIDGET_SHIFT;
-
-    enum SliceSelectionTypes
-    {
-      None=0x0, From = 0x1, To = 0x2
-    };
-    Q_DECLARE_FLAGS(SliceSelectionType, SliceSelectionTypes)
+    class PlanarBehaviour;
+    class AxialBehaviour;
+    class SagittalBehaviour;
+    class CoronalBehaviour;
 
   public:
     /** \brief View2D class constructor.
+     * \param[in] state application's view state.
      * \param[in] plane view's orientation plane.
      * \param[in] parent raw pointer of the QWidget parent of this one.
      */
-    explicit View2D(Plane plane = Plane::XY, QWidget* parent = nullptr);
+    explicit View2D(GUI::View::ViewState &state, Plane plane = Plane::XY, QWidget *parent = nullptr);
 
     /** \brief View2D class virtual destructor.
      *
      */
     virtual ~View2D();
 
-    /** \brief Enables/disables the "fit to slices" flag.
-     * \param[in] value true to enable false otherwise.
-     *
-     * If fit to slices is enabled the movement between slices is the resolution of the scene.
-     *
-     */
-    void setFitToSlices(bool value);
-
-    /** \brief Returns the value of the "fit to slices" flag.
-     *
-     */
-    bool fitToSlices() const
-    { return m_fitToSlices; }
-
-    /** \brief Reverses the efect of the mouse wheel on the view.
+    /** \brief Reverses the effect of the mouse wheel on the view.
      * \param[in] value true to reverse the movement of the wheel, false otherwise.
      *
      */
@@ -127,54 +108,25 @@ namespace ESPINA
     Plane plane() const
     { return m_plane; }
 
-    virtual void reset();
-
-    virtual void resetCamera();
-
-    /** \brief Helper method that returns the depth value required in the view to put representations above the channels representation.
+    /** \brief Returns scale of the view given by world position / display pixels
      *
      */
-    double segmentationDepth() const
-    { return Plane::XY == m_plane ? -View2D::SEGMENTATION_SHIFT : View2D::SEGMENTATION_SHIFT; }
+    double scale();
 
-    /** \brief Helper method that returns the depth value required in the view to put widgets above the rest of the representations.
+    /** \brief Helper method that returns the depth value required in the view to put representations above the channels' representations.
      *
      */
-    double widgetDepth() const
-    { return Plane::XY == m_plane ? -View2D::WIDGET_SHIFT : View2D::WIDGET_SHIFT; }
+    double segmentationDepth() const;
 
-    /** \brief Set the distance between two consecutive slices when displacement is set to SLICES.
-     * \param[in] steps.
+    /** \brief Helper method that returns the depth value required in the view to put widgets above the channels and segmentation's representations.
      *
      */
-    void setSlicingStep(const NmVector3& steps);
-
-    /** \brief Returns the slicing step of the view.
-     *
-     */
-    NmVector3 slicingStep() const;
+    double widgetDepth() const;
 
     /** \brief Returns the value of the actual slice of the view.
      *
      */
     Nm slicingPosition() const;
-
-    virtual void centerViewOn(const NmVector3& point, bool force = false);
-
-    /** \brief Centers the view of the camera on the given point.
-     * \param[in] center point to center on.
-     *
-     * Does not change slice positions.
-     *
-     */
-    void centerViewOnPosition(const NmVector3& center);
-
-    /** \brief Sets the crosshair colors.
-     * \param[in] hColor color of the horizontal line.
-     * \param[in] vColor color of the vertical line.
-     *
-     */
-    void setCrosshairColors(const QColor& hColor, const QColor& vColor);
 
     /** \brief Enables/disables the visibility of the thumbnail.
      * \param[in] visible true to make the thumbnail visible, false otherwise.
@@ -182,201 +134,85 @@ namespace ESPINA
      */
     void setThumbnailVisibility(bool visible);
 
-    virtual void addActor   (vtkProp *actor) override;
+    virtual Bounds previewBounds(bool cropToSceneBounds = true) const override;
 
-    virtual void removeActor(vtkProp *actor) override;
+    virtual void setCameraState(CameraState state) override;
 
-    virtual Bounds previewBounds(bool cropToSceneBounds = true) const;
+    virtual CameraState cameraState() override;
 
-    /** \brief Sets the visibility of the crosshair lines.
-     * \param[in] show true to set visible, false otherwise.
-     *
-     */
-    virtual void setCrosshairVisibility(bool show);
+    virtual vtkRenderer *mainRenderer() const override;
 
-    /** \brief Updates the crosshair point moving the given plane to the given position.
-     * \param[in] plane plane to move.
-     * \param[in] slicePos new plane position.
-     *
-     */
-    void updateCrosshairPoint(const Plane plane, const Nm slicePos);
-
-    virtual RepresentationSPtr cloneRepresentation(ViewItemAdapterPtr item, Representation::Type representation);
-
-    void setRenderers(RendererSList renderers);
-
-    void activateRender(const QString &rendererName);
-
-    void deactivateRender(const QString &rendererName);
-
-    virtual void setVisualState(struct RenderView::VisualState);
-
-    virtual struct RenderView::VisualState visualState();
-
-    Selector::Selection select(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const;
+    virtual void showEvent(QShowEvent *event) override;
 
   public slots:
-    /** \brief Alternate the visibility between the processed and unprocessed channels.
-     * \param[in] visible true to show the first channel and not the second, false to reverse situation.
-     *
-     */
-    void setShowPreprocessing(bool visible);
-
-    /** \brief Sets the ruler visibility.
+    /** \brief Sets the scale visibility.
      * \param[in] visibile true to set the ruler visible, false otherwise.
      *
      */
-    void setRulerVisibility(bool visible);
+    void setScaleVisibility(bool visible);
 
-    /// Set Slice Selection flags to all registered Slice Views
-    void addSliceSelectors(SliceSelectorSPtr widget,
-                           SliceSelectionType selector);
+    /** \brief Increments the scrollbar value in one step if not at maximum.
+     *
+     */
+    void incrementSlice();
 
-    /// Unset Slice Selection flags to all registered Slice Views
-    void removeSliceSelectors(SliceSelectorSPtr widget);
-
-    virtual void updateSceneBounds() override;
-
-    virtual void updateView();
+    /** \brief Decrements the scrollbar value in one step if not at minimum.
+     *
+     */
+    void decrementSlice();
 
   signals:
-    void centerChanged(NmVector3);
-    void focusChanged(NmVector3);
     void channelSelected(ChannelAdapterPtr);
+
     void segmentationSelected(SegmentationAdapterPtr, bool);
-    void sliceChanged(Plane, Nm);
-
-  protected slots:
-    /** \brief Updates the view when the scroll widget changes its value.
-     * \param[in] value new value.
-     *
-     */
-    void scrollValueChanged(int value);
-
-    /** \brief Updates the view when the spinbox widget changes its value.
-     * \param[in] value new value.
-     *
-     */
-    void spinValueChanged(double value);
-
-    virtual void updateChannelsOpacity();
 
   protected:
-    /** \brief Changes the scroll and spinbox limit values based on the new scene bounds.
-     * \param[in] bounds new scene bounds.
-     *
-     */
-    void setSlicingBounds(const Bounds& bounds);
+    virtual void resetImplementation() override;
 
     virtual bool eventFilter(QObject* caller, QEvent* e) override;
-
-    virtual void keyPressEvent(QKeyEvent *e) override;
-
-    void keyReleaseEvent(QKeyEvent *e);
 
     /** \brief Updates the value of the crosshair to the mouse position and signals the change().
      *
      */
-    void centerCrosshairOnMousePosition();
-
-    /** \brief Centers the view of the camera on the mouse position.
-     *
-     */
-    void centerViewOnMousePosition();
-
-    /** \brief Picks and returns the channels under given position.
-     * \param[in] vx x display coordinate.
-     * \param[in] vy y display coordinate.
-     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
-     *
-     */
-    ViewItemAdapterList pickChannels(double vx, double vy, bool repeatable = true);
-
-    /** \brief Picks and returns the segmentations under given position.
-     * \param[in] vx x display coordinate.
-     * \param[in] vy y display coordinate.
-     * \param[in] repeteable if true returns the list of items, if false returns the first (if any).
-     *
-     */
-    ViewItemAdapterList pickSegmentations(double vx, double vy, bool repeatable = true);
-
-    /** \brief Updates the selection of items.
-     * \param[in] append if true the elements picked will be merged with the ones currently
-     *  selected, if false the elements picked will be the new selection.
-     *
-     *  If an item is selected and also is on the picked list the merge will deselect the item.
-     *
-     */
-    void selectPickedItems(bool append);
+    void centerCrosshairOnMousePosition(int x, int y);
 
   private:
-    void addRendererControls(RendererSPtr renderer);
+    virtual void addActor   (vtkProp *actor) override;
 
-    void removeRendererControls(const QString name);
+    virtual void removeActor(vtkProp *actor) override;
 
-    /** \brief Updates the ruler widget.
+    virtual void updateViewActions(GUI::Representations::RepresentationManager::ManagerFlags flags) override;
+
+    virtual void resetCameraImplementation() override;
+
+    virtual bool isCrosshairPointVisible() const override;
+
+    virtual void refreshViewImplementation() override;
+
+    virtual Selector::Selection pickImplementation(const Selector::SelectionFlags flags, const int x, const int y, bool multiselection = true) const override;
+
+    virtual void configureManager(GUI::Representations::RepresentationManagerSPtr manager) override;
+
+    virtual void normalizeWorldPosition(NmVector3 &point) const override;
+
+    NmVector3 toNormalizeWorldPosition(vtkRenderer *renderer, int x, int y) const;
+
+    vtkSmartPointer<vtkRenderer> rendererUnderCursor() const;
+
+    /** \brief Updates the scale widget.
      *
      */
-    void updateRuler();
+    void updateScale();
 
     /** \brief Updates the thumbnail.
      *
      */
     void updateThumbnail();
 
-    /** \brief Returns the bottom value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex integer slice index.
-     * \param[in] plane orientation plane.
+    /** \brief Centers the view of the camera on the mouse position.
      *
      */
-    Nm  voxelBottom(const int sliceIndex, const Plane plane) const;
-
-    /** \brief Returns the bottom value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position Z position of the voxel.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelBottom(const Nm position, const Plane plane) const;
-
-    /** \brief Returns the center value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex integer slice index.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelCenter(const int sliceIndex, const Plane plane) const;
-
-    /** \brief Returns the center value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position Z position of the voxel.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelCenter(const Nm position, const Plane plane) const;
-
-    /** \brief Returns the top value in Nm of the voxel in the given slice index and plane.
-     * \param[in] sliceIndex integer slice index.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelTop(const int sliceIndex, const Plane plane) const;
-
-    /** \brief Returns the top value in Nm of the voxel in the given Z position and plane.
-     * \param[in] position Z position of the voxel.
-     * \param[in] plane orientation plane.
-     *
-     */
-    Nm  voxelTop(const Nm  position, const Plane plane) const;
-
-    /** \brief Returns the numerical index of the slice given the slice position and plane.
-     * \param[in] position slice position.
-     * \param[in] plane orientation plane.
-     *
-     */
-    int voxelSlice (const Nm position, const Plane plane) const;
-
-    /** \brief Helper method to build the crosshairs actors.
-     *
-     */
-    void buildCrosshairs();
+    void centerViewOnMousePosition(int x, int y);
 
     /** \brief Helper method to setup the UI elements.
      *
@@ -404,12 +240,61 @@ namespace ESPINA
      */
     double viewHeightLength();
 
+    void updateScaleValue();
+
+    void updateThumbnailBounds(const Bounds &bounds);
+
+    void updateWidgetLimits(const Bounds &bounds);
+
+    void updateSpinBoxLimits(int min, int max);
+
+    void updateManagersDepth(const NmVector3 &resolution);
+
+    void updateScrollBarLimits(int min, int max);
+
+    inline bool fitToSlices() const;
+
+    inline Nm  voxelCenter(const int slice, const Plane plane) const;
+
+    inline Nm  voxelCenter(const Nm position, const Plane plane) const;
+
+    inline int voxelSlice(const Nm position, const Plane plane) const;
+
   private slots:
+    virtual void onCrosshairChanged(const GUI::Representations::FrameCSPtr frame) override;
+
+    /** \brief Centers view camera on the given point.
+     * \param[in] center point to center camera on.
+     *
+     */
+    virtual void moveCamera(const NmVector3 &point) override;
+
+    virtual void onSceneResolutionChanged(const NmVector3 &reslotuion) override;
+
+    virtual void onSceneBoundsChanged(const Bounds &bounds) override;
+
+    virtual void addSliceSelectors(GUI::Widgets::SliceSelectorSPtr selector, GUI::Widgets::SliceSelectionType type) override;
+
+    virtual void removeSliceSelectors(GUI::Widgets::SliceSelectorSPtr selector) override;
+
+    /** \brief Updates the view when the scroll widget changes its value.
+     * \param[in] value new value.
+     *
+     */
+    void scrollValueChanged(int value);
+
+    /** \brief Updates the view when the spinbox widget changes its value.
+     * \param[in] value new value.
+     *
+     */
+    void spinValueChanged(double value);
+
     /** \brief Takes an image of the view and saves it to disk.
      *
      */
     void onTakeSnapshot();
 
+    virtual const QString viewName() const override;
   private:
     // GUI
     QVBoxLayout    *m_mainLayout;
@@ -418,65 +303,52 @@ namespace ESPINA
     QHBoxLayout    *m_toLayout;
     QScrollBar     *m_scrollBar;
     QDoubleSpinBox *m_spinBox;
-    QPushButton    *m_zoomButton;
+    QPushButton    *m_cameraReset;
     QPushButton    *m_snapshot;
-    QPushButton    *m_renderConfig;
 
     // VTK View
-    vtkSmartPointer<vtkRenderer>    m_thumbnail;
-    vtkSmartPointer<vtkAxisActor2D> m_ruler;
-
-    // View State
-    NmVector3 m_slicingStep;
-
-    std::unique_ptr<State> m_state;
-
-    bool m_showThumbnail;
+    vtkSmartPointer<vtkRenderer>     m_renderer;
+    vtkSmartPointer<vtkRenderer>     m_thumbnail;
+    std::unique_ptr<PlanarBehaviour> m_state2D;
 
     // Slice Selectors
-    using SliceSelectorPair = QPair<SliceSelectorSPtr, SliceSelectorSPtr>;
+    using SliceSelectorPair = QPair<GUI::Widgets::SliceSelectorSPtr, GUI::Widgets::SliceSelectorSPtr>;
     QList<SliceSelectorPair> m_sliceSelectors;
 
-    // Crosshairs
-    vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;
-    vtkSmartPointer<vtkActor>    m_HCrossLine, m_VCrossLine;
-    double                       m_HCrossLineColor[3];
-    double                       m_VCrossLineColor[3];
-
     // Thumbnail
+    bool m_showThumbnail;
     bool m_inThumbnail;
+    bool m_inThumbnailClick;
     vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
     vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
-    bool  m_sceneReady;
-    Plane m_plane;
-    int   m_normalCoord;
+    // Ruler
+    double                           m_scaleValue;
+    bool                             m_scaleVisibility;
+    vtkSmartPointer<vtkAxisActor2D>  m_scale;
 
-    bool  m_fitToSlices;
-    bool  m_invertSliceOrder;
+    Plane  m_plane;
+    int    m_normalCoord;
+
     bool  m_invertWheel;
-    bool  m_rulerVisibility;
-    bool  m_inThumbnailClick;
-
-    friend class Representation;
+    bool  m_invertSliceOrder;
   };
 
-  /** \brief Returns true if the view is a 2D view.
-   * \param[in] view, RenderView raw pointer.
-   *
-   */
-  inline bool isView2D(RenderView* view)
-  { return dynamic_cast<View2D *>(view) != nullptr; }
-
   /** \brief Returns the 2D view raw pointer given a RenderView raw pointer.
-   * \param[in] view, RenderView raw pointer.
+   * \param[in] view RenderView raw pointer.
    *
    */
   inline View2D * view2D_cast(RenderView* view)
   { return dynamic_cast<View2D *>(view); }
 
-  Q_DECLARE_OPERATORS_FOR_FLAGS(View2D::SliceSelectionType)
+  /** \brief Returns true if the view is a 2D view.
+   * \param[in] view RenderView raw pointer.
+   *
+   */
+  inline bool isView2D(RenderView* view)
+  { return view2D_cast(view) != nullptr; }
 
+  using View2DSPtr = std::shared_ptr<View2D>;
 } // namespace ESPINA
 
 #endif // ESPINA_VIEW_2D_H

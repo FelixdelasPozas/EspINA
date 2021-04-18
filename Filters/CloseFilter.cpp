@@ -20,9 +20,9 @@
 
 // ESPINA
 #include "CloseFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkImageRegionConstIterator.h>
@@ -33,22 +33,17 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using BinaryClosingFilter    = itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-CloseFilter::CloseFilter(InputSList    inputs,
-                             Filter::Type  type,
-                             SchedulerSPtr scheduler)
+CloseFilter::CloseFilter(InputSList          inputs,
+                         const Filter::Type &type,
+                         SchedulerSPtr       scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
-}
-
-//-----------------------------------------------------------------------------
-CloseFilter::~CloseFilter()
-{
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -57,13 +52,25 @@ void CloseFilter::execute(Output::Id id)
   Q_ASSERT(0 == id);
   Q_ASSERT(m_inputs.size() == 1);
 
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("CloseFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
+
+    throw EspinaException(what, details);
+  }
 
   auto input       = m_inputs[0];
-  auto inputVolume = volumetricData(input->output());
-  if (!inputVolume) throw Invalid_Input_Data_Exception();
+  auto inputVolume = readLockVolume(input->output());
+  if (!inputVolume->isValid())
+  {
+    auto what    = QObject::tr("Invalid input volume");
+    auto details = QObject::tr("Close::execute(id) ->Invalid input volume");
 
-  emit progress(0);
+    throw EspinaException(what, details);
+  }
+
+  reportProgress(0);
   if (!canExecute()) return;
 
   StructuringElementType ball;
@@ -74,12 +81,14 @@ void CloseFilter::execute(Output::Id id)
   filter->SetInput(inputVolume->itkImage());
   filter->SetKernel(ball);
   filter->SetForegroundValue(SEG_VOXEL_VALUE);
+  filter->ReleaseDataFlagOn();
+  filter->SetNumberOfThreads(1);
 
   ITKProgressReporter<BinaryClosingFilter> reporter(this, filter, 0, 100);
 
   filter->Update();
 
-  emit progress(100);
+  reportProgress(100);
   if (!canExecute()) return;
 
   finishExecution(filter->GetOutput());

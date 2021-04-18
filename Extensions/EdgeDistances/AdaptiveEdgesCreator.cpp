@@ -22,7 +22,9 @@
 #include "AdaptiveEdgesCreator.h"
 #include "ChannelEdges.h"
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Analysis/Data/VolumetricDataUtils.hxx>
 #include <Core/Analysis/Channel.h>
+#include <Core/Types.h>
 
 //VTK
 #include <vtkCellArray.h>
@@ -33,11 +35,10 @@
 #include <vtkPoints.h>
 #include <vtkOBBTree.h>
 #include <itkImageToVTKImageFilter.h>
-
-// Qt
-#include <QDebug>
+#include <vtkMath.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPoints> plane(const double corner[3],
@@ -45,28 +46,31 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
                                  const double mid[3],
                                  const double min[3])
 {
-  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  auto points = vtkSmartPointer<vtkPoints>::New();
+  points->SetDataTypeToDouble();
+  points->SetNumberOfPoints(4);
+
   double x[3];
   // {0,0,0} <- in a cube
   x[0] = corner[0];
   x[1] = corner[1];
   x[2] = corner[2];
-  points->InsertNextPoint(x);
+  points->InsertPoint(0,x);
   // {1,0,0} <- in a cube
   x[0] = corner[0] + mid[0];
   x[1] = corner[1] + mid[1];
   x[2] = corner[2] + mid[2];
-  points->InsertNextPoint(x);
+  points->InsertPoint(1,x);
   // {0,1,0} <- in a cube
   x[0] = corner[0] + max[0];
   x[1] = corner[1] + max[1];
   x[2] = corner[2] + max[2];
-  points->InsertNextPoint(x);
+  points->InsertPoint(2,x);
   // {1,1,0} <- in a cube
   x[0] = corner[0] + max[0] + mid[0];
   x[1] = corner[1] + max[1] + mid[1];
   x[2] = corner[2] + max[2] + mid[2];
-  points->InsertNextPoint(x);
+  points->InsertPoint(3,x);
 
   return points;
 }
@@ -74,8 +78,8 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3],
 //------------------------------------------------------------------------
 AdaptiveEdgesCreator::AdaptiveEdgesCreator(ChannelEdges *extension,
                                            SchedulerSPtr  scheduler)
-: Task(scheduler)
-, m_extension(extension)
+: Task       {scheduler}
+, m_extension{extension}
 {
 }
 
@@ -85,80 +89,75 @@ AdaptiveEdgesCreator::~AdaptiveEdgesCreator()
 }
 
 //------------------------------------------------------------------------
-void AdaptiveEdgesCreator::run()
+void AdaptiveEdgesCreator::computeEdges()
 {
-  using Itk2VtkFilter = itk::ImageToVTKImageFilter<itkVolumeType>;
-  //qDebug() << "Creating Adaptive Edges" << m_extension->m_extendedItem->name();
-
   auto channel = m_extension->extendedItem();
-  //qDebug() << "Channel Bounds" << channel->bounds().toString();
+  auto volume  = readLockVolume(channel->output());
+  auto bounds  = volume->bounds();
+  auto image   = vtkImage<itkVolumeType>(volume, bounds);
 
-  auto volume = volumetricData(channel->output());
-  auto bounds = volume->bounds();
+  auto faces = vtkSmartPointer<vtkCellArray>::New();
+  auto borderVertices = vtkSmartPointer<vtkPoints>::New();
+  borderVertices->SetDataTypeToDouble();
 
-  itkVolumeType::Pointer itkImage = volume->itkImage();
-
-  Itk2VtkFilter::Pointer itk2vtk = Itk2VtkFilter::New();
-  itk2vtk->ReleaseDataFlagOn();
-  itk2vtk->SetInput(itkImage);
-  itk2vtk->Update();
-
-  vtkImageData *vtkImage = itk2vtk->GetOutput();
-
-  vtkSmartPointer<vtkPoints>    borderVertices = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces          = vtkSmartPointer<vtkCellArray>::New();
-
-  int dim[3];
-  vtkImage->GetDimensions(dim);
-
+  int dim[3], extent[6];
   double spacing[3];
-  vtkImage->GetSpacing(spacing);
-  int extent[6];
-  vtkImage->GetExtent(extent);
+  image->GetDimensions(dim);
+  image->GetExtent(extent);
+  image->GetSpacing(spacing);
 
-  int backgroundColor = m_extension->m_backgroundColor;
-  int threshold       = m_extension->m_threshold;
+  auto backgroundColor = m_extension->m_backgroundColor;
+  auto threshold       = m_extension->m_threshold;
 
   m_extension->m_computedVolume = 0;
 
-  //   vtkDebugMacro( << "Looking for borders");
-
-  int numComponets = vtkImage->GetNumberOfScalarComponents();
-  unsigned char *imagePtr = static_cast<unsigned char *>(vtkImage->GetScalarPointer());
-
-  assert(extent[5] == dim[2]-1);
-
-  unsigned long zMin = extent[4];
-  unsigned long zMax = extent[5];
-  unsigned long yMax = dim[1];
-  unsigned long xMax = dim[0];
+  auto xMin = extent[0];
+  auto xMax = extent[1];
+  auto yMin = extent[2];
+  auto yMax = extent[3];
+  auto zMin = extent[4];
+  auto zMax = extent[5];
 
   // defined in unsigned char values range
   const int upperThreshold = (backgroundColor + threshold) > 255 ? 255 : backgroundColor + threshold;
   const int lowerThreshold = (backgroundColor - threshold) <   0 ?   0 : backgroundColor - threshold;
 
+  auto numComponents   = image->GetNumberOfScalarComponents();
+
   vtkIdType lastCell[4] = {-1, -1, -1, -1};
-  unsigned long z = zMin;
+  auto z = zMin;
   while (canExecute() && z <= zMax)
   {
-    emit progress(double(z - zMin) / double(zMax - zMin)*100.0);
+    if (zMax - zMin != 0)
+    {
+      reportProgress((static_cast<double>(z - zMin) / static_cast<double>(zMax - zMin))*50.0);
+    }
+    else
+    {
+      reportProgress(0);
+    }
+
     // Look for images borders in z slice:
     // We are going to take all bordering pixels (almost black) and then extract its oriented
     // bounding box.
-    // We ignore pixles until we find the first non-black pixel
+    // We ignore pixels until we find the first non-black pixel
     // Then, we keep last non-black pixel as the other side of the line
-    vtkSmartPointer<vtkPoints> nonBlackPixels = vtkSmartPointer<vtkPoints>::New();
-    for (unsigned long y = 0; y < yMax; y++)
+    auto nonBlackPixels = vtkSmartPointer<vtkPoints>::New();
+    nonBlackPixels->SetDataTypeToDouble();
+
+    for (auto y = yMin; y <= yMax; y++)
     {
-      bool nonBlackPixelDetected = false;
+      auto nonBlackPixelDetected = false;
       double p1[3], p2[3];
-      bool singlePixel = true;
-      for (unsigned long x = 0; x < xMax; x++)
+      auto singlePixel = true;
+      for (auto x = xMin; x <= xMax; x++)
       {
-        bool nonBlackPixel = false;
-        unsigned long pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
-        for (int c = 0; c < numComponets; c++)
-          nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > upperThreshold) || (imagePtr[pxId+c] < lowerThreshold);
+        auto nonBlackPixel = false;
+        auto pixelPtr = reinterpret_cast<unsigned char *>(image->GetScalarPointer(x,y,z));
+        for (int c = 0; c < numComponents; c++)
+        {
+          nonBlackPixel = nonBlackPixel || (pixelPtr[c] > upperThreshold) || (pixelPtr[c] < lowerThreshold);
+        }
 
         if (nonBlackPixel)
         {
@@ -186,13 +185,13 @@ void AdaptiveEdgesCreator::run()
         nonBlackPixels->InsertNextPoint(p2);
       }
     }
+
     // Now we have to simplify the slice's borders to 4
     double corner[3], max[3], mid[3], min[3], size[3];
-    vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
+    auto obb_tree = vtkSmartPointer<vtkOBBTree>::New();
     obb_tree->ComputeOBB(nonBlackPixels, corner, max, mid, min, size);
 
-    vtkSmartPointer<vtkPoints> face = plane(corner,max,mid,min);
-    assert(face->GetNumberOfPoints() == 4);
+    auto face = plane(corner,max,mid,min);
 
     //NOTE: Espina's Counting Frame Definition is used here.
     // Front slice is the first of the stack and back the last one
@@ -207,20 +206,20 @@ void AdaptiveEdgesCreator::run()
     face->GetPoint(3, RB);
 
     // Correct rotation
-    double correctedLeft  = std::max(LB[0], LT[0]);
-    correctedLeft = int((correctedLeft - bounds[0]) / spacing[0]);
+    auto correctedLeft  = std::min(LB[0], LT[0]);
+    correctedLeft = vtkMath::Round((correctedLeft - bounds[0]) / spacing[0]);
     correctedLeft = bounds[0] + (correctedLeft)*spacing[0];
 
-    double correctedRight = std::min(RB[0], RT[0]);
-    correctedRight = int((correctedRight - bounds[0]) / spacing[0]);
+    auto correctedRight = std::max(RB[0], RT[0]);
+    correctedRight = vtkMath::Round((correctedRight - bounds[0]) / spacing[0]);
     correctedRight = bounds[0] + (correctedRight + 1)*spacing[0]; // the edge ends at the end of the voxel
 
-    double correctedTop  = std::max(LT[1], RT[1]);
-    correctedTop = int((correctedTop - bounds[2]) / spacing[1]);
+    auto correctedTop  = std::min(LT[1], RT[1]);
+    correctedTop = vtkMath::Round((correctedTop - bounds[2]) / spacing[1]);
     correctedTop = bounds[2] + (correctedTop)*spacing[1];
 
-    double correctedBottom  = std::min(LB[1], RB[1]);
-    correctedBottom = int((correctedBottom - bounds[2]) / spacing[1]);
+    auto correctedBottom  = std::max(LB[1], RB[1]);
+    correctedBottom = vtkMath::Round((correctedBottom - bounds[2]) / spacing[1]);
     correctedBottom = bounds[2] + (correctedBottom + 1)*spacing[1]; // the edge ends at the end of the voxel
 
     // Left Bottom Corner
@@ -251,7 +250,8 @@ void AdaptiveEdgesCreator::run()
     {
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
-    } else
+    }
+    else
     {
       Q_ASSERT(lastCell[0] != -1);
       Q_ASSERT(lastCell[1] != -1);
@@ -295,22 +295,18 @@ void AdaptiveEdgesCreator::run()
     if (z == zMax)
     {
       // Left Bottom Corner
-      //face->GetPoint(1, LB);
       LB[2] += spacing[2];
       cell[0] = borderVertices->InsertNextPoint(LB);
 
       // Left Top Corner
-      //face->GetPoint(0, LT);
       LT[2] += spacing[2];
       cell[1] = borderVertices->InsertNextPoint(LT);
 
       // Right Top Corner
-      //face->GetPoint(2, RT);
       RT[2] += spacing[2];
       cell[2] = borderVertices->InsertNextPoint(RT);
 
       // Right Bottom Corner
-      //face->GetPoint(3, RB);
       RB[2] += spacing[2];
       cell[3] = borderVertices->InsertNextPoint(RB);
 
@@ -350,14 +346,18 @@ void AdaptiveEdgesCreator::run()
       // Lower Inclusion Face
       faces->InsertNextCell(4, cell);
     }
+
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
     if (z != zMin)
     {
       m_extension->m_computedVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
     }
+
     ++z;
   }
+
+  QWriteLocker lock(&m_extension->m_dataMutex);
 
   if (isAborted())
   {
@@ -365,13 +365,138 @@ void AdaptiveEdgesCreator::run()
   }
   else
   {
+    m_extension->m_edges = vtkSmartPointer<vtkPolyData>::New();
     m_extension->m_edges->SetPoints(borderVertices);
     m_extension->m_edges->SetPolys(faces);
 
-    emit progress(100);
+    reportProgress(50);
   }
+}
 
-  m_extension->m_edgesResultMutex.unlock();
+//------------------------------------------------------------------------
+void AdaptiveEdgesCreator::computeFaces()
+{
+  if(isAborted()) return; // no edges if user cancelled the task.
 
-  //qDebug() << "Adaptive Edges Created" << m_extension->m_extendedItem->name();
+  auto borderPoints = m_extension->m_edges->GetPoints();
+  auto numSlices = m_extension->m_edges->GetNumberOfPoints()/4;
+
+  for (int face = 0; face < 6 && canExecute(); face++)
+  {
+    auto faceCells = vtkCellArray::New();
+    auto facePoints = vtkPoints::New();
+    facePoints->SetDataTypeToDouble();
+
+    if (face < 4)
+    {
+      for (int i = 0; i < numSlices; i++)
+      {
+        double p1[3], p2[3];
+        switch(face)
+        {
+          case 0: // LEFT
+            borderPoints->GetPoint((4*i)+0, p1);
+            borderPoints->GetPoint((4*i)+1, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          case 1: // RIGHT
+            borderPoints->GetPoint((4*i)+2, p1);
+            borderPoints->GetPoint((4*i)+3, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          case 2: // TOP
+            borderPoints->GetPoint((4*i)+1, p1);
+            borderPoints->GetPoint((4*i)+2, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          case 3: // BOTTOM
+            borderPoints->GetPoint((4*i)+3, p1);
+            borderPoints->GetPoint((4*i)+0, p2);
+
+            facePoints->InsertNextPoint(p1);
+            facePoints->InsertNextPoint(p2);
+
+            break;
+          default:
+            Q_ASSERT(false);
+            break;
+        }
+
+        if (i == 0)
+          continue;
+
+        vtkIdType corners[4];
+        corners[0] = (i*2)-2;
+        corners[1] = (i*2)-1;
+        corners[2] = (i*2)+1;
+        corners[3] = 2*i;
+        faceCells->InsertNextCell(4,corners);
+      }
+    }
+    else
+    {
+      vtkIdType corners[4];
+      double p[3];
+      switch(face)
+      {
+        case 4: // Front
+        {
+          for (int i = 0; i < 4; ++i)
+          {
+            borderPoints->GetPoint(i, p);
+            corners[i] = facePoints->InsertNextPoint(p);
+          }
+          break;
+        }
+        case 5: // Back
+        {
+          auto np = borderPoints->GetNumberOfPoints();
+          for (int i = 0; i < 4; ++i)
+          {
+            borderPoints->GetPoint(np - (4-i), p);
+            corners[i] = facePoints->InsertNextPoint(p);
+          }
+          break;
+        }
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+      faceCells->InsertNextCell(4,corners);
+    }
+
+    vtkSmartPointer<vtkPolyData> poly = vtkSmartPointer<vtkPolyData>::New();
+    poly->SetPoints(facePoints);
+    poly->SetPolys(faceCells);
+
+    facePoints->Delete();
+    faceCells->Delete();
+
+    {
+      QWriteLocker lock(&m_extension->m_dataMutex);
+
+      m_extension->m_faces[face] = poly;
+    }
+
+    reportProgress(50 + (static_cast<double>(face)/6.0)*50.0);
+ }
+}
+
+//------------------------------------------------------------------------
+void AdaptiveEdgesCreator::run()
+{
+  computeEdges();
+  computeFaces();
+
+  m_extension->m_hasCreatedEdges = !isAborted();
+  m_extension->m_edgesTask.wakeAll();
 }

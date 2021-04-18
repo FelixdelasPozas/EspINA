@@ -24,9 +24,9 @@
 #include "AppositionSurfacePlugin_Export.h"
 
 // ESPINA
-#include <Core/Analysis/Extension.h>
-#include <Core/EspinaTypes.h>
-#include <Core/Utils/NmVector3.h>
+#include <Core/Types.h>
+#include <Core/Utils/Vector3.hxx>
+#include <Core/Analysis/Extensions.h>
 #include <GUI/Model/SegmentationAdapter.h>
 
 // VTK
@@ -35,20 +35,21 @@
 
 namespace ESPINA
 {
-  const QString SAS = QObject::tr("SAS");
+  class ASExtensionFactory;
 
+  /** \class AppositionSurfaceExtension
+   * \brief Extends the SAS segmentations with information.
+   *
+   */
   class AppositionSurfacePlugin_EXPORT AppositionSurfaceExtension
-  : public SegmentationExtension
+  : public Core::SegmentationExtension
   {
     public:
       static const Type TYPE;
+      static const Type OLD_TYPE;
+      static const QString SAS_PREFIX;
 
     public:
-      /** \brief AppositionSurfaceExtension class constructor.
-       * \param[in] infocache InfoCache object reference.
-       */
-      explicit AppositionSurfaceExtension(const SegmentationExtension::InfoCache &cache);
-
       /** \brief AppositionSurfaceExtension class virtual destructor.
        *
        */
@@ -67,29 +68,50 @@ namespace ESPINA
       virtual Snapshot snapshot() const
       { return Snapshot(); }
 
-      virtual TypeList dependencies() const
+      virtual const TypeList dependencies() const
       { return TypeList(); }
 
-      virtual InfoTagList availableInformations() const;
+      virtual const InformationKeyList availableInformation() const;
 
       virtual bool validCategory(const QString &classificationName) const;
 
-      /** \brief Sets the origin segmentation for the SAS segmentation. Right now there is no
-       * other way to inject that information to the SAS extension.
+      virtual bool validData(const OutputSPtr output) const;
+
+      /** \brief Helper method that adds the SAS prefix to the given key.
+       * \param[in] value segmentation extension key.
+       *
        */
-      void setOriginSegmentation(SegmentationAdapterSPtr segmentation)
-      { m_originSegmentation = segmentation; }
+      static Core::SegmentationExtension::Key addSASPrefix(const Key& value);
+
+      /** \brief Helper method that removes the SAS prefix from the given key.
+       * \param[in] value segmentation extension key.
+       *
+       */
+      static Core::SegmentationExtension::Key removeSASPrefix(const Key &value);
 
     protected:
-      virtual QVariant cacheFail(const InfoTag &tag) const;
+      virtual QVariant cacheFail(const InformationKey &tag) const;
 
       virtual void onExtendedItemSet(Segmentation* item);
 
   private:
+      /** \class Shape
+       *  \brief Enumerates the types of SAS according to their shape.
+       */
+      enum class Shape
+      {
+        MACULAR = 0, FRAGMENTED = 1, PERFORATED = 2, FRAGMENTEDANDPERFORATED = 3, HORSESHOE = 4, UNKNOWN = 5
+      };
+
+      /** \brief AppositionSurfaceExtension class constructor.
+       * \param[in] infocache InfoCache object reference.
+       */
+      explicit AppositionSurfaceExtension(const Core::SegmentationExtension::InfoCache &cache);
+
       /** \brief Computes SAS area.
        * \param[in] asMesh SAS polydata smart pointer.
        */
-      Nm computeArea(const vtkSmartPointer<vtkPolyData> &asMesh) const;
+      Nm computeArea(const vtkSmartPointer<vtkPolyData> asMesh) const;
 
       /** \brief Returns true if the specified cell is part of the perimeter.
        * \param[in] asMesh SAS polydata smart pointer.
@@ -97,24 +119,24 @@ namespace ESPINA
        * \param[in] p1
        * \param[in] p2
        */
-      bool isPerimeter(const vtkSmartPointer<vtkPolyData> &asMesh, const vtkIdType cellId, const vtkIdType p1, const vtkIdType p2) const;
+      bool isPerimeter(const vtkSmartPointer<vtkPolyData> asMesh, const vtkIdType cellId, const vtkIdType p1, const vtkIdType p2) const;
 
-      /** \brief Returns the perimeter of the SAS.
+      /** \brief Returns the perimeter of the SAS and the type of SAS according to its shape.
        * \param[in] asMesh SAS polydata smart pointer.
        *
        */
-      Nm computePerimeter(const vtkSmartPointer<vtkPolyData> &asMesh) const;
+      std::pair<Nm, Shape> computePerimeterAndShape(const vtkSmartPointer<vtkPolyData> asMesh) const;
 
       /** \brief Returns the projection of the SAS polydata to a plane.
        * \param[in] asMesh SAS polydata smart pointer.
        */
-      vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> &mesh) const;
+      vtkSmartPointer<vtkPolyData> projectPolyDataToPlane(const vtkSmartPointer<vtkPolyData> mesh) const;
 
       /** \brief Returns the tortuosity of the SAS.
        * \param[in] asMesh SAS polydata smart pointer.
        * \param[in] asArea area of the SAS.
        */
-      double computeTortuosity(const vtkSmartPointer<vtkPolyData> &asMesh, const Nm asArea) const;
+      double computeTortuosity(const vtkSmartPointer<vtkPolyData> asMesh, const Nm asArea) const;
 
       /** \brief Computes SAS curvatures.
        * \param[in] asMesh SAS polydata smart pointer.
@@ -123,7 +145,7 @@ namespace ESPINA
        * \param[out] minCurvature
        * \param[out] maxCurvature
        */
-      void computeCurvatures(const vtkSmartPointer<vtkPolyData> &asMesh,
+      void computeCurvatures(const vtkSmartPointer<vtkPolyData> asMesh,
                              vtkSmartPointer<vtkDoubleArray> gaussCurvature,
                              vtkSmartPointer<vtkDoubleArray> meanCurvature,
                              vtkSmartPointer<vtkDoubleArray> minCurvature,
@@ -135,9 +157,15 @@ namespace ESPINA
        */
       bool computeInformation() const;
 
-  private:
-      SegmentationAdapterSPtr m_originSegmentation;
+      /** \brief Tries to get the SAS origin synapse from the model.
+       *
+       */
+      void obtainOriginSynapse() const;
 
+      mutable bool             m_hasErrors; /** false if the computation process finished without errors, true otherwise. */
+      mutable SegmentationSPtr m_synapse;   /** synapse the SAS is generated from.                                        */
+
+      friend class ASExtensionFactory;
   };
 
   using AppositionSurfaceExtensionPtr  = AppositionSurfaceExtension *;

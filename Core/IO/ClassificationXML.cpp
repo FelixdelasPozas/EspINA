@@ -21,12 +21,16 @@
 
 // ESPINA
 #include "ClassificationXML.h"
+#include <Core/Utils/EspinaException.h>
 
 // Qt
 #include <QStack>
 #include <QXmlStreamReader>
+#include <QColor>
+#include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 using namespace ESPINA::IO;
 
 //-----------------------------------------------------------------------------
@@ -36,11 +40,12 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
   QStringRef name = stream.attributes().value("name");
 
-  ClassificationSPtr classification{new Classification(name.toString())};
+  auto classification = std::make_shared<Classification>(name.toString());
 
   QStack<CategorySPtr> stack;
 
-  CategorySPtr parent;
+  CategorySPtr parent{nullptr};
+
   while (!stream.atEnd())
   {
     stream.readNextStartElement();
@@ -55,7 +60,8 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 
         CategorySPtr category = classification->createNode(name.toString(), parent);
 
-        category->setColor(color.toString());
+        QColor categoryColor(color.toString());
+        category->setColor(categoryColor.hue());
 
         for(auto attrib: stream.attributes())
         {
@@ -78,15 +84,27 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
 }
 
 //-----------------------------------------------------------------------------
+bool validProperty(const QString& property)
+{
+  return !property.isEmpty();
+}
+
+//-----------------------------------------------------------------------------
 void dumpCategoryXML(CategorySPtr category, QXmlStreamWriter& stream)
 {
   stream.writeStartElement("category");
   stream.writeAttribute("name", category->name());
-  stream.writeAttribute("color", category->color().name());
+
+  QColor color;
+  color.setHsv(category->color(), 255,255);
+  stream.writeAttribute("color", color.name());
 
   for(auto prop: category->properties())
   {
-    stream.writeAttribute(prop, category->property(prop).toString());
+    if (validProperty(prop))
+    {
+      stream.writeAttribute(prop, category->property(prop).toString());
+    }
   }
 
   for(auto subCategory: category->subCategories())
@@ -120,14 +138,19 @@ void dumpClassificationXML(ClassificationSPtr classification, QXmlStreamWriter& 
 ClassificationSPtr ClassificationXML::load(const QFileInfo& file,
                                            ErrorHandlerSPtr handler )
 {
-  ClassificationSPtr classification{new Classification()};
+  auto classification = std::make_shared<Classification>();
 
   QFile xmlFile(file.absoluteFilePath());
-  if (!xmlFile.open(QIODevice::ReadOnly | QIODevice::Text))
+  if (!xmlFile.open(QIODevice::ReadOnly|QIODevice::Text))
   {
     if (handler)
+    {
       handler->error(QObject::tr("Could not load file %1").arg(file.fileName()));
-    throw (IO_Exception());
+    }
+
+    auto what    = QObject::tr("Unable to load classification file.");
+    auto details = QObject::tr("ClassificationXML::load() -> Unable to load file: %1, cause: %2").arg(file.absoluteFilePath()).arg(xmlFile.errorString());
+    throw EspinaException(what, details);
   }
 
   QXmlStreamReader stream(&xmlFile);
@@ -141,7 +164,9 @@ void ClassificationXML::save(ClassificationSPtr classification, const QFileInfo&
   QFile xmlFile(file.absoluteFilePath());
   if (!xmlFile.open(QIODevice::WriteOnly))
   {
-    throw (ClassificationXML::IO_Exception());
+    auto what    = QObject::tr("Unable to save classification file.");
+    auto details = QObject::tr("ClassificationXML::save() -> Unable to save file: %1, cause: %2").arg(file.absoluteFilePath()).arg(xmlFile.errorString());
+    throw EspinaException(what, details);
   }
 
   QXmlStreamWriter stream(&xmlFile);
@@ -161,7 +186,6 @@ QByteArray ClassificationXML::dump(const ClassificationSPtr classification, Erro
   return serialization;
 }
 
-#include <QDebug>
 //-----------------------------------------------------------------------------
 ClassificationSPtr ClassificationXML::parse(const QByteArray& serialization,
                                             ErrorHandlerSPtr handler)

@@ -1,3 +1,6 @@
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
 include_directories(
   ${CMAKE_BINARY_DIR}         # Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
@@ -6,17 +9,21 @@ include_directories(
 include (GenerateExportHeader)
 
 # Add Qt Resource files
-qt4_add_resources(CORE_RCC
+qt5_add_resources(CORE_RCC
   rsc/core.qrc
   )
 
-qt4_wrap_cpp(CORE_MOC
+qt5_wrap_cpp(CORE_MOC
+  Plugin.h
   Analysis/Data.h
-  Analysis/Extension.h
+  Analysis/Extensions.h
   Analysis/Output.h
   Analysis/ViewItem.h
+  IO/ProgressReporter.h
+  IO/SaveThread.h
   MultiTasking/Scheduler.h
   MultiTasking/Task.h
+  MultiTasking/TaskGroupProgress.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
@@ -24,12 +31,18 @@ set (CORE_SOURCES
   ${CORE_RCC}
   ${CORE_MOC}
   ${CORE_UI}
+  Plugin.cpp
   Analysis/Analysis.cpp
   Analysis/Category.cpp
   Analysis/Channel.cpp
+  Analysis/Connections.cpp
   Analysis/Data.cpp
   Analysis/Data/MeshData.cpp
   Analysis/Data/Mesh/RawMesh.cpp
+  Analysis/Data/Mesh/MarchingCubesMesh.cpp
+  Analysis/Data/SkeletonData.cpp
+  Analysis/Data/SkeletonDataUtils.cpp
+  Analysis/Data/Skeleton/RawSkeleton.cpp
   Analysis/Data/VolumetricData.cpp
   Analysis/Data/Volumetric/ROI.cpp
   Analysis/Filter.cpp
@@ -40,29 +53,36 @@ set (CORE_SOURCES
   Analysis/Sample.cpp
   Analysis/Segmentation.cpp
   Analysis/ViewItem.cpp
+  Analysis/Filters/SourceFilter.cpp
+  Analysis/Filters/VolumetricStreamReader.cpp
   Factory/CoreFactory.cpp
   IO/ClassificationXML.cpp
-  IO/DataFactory/FetchRawData.cpp
+  IO/DataFactory/RawDataFactory.cpp
   IO/DataFactory/MarchingCubesFromFetchedVolumetricData.cpp
   IO/DataFactory/RasterizedVolumeFromFetchedMeshData.cpp
   IO/GraphIO.cpp
-  IO/ReadOnlyChannelExtension.cpp
-  IO/ReadOnlySegmentationExtension.cpp
+  IO/SaveThread.cpp
   IO/SegFile.cpp
   IO/SegFileInterface.cpp
   IO/SegFile_V4.cpp
   IO/SegFile_V5.cpp
   IO/ZipUtils.cpp
+  Readers/ChannelReader.cpp
   MultiTasking/Scheduler.cpp
   MultiTasking/Task.cpp
+  MultiTasking/TaskGroupProgress.cpp
   Utils/AnalysisUtils.cpp
   Utils/Bounds.cpp
+  Utils/EspinaException.cpp
   Utils/Measure.cpp
-  Utils/NmVector3.cpp
   Utils/SparseBinaryVolume.cpp
+  Utils/SupportedFormats.cpp
   Utils/TemporalStorage.cpp
   Utils/VolumeBounds.cpp
   Utils/vtkPolyDataUtils.cpp
+  Utils/vtkVoxelContour2D.cpp  
+  Utils/Histogram.cpp
+  Utils/QStringUtils.cpp
   )
 
 set(CORE_EXTERNAL_LIBS
@@ -74,7 +94,10 @@ set(CORE_EXTERNAL_LIBS
 )
 
 if(DEFINED MINGW)
+  SET (WIN64_EXTRA_LIBS bfd iberty imagehlp z)
+  SET (CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${WIN64_EXTRA_LIBS})
   if (CMAKE_BUILD_TYPE MATCHES Debug)
+    SET (EXTRA_LIBS bfd iberty imagehlp z)
     SET (CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
   endif (CMAKE_BUILD_TYPE MATCHES Debug)
 

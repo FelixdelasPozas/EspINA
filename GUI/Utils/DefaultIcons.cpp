@@ -32,18 +32,29 @@ using namespace ESPINA::GUI;
 //------------------------------------------------------------------------
 QIcon DefaultIcons::Save()
 {
-  return qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  return QIcon(":/espina/file_save.svg");
 }
 
 //------------------------------------------------------------------------
 QIcon DefaultIcons::Load()
 {
-
- return qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+  return QIcon(":/espina/file_open.svg");
 }
 
 //------------------------------------------------------------------------
 QIcon DefaultIcons::File()
 {
   return qApp->style()->standardIcon(QStyle::SP_FileIcon);
+}
+
+//------------------------------------------------------------------------
+QIcon DefaultIcons::Information()
+{
+  return QIcon(":/espina/info.svg");
+}
+
+//------------------------------------------------------------------------
+QIcon DefaultIcons::Settings()
+{
+  return QIcon(":/espina/settings.svg");
 }

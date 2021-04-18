@@ -3,8 +3,8 @@
  *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  *    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
  *    it under the terms of the GNU General Public License as published by
  *    the Free Software Foundation, either version 3 of the License, or
  *    (at your option) any later version.
@@ -18,10 +18,15 @@
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ESPINA_WIDGET_H
-#define ESPINA_WIDGET_H
+#ifndef ESPINA_GUI_WIDGET_H
+#define ESPINA_GUI_WIDGET_H
 
 #include "GUI/EspinaGUI_Export.h"
+
+// ESPINA
+#include <Core/Utils/Spatial.h>
+#include <Core/Utils/Vector3.hxx>
+#include <GUI/Representations/Managers/TemporalManager.h>
 
 // VTK
 #include <vtkCommand.h>
@@ -30,79 +35,119 @@
 // C++
 #include <memory>
 
+class vtkAbstractWidget;
 namespace ESPINA
 {
   class RenderView;
-
-  class EspinaGUI_EXPORT EspinaWidget
+  namespace GUI
   {
-  public:
-  	/** \brief EspinaWidget class constructor.
-  	 *
-  	 */
-    explicit EspinaWidget()
-    {}
+    namespace View
+    {
+      namespace Widgets
+      {
+        /** \class EspinaWidget
+         * \brief Base class for EspINA interactive widgets.
+         *
+         */
+        class EspinaGUI_EXPORT EspinaWidget
+        {
+          public:
+            /** \brief EspinaWidget class virtual destructor.
+             *
+             */
+            virtual ~EspinaWidget()
+            {}
 
-    /** \brief EspinaWidget class virtual destructor.
-     *
-     */
-    virtual ~EspinaWidget()
-    {}
+            /** \brief Initializes the widget for the given view.
+             * \param[in] view Espina view.
+             *
+             */
+            void initializeWidget(RenderView *view);
 
-    /** \brief Registers the specified view.
-     * \brief view, raw pointer of the render view to register.
-     *
-     */
-    virtual void registerView  (RenderView *view) = 0;
+            /** \brief De-initializes the widget.
+             *
+             */
+            void uninitializeWidget();
 
-    /** \brief Unregisters the specified view.
-     * \brief view, raw pointer of the render view to unregister.
-     *
-     */
-    virtual void unregisterView(RenderView *view) = 0;
+            /** \brief Shows the widget on the configured view.
+             *
+             */
+            void showWidget();
 
-    /** \brief Enables/disables the widget.
-     * \param[in] enable, true to enable, false otherwise.
-     *
-     */
-    virtual void setEnabled(bool enable) = 0;
+            /** \brief Hides the widget from the configured view.
+             *
+             */
+            void hideWidget();
 
-    /** \brief Returns true if the widget manipulates the segmentations in any way.
-     *
-     * Useful to disable the widget when the segmentation representations change.
-     *
-     */
-    virtual bool manipulatesSegmentations() const
-    { return false; };
-  };
+            /** \brief Returns true if the widget is shown on the configured view and false otherwise.
+             *
+             */
+            bool isWidgetEnabled();
 
-  using EspinaWidgetPtr  = EspinaWidget *;
-  using EspinaWidgetSPtr = std::shared_ptr<EspinaWidget>;
+          private:
+            /** \brief Private implementation of initialization for the widget subclass.
+             *
+             */
+            virtual void initializeImplementation(RenderView *view) = 0;
 
+            /** \brief Private implementation of de-initialization for the widget subclass.
+             *
+             */
+            virtual void uninitializeImplementation() = 0;
+
+            /** \brief Returns the vtkWidget of the EspinaWidget.
+             *
+             */
+            virtual vtkAbstractWidget *vtkWidget() = 0;
+        };
+
+        /** \class EspinaWidget2D
+         * \brief Implements an interactive widget for 2D views.
+         *
+         */
+        class EspinaGUI_EXPORT EspinaWidget2D
+        : public Representations::Managers::TemporalRepresentation2D
+        , public EspinaWidget
+        {
+          public:
+            virtual void initialize(RenderView *view) override
+            { initializeWidget(view); }
+
+            virtual void uninitialize() override
+            { uninitializeWidget(); }
+
+            virtual void show() override
+            { showWidget(); }
+
+            virtual void hide() override
+            { hideWidget(); }
+        };
+
+        /** \class EspinaWidget3D
+         * \brief Implements an interactive widget for 3D views.
+         *
+         */
+        class EspinaGUI_EXPORT EspinaWidget3D
+        : public Representations::Managers::TemporalRepresentation3D
+        , public EspinaWidget
+        {
+          public:
+            virtual void initialize(RenderView *view) override
+            { initializeWidget(view); }
+
+            virtual void uninitialize() override
+            { uninitializeWidget(); }
+
+            virtual void show() override
+            { showWidget(); }
+
+            virtual void hide() override
+            { hideWidget(); }
+        };
+
+      } // namespace Widgets
+    } // namespace View
+  } // namespace GUI
 } // namespace ESPINA
 
-class vtkEspinaCommand
-: public vtkCommand
-{
-  public:
-    vtkTypeMacro(vtkEspinaCommand, vtkCommand);
-
-    /** \brief vtkEspinaCommand destructor.
-     *
-     */
-    virtual ~vtkEspinaCommand()
-    {}
-
-    /** \brief Sets the widget this vtkCommand executes to.
-     * \param[in] widget EspinaWidget raw pointer.
-     *
-     */
-    virtual void setWidget(ESPINA::EspinaWidgetPtr widget) = 0;
-
-    /** \brief Implements vtkCommand::Execute.
-     *
-     */
-    virtual void Execute(vtkObject *, unsigned long int, void*) = 0;
-};
-
-#endif // ESPINA_WIDGET_H
+#endif // ESPINA_GUI_WIDGET_H

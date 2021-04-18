@@ -21,24 +21,21 @@
 // ESPINA
 #include "ChangeCategoryCommand.h"
 #include <GUI/Model/ModelAdapter.h>
-#include <Support/ViewManager.h>
 
 using namespace ESPINA;
 
 //------------------------------------------------------------------------
 ChangeCategoryCommand::ChangeCategoryCommand(SegmentationAdapterList segmentations,
                                              CategoryAdapterPtr      category,
-                                             ModelAdapterSPtr        model,
-                                             ViewManagerSPtr         viewManager,
+                                             Support::Context       &context,
                                              QUndoCommand*           parent)
-: QUndoCommand {parent}
-, m_model      {model}
-, m_viewManager{viewManager}
-, m_category   {m_model->smartPointer(category)}
+: QUndoCommand(parent)
+, WithContext (context)
+, m_category  {context.model()->smartPointer(category)}
 {
   for(auto segmentation: segmentations)
   {
-    m_oldCategories[m_model->smartPointer(segmentation)] = segmentation->category();
+    m_oldCategories[context.model()->smartPointer(segmentation)] = segmentation->category();
   }
 }
 
@@ -50,23 +47,35 @@ ChangeCategoryCommand::~ChangeCategoryCommand()
 //------------------------------------------------------------------------
 void ChangeCategoryCommand::redo()
 {
-  SegmentationAdapterList segmentations;
+  ViewItemAdapterList segmentations;
+
   for(auto segmentation: m_oldCategories.keys())
   {
-    m_model->setSegmentationCategory(segmentation, m_category);
+    getModel()->setSegmentationCategory(segmentation, m_category);
     segmentations << segmentation.get();
   }
-  m_viewManager->updateSegmentationRepresentations(segmentations);
+
+  updateSelection(segmentations);
 }
 
 //------------------------------------------------------------------------
 void ChangeCategoryCommand::undo()
 {
-  SegmentationAdapterList segmentations;
+  ViewItemAdapterList segmentations;
+
   for(auto segmentation: m_oldCategories.keys())
   {
-    m_model->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
+    getModel()->setSegmentationCategory(segmentation, m_oldCategories[segmentation]);
     segmentations << segmentation.get();
   }
-  m_viewManager->updateSegmentationRepresentations(segmentations);
+
+  updateSelection(segmentations);
+}
+
+//------------------------------------------------------------------------
+void ChangeCategoryCommand::updateSelection(ViewItemAdapterList segmentations)
+{
+  getViewState().selection()->clear();
+  getViewState().selection()->set(segmentations);
+  getViewState().invalidateRepresentationColors(segmentations);
 }

@@ -26,28 +26,34 @@
 // Qt
 #include <QTreeView>
 
+/** \class CheckableTreeView
+ * \brief Treeview with checkable items.
+ *
+ */
 class EspinaGUI_EXPORT CheckableTreeView
 : public QTreeView
 {
-  Q_OBJECT
-public:
-  /** \brief CheckableTreeView class constructor.
-   * \param[in] parent, raw pointer of the QWidget parent of this one.
-   */
-  explicit CheckableTreeView(QWidget* parent = nullptr);
+    Q_OBJECT
+  public:
+    /** \brief CheckableTreeView class constructor.
+     * \param[in] parent, raw pointer of the QWidget parent of this one.
+     *
+     */
+    explicit CheckableTreeView(QWidget* parent = nullptr);
 
-  /** \brief CheckableTreeView class virtual destructor.
-   *
-   */
-  virtual ~CheckableTreeView();
+    /** \brief CheckableTreeView class virtual destructor.
+     *
+     */
+    virtual ~CheckableTreeView()
+    {}
 
-  /** \brief Overrides QTreeView::mouseReleaseEvent().
-   *
-   */
-  virtual void mouseReleaseEvent(QMouseEvent* event) override;
+    /** \brief Overrides QTreeView::mouseReleaseEvent().
+     *
+     */
+    virtual void mouseReleaseEvent(QMouseEvent* event) override;
 
-signals:
-  void itemStateChanged(const QModelIndex &);
+  signals:
+    void itemStateChanged(const QModelIndex &);
 };
 
 #endif // CHECKABLETREEVIEW_H

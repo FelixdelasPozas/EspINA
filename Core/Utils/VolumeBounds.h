@@ -29,11 +29,11 @@
 #ifndef ESPINA_VOLUME_BOUNDS_H
 #define ESPINA_VOLUME_BOUNDS_H
 
+#include <Core/Utils/Vector3.hxx>
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
 #include "Core/Utils/Spatial.h"
-#include "Core/Utils/NmVector3.h"
 #include "Bounds.h"
 
 // Qt
@@ -48,9 +48,9 @@ namespace ESPINA
   {
     public:
       /** \brief VolumeBounds class constructor.
-       * \param[in] bounds, bounds of the volume.
-       * \param[in] spacing, spacing of the volume.
-       * \param[in] origin, origin of the volume.
+       * \param[in] bounds bounds of the volume.
+       * \param[in] spacing spacing of the volume.
+       * \param[in] origin origin of the volume.
        *
        */
       explicit VolumeBounds(const Bounds &bounds = Bounds(), const NmVector3 &spacing = NmVector3{1,1,1}, const NmVector3 &origin = NmVector3());
@@ -64,21 +64,21 @@ namespace ESPINA
       { return m_spacing[0] > 0 && m_spacing[1] > 0 && m_spacing[2] > 0 && m_bounds.areValid(); }
 
       /** \brief VolumeBounds operator[]
-       * \param[in] idx, value in (0,5)
+       * \param[in] idx value in (0,5)
        *
        */
       const double& operator[](int idx) const
       { return m_bounds[idx]; }
 
       /** \brief Return the distance between both sides of the bounds in a given direction.
-       * \param[in] dir, axis direction.
+       * \param[in] dir axis direction.
        *
        */
       double lenght(const Axis dir) const
       { return m_bounds.lenght(dir); }
 
       /** \brief Sets volume origin.
-       * \param[in] origin.
+       * \param[in] origin
        *
        */
       void setOrigin(const NmVector3& origin)
@@ -91,7 +91,7 @@ namespace ESPINA
       { return m_origin; }
 
       /** \brief Sets volume spacing.
-       * \param[in] spacing.
+       * \param[in] spacing
        *
        */
       void setSpacing(const NmVector3& spacing)
@@ -119,6 +119,12 @@ namespace ESPINA
       Bounds bounds() const
       { return m_bounds; }
 
+      /** \brief Implicit bounds conversion
+       *
+       */
+      operator Bounds() const
+      { return m_bounds; }
+
       /** \brief Dumps the volume bounds to a string for printing.
        *
        */
@@ -131,8 +137,6 @@ namespace ESPINA
   };
 
   using VolumeBoundsList = QList<VolumeBounds>;
-
-  struct Incompatible_Volume_Bounds_Exception {};
 
   /** \brief Returns true if the point = n * spacing.
    *
@@ -163,20 +167,17 @@ namespace ESPINA
   /** \brief Return the maximal bounds which belongs both to b1 and b2.
    *
    */
-  VolumeBounds EspinaCore_EXPORT intersection(const VolumeBounds& lhs, const VolumeBounds& rhs)
-  throw (Incompatible_Volume_Bounds_Exception);
+  VolumeBounds EspinaCore_EXPORT intersection(const VolumeBounds& lhs, const VolumeBounds& rhs);
 
   /** \brief Return the minimum bounds containing b1 and b2.
    *
    *  If bounds are not compatible an exception will be thrown.
    */
-  VolumeBounds EspinaCore_EXPORT boundingBox(const VolumeBounds &lhs, const VolumeBounds& rhs)
-  throw (Incompatible_Volume_Bounds_Exception);
+  VolumeBounds EspinaCore_EXPORT boundingBox(const VolumeBounds &lhs, const VolumeBounds& rhs);
 
   /** \brief Return true if b1 contains b2.
    *
-   *  Boundaires are inside if and only if both boundaries
-   *  are equally included.
+   *  Boundaries are inside if and only if both boundaries are equally included.
    */
   bool EspinaCore_EXPORT contains(const VolumeBounds& b1, const VolumeBounds& b2);
 
@@ -212,12 +213,21 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT areAdjacent(const VolumeBounds &lhs, const VolumeBounds &rhs);
 
+  /** \brief Resize bounds according to spacing
+   *
+   */
+  VolumeBounds EspinaCore_EXPORT changeSpacing(const VolumeBounds &bounds, const NmVector3 &spacing);
+
   /** \brief Returns a binary serialization of the volume bounds
    *
    */
   QByteArray EspinaCore_EXPORT serializeVolumeBounds(const VolumeBounds &bounds);
 
+  /** \brief Returns the VolumeBounds from its binary serialization
+   *
+   */
   VolumeBounds EspinaCore_EXPORT deserializeVolumeBounds(const QByteArray &serialization);
+
 }
 
 

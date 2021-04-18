@@ -22,12 +22,18 @@
 #ifndef ESPINA_APPLY_COUNTING_FRAME_H
 #define ESPINA_APPLY_COUNTING_FRAME_H
 
-#include "Extensions/EspinaExtensions_Export.h"
+#include "CountingFramePlugin_Export.h"
 
+// ESPINA
 #include <Core/MultiTasking/Task.h>
 #include <Core/Utils/Bounds.h>
 #include <Core/Analysis/Data/VolumetricData.hxx>
+#include <Core/Factory/ExtensionFactory.h>
 #include <GUI/Model/ChannelAdapter.h>
+
+// Qt
+#include <QMutex>
+#include <QWaitCondition>
 
 namespace ESPINA
 {
@@ -35,35 +41,118 @@ namespace ESPINA
   {
     class CountingFrame;
 
-    class ApplyCountingFrame
+    /** \class ApplySegmentationsCountingFrame
+     * \brief Applies the counting frame to the given segmentations list.
+     *
+     */
+    class ApplySegmentationCountingFrame
     : public Task
     {
-    public:
-      explicit ApplyCountingFrame(CountingFrame *countingFrame,
-                                  SchedulerSPtr scheduler = SchedulerSPtr());
-      virtual ~ApplyCountingFrame();
+        Q_OBJECT
+      public:
+        /** \brief ApplySegmentationCountingFrame class constructor.
+         * \param[in] countingFrame countingFrame of the segmentations.
+         * \param[in] segmentations segmentations list to apply.
+         * \param[in] factory Inclusion extension factory.
+         * \param[in] scheduler application task scheduler.
+         *
+         */
+        ApplySegmentationCountingFrame(CountingFrame                         *countingFrame,
+                                       SegmentationSList                      segmentations,
+                                       Core::SegmentationExtensionFactorySPtr factory,
+                                       SchedulerSPtr                          scheduler);
 
-      bool hasBeenLaunched() const
-      {
-        return m_hasBeenLaunched;
-      }
+        /** \brief ApplySegmentationCountingFrame class virtual destructor.
+         *
+         */
+        virtual ~ApplySegmentationCountingFrame()
+        {};
 
-      void restart()
-      {
-        QMutexLocker lock(&m_mutex);
-        m_hasToBeRestarted = true;
-      }
+      signals:
+        void progress(int value, ApplySegmentationCountingFrame* task);
 
-    protected:
-      virtual void run();
+      protected:
+        virtual void run() override;
 
-    private:
-      CountingFrame *m_countingFrame;
+      private:
+        CountingFrame                         *m_countingFrame; /** CountingFrame of the segmentations.  */
+        SegmentationSList                      m_segmentations; /** list of segmentations to apply.      */
+        Core::SegmentationExtensionFactorySPtr m_factory;       /** core factory for extension creation. */
+    };
 
-      bool m_hasBeenLaunched; //TODO: Move to Task API
+    /** \class ApplyCountingFrame
+     * \brief Computes the inclusion of all segmentations in the counting frame.
+     *
+     */
+    class CountingFramePlugin_EXPORT ApplyCountingFrame
+    : public Task
+    {
+        Q_OBJECT
+      public:
+        /** \brief ApplyCountingFrame class constructor.
+         * \param[in] countingFrame counting frame pointer.
+         * \param[in] factory model factory pointer.
+         * \param[in] sheduler application task scheduler.
+         *
+         */
+        explicit ApplyCountingFrame(CountingFrame                         *countingFrame,
+                                    Core::SegmentationExtensionFactorySPtr factory,
+                                    SchedulerSPtr                          scheduler);
 
-      QMutex m_mutex;
-      bool   m_hasToBeRestarted;
+        /** \brief ApplyCountingFrame class virtual destructor.
+         *
+         */
+        virtual ~ApplyCountingFrame();
+
+        /** \brief Returns the counting frame of the task.
+         *
+         */
+        CountingFrame * countingFrame() const
+        { return m_countingFrame; }
+
+      protected:
+        virtual void run();
+
+      private slots:
+        /** \brief Computes and signals the progress of the whole operation.
+         * \param[in] value task progress value.
+         * \param[in] task computing task pointer.
+         *
+         */
+        void onTaskProgress(int value, ApplySegmentationCountingFrame *task);
+
+        /** \brief Wakes up the thread when all the sub tasks have finished computation.
+         *
+         */
+        void onTaskFinished();
+
+      private:
+        void onAbort() override
+        { m_condition.wakeAll(); }
+
+        /** \brief Aborts the computation tasks.
+         *
+         */
+        void abortTasks();
+
+        CountingFrame                         *m_countingFrame; /** counting frame to apply            */
+        Core::SegmentationExtensionFactorySPtr m_factory;       /** stereological inclusion factory.   */
+        QMutex                                 m_waitMutex;     /** wait condition mutex.              */
+        QWaitCondition                         m_condition;     /** wait condition to stop the thread. */
+
+        using TaskType = std::shared_ptr<ApplySegmentationCountingFrame>;
+
+        /** \struct Data
+         * \brief Executing tasks context.
+         *
+         */
+        struct Data
+        {
+            TaskType Task;     /** running task.          */
+            int      Progress; /** task current progress. */
+        };
+
+        QMap<ApplySegmentationCountingFrame *, struct Data> m_tasks; /** executing task list. */
     };
 
     using ApplyCountingFramePtr  = ApplyCountingFrame *;

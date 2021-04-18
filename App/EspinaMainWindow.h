@@ -23,29 +23,31 @@
 
 // ESPINA
 #include "EspinaConfig.h"
-#include "EspinaErrorHandler.h"
-#include "RecentDocuments.h"
-#include "Settings/GeneralSettings/GeneralSettings.h"
-#include "Views/DefaultView.h"
 #include <Core/Factory/FilterFactory.h>
 #include <Core/IO/ErrorHandler.h>
-#include <Dialogs/ProblemList/ProblemListDialog.h>
-#include <Extensions/ExtensionFactory.h>
+#include <Core/Readers/ChannelReader.h>
+#include <Extensions/LibraryExtensionFactory.h>
+#include <Extensions/Issues/Issues.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ModelFactory.h>
-#include <GUI/Representations/Renderers/VolumetricRenderer.h>
-#include <GUI/Representations/Renderers/VolumetricGPURenderer.h>
 #include <GUI/Widgets/SchedulerProgress.h>
-#include <Support/Widgets/DockWidget.h>
 #include <Support/Plugin.h>
-#include <Support/Readers/ChannelReader.h>
+#include <Support/Settings/Settings.h>
 #include <Support/Settings/SettingsPanel.h>
-#include <Support/ViewManager.h>
-#include <Support/Factory/FilterDelegateFactory.h>
+#include <Support/Widgets/Panel.h>
+#include <Support/Widgets/ColorEngineSwitch.h>
+#include <Support/Context.h>
+#include <App/EspinaErrorHandler.h>
+#include <App/Views/DefaultView.h>
+#include <App/ToolGroups/Restrict/RestrictToolGroup.h>
+#include <App/ToolGroups/Edit/EditToolGroup.h>
+#include <App/ToolGroups/Analyze/AnalyzeToolGroup.h>
+#include <App/AutoSave.h>
 
 // Qt
+#include <QApplication>
 #include <QMainWindow>
-#include <QTimer>
+#include <QShortcut>
 
 // C++
 #include <cstdint>
@@ -55,16 +57,67 @@ class QPluginLoader;
 class QAction;
 class QFrame;
 class QUndoStack;
-class QShortcut;
 
 namespace ESPINA
 {
+  /** \class EspinaApplication
+   * \brief QApplication subclass to catch exceptions from slots/signals.
+   *  Bugged in Qt 4.x but apparently works in Qt 5.x kept here for future releases.
+   */
+  class EspinaApplication: public QApplication
+  {
+    public:
+      /** \brief EspinaApplication class constructor.
+       * \param[in] argc Number of parameters including application name and path.
+       * \param[in] argv Parameter buffers.
+       *
+       */
+      explicit EspinaApplication(int &argc, char **argv)
+      : QApplication{argc, argv}
+      {};
+
+      /** \brief EspinaApplication class virtual destructor.
+       *
+       */
+      virtual ~EspinaApplication()
+      {};
+
+      virtual bool notify(QObject *receiver, QEvent *e) override final
+      {
+        bool returnValue = true;
+
+        try
+        {
+          returnValue = QApplication::notify(receiver, e);
+        }
+        catch(const ESPINA::Core::Utils::EspinaException &e)
+        {
+          std::cout << "ESPINA EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << e.what() << std::endl;
+          std::cout << e.details() << std::endl;
+          std::cout << std::flush;
+        }
+        catch(const std::exception& e)
+        {
+          std::cout << "C++ EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << e.what() << std::endl;
+          std::cout << std::flush;
+        }
+        catch(...)
+        {
+          std::cout << "UNKNOWN EXCEPTION IN SLOT/SIGNAL" << std::endl;
+          std::cout << std::flush;
+        }
+
+        return returnValue;
+      }
+  };
+
   class SeedGrowSegmentationSettings;
   class ROISettings;
-  class MainToolBar;
-  class ColorEngineMenu;
-  template class VolumetricRenderer<itkVolumeType>;
-  template class VolumetricGPURenderer<itkVolumeType>;
+  class FileSaveTool;
+  class FileOpenTool;
+  class CheckAnalysis;
 
   class EspinaMainWindow
   : public QMainWindow
@@ -86,66 +139,84 @@ namespace ESPINA
      */
     virtual ~EspinaMainWindow();
 
-  public slots:
     /** \brief Close current analysis.
      *
      */
     bool closeCurrentAnalysis();
 
-    /** \brief Opens an analysis from the recent list.
+    /** \brief Opens a list of seg files.
+     * \param[in] filenames list of SEG file filenames.
      *
      */
-    void openRecentAnalysis();
+    void openAnalysis(QStringList filenames);
 
-    /** \brief Close current analysis and load a new one.
-     *
-     */
-    void openAnalysis();
+  signals:
+    void analysisChanged();
+    void analysisAboutToBeClosed();
+    void analysisClosed();
+    void abortOperation();
 
-    /** \brief Opens a list of analyses.
-     * \param[in] files list of files to open.
-     *
-     */
-    void openAnalysis(const QStringList files);
+  protected:
+    virtual void showEvent(QShowEvent *event) override;
 
-    /** \brief Add new data from file to current analysis.
-     *
-     */
-    void addToAnalysis();
+    virtual void hideEvent(QHideEvent *event) override;
 
-    /** \brief Adds data from a file from the recent list to current analysis.
-     *
-     */
-    void addRecentToAnalysis();
-
-    /** \brief Adds a list of analysis to the current analysis.
-     *      \param[in] files list of files to add.
-     *
-     */
-    void addToAnalysis(const QStringList files);
-
-    /** \brief Merges a list of analysis into a sigle analysis.
-     * \param[in] files list of files to merge.
-     *
-     */
-    AnalysisSPtr loadedAnalysis(const QStringList files);
-
-    /** \brief Save current analysis.
-     *
-     */
-    void saveAnalysis();
-
-    /** \brief Saves the current analysis (auto-save).
-     *
-     */
-    void saveSessionAnalysis();
+    virtual void closeEvent(QCloseEvent *event) override;
 
   private slots:
-    /** \brief Updates application status bar.
-     * \param[in] msg message to show.
+    /** \brief Replace current session analysis with the loaded one
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
      *
      */
-    void updateStatus(QString msg);
+    void onAnalysisLoaded(AnalysisSPtr analysis, const IO::LoadOptions options);
+
+    /** \brief Merge loaded analysis to current session analysis
+     * \param[in] analysis Analysis object.
+     * \param[in] options Analysis loading options.
+     *
+     */
+    void onAnalysisImported(AnalysisSPtr analysis, const IO::LoadOptions options);
+
+    /** \brief Saves tools settings just before saving a session.
+     *
+     */
+    void onAboutToSaveSession();
+
+    /** \brief Updates the application after a session has been saved.
+     * \param[in] filename name of the saved session file.
+     * \param[in] success true if the save was successful and false otherwise.
+     *
+     */
+    void onSessionSaved(const QString &filename, bool success);
+
+
+    /** \brief Change context bar to display tools of the selected group
+     *
+     */
+    void activateToolGroup(ToolGroup *toolGroup);
+
+    /** \brief Notifies tool groups that a new exclusive tool is in use
+     *
+     */
+    void onExclusiveToolInUse(Support::Widgets::ProgressTool *tool);
+
+    /** \brief Sets the menu state as "open".
+     *
+     */
+    void openState()
+    { m_menuState = MenuState::OPEN_STATE; }
+
+    /** \brief Sets the menu state as "add".
+     *
+     */
+    void addState()
+    { m_menuState = MenuState::ADD_STATE; }
+
+    /** \brief Cancels current operation.
+     *
+     */
+    void cancelOperation();
 
     /** \brief Updates the tooltip of the menu.
      * \param[in] action action that contains the tooltip.
@@ -163,105 +234,151 @@ namespace ESPINA
      */
     void showAboutDialog();
 
-    /** \brief Shows the raw information dialog.
+    /** \brief Invalidates the colors of the representations when the color engine changes.
      *
      */
-    void showRawInformation();
+    void onColorEngineModified();
 
-    /** \brief Sets the menu state as "open".
+    /** \brief Shows the issues dialog with the given issues.
      *
      */
-    void openState()
-    { m_menuState = MenuState::OPEN_STATE; }
+    void showIssuesDialog(Extensions::IssueList problems) const;
 
-    /** \brief Sets the menu state as "add".
+    /** \brief Changes the current group to the session one when saving a file.
      *
      */
-    void addState()
-    { m_menuState = MenuState::ADD_STATE; }
+    void onAutoSave(const QString &file);
 
-    /** \brief Saves the current analysis to disk.
+    /** \brief Runs a series of test on the analysis to check for issues.
      *
      */
-    void autosave();
+    void checkAnalysisConsistency();
 
-    /** \brief Cancels current operation.
+    /** \brief Stops the analysis check task if its running.
      *
      */
-    void cancelOperation();
+    void stopAnalysisConsistencyCheck();
 
-    /** \brief Updates the undo action text in the menu.
-     * \param[in] text text of the operation to update.
+    /** \brief List of actions to do after the main window have been shown on screen.
      *
      */
-    void undoTextChanged(QString text);
+    void delayedInitActions();
 
-    /** \brief Updates the redo action text in the menu.
-     * \param[in] text text of the operation to update.*
+    /** \brief Called when the update task has finished.
      *
      */
-    void redoTextChanged(QString text);
-
-    /** \brief Enables/Disables the redo action in the menu.
-     *
-     */
-    void canRedoChanged(bool);
-
-    /** \brief Enables/Disables the redo action in the menu.
-     *
-     */
-    void canUndoChanged(bool);
-
-    /** \brief Executes undo action.
-     *
-     */
-    void undoAction(bool);
-
-    /** \brief Executes redo action.
-     *
-     */
-    void redoAction(bool);
-
-  signals:
-    void analysisChanged();
-    void analysisClosed();
-    void abortOperation();
-
-  protected:
-    /** \brief Overrides QWidget::closeEvent.
-     * \param[in] event close event to manage.
-     *
-     */
-    virtual void closeEvent(QCloseEvent *event) override;
+    void onUpdateCheckFinished();
 
   private:
-    /** \brief Runs a series of test on the analysis to check for errors.
+    /** \brief Helper method to initialize the available color engines.
      *
      */
-    ProblemList checkAnalysisConsistency();
+    void initColorEngines();
 
-    /** \brief Creates activity menu.
+    /** \brief Helper method to create and register the given color engine with the given icon.
+     * \param[in] engine Color engine object.
+     * \param[in] icon Qicon object.
      *
      */
-    void createActivityMenu();
+    void createColorEngine(GUI::ColorEngines::ColorEngineSPtr engine, const QString& icon);
 
-    /** \brief Creates dynamic menu.
-     * \param[in] entry pair of <QStringList, Action *> object to add.
+    /** \brief Registers the given color engine in the current context and adds it switch to the UI.
+     * \param[in] colorEngineSwitch Color engine switch button.
      *
      */
-    void createDynamicMenu(MenuEntry entry);
+    void registerColorEngine(Support::Widgets::ColorEngineSwitchSPtr colorEngineSwitch);
 
-    /** \brief Checks if an auto-save file exists to ask the user if he/she wants to load or discard it.
+    /** \brief Helper method to initialize and register the available representations.
      *
      */
-    void checkAutosave();
+    void initRepresentations();
 
-    /** \brief Adds a dock widget to the application.
-     * param[in] area, area of the widget.
-     * param[in] dock, raw pointer of the dock widget to add.
+    /** \brief Helper method to create the GUI toolbars.
      *
      */
-    void registerDockWidget(Qt::DockWidgetArea area, DockWidget *dock);
+    void createToolbars();
+
+    /** \brief Helper method to create the GUI tool groups.
+     *
+     */
+    void createToolGroups();
+
+    /** \brief Helper method to register the tool shorcuts.
+     *
+     */
+    void createToolShortcuts();
+
+    /** \brief Helper method to create the Session tool group.
+     *
+     */
+    void createSessionToolGroup();
+
+    /** \brief Helper method to create the Explore tool group.
+     *
+     */
+    void createExploreToolGroup();
+
+    /** \brief Helper method to create the Restrict tool group.
+     *
+     */
+    void createRestrictToolGroup();
+
+    /** \brief Helper method to create the Segment tool group.
+     *
+     */
+    void createSegmentToolGroup();
+
+    /** \brief Helper method to create the Edit tool group.
+     *
+     */
+    void createEditToolGroup();
+
+    /** \brief Helper method to create the Visualize tool group.
+     *
+     */
+    void createVisualizeToolGroup();
+
+    /** \brief Helper method to create the Analyze tool group.
+     *
+     */
+    void createAnalyzeToolGroup();
+
+    /** \brief Helper method to create a ToolGroup object.
+     * \param[in] icon Toolgroup icon.
+     * \param[in] title Toolgroup name.
+     *
+     */
+    ToolGroupPtr createToolGroup(const QString &icon, const QString &title);
+
+    /** \brief Helper method to create the application default panels.
+     *
+     */
+    void createDefaultPanels();
+
+    /** \brief Helper method to register the switches of a representation.
+     * \param[in] representation Representation struct.
+     *
+     */
+    void registerRepresentationSwitches(const Representation &representation);
+
+    void saveGeometry();
+
+    void restoreGeometry();
+
+    /** \brief Enables/disables the tool shortcuts.
+     *
+     */
+    void enableToolShortcuts(bool value);
+
+    /** \brief Registers representation factory
+     *
+     */
+    void registerRepresentationFactory(RepresentationFactorySPtr factory);
+
+    /** \brief Asks the user if the autosave must be loaded.
+     *
+     */
+    void checkAutoSavedAnalysis();
 
     /** \brief Adds a tool group to the application.
      * \param[in] tools tool group raw pointer.
@@ -285,72 +402,117 @@ namespace ESPINA
      */
     void enableWidgets(bool value);
 
+    /** \brief Updates application status bar.
+     * \param[in] msg message to show.
+     *
+     */
+    void updateStatus(QString msg);
+
+    /** \brief Updates the value of the undo stack index backup.
+     *
+     */
+    void updateUndoStackIndex();
+
+    /** \brief Assigns the active stack for segmentation operations.
+     *
+     */
+    void assignActiveStack();
+
+    /** \brief Saves misc session settings onto the settings file in the analysis.
+     *
+     */
+    void saveSessionSettings();
+
+    /** \brief Launches the stack edges analyzer.
+     *
+     */
+    void analyzeStackEdges();
+
+    /** \brief Updates the configuration of all the tools.
+     *
+     */
+    void updateToolsSettings();
+
+    /** \brief Saves the current tool settings to the session settings in the analysis.
+     *
+     */
+    void saveToolsSettings();
+
+    /** \brief Helper method that returns the list of toolgroups in the UI.
+     *
+     */
+    const QList<ToolGroupPtr> toolGroups() const;
+
+    /** \brief Returns the list of available tools.
+     *
+     */
+    Support::Widgets::ToolSList availableTools() const;
+
+    /** \brief Helper method to initialize the crosshair.
+     *
+     */
+    void initializeCrosshair();
+
+    /** \brief Launches the task that checks for updates.
+     *
+     */
+    void checkForUpdates();
+
   private:
     // ESPINA
-    SchedulerSPtr             m_scheduler;
-    ModelFactorySPtr          m_factory;
-    FilterDelegateFactorySPtr m_filterDelegateFactory;
-    AnalysisSPtr              m_analysis;
-    ModelAdapterSPtr          m_model;
-    ViewManagerSPtr           m_viewManager;
-    QUndoStack               *m_undoStack;
+    bool m_minimizedStatus;
+
+    Support::Context              m_context;
+    Support::FilterRefinerFactory m_filterRefiners;
+    AnalysisSPtr                  m_analysis;
+
+    AutoSave m_autoSave;
+    EspinaErrorHandlerSPtr m_errorHandler;
 
     FilterFactorySPtr  m_filterFactory;
     ChannelReaderSPtr  m_channelReader;
     AnalysisReaderSPtr m_segFileReader;
 
-    GeneralSettingsSPtr           m_settings;
+    Support::GeneralSettingsSPtr  m_settings;
     ROISettings*                  m_roiSettings;
     SeedGrowSegmentationSettings *m_sgsSettings;
 
-    // GUI
-    QMenu           *m_addMenu;
-    QAction         *m_saveAnalysis;
-    QAction         *m_saveSessionAnalysis;
-    QAction         *m_closeAnalysis;
-    QMenu           *m_editMenu;
-    QMenu           *m_viewMenu;
-    ColorEngineMenu *m_colorEngines;
-    QMenu           *m_dockMenu;
+    QShortcut          m_cancelShortcut;
+    QList<QShortcut *> m_toolShortcuts;
 
-    QToolBar *m_mainBar;
-    QToolBar *m_contextualBar;
+    // ToolBars
+    QToolBar           *m_mainBar;
+    QActionGroup        m_mainBarGroup;
+    QToolBar           *m_contextualBar;
+    ToolGroupPtr        m_activeToolGroup;
 
-    // UNDO
-    QAction         *m_undoAction;
-    QAction         *m_redoAction;
+    ToolGroup          *m_sessionToolGroup;
+    ToolGroup          *m_exploreToolGroup;
+    RestrictToolGroup  *m_restrictToolGroup;
+    ToolGroup          *m_segmentToolGroup;
+    EditToolGroup      *m_refineToolGroup;
+    ToolGroup          *m_visualizeToolGroup;
+    AnalyzeToolGroup   *m_analyzeToolGroup;
 
-    ExtensionFactorySList m_extensionFactories;
-    SettingsPanelSList    m_availableSettingsPanels;
+    std::shared_ptr<FileOpenTool> m_openFileTool;
+    std::shared_ptr<FileSaveTool> m_saveTool;
+    std::shared_ptr<FileSaveTool> m_saveAsTool;
 
-    MainToolBar*          m_mainToolBar;
+    std::shared_ptr<Support::Widgets::ProgressTool> m_checkTool;
+
+    Support::Settings::SettingsPanelSList m_availableSettingsPanels;
+
     DefaultViewSPtr       m_view;
     SchedulerProgressSPtr m_schedulerProgress;
 
-    RecentDocuments m_recentDocuments1;
-    RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
-
-    QList<QPluginLoader *>    m_plugins;
+    QList<QPluginLoader *> m_plugins;
 
     MenuState m_menuState;
 
     bool m_busy;
 
-    struct DynamicMenuNode
-    {
-      explicit DynamicMenuNode();
-      ~DynamicMenuNode();
-
-      QMenu *menu;
-      QList<DynamicMenuNode *> submenus;
-    };
-    DynamicMenuNode *m_dynamicMenuRoot;
-
-    int       m_undoStackSavedIndex;
-    QTimer    m_autosave;
-    QFileInfo m_sessionFile;
-
-    EspinaErrorHandlerSPtr m_errorHandler;
+    int m_savedUndoStackIndex;
+    std::shared_ptr<CheckAnalysis> m_checkTask; /** analysis check task. */
   };
 
 } // namespace ESPINA

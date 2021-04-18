@@ -26,6 +26,7 @@
 // ESPINA
 #include <Core/Analysis/Segmentation.h>
 #include <GUI/ModelFactory.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDialog>
@@ -34,55 +35,87 @@
 class QTreeWidgetItem;
 namespace ESPINA
 {
-  class EspinaFactory;
-
-  class EspinaGUI_EXPORT InformationSelector
-  : public QDialog
+  namespace GUI
   {
-    Q_OBJECT
-
-    class GUI;
-
-  public:
-    using GroupedInfo = QMap<QString, QStringList>;
-
-  public:
-    /** \brief InformationSelector class constructor.
-     * \param[in] availableGroups, map of available title-tags groups.
-     * \param[in] selection, map of checked title-tags groups.
-     * \param[in] parent, raw pointer of the QWidget parent of this one.
-     */
-    explicit InformationSelector(const GroupedInfo &availableGroups,
-                                 GroupedInfo       &selection,
-                                 QWidget         *parent = nullptr,
-                                 Qt::WindowFlags  flags = 0);
-
-    /** \brief InformationSelector class virtual destructor.
+    /** \class InformationSelector
+     * \brief Dialog to select a group of information tags from the available group of tags.
      *
      */
-    virtual ~InformationSelector();
+    class EspinaGUI_EXPORT InformationSelector
+    : public QDialog
+    {
+        Q_OBJECT
 
-  protected slots:
-    /** \brief Overrides QDialog::accept().
+      public:
+        using GroupedInfo = QMap<QString, QStringList>;
+
+      public:
+        /** \brief InformationSelector class constructor.
+         * \param[in] availableGroups map of available title-tags groups.
+         * \param[in] selection map of checked title-tags groups.
+         * \param[in] title title of the dialog.
+         * \param[in] exclusive true to make the item selecion exclusive and false otherwise.
+         * \param[in] parent raw pointer of the QWidget parent of this one.
+         *
+         */
+        explicit InformationSelector(const GroupedInfo &availableGroups,
+                                     GroupedInfo       &selection,
+                                     const QString     &title,
+                                     const bool         exclusive,
+                                     QWidget           *parent = GUI::DefaultDialogs::defaultParentWidget());
+
+        /** \brief InformationSelector class virtual destructor.
+         *
+         */
+        virtual ~InformationSelector();
+
+      protected slots:
+        void accept();
+
+      private slots:
+        /** \brief Updates the state of the tree widget.
+         * \param[in] item tree item.
+         * \param[in] column column of the item.
+         *
+         */
+        void onItemClicked(QTreeWidgetItem *item, const int column);
+
+      private:
+        /** \brief Updates the state of the tree widget.
+         * \param[in] item tree item.
+         * \param[in] column column of the item.
+         * \param[in] updateParent true to update the parent state, false otherwise.
+         *
+         */
+        void updateCheckState(QTreeWidgetItem *item, const int column, const bool updateParent = true);
+
+        /** \brief De-selects all the items.
+         *
+         */
+        void unselectItems();
+
+      private:
+        class UI;
+
+      private:
+        UI          *m_gui;       /** chessire cat GUI implementation.                              */
+        bool         m_exclusive; /** true if the selection is exclusive (only one item selection). */
+        GroupedInfo &m_selection; /** selected tag group.                                           */
+    };
+
+    /** \brief Returns the available information of extensions registered in the factory given.
+     * \param[in] factory Model factory smart pointer.
      *
      */
-    void accept();
+    InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(ModelFactorySPtr factory);
 
-    /** \brief Updates the state of the tree widget.
-     * \param[in] item, tree item.
-     * \param[in] column, column of the item.
-     * \param[in] updateParent, true to update the parent state, false otherwise.
+    /** \brief Returns the available information for the given segmentations and factory given.
+     * \param[in] segmentations Segmentation list.
+     * \param[in] factory Model factory smart pointer.
      *
      */
-    void updateCheckState(QTreeWidgetItem *item, int column, bool updateParent = true);
-
-  private:
-    GUI *m_gui;
-
-    ModelFactorySPtr m_factory;
-
-    GroupedInfo &m_selection;
-  };
+    InformationSelector::GroupedInfo EspinaGUI_EXPORT availableInformation(const SegmentationAdapterList segmentations, ModelFactorySPtr factory);
+  }
 }
 
 #endif // ESPINA_INFORMATION_SELECTOR_H

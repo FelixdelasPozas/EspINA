@@ -30,106 +30,112 @@
 
 // Qt
 #include <QDir>
+#include <QMutex>
+#include <QMutexLocker>
 
 using namespace ESPINA;
+using namespace ESPINA::PolyDataUtils;
 
 //----------------------------------------------------------------------------
-RawMesh::RawMesh(OutputSPtr output)
+RawMesh::RawMesh()
 : m_mesh{nullptr}
 {
 }
 
 //----------------------------------------------------------------------------
 RawMesh::RawMesh(vtkSmartPointer<vtkPolyData> mesh,
-                 itkVolumeType::SpacingType spacing,
-                 OutputSPtr output)
+                 const NmVector3             &spacing,
+                 const NmVector3             &origin)
 : m_mesh{mesh}
 {
-}
-
-
-//----------------------------------------------------------------------------
-Snapshot RawMesh::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) const
-{
-  return MeshData::snapshot(storage, path, id);
+  m_bounds = polyDataVolumeBounds(mesh, spacing, origin);
 }
 
 //----------------------------------------------------------------------------
-Snapshot RawMesh::editedRegionsSnapshot(TemporalStorageSPtr storage, const QString& path, const QString& id) const
+void RawMesh::setSpacing(const NmVector3 &spacing)
 {
-  return snapshot(storage, path, id);
-}
+  QMutexLocker lock(&m_lock);
 
-//----------------------------------------------------------------------------
-void RawMesh::restoreEditedRegions(TemporalStorageSPtr storage, const QString& path, const QString& id)
-{
-  fetchDataImplementation(storage, path, id);
-}
+  auto prevSpacing = m_bounds.spacing();
+  bool existsMesh = (m_mesh != nullptr);
 
-//----------------------------------------------------------------------------
-vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
-{
-  return m_mesh;
-}
-
-//----------------------------------------------------------------------------
-void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh)
-{
-  m_mesh = mesh;
-
-  BoundsList editedRegions;
-  if (m_mesh)
+  if(existsMesh)
   {
-    editedRegions << bounds();
+    Q_ASSERT(spacing[0] != 0 && spacing[1] != 0 && spacing[2] != 0);
+    auto ratio = spacing / prevSpacing;
+
+    PolyDataUtils::scalePolyData(m_mesh, ratio);
+    updateModificationTime();
   }
-  setEditedRegions(editedRegions);
+
+  m_bounds = changeSpacing(m_bounds, spacing);
 }
 
 //----------------------------------------------------------------------------
-NmVector3 RawMesh::spacing() const
+void RawMesh::setMesh(vtkSmartPointer<vtkPolyData> mesh, bool notify)
 {
-  return m_output->spacing();
-}
+  {
+    QMutexLocker lock(&m_lock);
 
-//----------------------------------------------------------------------------
-size_t RawMesh::memoryUsage() const
-{
-  if (m_mesh)
-    return m_mesh->GetActualMemorySize();
+    bool hasMesh = (m_mesh != nullptr);
 
-  return 0;
+    if(!hasMesh && mesh)
+    {
+      m_mesh = vtkSmartPointer<vtkPolyData>::New();
+    }
+
+    if (mesh)
+    {
+      m_mesh->DeepCopy(mesh);
+      m_bounds = polyDataVolumeBounds(mesh, m_bounds.spacing(), m_bounds.origin());
+    }
+    else
+    {
+      m_mesh = nullptr;
+      m_bounds = VolumeBounds(Bounds(), m_bounds.spacing(), m_bounds.origin());
+    }
+
+    // only add as an edited region if there was a previous mesh.
+    if (hasMesh)
+    {
+      BoundsList editedRegions;
+      editedRegions << bounds();
+      setEditedRegions(editedRegions);
+    }
+  }
+
+  if(notify) updateModificationTime();
 }
 
 //----------------------------------------------------------------------------
 bool RawMesh::isValid() const
 {
-  return (m_mesh.Get() != nullptr);
+  QMutexLocker lock(&m_lock);
+
+  return m_bounds.areValid() && !needFetch();
 }
 
 //----------------------------------------------------------------------------
 bool RawMesh::isEmpty() const
 {
-  return !isValid();
+  QMutexLocker lock(&m_lock);
+
+  return !m_mesh || m_mesh->GetNumberOfCells() == 0;
 }
 
 //----------------------------------------------------------------------------
-bool RawMesh::setInternalData(MeshDataSPtr rhs)
+size_t RawMesh::memoryUsage() const
 {
-  m_mesh = rhs->mesh();
-  return true;
+  QMutexLocker lock(&m_lock);
+
+  const int BYTES = 1024;
+  return m_mesh ? m_mesh->GetActualMemorySize() * BYTES : 0;
 }
 
 //----------------------------------------------------------------------------
-bool RawMesh::fetchDataImplementation(TemporalStorageSPtr storage, const QString& path, const QString& id)
+vtkSmartPointer<vtkPolyData> RawMesh::mesh() const
 {
-  return MeshData::fetchDataImplementation(storage, path, id);
-}
+  QMutexLocker lock(&m_lock);
 
-
-//----------------------------------------------------------------------------
-RawMeshSPtr ESPINA::rawMesh(OutputSPtr output)
-{
-  RawMeshSPtr meshData = std::dynamic_pointer_cast<RawMesh>(output->data(MeshData::TYPE));
-  Q_ASSERT(meshData.get());
-  return meshData;
+  return m_mesh;
 }

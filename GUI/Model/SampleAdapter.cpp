@@ -128,3 +128,9 @@ SampleAdapterPtr ESPINA::samplePtr(ItemAdapterPtr item)
 {
   return static_cast<SampleAdapterPtr>(item);
 }
+
+//------------------------------------------------------------------------
+bool ESPINA::isSample(ItemAdapterPtr item)
+{
+  return item && (ItemAdapter::Type::SAMPLE == item->type());
+}

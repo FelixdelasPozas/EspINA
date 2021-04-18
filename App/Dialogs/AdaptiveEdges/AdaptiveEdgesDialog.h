@@ -23,6 +23,7 @@
 
 // ESPINA
 #include <ui_AdaptiveEdgesDialog.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QDialog>
@@ -40,7 +41,7 @@ namespace ESPINA
 			/** \brief AdaptiveEdgesDialog class constructor.
 			 * \param[in] parent, Parent widget.
 			 */
-      AdaptiveEdgesDialog(QWidget *parent);
+      AdaptiveEdgesDialog(QWidget *parent = GUI::DefaultDialogs::defaultParentWidget());
 
       /** \brief AdaptiveEdgesDialog class destructor.
        *
@@ -69,6 +70,7 @@ namespace ESPINA
       void thresholdChanged(int value);
       void setBlackBgColor();
       void setWhiteBgColor();
+      void onOptimalStateChanged(int value);
 
     private:
       bool m_adaptiveEdgesEnabled;

@@ -24,7 +24,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
+#include <Core/Utils/Spatial.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
@@ -32,56 +33,73 @@
 
 class vtkPoints;
 
-class EspinaGUI_EXPORT vtkZoomSelectionWidget
-: public vtkAbstractWidget
+namespace ESPINA
 {
-  public:
-    static vtkZoomSelectionWidget *New();
+  namespace GUI
+  {
+    namespace View
+    {
+      namespace Widgets
+      {
+        class EspinaGUI_EXPORT vtkZoomSelectionWidget
+        : public vtkAbstractWidget
+        {
+          public:
+            static vtkZoomSelectionWidget *New();
 
-    vtkTypeMacro(vtkZoomSelectionWidget,vtkAbstractWidget);
+            vtkTypeMacro(vtkZoomSelectionWidget,vtkAbstractWidget);
 
-    // The method for activating and deactivating this widget. This method
-    // must be overridden because it is a composite widget and does more than
-    // its superclasses' vtkAbstractWidget::SetEnabled() method.
-    virtual void SetEnabled(int);
+            // The method for activating and deactivating this widget. This method
+            // must be overridden because it is a composite widget and does more than
+            // its superclasses' vtkAbstractWidget::SetEnabled() method.
+            virtual void SetEnabled(int);
 
-    // Description:
-    // Specify an instance of vtkWidgetRepresentation used to represent this
-    // widget in the scene. Note that the representation is a subclass of vtkProp
-    // so it can be added to the renderer independent of the widget.
-    void SetRepresentation(vtkWidgetRepresentation *r)
-          { this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
+            // Description:
+            // Specify an instance of vtkWidgetRepresentation used to represent this
+            // widget in the scene. Note that the representation is a subclass of vtkProp
+            // so it can be added to the renderer independent of the widget.
+            void SetRepresentation(vtkWidgetRepresentation *r)
+            { this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
 
-    // Description:
-    // Create the default widget representation if one is not set.
-    void CreateDefaultRepresentation();
+            // Description:
+            // Create the default widget representation if one is not set.
+            void CreateDefaultRepresentation();
 
-    // Description:
-    // Enum defining the state of the widget. By default the widget is in Start mode,
-    // and expects to be interactively placed. While placing the points the widget
-    // transitions to Define state. Once placed, the widget enters the Manipulate state.
-    //BTX
-    enum {Start=0,Define, End};
-    //ETX
+            // Description:
+            // Enum defining the state of the widget. By default the widget is in Start mode,
+            // and expects to be interactively placed. While placing the points the widget
+            // transitions to Define state. Once placed, the widget enters the Manipulate state.
+            //BTX
+            enum {Start=0,Define, End};
+            //ETX
 
-    // Description:
-    // Return the current widget state.
-    virtual int GetWidgetState() {return this->WidgetState;}
+            // Description:
+            // Return the current widget state.
+            virtual int GetWidgetState() {return this->WidgetState;}
 
-    enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
-    virtual void SetWidgetType(WidgetType);
+            enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
+            /** \brief Sets the type of widget according to the view it will draw on.
+             * \param[in] type
+             */
+            virtual void SetWidgetType(WidgetType type);
 
-  protected:
-    vtkZoomSelectionWidget();
-    virtual ~vtkZoomSelectionWidget();
+          protected:
+            // Callback interface to capture events
+            static void SelectAction(vtkAbstractWidget*);
+            static void MoveAction(vtkAbstractWidget*);
+            static void EndSelectAction(vtkAbstractWidget*);
 
-    // Callback interface to capture events
-    static void SelectAction(vtkAbstractWidget*);
-    static void MoveAction(vtkAbstractWidget*);
-    static void EndSelectAction(vtkAbstractWidget*);
+            vtkZoomSelectionWidget();
+            virtual ~vtkZoomSelectionWidget();
 
-    int WidgetState;
-    WidgetType m_type;
-};
+            int WidgetState;
+            WidgetType m_type;
+            ESPINA::Nm m_depth;
+        };
+
+      }
+    }
+  }
+}
 
 #endif /* VTKZOOMSELECTIONWIDGET_H_ */

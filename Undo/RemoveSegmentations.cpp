@@ -20,11 +20,13 @@
 
 // ESPINA
 #include "RemoveSegmentations.h"
+#include <Core/Analysis/Connections.h>
 
 // Qt
 #include <QStack>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 //------------------------------------------------------------------------
 RemoveSegmentations::RemoveSegmentations(SegmentationAdapterPtr segmentation,
@@ -67,7 +69,16 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 
     m_segmentations << m_model->smartPointer(segmentation);
 
-    m_relations << m_model->relations(segmentation, ESPINA::RELATION_INOUT);
+    for(auto relation: m_model->relations(segmentation, ESPINA::RELATION_INOUT))
+    {
+      // Connection relations are deleted with the connections.
+      if(relation.relation != Core::Connection::CONNECTS)
+      {
+        m_relations << relation;
+      }
+    }
+
+    m_connections << m_model->connections(m_model->smartPointer(segmentation));
 
     //TODO: Add segmentations a new flag to indicate whether it has to be deleted if
     //      its input is deleted or add an special relation to notify that
@@ -91,69 +102,28 @@ void RemoveSegmentations::analyzeSegmentation(SegmentationAdapterPtr segmentatio
 //------------------------------------------------------------------------
 void RemoveSegmentations::redo()
 {
+  m_model->beginBatchMode();
   for(auto relation : m_relations)
   {
     m_model->deleteRelation(relation);
   }
 
-  m_model->remove(m_segmentations);
+  m_model->remove(m_segmentations); // deletes segmentation connections also.
+  m_model->endBatchMode();
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentations::undo()
 {
+  m_model->beginBatchMode();
   m_model->add(m_segmentations);
 
-  for(Relation relation : m_relations)
+  for(auto relation : m_relations)
   {
     m_model->addRelation(relation);
   }
+
+  m_model->addConnections(m_connections);
+  m_model->endBatchMode();
 }
-
-// //------------------------------------------------------------------------
-// void RemoveSegmentations::addFilterDependencies(FilterSPtr filter)
-// {
-//   ModelItemSList consumers = filter->relatedItems(ESPINA::RELATION_OUT);
-//   foreach(ModelItemSPtr consumer, consumers)
-//     switch(consumer->type())
-//     {
-//       case ESPINA::SEGMENTATION:
-//         if (!m_segmentations.contains(segmentationPtr(consumer)))
-//           return;
-//         break;
-//       case ESPINA::FILTER:
-//         if (!m_filters.contains(filterPtr(consumer)))
-//           return;
-//         break;
-//       default:
-//         return;
-//         break;
-//     }
-//
-//   if (!m_filters.contains(filter))
-//     m_filters << filter;
-//
-//   foreach(Relation relation, filter->relations())
-//     if (!isADupicatedRelation(relation))
-//       m_relations << relation;
-//
-//   ModelItemSList ancestors = filter->relatedItems(ESPINA::RELATION_IN);
-//   foreach(ModelItemSPtr ancestor, ancestors)
-//     if (ancestor->type() == ESPINA::FILTER && (filterPtr(ancestor)->filterType() != ChannelReader::TYPE))
-//       addFilterDependencies(filterPtr(ancestor));
-// }
-
-// //------------------------------------------------------------------------
-// bool RemoveSegmentations::isADupicatedRelation(Relation relation)
-// {
-//   foreach(Relation storedRelation, m_relations)
-//     if (relation.ancestor == storedRelation.ancestor &&
-//         relation.relation == storedRelation.relation &&
-//         relation.succesor == storedRelation.succesor)
-//     {
-//       return true;
-//     }
-//
-//   return false;
-// }

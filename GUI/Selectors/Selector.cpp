@@ -21,17 +21,44 @@
 // ESPINA
 #include "GUI/Selectors/Selector.h"
 
-using namespace ESPINA;
+#include "GUI/Model/SampleAdapter.h"
+#include "GUI/Model/ChannelAdapter.h"
+#include "GUI/Model/SegmentationAdapter.h"
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
-const Selector::SelectionTag Selector::SAMPLE = "ESPINA_Sample";
-const Selector::SelectionTag Selector::CHANNEL = "ESPINA_Channel";
-const Selector::SelectionTag Selector::SEGMENTATION = "ESPINA_Segmentation";
+using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
 
 //-----------------------------------------------------------------------------
 void Selector::setSelectionTag(const Selector::SelectionTag tag, bool selectable)
 {
   if (selectable)
-    m_flags.insert(tag);
+  {
+    m_flags |= tag;
+  }
   else
-    m_flags.remove(tag);
+  {
+    m_flags &= ~tag;
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool Selector::IsValid(NeuroItemAdapterPtr item, Selector::SelectionFlags flags)
+{
+  if(isChannel(item))
+  {
+    return flags.testFlag(CHANNEL) || flags.testFlag(SAMPLE);
+  }
+
+  if(isSegmentation(item))
+  {
+    return flags.testFlag(SEGMENTATION);
+  }
+
+  if(isSample(item))
+  {
+    return flags.testFlag(SAMPLE);
+  }
+
+  return false;
 }

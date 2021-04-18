@@ -20,37 +20,63 @@
 
 // ESPINA
 #include "EspinaMainWindow.h"
+#include <Core/Utils/EspinaException.h>
 
 // Qt
-#include <QApplication>
 #include <QPluginLoader>
 #include <QTranslator>
+#include <QSharedMemory>
+#include <QMessageBox>
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
+//-----------------------------------------------------------------
+void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+  const char symbols[] = { 'I', 'E', '!', 'X' };
+//  QString output = QString("[%1] %2 (%3:%4 -> %5)").arg( symbols[type] ).arg( msg ).arg(context.file).arg(context.line).arg(context.function);
+  QString output = QString("[%1] %2").arg(symbols[type]).arg(msg);
+  std::cerr << output.toStdString() << std::endl;
+  if (type == QtFatalMsg) abort();
+}
+
+//-----------------------------------------------------------------
 int main(int argc, char **argv)
 {
-  QApplication app(argc, argv);
-  app.setWindowIcon(QIcon(":/espina/espina.svg"));
+  qInstallMessageHandler(myMessageOutput);
+
+  EspinaApplication app(argc, argv);
+
+  // allow only one instance
+//  QSharedMemory guard;
+//  guard.setKey("EspINA");
+//
+//  if (!guard.create(1))
+//  {
+//    QMessageBox msgBox;
+//    msgBox.setWindowIcon(QIcon(":/espina/espina.svg"));
+//    msgBox.setWindowTitle("EspINA");
+//    msgBox.setIcon(QMessageBox::Warning);
+//    msgBox.setText("EspINA is already running!");
+//    msgBox.setStandardButtons(QMessageBox::Ok);
+//    msgBox.exec();
+//    exit(0);
+//  }
 
   QTranslator translator;
   translator.load("espina_es");
   app.installTranslator(&translator);
 
   QDir pluginsDir = QDir(app.applicationDirPath());
+  pluginsDir.cd("plugins");
+
   qDebug() << "Loading Plugins from path: " << pluginsDir.absolutePath();
 
-  #if defined(Q_OS_MAC)
-    if (pluginsDir.dirName() == "MacOS")
-    {
-      pluginsDir.cdUp();
-      pluginsDir.cdUp();
-      pluginsDir.cdUp();
-    }
-  #endif
-
-  pluginsDir.cd("plugins");
+  installExceptionHandler();
+  installSignalHandler();
+  installVTKErrorLogger();
 
   QList<QPluginLoader *> loaders;
   QList<QObject *>       plugins;
@@ -58,18 +84,19 @@ int main(int argc, char **argv)
   qDebug() << "Loading Plugins: ";
   for(QString fileName : pluginsDir.entryList(QDir::Files))
   {
-    QPluginLoader *loader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
-    QObject *plugin = loader->instance();
+    auto loader = new QPluginLoader(pluginsDir.absoluteFilePath(fileName));
+    auto plugin = loader->instance();
+
     if (plugin)
     {
-      qDebug() << "Found plugin " << fileName;
+      qDebug() << "Found plugin: " << fileName;
       plugins << plugin;
       loaders << loader;
     }
     else
     {
       // DO NOT DELETE, THIS IS TO DEBUG PLUGINS
-//      qDebug() << fileName << "not loaded -> Error:" << loader->errorString();
+      qDebug() << "ERROR:" << fileName << "not loaded. Description:" << loader->errorString();
       delete loader;
     }
   }
@@ -77,21 +104,24 @@ int main(int argc, char **argv)
   int res = 0;
   {
     EspinaMainWindow espina(plugins);
+    espina.setWindowIcon(QIcon(":/espina/espina.svg"));
     espina.show();
 
-    if (argc > 1) {
+    if (argc > 1)
+    {
       QStringList filenames;
       for (int i = 1; i < argc; ++i)
       {
-        filenames << argv[i];
+        filenames << QString(argv[i]);
       }
-      qDebug() << "Opening: " << filenames;
+
       espina.openAnalysis(filenames);
     }
 
     res = app.exec();
   }
 
+  // plugins must be deleted after EspINA application has been destroyed.
   for(auto plugin: loaders)
   {
     plugin->unload();

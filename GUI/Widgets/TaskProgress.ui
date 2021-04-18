@@ -29,6 +29,9 @@ border-color: black;
      <property name="value">
       <number>0</number>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
     </widget>
    </item>
    <item>
@@ -41,6 +44,12 @@ border-color: black;
        <width>32</width>
        <height>32</height>
       </size>
+     </property>
+     <property name="toolTip">
+      <string>Abort task</string>
+     </property>
+     <property name="statusTip">
+      <string>Abort task</string>
      </property>
      <property name="text">
       <string/>

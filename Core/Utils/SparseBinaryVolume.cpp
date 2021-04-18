@@ -31,7 +31,7 @@
 namespace ESPINA
 {
   //----------------------------------------------------------------------------
-  SparseBinaryVolume::SparseBinaryVolume(const Bounds& bounds, const NmVector3 spacing) throw(Invalid_Image_Bounds_Exception)
+  SparseBinaryVolume::SparseBinaryVolume(const Bounds& bounds, const NmVector3 spacing)
   : m_spacing(spacing)
   , m_bounds(bounds)
   , m_blocks_bounding_box(bounds)
@@ -44,7 +44,7 @@ namespace ESPINA
 
   //----------------------------------------------------------------------------
   SparseBinaryVolume::SparseBinaryVolume(const vtkSmartPointer<vtkImageData> image,
-                                         const unsigned char backgroundValue) throw(Invalid_Image_Bounds_Exception)
+                                         const unsigned char backgroundValue)
   {
     double bounds[6], spacing[3];
     image->GetSpacing(spacing);
@@ -154,7 +154,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  itkVolumeType::Pointer SparseBinaryVolume::itkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception)
+  itkVolumeType::Pointer SparseBinaryVolume::itkImage(const Bounds& bounds) const
   {
     // bounds must be completely inside m_bounds, no partial-inside/partial-outside
     // bounds allowed
@@ -173,7 +173,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  vtkSmartPointer<vtkImageData> SparseBinaryVolume::vtkImage(const Bounds& bounds) const throw(Bounds_Not_Inside_Mask_Exception)
+  vtkSmartPointer<vtkImageData> SparseBinaryVolume::vtkImage(const Bounds& bounds) const
   {
     // bounds must be completely inside m_bounds, no partial-inside/partial-outside
     // bounds allowed
@@ -387,7 +387,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  void SparseBinaryVolume::undo() throw(Cant_Undo_Exception)
+  void SparseBinaryVolume::undo()
   {
     if (m_blocks.back()->isLocked())
       throw Cant_Undo_Exception();
@@ -399,7 +399,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  void SparseBinaryVolume::redo() throw(Cant_Redo_Exception)
+  void SparseBinaryVolume::redo()
   {
     if (m_redoBlocks.empty())
       throw Cant_Redo_Exception();
@@ -445,7 +445,7 @@ namespace ESPINA
   }
 
   //----------------------------------------------------------------------------
-  void SparseBinaryVolume::updateBlocksBoundingBox(const Bounds& bounds) throw(Invalid_Internal_State_Exception)
+  void SparseBinaryVolume::updateBlocksBoundingBox(const Bounds& bounds)
   {
     m_blocks_bounding_box = boundingBox(m_blocks_bounding_box, bounds);
 
@@ -460,7 +460,7 @@ namespace ESPINA
     auto bitsetMask = new BinaryMask<unsigned char>(bounds, m_spacing);
     unsigned long long numVoxels = bitsetMask->numberOfVoxels();
 
-    for (unsigned int i = m_blocks.size() -1; i >= 0; --i)
+    for (int i = m_blocks.size() -1; i >= 0; --i)
     {
       if (!intersect(bounds, m_blocks[i]->bounds()))
         continue;

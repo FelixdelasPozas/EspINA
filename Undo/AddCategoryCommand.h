@@ -25,6 +25,7 @@
 #include "Undo/EspinaUndo_Export.h"
 
 // ESPINA
+#include <Core/Utils/Vector3.hxx>
 #include <GUI/Model/ModelAdapter.h>
 
 // Qt
@@ -32,34 +33,53 @@
 
 namespace ESPINA
 {
+  /** \class AddCategoryCommand
+   * \brief Undo command for inserting a category in the EspINA model adapter.
+   *
+   */
   class EspinaUndo_EXPORT AddCategoryCommand
   : public QUndoCommand
   {
   public:
-  	/** \brief AddCategoryCommand class constructor.
-  	 * \param[in] parentCategory, smart pointer of the parent category adapter.
-  	 * \param[in] category, smart pointer of the category adapter to add.
-  	 * \param[in] model, model adapter smart pointer.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief AddCategoryCommand class constructor.
+     * \param[in] parentCategory parent category adapter.
+     * \param[in] category to add.
+     * \param[in] model espina model
+     * \param[in] parent QUndoCommand
+     *
+     */
     explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                 CategoryAdapterSPtr category,
                                 ModelAdapterSPtr    model,
                                 QUndoCommand*       parent = nullptr);
 
-  	/** \brief AddCategoryCommand class constructor.
-  	 * \param[in] parentCategory, smart pointer of the parent category adapter.
-  	 * \param[in] name, name of the new category.
-  	 * \param[in] model, model adapter smart pointer.
-  	 * \param[in] color, QColor of the new category.
-  	 * \param[in] parent, raw pointer of the QUndoCommand parent of this one.
-  	 *
-  	 */
+    /** \brief AddCategoryCommand class constructor.
+     * \param[in] parentCategory parent category adapter.
+     * \param[in] name of the new category.
+     * \param[in] model espina model
+     * \param[in] color the new category.
+     * \param[in] parent QUndoCommand.
+     *
+     */
     explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
                                 const QString&      name,
                                 ModelAdapterSPtr    model,
                                 QColor              color,
+                                QUndoCommand*       parent = nullptr);
+
+    /** \brief AddCategoryCommand class constructor.
+     * \param[in] parentCategory parent category adapter.
+     * \param[in] name of the new category.
+     * \param[in] model espina model
+     * \param[in] color the new category.
+     * \param[in] parent QUndoCommand.
+     *
+     */
+    explicit AddCategoryCommand(CategoryAdapterSPtr parentCategory,
+                                const QString&      name,
+                                ModelAdapterSPtr    model,
+                                QColor              color,
+                                Vector3<long long>  roi,
                                 QUndoCommand*       parent = nullptr);
 
     /** \brief AddCategoryCommand class virtual destructor.
@@ -78,13 +98,13 @@ namespace ESPINA
     virtual void undo() override;
 
   private:
-    ModelAdapterSPtr    m_model;
-    QString             m_name;
-    QColor              m_color;
-    CategoryAdapterSPtr m_category;
-    CategoryAdapterSPtr m_parentCategory;
+    ModelAdapterSPtr    m_model;          /** model that contains the classification.          */
+    QString             m_name;           /** new category name, if m_category is nullptr.     */
+    QColor              m_color;          /** new category color, if m_category is nullptr.    */
+    CategoryAdapterSPtr m_category;       /** category to add to the model, or nullptr.        */
+    CategoryAdapterSPtr m_parentCategory; /** parent category of the one to add, nver null.    */
+    Vector3<long long>  m_roiSize;        /** new category roi size, if m_category is nullptr. */
   };
-
 } // ESPINA
 
 #endif // ESPINA_ADD_CATEGORY_COMMAND_H

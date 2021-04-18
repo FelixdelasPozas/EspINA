@@ -1,37 +1,46 @@
-/*=========================================================================
+/*
 
-  Program:   Visualization Toolkit
-  Module:    vtkCountingFrameSliceWidget.cxx
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+    This file is part of ESPINA.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
+    ESPINA is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-=========================================================================*/
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+// Plugin
 #include "vtkCountingFrameSliceWidget.h"
-
 #include "vtkCountingFrameSliceRepresentation.h"
 #include "vtkCountingFrameRepresentationXY.h"
 #include "vtkCountingFrameRepresentationXZ.h"
 #include "vtkCountingFrameRepresentationYZ.h"
 
-#include "vtkCommand.h"
-#include "vtkCallbackCommand.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkObjectFactory.h"
+// VTK
+#include <vtkCommand.h>
+#include <vtkCallbackCommand.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkObjectFactory.h>
 #include <vtkMath.h>
-#include "vtkWidgetEventTranslator.h"
-#include "vtkWidgetCallbackMapper.h"
-#include "vtkEvent.h"
-#include "vtkWidgetEvent.h"
-#include "vtkRenderWindow.h"
-#include "vtkRenderer.h"
+#include <vtkWidgetEventTranslator.h>
+#include <vtkWidgetCallbackMapper.h>
+#include <vtkEvent.h>
+#include <vtkWidgetEvent.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
 #include <vtkPolyData.h>
 
+// C++
+#include <cstring>
 
 vtkStandardNewMacro(vtkCountingFrameSliceWidget);
 
@@ -42,14 +51,16 @@ using SliceRepresentationYZ = vtkCountingFrameRepresentationYZ;
 
 //----------------------------------------------------------------------------
 vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
-: Plane(ESPINA::Plane::XY)
-, Slice(0)
+: Plane   {ESPINA::Plane::XY}
+, Slice   {0}
+, Depth   {0}
+, Editable{true}
 {
   this->WidgetState = vtkCountingFrameSliceWidget::Start;
   this->ManagesCursor = 1;
 
-  memset(InclusionOffset, 0, 3*sizeof(double));
-  memset(ExclusionOffset, 0, 3*sizeof(double));
+  std::memset(InclusionOffset, 0, 3*sizeof(double));
+  std::memset(ExclusionOffset, 0, 3*sizeof(double));
 
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
@@ -96,28 +107,22 @@ vtkCountingFrameSliceWidget::vtkCountingFrameSliceWidget()
                                           this, vtkCountingFrameSliceWidget::MoveAction);
 }
 
-//----------------------------------------------------------------------------
-vtkCountingFrameSliceWidget::~vtkCountingFrameSliceWidget()
-{
-}
-
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SelectAction(vtkAbstractWidget *w)
 {
-  // We are in a static method, cast to ourself
-  vtkCountingFrameSliceWidget *self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
 
   // Okay, make sure that the pick is in the current renderer
-  if ( !self->CurrentRenderer || 
-       !self->CurrentRenderer->IsInViewport(X,Y) )
-    {
+  if (!self->CurrentRenderer || !self->CurrentRenderer->IsInViewport(X,Y))
+  {
     self->WidgetState = vtkCountingFrameSliceWidget::Start;
     return;
-    }
+  }
 
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
@@ -127,17 +132,16 @@ void vtkCountingFrameSliceWidget::SelectAction(vtkAbstractWidget *w)
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
   if ( interactionState == SliceRepresentation::Outside )
-    {
+  {
     return;
-    }
+  }
 
   // We are definitely selected
   self->WidgetState = vtkCountingFrameSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
 
   // The SetInteractionState has the side effect of highlighting the widget
-  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->
-    SetInteractionState(interactionState);
+  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->SetInteractionState(interactionState);
 
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -149,20 +153,19 @@ void vtkCountingFrameSliceWidget::SelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::TranslateAction(vtkAbstractWidget *w)
 {
-  // We are in a static method, cast to ourself
-  vtkCountingFrameSliceWidget *self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
 
   // Okay, make sure that the pick is in the current renderer
-  if ( !self->CurrentRenderer || 
-       !self->CurrentRenderer->IsInViewport(X,Y) )
-    {
+  if (!self->CurrentRenderer || !self->CurrentRenderer->IsInViewport(X,Y))
+  {
     self->WidgetState = vtkCountingFrameSliceWidget::Start;
     return;
-    }
+  }
 
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
@@ -171,16 +174,15 @@ void vtkCountingFrameSliceWidget::TranslateAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == SliceRepresentation::Outside )
-    {
+  if (interactionState == SliceRepresentation::Outside)
+  {
     return;
-    }
+  }
 
   // We are definitely selected
   self->WidgetState = vtkCountingFrameSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->
-    SetInteractionState(SliceRepresentation::Translating);
+  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->SetInteractionState(SliceRepresentation::Translating);
 
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -192,8 +194,9 @@ void vtkCountingFrameSliceWidget::TranslateAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
 {
-  vtkCountingFrameSliceWidget *self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
-  Q_ASSERT(self->WidgetRep);
+  auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
+
   // compute some info we need for all cases
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -205,7 +208,9 @@ void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
     if (stateAfter != SliceRepresentation::Outside)
+    {
       self->EventCallbackCommand->SetAbortFlag(1);
+    }
     return;
   }
 
@@ -225,44 +230,56 @@ void vtkCountingFrameSliceWidget::MoveAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetCursor(int state)
 {
-  switch (state)
+  if(!Editable)
   {
-    case SliceRepresentation::Translating:
-      this->RequestCursorShape(VTK_CURSOR_SIZEALL);
-      break;
-    case SliceRepresentation::MoveLeft:
-    case SliceRepresentation::MoveRight:
-      this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-      break;
-    case SliceRepresentation::MoveTop:
-    case SliceRepresentation::MoveBottom:
-      this->RequestCursorShape(VTK_CURSOR_SIZENS);
-      break;
-    case SliceRepresentation::Outside:
-      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-      break;
-    default:
-      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-      break;
-  };
+    this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+  }
+  else
+  {
+    switch (state)
+    {
+      case SliceRepresentation::Translating:
+        this->RequestCursorShape(VTK_CURSOR_SIZEALL);
+        break;
+      case SliceRepresentation::MoveLeft:
+      case SliceRepresentation::MoveRight:
+        this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+        break;
+      case SliceRepresentation::MoveTop:
+      case SliceRepresentation::MoveBottom:
+        this->RequestCursorShape(VTK_CURSOR_SIZENS);
+        break;
+      case SliceRepresentation::Outside:
+        this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+        break;
+      default:
+        this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+        break;
+    };
+  }
 }
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 {
-  vtkCountingFrameSliceWidget *self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
-  if ( self->WidgetState == vtkCountingFrameSliceWidget::Start )
-    {
+  auto self = reinterpret_cast<vtkCountingFrameSliceWidget*>(w);
+  if(!self->Editable) return;
+
+  auto rep = SliceRepresentation::SafeDownCast(self->WidgetRep);
+
+  if (self->WidgetState == vtkCountingFrameSliceWidget::Start)
+  {
     return;
-    }
+  }
 
   // Return state to not active
   self->WidgetState = vtkCountingFrameSliceWidget::Start;
-  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->
-    SetInteractionState(SliceRepresentation::Outside);
+  if(rep)
+  {
+    rep->SetInteractionState(SliceRepresentation::Outside);
+  }
   self->ReleaseFocus();
 
-  SliceRepresentation *rep = SliceRepresentation::SafeDownCast(self->WidgetRep);
   if (rep)
   {
     rep->GetInclusionOffset(self->InclusionOffset);
@@ -281,12 +298,10 @@ void vtkCountingFrameSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::centerMarginsOnVoxelCenter(vtkCountingFrameSliceWidget *self)
 {
-  auto voxelCenter = [](double offset, double spacing)
-  { return int(offset/spacing)*spacing + spacing/2; };
+  auto voxelCenter = [](double offset, double spacing){ return vtkMath::Floor(offset/spacing)*spacing + 0.5*spacing; };
 
   for (int i = 0; i < 3; i++)
   {
-    //double shift = i < 2? 0.5: -0.5;
     self->InclusionOffset[i] = voxelCenter(self->InclusionOffset[i], self->SlicingStep[i]);
     self->ExclusionOffset[i] = voxelCenter(self->ExclusionOffset[i], self->SlicingStep[i]);
   }
@@ -298,53 +313,71 @@ void vtkCountingFrameSliceWidget::SetPlane(ESPINA::Plane plane)
   Plane = plane;
 
   if (!this->WidgetRep)
+  {
     CreateDefaultRepresentation();
+  }
+}
+
+//----------------------------------------------------------------------
+void vtkCountingFrameSliceWidget::SetRepresentationDepth(ESPINA::Nm depth)
+{
+  Depth = depth;
+
+  if (this->WidgetRep)
+  {
+    dynamic_cast<vtkCountingFrameSliceRepresentation *>(this->WidgetRep)->SetRepresentationDepth(Depth);
+  }
 }
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetSlice(ESPINA::Nm pos)
 {
   if (!this->WidgetRep)
+  {
     CreateDefaultRepresentation();
+  }
 
-  SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetSlice(pos);
-  Slice = pos;
-  this->Render();
-}
-
-//----------------------------------------------------------------------
-void vtkCountingFrameSliceWidget::SetSlicingStep(ESPINA::NmVector3 slicingStep)
-{
-  SlicingStep = slicingStep;
+  if(Slice != pos)
+  {
+    Slice = pos;
+    auto rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
+    rep->SetSlice(pos);
+  }
 }
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetCountingFrame(vtkSmartPointer<vtkPolyData> region,
                                                    ESPINA::Nm inclusionOffset[3],
-                                                   ESPINA::Nm exclusionOffset[3])
+                                                   ESPINA::Nm exclusionOffset[3],
+                                                   ESPINA::NmVector3 resolution)
 {
-  if (!this->WidgetRep)
-    CreateDefaultRepresentation();
+  SlicingStep = resolution;
 
-  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
-  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
+  if (!this->WidgetRep)
+  {
+    CreateDefaultRepresentation();
+  }
+
+  std::memcpy(InclusionOffset, inclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(ESPINA::Nm));
 
   centerMarginsOnVoxelCenter(this);
 
   // ensures consistency with the counting frame
-  memcpy(inclusionOffset, InclusionOffset, 3*sizeof(ESPINA::Nm));
-  memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(inclusionOffset, InclusionOffset, 3*sizeof(ESPINA::Nm));
+  std::memcpy(exclusionOffset, ExclusionOffset, 3*sizeof(ESPINA::Nm));
 
-  SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, SlicingStep);
+  auto rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
+  rep->SetCountingFrame(region, InclusionOffset, ExclusionOffset, resolution);
+  rep->SetSlice(Slice);
+
   this->Render();
 }
 
 //----------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
 {
-  if ( ! this->WidgetRep )
+  if (!this->WidgetRep)
   {
     switch (Plane)
     {
@@ -359,18 +392,25 @@ void vtkCountingFrameSliceWidget::CreateDefaultRepresentation()
         break;
       default:
         Q_ASSERT(false);
+        break;
     }
   }
+
+  dynamic_cast<vtkCountingFrameSliceRepresentation *>(this->WidgetRep)->SetRepresentationDepth(Depth);
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameSliceWidget::SetHighlighted(bool highlight)
 {
   if (!this->WidgetRep)
+  {
     CreateDefaultRepresentation();
+  }
 
-  SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
+  auto rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
   rep->SetHighlighted(highlight);
+
+  this->Render();
 }
 
 
@@ -378,4 +418,18 @@ void vtkCountingFrameSliceWidget::SetHighlighted(bool highlight)
 void vtkCountingFrameSliceWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+}
+
+//----------------------------------------------------------------------------
+void vtkCountingFrameSliceWidget::setVisible(bool visible)
+{
+  if(Visible != visible)
+  {
+    Visible = visible;
+
+    auto rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
+    rep->SetVisibility(visible);
+
+    this->Render();
+  }
 }

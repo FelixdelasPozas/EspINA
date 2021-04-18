@@ -21,224 +21,389 @@
 // Plugin
 #include "SASInformationProxy.h"
 #include "SASTabularReport.h"
-
-// ESPINA
-#include <GUI/Model/SegmentationAdapter.h>
+#include <Core/Utils/EspinaException.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Widgets/InformationSelector.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 
 // Qt
 #include <QAbstractItemView>
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
+#include "../../Plugin.h"
 
-const QString SEGMENTATION_GROUP = "Segmentation";
-const QString SASTAG_PREPEND = QObject::tr("SAS ");
+using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::Core::Utils;
+
+//----------------------------------------------------------------------------
+void SASTabularReport::createCategoryEntry(const QString& category)
+{
+  bool found = false;
+  int  i = 0;
+
+  while (!found && i < m_tabs->count())
+  {
+    found = m_tabs->tabText(i) >= category;
+
+    if (!found) i++;
+  }
+
+  auto factory = m_context.factory();
+
+  if (m_tabs->tabText(i) != category)
+  {
+    auto entry = new Entry(category, m_model, factory, m_tabs);
+
+    connect(entry, SIGNAL(informationReadyChanged()),
+            this,  SLOT(updateExportStatus()));
+
+    auto infoProxy = new SASInformationProxy(m_model, m_sasTags, factory->scheduler());
+    infoProxy->setCategory(category);
+    infoProxy->setFilter(&m_filter);
+    infoProxy->setSourceModel(m_model);
+    connect (infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
+             this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
+    entry->setProxy(infoProxy);
+
+    auto sortFilter = new DataSortFilter();
+    sortFilter->setSourceModel(infoProxy);
+    sortFilter->setDynamicSortFilter(true);
+
+    auto tableView = entry->tableView;
+    tableView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    tableView->setModel(sortFilter);
+    tableView->setSortingEnabled(true);
+
+    connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+            this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+    connect(tableView, SIGNAL(itemStateChanged(QModelIndex)),
+            this, SLOT(updateRepresentation(QModelIndex)));
+    connect(tableView, SIGNAL(doubleClicked(QModelIndex)),
+            this, SLOT(indexDoubleClicked(QModelIndex)));
+
+    m_tabs->insertTab(i, entry, category);
+  }
+
+  updateExportStatus();
+}
 
 //------------------------------------------------------------------------
-class DataSortFiler
-: public QSortFilterProxyModel
+InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
 {
-public:
-  DataSortFiler(QObject *parent = 0)
-  : QSortFilterProxyModel(parent) {}
+  InformationSelector::GroupedInfo info;
 
-protected:
-  virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
+  for (auto type : m_factory->availableSegmentationExtensions())
   {
-    int role = left.column() > 0 ? Qt::DisplayRole : ESPINA::TypeRole + 1;
-    bool ok1, ok2;
-    double lv = left.data(role).toDouble(&ok1);
-    double rv = right.data(role).toDouble(&ok2);
-
-    if (ok1 && ok2)
-      return lv < rv;
-    else
-      return left.data(role).toString() < right.data(role).toString();
-  }
-};
-
-namespace ESPINA
-{
-  //----------------------------------------------------------------------------
-  void SASTabularReport::createCategoryEntry(const QString& category)
-  {
-    bool found = false;
-    int  i = 0;
-    while (!found && i < m_tabs->count())
+    if (!isSASExtensions(type))
     {
-      if (m_tabs->tabText(i) >= category)
-        found = true;
-      else
-        i++;
-    }
+      auto prototype = m_factory->createSegmentationExtension(type);
 
-    if (m_tabs->tabText(i) != category)
-    {
-      auto entry = new Entry(category, m_model, m_factory);
-
-      connect(entry, SIGNAL(informationReadyChanged()),
-              this,  SLOT(updateExportStatus()));
-
-      auto infoProxy = new SASInformationProxy(m_model, m_sasTags, m_factory->scheduler());
-      infoProxy->setCategory(category);
-      infoProxy->setFilter(&m_filter);
-      infoProxy->setSourceModel(m_model);
-      connect (infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-               this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
-      entry->setProxy(infoProxy);
-
-      auto sortFilter = new DataSortFiler();
-      sortFilter->setSourceModel(infoProxy);
-      sortFilter->setDynamicSortFilter(true);
-
-      auto tableView = entry->tableView;
-      tableView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-      tableView->setModel(sortFilter);
-      tableView->setSortingEnabled(true);
-
-      connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-              this, SLOT(updateSelection(QItemSelection,QItemSelection)));
-      connect(tableView, SIGNAL(itemStateChanged(QModelIndex)),
-              this, SLOT(updateRepresentation(QModelIndex)));
-      connect(tableView, SIGNAL(doubleClicked(QModelIndex)),
-              this, SLOT(indexDoubleClicked(QModelIndex)));
-
-      m_tabs->insertTab(i, entry, category);
-    }
-    updateExportStatus();
-  }
-
-  //------------------------------------------------------------------------
-  InformationSelector::GroupedInfo SASTabularReport::Entry::availableInformation()
-  {
-    InformationSelector::GroupedInfo info;
-
-    info[SEGMENTATION_GROUP] << tr("Category");
-
-    for (auto type : m_factory->availableSegmentationExtensions())
-    {
-      if(type == AppositionSurfaceExtension::TYPE)
-        continue;
-
-      auto extension = m_factory->createSegmentationExtension(type);
-      info[type] << extension->availableInformations();
-    }
-
-    for(auto tag: m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE)->availableInformations())
-        info[QString(AppositionSurfaceExtension::TYPE).prepend(SASTAG_PREPEND)] << QString(tag).prepend(SASTAG_PREPEND);
-
-    // in case we have extensions not registered in the factory add them too. Will be read-only extensions.
-    for (auto item : m_proxy->displayedItems())
-    {
-      Q_ASSERT(isSegmentation(item));
-
-      auto segmentation = segmentationPtr(item);
-
-      for (auto extension : segmentation->extensions())
-        info[extension->type()] << extension->availableInformations();
-    }
-
-    for (auto tag : info.keys())
-      info[tag].removeDuplicates();
-
-    return info;
-  }
-
-  //------------------------------------------------------------------------
-  void SASTabularReport::exportInformation()
-  {
-    QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Export Raw Data"),
-                                                    QString("Raw information with SAS data.xls"),
-                                                    filter);
-
-    if (fileName.isEmpty())
-      return;
-
-    bool result = false;
-    if (fileName.endsWith(".csv"))
-    {
-      result = exportToCSV(fileName);
-    }
-    else if (fileName.endsWith(".xls"))
-    {
-      result = exportToXLS(fileName);
-    }
-
-    if (!result)
-      QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
-  }
-
-  //------------------------------------------------------------------------
-  void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, QStringList informationOrder)
-  {
-    for(auto extensionType : extensionInformations.keys())
-    {
-      if(extensionType.startsWith(SASTAG_PREPEND))
-        continue;
-
-      for (auto segmentation : m_model->segmentations())
+      if(prototype->validCategory("Synapse"))
       {
-        if (!segmentation->hasExtension(extensionType))
+        info[type] << keyValues(prototype->availableInformation());
+      }
+    }
+  }
+
+  auto sasExtensionPrototype = m_factory->createSegmentationExtension(AppositionSurfaceExtension::TYPE);
+
+  info[AppositionSurfaceExtension::TYPE] << keyValues(sasExtensionPrototype->availableInformation());
+
+  // in case we have extensions not registered in the factory add them too.
+  for (auto item : m_proxy->displayedItems())
+  {
+    Q_ASSERT(isSegmentation(item));
+
+    auto segmentation = segmentationPtr(item);
+
+    for (auto extension : segmentation->readOnlyExtensions())
+    {
+      if(!info.keys().contains(extension->type()))
+      {
+        info[extension->type()] << keyValues(extension->availableInformation());
+      }
+      else
+      {
+        // fix for extensions with variable keys like stereological inclusion.
+        for(auto key: extension->availableInformation())
         {
-          if (m_factory->availableSegmentationExtensions().contains(extensionType))
+          if(!info[extension->type()].contains(key.value()))
           {
-            auto extension = m_factory->createSegmentationExtension(extensionType);
-            if(extension->validCategory(segmentation->category()->classificationName()))
-              segmentation->addExtension(extension);
-          }
-          else if (extensionType != SEGMENTATION_GROUP)
-          {
-            qWarning() << extensionType << " is not available";
+            info[extension->type()] << key.value();
           }
         }
       }
     }
-
-    QStringList tags;
-    tags << tr("Name") << informationOrder;
-    m_proxy->setInformationTags(tags);
-
-    auto header = new QStandardItemModel(1, tags.size(), this);
-    header->setHorizontalHeaderLabels(tags);
-    tableView->horizontalHeader()->setModel(header);
   }
 
-  //------------------------------------------------------------------------
-  void SASTabularReport::Entry::extractInformation()
+  for (auto type : info.keys())
   {
-    QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-    QString fileName = QFileDialog::getSaveFileName(this,
-                                                    tr("Export %1 Data").arg(m_category),
-                                                    QString("%1 with SAS data.xls").arg(m_category.replace("/","-")),
-                                                    filter);
-
-    if (fileName.isEmpty())
-      return;
-
-    // some users are used to not enter an extension, and expect a default xls output.
-    if(!fileName.toLower().endsWith(".csv") && !fileName.toLower().endsWith(".xls"))
-      fileName += tr(".xls");
-
-    bool result = false;
-
-    if (fileName.endsWith(".csv"))
-    {
-      result = exportToCSV(fileName);
-    }
-    else
-    {
-      result = exportToXLS(fileName);
-    }
-
-    if (!result)
-      QMessageBox::warning(this, "ESPINA", tr("Couldn't export %1").arg(fileName));
+    info[type].removeDuplicates();
   }
 
-} // namespace ESPINA
+  return info;
+}
 
+//------------------------------------------------------------------------
+void SASTabularReport::exportInformation()
+{
+  auto title      = tr("Export SAS Data");
+  auto suggestion = tr("Raw information with SAS data.xls");
+  auto formats    = SupportedFormats().addExcelFormat()
+                                      .addCSVFormat();
 
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
 
+  if (fileName.isEmpty()) return;
+
+  if (!fileName.endsWith(".csv", Qt::CaseInsensitive) && !fileName.endsWith(".xls", Qt::CaseInsensitive))
+  {
+    fileName += tr(".xls");
+  }
+
+  if (fileName.endsWith(".csv", Qt::CaseInsensitive))
+  {
+    try
+    {
+      exportToCSV(fileName);
+    }
+    catch (const EspinaException &e)
+    {
+      auto message = tr("Unable to export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details(), this);
+    }
+  }
+  else
+  {
+    if (fileName.endsWith(".xls", Qt::CaseInsensitive))
+    {
+      try
+      {
+        exportToXLS(fileName);
+      }
+      catch (const EspinaException &e)
+      {
+        auto message = tr("Unable to export %1").arg(fileName);
+        DefaultDialogs::InformationMessage(message, title, e.details(), this);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void SASTabularReport::Entry::setInformation(InformationSelector::GroupedInfo extensionInformations, SegmentationExtension::InformationKeyList informationOrder)
+{
+  for (auto item :  m_proxy->displayedItems())
+  {
+    auto segmentation = segmentationPtr(item);
+
+    if (AppositionSurfacePlugin::isValidSynapse(segmentation))
+    {
+      for(auto extensionType : extensionInformations.keys())
+      {
+        try
+        {
+          if(!isSASExtensions(extensionType))
+          {
+            retrieveOrCreateSegmentationExtension(segmentation, extensionType, m_factory);
+          }
+          else
+          {
+            auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
+            if(sas)
+            {
+              retrieveOrCreateSegmentationExtension(sas, AppositionSurfaceExtension::TYPE, m_factory);
+            }
+          }
+        }
+        catch(...)
+        {
+          // nothing to do, either the extensions is read-only or doesn't exist and that information will be reported as unavailable later.
+        }
+      }
+    }
+  }
+
+  SegmentationExtension::InformationKeyList keys;
+
+  keys << InformationProxy::NameKey() << informationOrder;
+
+  m_proxy->setInformationTags(keys);
+
+  QStringList headerLabels;
+  for (auto key : keys)
+  {
+    auto label = isSASExtensions(key.extension()) ? AppositionSurfaceExtension::addSASPrefix(key.value()) : key.value();
+    headerLabels << label;
+  }
+
+  auto header = new QStandardItemModel(1, keys.size(), this);
+  header->setHorizontalHeaderLabels(headerLabels);
+  tableView->horizontalHeader()->setModel(header);
+}
+
+//------------------------------------------------------------------------
+SegmentationExtension::KeyList SASTabularReport::Entry::keyValues(const Extension< Segmentation >::InformationKeyList& keys) const
+{
+  SegmentationExtension::KeyList values;
+
+  for (auto &key : keys)
+  {
+    values << key.value();
+  }
+
+  return values;
+}
+
+//------------------------------------------------------------------------
+bool SASTabularReport::Entry::isSASExtensions(const SegmentationExtension::Type& type) const
+{
+  return type == AppositionSurfaceExtension::TYPE;
+}
+
+//------------------------------------------------------------------------
+void SASTabularReport::Entry::extractInformation()
+{
+  auto title      = tr("Export %1 Data").arg(m_category);
+  auto suggestion = QString("%1 SAS information.xls").arg(m_category.replace("/","-"));
+  auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
+
+  if (fileName.isEmpty()) return;
+
+  if(!fileName.endsWith(".csv", Qt::CaseInsensitive) && !fileName.endsWith(".xls", Qt::CaseInsensitive))
+  {
+    fileName += tr(".xls");
+  }
+
+  if (fileName.endsWith(".csv", Qt::CaseInsensitive))
+  {
+    try
+    {
+      exportToCSV(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      auto message = tr("Unable to export %1").arg(fileName);
+      DefaultDialogs::InformationMessage(message, title, e.details(), this);
+    }
+  }
+  else
+  {
+    if (fileName.endsWith(".xls", Qt::CaseInsensitive))
+    {
+      try
+      {
+        exportToXLS(fileName);
+      }
+      catch(const EspinaException &e)
+      {
+        auto message = tr("Unable to export %1").arg(fileName);
+        DefaultDialogs::InformationMessage(message, title, e.details(), this);
+      }
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+Core::SegmentationExtension::InformationKeyList SASTabularReport::Entry::lastInformationOrder()
+{
+  SegmentationExtension::InformationKeyList informationTags, availableInformationTags;
+
+  auto groupedInfo = availableInformation();
+
+  for (auto extension : groupedInfo.keys())
+  {
+    for (auto value : groupedInfo[extension])
+    {
+      availableInformationTags <<  SegmentationExtension::InformationKey(extension, value);
+    }
+  }
+
+  QString filename;
+  if(m_model->storage()->exists(selectedInformationFile()))
+  {
+    filename = selectedInformationFile();
+  }
+  else
+  {
+    if(m_model->storage()->exists(oldSelectedInformationFile()))
+    {
+      filename = oldSelectedInformationFile();
+    }
+  }
+
+  if(!filename.isEmpty())
+  {
+    QString selectedInformation(m_model->storage()->snapshot(filename));
+
+    for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+    {
+      if(tag.startsWith(AppositionSurfaceExtension::SAS_PREFIX, Qt::CaseSensitive))
+      {
+        informationTags << SegmentationExtension::InformationKey(AppositionSurfaceExtension::TYPE, AppositionSurfaceExtension::removeSASPrefix(tag));
+      }
+      else
+      {
+        for(auto key: availableInformationTags)
+        {
+          if(key.value() == tag)
+          {
+            informationTags << key;
+          }
+        }
+      }
+    }
+  }
+
+  return informationTags;
+}
+
+//------------------------------------------------------------------------
+GUI::InformationSelector::GroupedInfo SASTabularReport::Entry::lastDisplayedInformation()
+{
+  InformationSelector::GroupedInfo info, available;
+
+  available = availableInformation();
+
+  QString filename;
+  if(m_model->storage()->exists(selectedInformationFile()))
+  {
+    filename = selectedInformationFile();
+  }
+  else
+  {
+    if(m_model->storage()->exists(oldSelectedInformationFile()))
+    {
+      filename = oldSelectedInformationFile();
+    }
+  }
+
+  if(!filename.isEmpty())
+  {
+    QString selectedInformation(m_model->storage()->snapshot(filename));
+    for (auto tag : selectedInformation.split("\n", QString::SkipEmptyParts))
+    {
+      if(tag.startsWith(AppositionSurfaceExtension::SAS_PREFIX, Qt::CaseSensitive))
+      {
+        info[AppositionSurfaceExtension::TYPE] << AppositionSurfaceExtension::removeSASPrefix(tag);
+      }
+      else
+      {
+        for (auto extension : available.keys())
+        {
+          if (available[extension].contains(tag))
+          {
+            info[extension] << tag;
+          }
+        }
+      }
+    }
+  }
+
+  return info;
+}

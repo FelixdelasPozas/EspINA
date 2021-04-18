@@ -25,53 +25,42 @@
 #include <QObject>
 #include <QStringList>
 
+class QUrl;
 class QAction;
 class RecentDocuments
 : QObject
 {
-	public:
-		/** \brief RecentDocuments class constructor.
-		 *
-		 */
-		explicit RecentDocuments();
+public:
+  /** \brief RecentDocuments class constructor.
+   *
+   */
+  explicit RecentDocuments();
 
-		/** \brief RecentDocuments class virtual destructor.
-		 *
-		 */
-		virtual ~RecentDocuments();
+  /** \brief RecentDocuments class virtual destructor.
+   *
+   */
+  virtual ~RecentDocuments();
 
-		/** \brief Adds a document to the list.
-		 * \param[in] path, path of the document.
-		 *
-		 */
-		void addDocument(QString path);
+  /** \brief Adds a document to the list.
+   * \param[in] path to be added as recent document
+   *
+   */
+  void addDocument(QString path);
 
-		/** \brief Removes a document from the list.
-		 * \param[in] path, path of the document.
-		 *
-		 */
-		void removeDocument(QString path);
+  /** \brief Removes a document from the list.
+   * \param[in] path to be removed as recent document
+   *
+   */
+  void removeDocument(QString path);
 
-		/** \brief Updates the document list with the contents of the settings.
-		 *
-		 */
-		void updateDocumentList(void);
+  QList<QUrl> recentDocumentUrls() const;
 
-		/** \brief Returns the list of actions.
-		 *
-		 */
-		QList<QAction *> list() const
-	  { return m_actionList; }
+private:
+  void loadRecentDocuments();
+  void saveRecentDocuments();
 
-	private:
-		/** \brief Updates the actions with the names of the documents.
-		 *
-		 */
-		void updateActions();
-
-	private:
-		QStringList m_recentDocuments;
-		QList<QAction *> m_actionList;
+private:
+  QStringList m_recentDocuments;
 };
 
 #endif // RECENTDOCUMENTS_H

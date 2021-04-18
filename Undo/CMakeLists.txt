@@ -14,6 +14,7 @@ set (Undo_SOURCES
   AddRelationCommand.cpp
   ChangeCategoryCommand.cpp
   ChangeSegmentationNotes.cpp
+  ChangeSegmentationsStack.cpp
   ChangeSegmentationTags.cpp
   ModifyDataCommand.cpp
   RemoveCategoryCommand.cpp

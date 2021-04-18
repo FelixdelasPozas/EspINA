@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -20,13 +20,18 @@
 
 // ESPINA
 #include "CategoryAdapter.h"
+#include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 
 // ESPINA
 #include <Core/Analysis/Category.h>
+#include <Core/Utils/QStringUtils.h>
+
+// Qt
 #include <QPixmap>
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::ColorEngines;
 
 //------------------------------------------------------------------------
 CategoryAdapter::CategoryAdapter(CategorySPtr category)
@@ -49,10 +54,6 @@ CategoryAdapter::CategoryAdapter(CategoryAdapterPtr parent, const QString& name)
 //------------------------------------------------------------------------
 CategoryAdapter::~CategoryAdapter()
 {
-  auto parent = m_category->parent();
-
-  if(parent != nullptr)
-    parent->removeSubCategory(m_category);
 }
 
 //------------------------------------------------------------------------
@@ -83,7 +84,7 @@ bool CategoryAdapter::setData(const QVariant& value, int role)
 
   if (role == Qt::EditRole)
   {
-    setName(value.toString());
+    setName(Core::Utils::simplifyString(value.toString()));
     successful = true;
   }
   else
@@ -97,15 +98,15 @@ bool CategoryAdapter::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
-QString CategoryAdapter::classificationName() const
+const QString CategoryAdapter::classificationName() const
 {
   return m_category->classificationName();
 }
 
 //------------------------------------------------------------------------
-QColor CategoryAdapter::color() const
+const QColor CategoryAdapter::color() const
 {
-  return m_category->color();
+  return selectedColor(m_category->color());
 }
 
 //------------------------------------------------------------------------
@@ -115,7 +116,7 @@ void CategoryAdapter::setName(const QString& name)
 }
 
 //------------------------------------------------------------------------
-QString CategoryAdapter::name() const
+const QString CategoryAdapter::name() const
 {
   return m_category->name();
 }
@@ -129,11 +130,10 @@ void CategoryAdapter::addProperty(const QString& prop, const QVariant& value)
 //------------------------------------------------------------------------
 void CategoryAdapter::addSubCategory(CategoryAdapterSPtr subCategory)
 {
-  // do not add if already present
-  for(auto category: m_subCategories)
-  {
-    if(category == subCategory) return;
-  }
+  auto equalOp = [subCategory](const CategoryAdapterSPtr elem) { return (elem == subCategory); };
+  auto exists = std::any_of(m_subCategories.constBegin(), m_subCategories.constEnd(), equalOp);
+
+  if(exists) return;
 
   if (subCategory->m_parent)
   {
@@ -164,13 +164,13 @@ void CategoryAdapter::deleteProperty(const QString& prop)
 }
 
 //------------------------------------------------------------------------
-QStringList CategoryAdapter::properties() const
+const QStringList CategoryAdapter::properties() const
 {
   return m_category->properties();
 }
 
 //------------------------------------------------------------------------
-QVariant CategoryAdapter::property(const QString& prop) const
+const QVariant CategoryAdapter::property(const QString& prop) const
 {
   return m_category->property(prop);
 }
@@ -200,11 +200,11 @@ void CategoryAdapter::removeSubCategory(CategoryAdapterPtr subCategory)
 //------------------------------------------------------------------------
 void CategoryAdapter::setColor(const QColor& color)
 {
-  m_category->setColor(color);
+  m_category->setColor(color.hue());
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
+const CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
 {
   CategoryAdapterSPtr res = nullptr;
 
@@ -212,23 +212,26 @@ CategoryAdapterSPtr CategoryAdapter::subCategory(const QString& name) const
   while (!res && i < m_subCategories.size())
   {
     if (m_subCategories[i]->name() == name)
+    {
       res = m_subCategories[i];
-    i++;
+    }
+
+    ++i;
   }
 
   return res;
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr ESPINA::categoryPtr(const QModelIndex& index)
+CategoryAdapterPtr ESPINA::toCategoryAdapterPtr(const QModelIndex& index)
 {
   return static_cast<CategoryAdapterPtr>(index.internalPointer());
 }
 
 //------------------------------------------------------------------------
-CategoryAdapterPtr ESPINA::categoryPtr(ItemAdapterPtr item)
+CategoryAdapterPtr ESPINA::toCategoryAdapterPtr(ItemAdapterPtr item)
 {
-  return static_cast<CategoryAdapterPtr>(item);
+  return dynamic_cast<CategoryAdapterPtr>(item);
 }
 
 //------------------------------------------------------------------------

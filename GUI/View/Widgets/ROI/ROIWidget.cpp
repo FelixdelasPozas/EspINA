@@ -19,9 +19,11 @@
 // ESPINA
 #include <GUI/View/Widgets/ROI/ROIWidget.h>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Utils/vtkVoxelContour2D.h>
 #include <GUI/View/View2D.h>
 #include <GUI/View/View3D.h>
-#include <GUI/View/Widgets/Contour/vtkVoxelContour2D.h>
+#include <GUI/View/Utils.h>
+#include <GUI/Representations/Frame.h>
 
 // VTK
 #include <vtkImageCanvasSource2D.h>
@@ -32,165 +34,213 @@
 #include <vtkTubeFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Representations::Managers;
+using namespace ESPINA::GUI::View::Widgets::ROI;
+using namespace ESPINA::GUI::View::Utils;
 
 //-----------------------------------------------------------------------------
 ROIWidget::ROIWidget(ROISPtr roi)
-: m_ROI{roi}
-, m_color{Qt::yellow}
+: m_active      {false}
+, m_ROI         {roi}
+, m_color       {Qt::yellow}
+, m_depth       {0}
+, m_reslicePoint{VTK_DOUBLE_MAX}
+, m_index       {-1}
+, m_view        {nullptr}
 {
-  connect(m_ROI.get(), SIGNAL(dataChanged()),
-          this,        SLOT(updateROIRepresentations()), Qt::QueuedConnection);
 }
 
 //-----------------------------------------------------------------------------
 ROIWidget::~ROIWidget()
 {
+  if(m_view)
+  {
+    m_view->removeActor(m_actor);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ROIWidget::setPlane(Plane plane)
+{
+  // intentionally empty.
+}
+
+//-----------------------------------------------------------------------------
+void ROIWidget::setRepresentationDepth(Nm depth)
+{
+  // intentionally empty.
+}
+
+//-----------------------------------------------------------------------------
+TemporalRepresentation2DSPtr ROIWidget::cloneImplementation()
+{
+  auto representation = std::make_shared<ROIWidget>(m_ROI);
+
+  representation->setColor(m_color);
+
+  return representation;
+}
+
+//-----------------------------------------------------------------------------
+bool ROIWidget::acceptCrosshairChange(const NmVector3 &crosshair) const
+{
+  return m_view && (m_reslicePoint != crosshair[m_index]);
+}
+
+//-----------------------------------------------------------------------------
+bool ROIWidget::acceptSceneResolutionChange(const NmVector3 &resolution) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool ROIWidget::acceptSceneBoundsChange(const Bounds &bounds) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+bool ROIWidget::acceptInvalidationFrame(const GUI::Representations::FrameCSPtr frame) const
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+void ROIWidget::initialize(RenderView *view)
+{
+  if(m_view || !isView2D(view)) return;
+
+  m_view         = view;
+  m_index        = normalCoordinateIndex(view2D_cast(view)->plane());
+  m_reslicePoint = m_view->crosshair()[m_index];
+
+  m_contour = vtkSmartPointer<vtkVoxelContour2D>::New();
+
+  m_mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  m_mapper->SetColorModeToDefault();
+  m_mapper->ScalarVisibilityOff();
+  m_mapper->StaticOff();
+
+  m_actor = vtkSmartPointer<vtkActor>::New();
+  m_actor->SetMapper(m_mapper);
+  m_actor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
+  m_actor->GetProperty()->SetOpacity(1);
+  m_actor->GetProperty()->Modified();
+  m_actor->SetVisibility(false);
+  m_actor->SetDragable(false);
+
+  repositionActor(m_actor, view2D_cast(view)->widgetDepth(), m_index);
+
+  updateCurrentSlice();
+
+  m_view->addActor(m_actor);
+
+  connect(m_ROI.get(), SIGNAL(dataChanged()),
+          this,        SLOT(onROIChanged()), Qt::QueuedConnection);
+
+  m_view->refresh();
+}
+
+//-----------------------------------------------------------------------------
+void ROIWidget::uninitialize()
+{
   disconnect(m_ROI.get(), SIGNAL(dataChanged()),
-             this,        SLOT(updateROIRepresentations()));
+             this,        SLOT(onROIChanged()));
 
-  m_representations.clear();
-}
-
-//----------------------------------------------------------------------------
-void ROIWidget::updateActor(View2D *view)
-{
-  auto bounds = m_ROI->bounds();
-  auto index  = normalCoordinateIndex(view->plane());
-  auto pos    = view->crosshairPoint()[index];
-
-  bounds[2 * index] = bounds[(2 * index) + 1] = pos;
-
-  bounds.setUpperInclusion(toAxis(index), true);
-
-  if (!intersect(m_ROI->bounds(), bounds))
-  {
-    if(m_representations[view].actor != nullptr)
-    {
-      m_representations[view].actor->SetVisibility(false);
-      view->updateView();
-    }
-    return;
-  }
-
-  auto image = vtkImage<itkVolumeType>(m_ROI->itkImage(bounds), bounds);
-
-  if(m_representations[view].actor == nullptr)
-  {
-    m_representations[view].contour = vtkSmartPointer<vtkVoxelContour2D>::New();
-    m_representations[view].contour->SetInputData(image);
-    m_representations[view].contour->UpdateWholeExtent();
-
-    m_representations[view].mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    m_representations[view].mapper->SetInputConnection(m_representations[view].contour->GetOutputPort());
-    m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
-    m_representations[view].mapper->SetColorModeToDefault();
-    m_representations[view].mapper->ScalarVisibilityOff();
-    m_representations[view].mapper->StaticOff();
-    m_representations[view].mapper->UpdateWholeExtent();
-
-    m_representations[view].actor = vtkSmartPointer<vtkActor>::New();
-    m_representations[view].actor->SetMapper(m_representations[view].mapper);
-    m_representations[view].actor->GetProperty()->SetColor(m_color.redF(), m_color.greenF(), m_color.blueF());
-    m_representations[view].actor->GetProperty()->SetOpacity(1);
-    m_representations[view].actor->GetProperty()->Modified();
-    m_representations[view].actor->SetVisibility(true);
-    m_representations[view].actor->SetDragable(false);
-    m_representations[view].actor->Modified();
-
-    double position[3];
-    m_representations[view].actor->GetPosition(position);
-    position[index] += view->widgetDepth();
-    m_representations[view].actor->SetPosition(position);
-
-    view->addActor(m_representations[view].actor);
-  }
-  else
-  {
-    m_representations[view].contour->SetInputData(image);
-    m_representations[view].contour->SetUpdateExtent(image->GetExtent());
-    m_representations[view].contour->Update();
-
-    m_representations[view].mapper->SetUpdateExtent(image->GetExtent());
-    m_representations[view].mapper->Update();
-
-    m_representations[view].actor->SetVisibility(true);
-    m_representations[view].actor->Modified();
-  }
-
-  view->updateView();
+  m_view->removeActor(m_actor);
+  m_view = nullptr;
 }
 
 //-----------------------------------------------------------------------------
-void ROIWidget::registerView(RenderView* view)
+void ROIWidget::show()
 {
-  auto view2d = dynamic_cast<View2D *>(view);
+  if(!m_view) return;
 
-  if(!view2d || m_representations.contains(view2d)) return;
-
-  connect(view2d, SIGNAL(sliceChanged(Plane, Nm)),
-          this,   SLOT(sliceChanged(Plane, Nm)));
-
-  updateActor(view2d);
-}
-
-//-----------------------------------------------------------------------------
-void ROIWidget::unregisterView(RenderView* view)
-{
-  auto view2d = dynamic_cast<View2D *>(view);
-
-  if(!view2d || !m_representations.contains(view2d)) return;
-
-  disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
-
-  view2d->removeActor(m_representations[view2d].actor);
-  m_representations.remove(view2d);
-}
-
-//-----------------------------------------------------------------------------
-void ROIWidget::setEnabled(bool enable)
-{
-  for(auto pipeline: m_representations)
+  if(!m_active)
   {
-    pipeline.actor->SetVisibility(enable);
+    m_active = true;
+    m_actor->SetVisibility(true);
+    m_actor->Modified();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void ROIWidget::hide()
+{
+  if(!m_view) return;
+
+  if(m_active)
+  {
+    m_active = false;
+    m_actor->SetVisibility(false);
+    m_actor->Modified();
   }
 }
 
 //-----------------------------------------------------------------------------
 void ROIWidget::setColor(const QColor& color)
 {
-  if (m_color != color)
+  if (m_color != color && m_actor.Get())
   {
-    m_color = color;
+    auto actorProp = m_actor->GetProperty();
+    actorProp->SetColor(color.redF(), color.greenF(), color.blueF());
 
-    for (auto pipeline : m_representations)
-    {
-      auto actorProp = pipeline.actor->GetProperty();
-      actorProp->SetColor(color.redF(), color.greenF(), color.blueF());
-    }
+    m_color = color;
   }
 }
 
 //-----------------------------------------------------------------------------
-void ROIWidget::sliceChanged(Plane plane, Nm pos)
+void ROIWidget::display(const GUI::Representations::FrameCSPtr& frame)
 {
-  auto rView = qobject_cast<View2D *>(sender());
-
-  for(auto view: m_representations.keys())
+  if(m_view)
   {
-    if(view == rView)
-    {
-      updateActor(view);
-      return;
-    }
+    m_reslicePoint = frame->crosshair[m_index];
+
+    updateCurrentSlice();
   }
 }
 
 //----------------------------------------------------------------------------
-void ROIWidget::updateROIRepresentations()
+void ROIWidget::onROIChanged()
 {
-  for(auto view: m_representations.keys())
-  {
-    updateActor(view);
-  }
+  updateCurrentSlice();
 }
 
+//----------------------------------------------------------------------------
+vtkSmartPointer<vtkImageData> ROIWidget::currentSlice() const
+{
+  if(!m_view) return nullptr;
+
+  Bounds bounds = m_ROI->bounds();
+  bounds[2*m_index] = bounds[(2*m_index) + 1] = m_reslicePoint;
+  bounds.setUpperInclusion(toAxis(m_index), true);
+
+  vtkSmartPointer<vtkImageData> slice = nullptr;
+
+  if (intersect(m_ROI->bounds(), bounds))
+  {
+    slice = vtkImage<itkVolumeType>(m_ROI->itkImage(bounds), bounds);
+  }
+
+  return slice;
+}
+
+//----------------------------------------------------------------------------
+void ROIWidget::updateCurrentSlice()
+{
+  auto image = currentSlice();
+
+  bool hasSlice = image.Get() != nullptr;
+
+  if (hasSlice)
+  {
+    m_contour->SetInputData(image);
+    m_contour->UpdateWholeExtent();
+
+    m_mapper->SetInputConnection(m_contour->GetOutputPort());
+    m_mapper->UpdateWholeExtent();
+  }
+
+  m_actor->SetVisibility(hasSlice && m_active);
+  m_actor->Modified();
+}

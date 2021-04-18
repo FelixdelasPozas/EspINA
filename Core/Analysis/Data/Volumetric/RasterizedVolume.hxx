@@ -29,16 +29,13 @@
 #include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/Mesh/RawMesh.h>
 
-// ITK
-#include <itkImageRegionIteratorWithIndex.h>
-
 // VTK
 #include <vtkMath.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
-#include <vtkImplicitPolyDataDistance.h>
 #include <vtkImageExport.h>
+#include <vtkVoxelModeller.h>
 
 // Qt
 #include <QMutex>
@@ -51,29 +48,30 @@ namespace ESPINA
   {
   public:
     /** \brief RasterizedVolume class constructor.
-     * \param[in] mesh, MeshData smart pointer to be rasterized.
-     * \param[in] bounds, bounds of the volume.
-     * \param[in] spacing, spacing of the volume.
-     * \param[in] origin, origin of the volume.
+     * \param[in] output to obtain the mesh data from
+     * \param[in] bounds bounds of the volume.
+     * \param[in] spacing spacing of the volume.
+     * \param[in] origin origin of the volume.
      *
+     * NOTE: this data doesn't updates the output to access its mesh data
      */
-    explicit RasterizedVolume(MeshDataSPtr    mesh,
+    explicit RasterizedVolume(Output          *output,
                               const Bounds    &bounds,
                               const NmVector3 &spacing = NmVector3{1,1,1},
-                              const NmVector3 &origin = NmVector3{0,0,0});
+                              const NmVector3 &origin  = NmVector3{0,0,0});
 
     /** \brief RasterizedVolume class virtual destructor.
      *
      */
     virtual ~RasterizedVolume() {};
 
-    virtual size_t memoryUsage() const;
+    virtual size_t memoryUsage() const override;
 
-    virtual const typename T::Pointer itkImage() const;
+    virtual const typename T::Pointer itkImage() const override;
 
     virtual const typename T::Pointer itkImage(const Bounds& bounds) const override;
 
-    virtual void draw(const vtkImplicitFunction*  brush,
+    virtual void draw(vtkImplicitFunction*        brush,
                       const Bounds&               bounds,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override;
 
@@ -85,36 +83,43 @@ namespace ESPINA
     virtual void draw(const typename T::Pointer volume,
                       const Bounds&             bounds) override;
 
-    virtual void draw(const typename T::IndexType index,
-                      const typename T::PixelType value = SEG_VOXEL_VALUE) override;
+    virtual void draw(const typename T::IndexType &index,
+                      const typename T::PixelType  value = SEG_VOXEL_VALUE) override;
 
     virtual void resize(const Bounds &bounds) override;
 
     virtual bool isEmpty() const override;
 
-  private:
+    virtual bool isValid() const override;
+
+    virtual Snapshot snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id) override;
+
     /** \brief Private method to rasterize a mesh to create an T volume.
      *
      */
     void rasterize() const;
 
+  protected:
+    bool fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds) override;
+
+  private:
     virtual QList<Data::Type> updateDependencies() const override;
 
 
-    vtkSmartPointer<vtkPolyData> m_mesh;
-    mutable unsigned long int    m_rasterizationTime;
+    Output                      *m_output;
+    mutable unsigned long long   m_rasterizationTime;
     mutable QMutex               m_mutex;
   };
 
-  template<class T> using RasterizedVolumePtr = RasterizedVolume<T> *;
+  template<class T> using RasterizedVolumePtr  = RasterizedVolume<T> *;
   template<class T> using RasterizedVolumeSPtr = std::shared_ptr<RasterizedVolume<T>>;
 
   //----------------------------------------------------------------------------
   template<typename T>
-  RasterizedVolume<T>::RasterizedVolume(MeshDataSPtr mesh, const Bounds &meshBounds, const NmVector3 &spacing, const NmVector3 &origin)
-  : SparseVolume<T>(meshBounds, spacing, origin)
-  , m_mesh             {mesh->mesh()}
-  , m_rasterizationTime{0}
+  RasterizedVolume<T>::RasterizedVolume(Output *output, const Bounds &meshBounds, const NmVector3 &spacing, const NmVector3 &origin)
+  : SparseVolume<T>    {meshBounds, spacing, origin}
+  , m_output           {output}
+  , m_rasterizationTime{std::numeric_limits<unsigned long long>::max()}
   {
   }
 
@@ -122,9 +127,6 @@ namespace ESPINA
   template<typename T>
   size_t RasterizedVolume<T>::memoryUsage() const
   {
-    if(this->m_blocks.empty())
-      return 0;
-
     return SparseVolume<T>::memoryUsage();
   }
 
@@ -133,7 +135,9 @@ namespace ESPINA
   const typename T::Pointer RasterizedVolume<T>::itkImage() const
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     return SparseVolume<T>::itkImage();
   }
@@ -143,19 +147,23 @@ namespace ESPINA
   const typename T::Pointer RasterizedVolume<T>::itkImage(const Bounds& bounds) const
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     return SparseVolume<T>::itkImage(bounds);
   }
 
   //----------------------------------------------------------------------------
   template<typename T>
-  void RasterizedVolume<T>::draw(const vtkImplicitFunction*  brush,
+  void RasterizedVolume<T>::draw(vtkImplicitFunction*        brush,
                                  const Bounds&               bounds,
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(brush, bounds, value);
   }
@@ -166,7 +174,9 @@ namespace ESPINA
                                  const typename T::ValueType value)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(mask, value);
   }
@@ -177,7 +187,9 @@ namespace ESPINA
   void RasterizedVolume<T>::draw(const typename T::Pointer volume)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(volume);
   }
@@ -188,18 +200,22 @@ namespace ESPINA
                                  const Bounds&             bounds)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(volume, bounds);
   }
 
   //----------------------------------------------------------------------------
   template<typename T>
-  void RasterizedVolume<T>::draw(const typename T::IndexType index,
-                                 const typename T::PixelType value)
+  void RasterizedVolume<T>::draw(const typename T::IndexType &index,
+                                 const typename T::PixelType  value)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::draw(index, value);
   }
@@ -209,7 +225,9 @@ namespace ESPINA
   void RasterizedVolume<T>::resize(const Bounds &bounds)
   {
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     SparseVolume<T>::resize(bounds);
   }
@@ -219,12 +237,23 @@ namespace ESPINA
   bool RasterizedVolume<T>::isEmpty() const
   {
     if (!this->isValid())
+    {
       return true;
+    }
 
     if(this->m_blocks.empty())
+    {
       rasterize();
+    }
 
     return SparseVolume<T>::isEmpty();
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  bool RasterizedVolume<T>::isValid() const
+  {
+    return SparseVolume<T>::isValid() || this->m_output->hasData(MeshData::TYPE);
   }
 
   //----------------------------------------------------------------------------
@@ -242,53 +271,69 @@ namespace ESPINA
   template<typename T>
   void RasterizedVolume<T>::rasterize() const
   {
-    this->m_mutex.lock();
+    QMutexLocker lock(&m_mutex);
 
+    auto mesh = readLockMesh(m_output, DataUpdatePolicy::Ignore)->mesh();
     // try to see if already rasterized while waiting in the mutex.
-    if (!this->m_blocks.empty() && m_rasterizationTime == m_mesh->GetMTime())
+    if (!this->m_blocks.empty() && m_rasterizationTime == mesh->GetMTime()) return;
+
+    auto origin  = this->m_bounds.origin();
+    auto spacing = this->m_bounds.spacing();
+
+    double minDistance = std::min(spacing[0], std::min(spacing[1], spacing[2]));
+    minDistance = (minDistance <= 0 ? 0.1 : (minDistance > 1.0 ? 1.0 : minDistance));
+    double meshBounds[6], rasterizationBounds[6];
+    mesh->GetBounds(meshBounds);
+
+    for (unsigned int i = 0; i < 3; ++i)
     {
-      // already rasterized
-      this->m_mutex.unlock();
-      return;
+      rasterizationBounds[2*i]     = meshBounds[2*i]     - spacing[i];
+      rasterizationBounds[(2*i)+1] = meshBounds[(2*i)+1] + spacing[i];
     }
 
-    double minSpacing = std::min(this->m_spacing[0], std::min(this->m_spacing[1], this->m_spacing[2]));
-    double meshBounds[6];
-    double point[3];
+    auto rBounds = Bounds{rasterizationBounds};
+    auto region = equivalentRegion<T>(origin, spacing, rBounds);
+    auto size   = region.GetSize();
 
-    vtkSmartPointer<vtkImplicitPolyDataDistance> distance = vtkSmartPointer<vtkImplicitPolyDataDistance>::New();
-    distance->SetInput(m_mesh);
-    distance->SetTolerance(0);
+    auto modeller = vtkSmartPointer<vtkVoxelModeller>::New();
+    modeller->SetInputData(mesh);
+    modeller->SetModelBounds(rasterizationBounds);
+    modeller->SetScalarTypeToUnsignedChar();
+    modeller->SetSampleDimensions(size[0], size[1], size[2]);
+    modeller->SetForegroundValue(SEG_VOXEL_VALUE);
+    modeller->SetBackgroundValue(SEG_BG_VALUE);
+    modeller->SetMaximumDistance(minDistance);
+    modeller->Update();
 
-    m_mesh->GetBounds(meshBounds);
-    auto rasterizationBounds = Bounds{meshBounds[0], meshBounds[1], meshBounds[2], meshBounds[3], meshBounds[4], meshBounds[5]};
+    auto image = create_itkImage<T>(rBounds, SEG_BG_VALUE, spacing, origin);
+    std::memcpy(image->GetBufferPointer(), modeller->GetOutput()->GetScalarPointer(), size[0]*size[1]*size[2]);
 
-    auto region = equivalentRegion<T>(this->m_origin, this->m_spacing, rasterizationBounds);
-    typename T::Pointer image = create_itkImage<T>(rasterizationBounds, SEG_BG_VALUE, this->m_spacing, this->m_origin);
+    m_rasterizationTime = mesh->GetMTime();
 
-    itk::ImageRegionIteratorWithIndex<T> it(image, image->GetLargestPossibleRegion());
-    it.GoToBegin();
-    while(!it.IsAtEnd())
+    auto const_this = const_cast<RasterizedVolume<T> *>(this);
+
+    auto regions = this->editedRegions();
+    const_this->SparseVolume<T>::draw(image);
+    const_this->setEditedRegions(regions);
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  bool RasterizedVolume<T>::fetchDataImplementation(TemporalStorageSPtr storage, const QString &path, const QString &id, const VolumeBounds &bounds)
+  {
+    return SparseVolume<T>::fetchDataImplementation(storage, path, id, bounds) || this->m_output->hasData(MeshData::TYPE);
+  }
+
+  //----------------------------------------------------------------------------
+  template<typename T>
+  Snapshot RasterizedVolume<T>::snapshot(TemporalStorageSPtr storage, const QString &path, const QString &id)
+  {
+    if(this->m_blocks.empty())
     {
-      auto index = it.GetIndex();
-
-      for(auto i: {0,1,2})
-        point[i] = index[i] * this->m_spacing[i];
-
-      if (std::abs(distance->EvaluateFunction(point)) <= minSpacing)
-      {
-        it.Set(SEG_VOXEL_VALUE);
-      }
-      else
-        it.Set(SEG_BG_VALUE);
-
-      ++it;
+      rasterize();
     }
-    m_rasterizationTime = m_mesh->GetMTime();
 
-    const_cast<RasterizedVolume<T> *>(this)->setBlock(image, false);
-
-    this->m_mutex.unlock();
+    return SparseVolume<T>::snapshot(storage, path, id);
   }
 
 } // namespace ESPINA

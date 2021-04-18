@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) 2014  Jorge Peña Pastor<jpena@cesvima.upm.es>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -20,24 +20,32 @@
 
 // ESPINA
 #include "Analysis.h"
-#include "Core/Analysis/Sample.h"
-#include "Core/Analysis/Filter.h"
-#include "Core/Analysis/Channel.h"
-#include "Core/Analysis/Segmentation.h"
+#include <Core/Analysis/Sample.h>
+#include <Core/Analysis/Filter.h>
+#include <Core/Analysis/Channel.h>
+#include <Core/Analysis/Segmentation.h>
 #include <Core/Utils/AnalysisUtils.h>
+#include <Core/Utils/EspinaException.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
 
 //------------------------------------------------------------------------
 Analysis::Analysis()
 : m_classification{nullptr}
-, m_relations{new DirectedGraph()}
-, m_content{new DirectedGraph()}
+, m_relations     {new DirectedGraph()}
+, m_content       {new DirectedGraph()}
 {
 }
 
 //------------------------------------------------------------------------
-void Analysis::reset()
+Analysis::~Analysis()
+{
+//   qDebug() << "Destroying Analysis";
+}
+
+//------------------------------------------------------------------------
+void Analysis::clear()
 {
   m_classification.reset();
   m_content   = DirectedGraphSPtr{new DirectedGraph()};
@@ -47,6 +55,7 @@ void Analysis::reset()
   m_channels.clear();
   m_segmentations.clear();
   m_filters.clear();
+  m_connections.clear();
 }
 
 //------------------------------------------------------------------------
@@ -58,6 +67,8 @@ void Analysis::setStorage(TemporalStorageSPtr storage)
   {
     persistent->setStorage(storage);
   }
+
+  m_connections.setStorage(m_storage);
 }
 
 //------------------------------------------------------------------------
@@ -67,14 +78,23 @@ void Analysis::setClassification(ClassificationSPtr classification)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(SampleSPtr sample) throw (Existing_Item_Exception)
+void Analysis::add(SampleSPtr sample)
 {
-  if (m_samples.contains(sample)) throw (Existing_Item_Exception());
+  if (m_samples.contains(sample))
+  {
+    auto what    = QObject::tr("Attempt to add an already existing sample, sample: %1").arg(sample->name());
+    auto details = QObject::tr("Analysis::add(sample) -> Attempt to add an already existing sample, sample: %1").arg(sample->name());
+
+    throw Core::Utils::EspinaException(what, details);
+  }
 
   m_samples << sample;
 
   m_content->add(sample);
   m_relations->add(sample);
+
+  m_itemPointers.insert(sample, sample.get());
+  m_itemUUids.insert(sample, sample->uuid().toString());
 
   sample->setAnalysis(this);
 }
@@ -89,9 +109,15 @@ void Analysis::add(SampleSList samples)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(ChannelSPtr channel) throw (Existing_Item_Exception)
+void Analysis::add(ChannelSPtr channel)
 {
-  if (m_channels.contains(channel)) throw (Existing_Item_Exception());
+  if (m_channels.contains(channel))
+  {
+    auto what    = QObject::tr("Attempt to add an already existing channel, channel: %1").arg(channel->name());
+    auto details = QObject::tr("Analysis::add(channel) -> Attempt to add an already existing channel, channel: %1").arg(channel->name());
+
+    throw Core::Utils::EspinaException(what, details);
+  }
 
   m_channels << channel;
 
@@ -107,6 +133,9 @@ void Analysis::add(ChannelSPtr channel) throw (Existing_Item_Exception)
 
   m_relations->add(channel);
 
+  m_itemPointers.insert(channel, channel.get());
+  m_itemUUids.insert(channel, channel->uuid().toString());
+
   channel->setAnalysis(this);
 }
 
@@ -120,10 +149,15 @@ void Analysis::add(ChannelSList channels)
 }
 
 //------------------------------------------------------------------------
-void Analysis::add(SegmentationSPtr segmentation) throw (Existing_Item_Exception)
+void Analysis::add(SegmentationSPtr segmentation)
 {
   if (m_segmentations.contains(segmentation))
-    throw (Existing_Item_Exception());
+  {
+    auto what    = QObject::tr("Attempt to add an already existing segmentation, segmentation: %1").arg(segmentation->name());
+    auto details = QObject::tr("Analysis::add(segmentation) -> Attempt to add an already existing segmentation, segmentation: %1").arg(segmentation->name());
+
+    throw Core::Utils::EspinaException(what, details);
+  }
 
   m_segmentations << segmentation;
 
@@ -136,6 +170,9 @@ void Analysis::add(SegmentationSPtr segmentation) throw (Existing_Item_Exception
   addFilterContentRelation(filter, segmentation);
 
   m_relations->add(segmentation);
+
+  m_itemPointers.insert(segmentation, segmentation.get());
+  m_itemUUids.insert(segmentation, segmentation->uuid().toString());
 
   segmentation->setAnalysis(this);
 }
@@ -150,16 +187,23 @@ void Analysis::add(SegmentationSList segmentations)
 }
 
 //------------------------------------------------------------------------
-void Analysis::remove(SampleSPtr sample) throw (Item_Not_Found_Exception)
+void Analysis::remove(SampleSPtr sample)
 {
   if (!m_samples.contains(sample))
-  	throw (Item_Not_Found_Exception());
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown sample, sample: %1").arg(sample->name());
+    auto details = QObject::tr("Analysis::remove(sample) -> Attempt to delete an unknown sample, sample: %1").arg(sample->name());
+
+    throw Core::Utils::EspinaException(what, details);
+  }
 
   sample->setAnalysis(nullptr);
   m_samples.removeOne(sample);
 
   m_content->remove(sample);
   m_relations->remove(sample);
+  m_itemPointers.remove(sample);
+  m_itemUUids.remove(sample);
 }
 
 //------------------------------------------------------------------------
@@ -173,16 +217,23 @@ void Analysis::remove(SampleSList samples)
 
 
 //------------------------------------------------------------------------
-void Analysis::remove(ChannelSPtr channel) throw (Item_Not_Found_Exception)
+void Analysis::remove(ChannelSPtr channel)
 {
   if (!m_channels.contains(channel))
-  	throw (Item_Not_Found_Exception());
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown channel, channel: %1").arg(channel->name());
+    auto details = QObject::tr("Analysis::remove(channel) -> Attempt to delete an unknown channel, channel: %1").arg(channel->name());
+
+    throw Core::Utils::EspinaException(what, details);
+  }
 
   channel->setAnalysis(nullptr);
   m_channels.removeOne(channel);
 
   m_content->remove(channel);
   m_relations->remove(channel);
+  m_itemPointers.remove(channel);
+  m_itemUUids.remove(channel);
 
   removeIfIsolated(channel->filter());
 }
@@ -197,16 +248,24 @@ void Analysis::remove(ChannelSList channels)
 }
 
 //------------------------------------------------------------------------
-void Analysis::remove(SegmentationSPtr segmentation) throw (Item_Not_Found_Exception)
+void Analysis::remove(SegmentationSPtr segmentation)
 {
   if (!m_segmentations.contains(segmentation))
-    throw (Item_Not_Found_Exception());
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown segmentation, segmentation: %1").arg(segmentation->name());
+    auto details = QObject::tr("Analysis::remove(segmentation) -> Attempt to delete an unknown segmentation, segmentation: %1").arg(segmentation->name());
+
+    throw Core::Utils::EspinaException(what, details);
+  }
 
   segmentation->setAnalysis(nullptr);
   m_segmentations.removeOne(segmentation);
 
   m_content->remove(segmentation);
   m_relations->remove(segmentation);
+  m_connections.removeSegmentation(segmentation);
+  m_itemPointers.remove(segmentation);
+  m_itemUUids.remove(segmentation);
 
   removeIfIsolated(segmentation->filter());
 }
@@ -221,31 +280,71 @@ void Analysis::remove(SegmentationSList segmentations)
 }
 
 //------------------------------------------------------------------------
+void Analysis::changeSpacing(ChannelSPtr channel, const NmVector3 &spacing)
+{
+  auto origin = channel->position();
+  for (auto filter : downStreamPipeline(channel->filter()))
+  {
+    filter->changeSpacing(origin, spacing);
+  }
+}
+
+//------------------------------------------------------------------------
 void Analysis::addRelation(PersistentSPtr    ancestor,
-                           PersistentSPtr    succesor,
-                           const RelationName& relation)  throw (Item_Not_Found_Exception,Existing_Relation_Exception)
+                           PersistentSPtr    successor,
+                           const RelationName& relation)
 {
   if (!m_relations->contains(ancestor))
-    throw (Item_Not_Found_Exception());
+  {
+    auto what    = QObject::tr("Attempt to add a relation to an unknown ancestor, item: %1").arg(ancestor->name());
+    auto details = QObject::tr("Analysis::addRelation() -> Attempt add a relation to an unknown ancestor, item: %1").arg(ancestor->name());
 
-  if (!m_relations->contains(succesor))
-    throw (Item_Not_Found_Exception());
+    throw Core::Utils::EspinaException(what, details);
+  }
 
-  if (findRelation(ancestor, succesor, relation))
-    throw (Existing_Relation_Exception());
+  if (!m_relations->contains(successor))
+  {
+    auto what    = QObject::tr("Attempt to add a relation to an unknown successor, item: %1").arg(successor->name());
+    auto details = QObject::tr("Analysis::addRelation() -> Attempt add a relation to an unknown successor, item: %1").arg(successor->name());
 
-  m_relations->addRelation(ancestor, succesor, relation);
+    throw Core::Utils::EspinaException(what, details);
+  }
+
+  if (findRelation(ancestor, successor, relation))
+  {
+    auto what    = QObject::tr("Attempt to add an existing relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
+    auto details = QObject::tr("Analysis::addRelation() -> Attempt add an existing relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
+
+    throw Core::Utils::EspinaException(what, details);
+  }
+
+  m_relations->addRelation(ancestor, successor, relation);
 }
 
 //------------------------------------------------------------------------
 void Analysis::deleteRelation(PersistentSPtr    ancestor,
-                              PersistentSPtr    succesor,
-                              const RelationName& relation) throw (Relation_Not_Found_Exception)
+                              PersistentSPtr    successor,
+                              const RelationName& relation)
 {
-  if (!findRelation(ancestor, succesor, relation))
-    throw (Relation_Not_Found_Exception());
+  if (!findRelation(ancestor, successor, relation))
+  {
+    auto what    = QObject::tr("Attempt to delete an unknown relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
+    auto details = QObject::tr("Analysis::deleteRelation() -> Attempt to remove an unknown relation, ancestor: %1, successor: %2, description: %3").arg(ancestor->name()).arg(successor->name()).arg(relation);
 
-  m_relations->removeRelation(ancestor, succesor, relation);
+    throw Core::Utils::EspinaException(what, details);
+  }
+
+  m_relations->removeRelation(ancestor, successor, relation);
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeIfIsolated(FilterSPtr filter)
+{
+  if (removeIfIsolated(m_content, filter))
+  {
+    filter->setAnalysis(nullptr);
+    m_filters.removeOne(filter);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -279,7 +378,7 @@ void Analysis::addIfNotExists(FilterSPtr filter)
 
       addIfNotExists(inputFilter);
 
-      auto ancestor    = find<Filter>(inputFilter.get(), m_filters);
+      auto ancestor = find<Filter>(inputFilter.get(), m_filters);
       Q_ASSERT(ancestor);
 
       m_content->addRelation(ancestor, filter, QString("%1-%2").arg(i).arg(input->output()->id()));
@@ -287,15 +386,60 @@ void Analysis::addIfNotExists(FilterSPtr filter)
   }
 }
 
+//------------------------------------------------------------------------
+FilterSList Analysis::downStreamPipeline(FilterSPtr filter)
+{
+  FilterSList inFilters;
+  FilterSList outFilters;
+
+  inFilters  << filter;
+  outFilters << filter;
+
+  while (!inFilters.isEmpty())
+  {
+    auto ancestor = inFilters.takeFirst();
+
+    for(auto edge : m_content->outEdges(ancestor))
+    {
+      auto succesor = std::dynamic_pointer_cast<Filter>(edge.target);
+
+      if (succesor)
+      {
+        inFilters  << succesor;
+        outFilters << succesor;
+      }
+    }
+  }
+
+  return outFilters;
+}
 
 //------------------------------------------------------------------------
-void Analysis::removeIfIsolated(FilterSPtr filter)
+FilterSList Analysis::upStreamPipeline(FilterSPtr filter)
 {
-  if (removeIfIsolated(m_content, filter))
+  FilterSList inFilters;
+  FilterSList outFilters;
+
+  inFilters  << filter;
+  outFilters << filter;
+
+  while (!inFilters.isEmpty())
   {
-    filter->setAnalysis(nullptr);
-    m_filters.removeOne(filter);
+    auto ancestor = inFilters.takeFirst();
+
+    for(auto edge : m_content->inEdges(ancestor))
+    {
+      auto predecessor = std::dynamic_pointer_cast<Filter>(edge.target);
+
+      if (predecessor)
+      {
+        inFilters  << predecessor;
+        outFilters << predecessor;
+      }
+    }
   }
+
+  return outFilters;
 }
 
 //------------------------------------------------------------------------
@@ -335,7 +479,8 @@ void Analysis::removeFilterContentRelation(FilterSPtr filter, ViewItem* item)
   if (segmentation)
   {
     succesor = find<Segmentation>(segmentation, m_segmentations);
-  } else
+  }
+  else
   {
     auto channel = dynamic_cast<Channel *>(item);
     if (channel)
@@ -359,10 +504,137 @@ bool Analysis::findRelation(PersistentSPtr    ancestor,
                             PersistentSPtr    succesor,
                             const RelationName& relation)
 {
-  for(auto edge : m_relations->outEdges(ancestor, relation))
+  const auto edges = m_relations->outEdges(ancestor, relation);
+
+  auto booleanOp = [relation, succesor](const DirectedGraph::Edge &edge) {return (edge.relationship == relation.toStdString() && edge.target == succesor); };
+  return std::any_of(edges.constBegin(), edges.constEnd(), booleanOp);
+}
+
+//------------------------------------------------------------------------
+void Analysis::addConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3 &point)
+{
+  if(!m_connections.addConnection(segmentation1, segmentation2, point))
   {
-    if (edge.relationship == relation.toStdString() && edge.target == succesor) return true;
+    auto message = QObject::tr("Tried to add an existing connection between %1 and %2 at the point %3.").arg(segmentation1->name()).arg(segmentation2->name()).arg(point.toString());
+    auto details = QObject::tr("Analysis::addConnection() -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
   }
 
-  return false;
+  // the user is allowed to add multiple connections between the same segmentations, only add the relation once.
+  if(m_connections.connections(segmentation1, segmentation2).size() < 2)
+  {
+    m_relations->addRelation(segmentation1, segmentation2, Connection::CONNECTS);
+    m_relations->addRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  }
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeConnection(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2, const NmVector3 &point)
+{
+  if(!m_connections.removeConnection(segmentation1, segmentation2, point))
+  {
+    auto message = QObject::tr("Tried to remove a non existing connection between %1 and %2 at the point %3.").arg(segmentation1->name()).arg(segmentation2->name()).arg(point.toString());
+    auto details = QObject::tr("Analysis::removeConnection() -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
+  }
+
+  // the user is allowed to add multiple connections between the same segmentations, only remove the relation when
+  // there are no more connection points.
+  if(m_connections.connections(segmentation1, segmentation2).isEmpty())
+  {
+    m_relations->removeRelation(segmentation1, segmentation2, Connection::CONNECTS);
+    m_relations->removeRelation(segmentation2, segmentation1, Connection::CONNECTS);
+  }
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeConnections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2)
+{
+  if(!m_connections.removeConnections(segmentation1, segmentation2))
+  {
+    auto message = QObject::tr("Tried to remove non existing connections between %1 and %2.").arg(segmentation1->name()).arg(segmentation2->name());
+    auto details = QObject::tr("Analysis::removeConnections(segmentation1, segmentation2) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+void Analysis::removeConnections(const PersistentSPtr segmentation)
+{
+  if(!m_connections.removeSegmentation(segmentation))
+  {
+    auto message = QObject::tr("Tried to remove non existing connections of segmentation %1.").arg(segmentation->name());
+    auto details = QObject::tr("Analysis::removeConnections(segmentation) -> ") + message;
+
+    throw Core::Utils::EspinaException(message, details);
+  }
+}
+
+//------------------------------------------------------------------------
+Core::Connections Analysis::connections(const PersistentSPtr segmentation1, const PersistentSPtr segmentation2) const
+{
+  Core::Connections result;
+
+  for(auto connection: m_connections.connections(segmentation1, segmentation2))
+  {
+    Core::Connection coreConnection;
+    coreConnection.segmentation1 = segmentation1;
+    coreConnection.segmentation2 = segmentation2;
+    coreConnection.point         = connection.point;
+
+    result << coreConnection;
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+Core::Connections Analysis::connections(const PersistentSPtr segmentation) const
+{
+  Core::Connections result;
+
+  for(auto connection: m_connections.connections(segmentation))
+  {
+    Core::Connection coreConnection;
+    coreConnection.segmentation1 = segmentation;
+    coreConnection.segmentation2 = m_itemUUids.key(connection.segmentation2);
+    coreConnection.point         = connection.point;
+    Q_ASSERT(coreConnection.segmentation2);
+
+    result << coreConnection;
+  }
+
+  return result;
+}
+
+//------------------------------------------------------------------------
+bool Analysis::saveConnections() const
+{
+  return m_connections.save();
+}
+
+//------------------------------------------------------------------------
+bool Analysis::loadConnections()
+{
+  return m_connections.load();
+}
+
+//------------------------------------------------------------------------
+Core::Connections ESPINA::Analysis::connections(const PersistentPtr segmentation) const
+{
+  auto segSPtr = m_itemPointers.key(segmentation);
+  Q_ASSERT(segSPtr);
+  return connections(segSPtr);
+}
+
+//------------------------------------------------------------------------
+PersistentSPtr ESPINA::Analysis::smartPointer(PersistentPtr item)
+{
+  auto itemSPtr = m_itemPointers.key(item);
+  Q_ASSERT(itemSPtr);
+
+  return itemSPtr;
 }

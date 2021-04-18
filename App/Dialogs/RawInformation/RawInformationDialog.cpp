@@ -20,48 +20,50 @@
 
 // ESPINA
 #include "RawInformationDialog.h"
-#include <Support/Utils/SelectionUtils.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <Support/Settings/Settings.h>
 #include <Support/Widgets/TabularReport.h>
-#include <Support/Settings/EspinaSettings.h>
-
-// Qt
 #include <QSettings>
 #include <QDialogButtonBox>
 #include <QLayout>
 
+using ESPINA::GUI::DefaultDialogs;
+
 using namespace ESPINA;
 
+const QString SETTINGS_GROUP = "Raw Information Report";
+
 //----------------------------------------------------------------------------
-RawInformationDialog::RawInformationDialog(ModelAdapterSPtr model,
-                                           ModelFactorySPtr factory,
-                                           ViewManagerSPtr  viewManager,
-                                           QWidget         *parent)
-
-: QDialog{parent}
+RawInformationDialog::RawInformationDialog(SegmentationAdapterList input, Support::Context &context)
+: QDialog(DefaultDialogs::defaultParentWidget(), Qt::WindowFlags{Qt::WindowMinMaxButtonsHint|Qt::WindowCloseButtonHint})
 {
-  setObjectName("Raw Information Analysis");
+  setObjectName("Raw Information Report");
 
-  setWindowTitle(tr("Raw Information"));
+  setWindowTitle(tr("Raw Information Report"));
 
-  TabularReport *report = new TabularReport(factory, viewManager, this);
-  report->setModel(model);
+  auto report = new TabularReport(context, this);
+  report->setFilter(input);
+  report->setModel(context.model());
 
-  auto segmentations = defaultReportInputSegmentations(viewManager, model);
-  report->setFilter(segmentations);
+  connect(context.model().get(), SIGNAL(aboutToBeReset()), this, SLOT(close()));
 
-  setLayout(new QVBoxLayout());
+  setLayout(new QVBoxLayout(this));
   layout()->addWidget(report);
 
-  QDialogButtonBox *acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok, this);
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);
 
   ESPINA_SETTINGS(settings);
 
-  settings.beginGroup("Raw Information Analysis");
-  resize(settings.value("size", QSize (200, 200)).toSize());
-  move  (settings.value("pos",  QPoint(200, 200)).toPoint());
+  auto pos = DefaultDialogs::defaultParentWidget()->pos();
+  pos.setX(pos.x()+200);
+  pos.setY(pos.y()+200);
+
+  settings.beginGroup(SETTINGS_GROUP);
+  resize(settings.value("size", QSize(450, 250)).toSize());
+  move  (settings.value("pos",  pos).toPoint());
   settings.endGroup();
 }
 
@@ -70,7 +72,7 @@ void RawInformationDialog::closeEvent(QCloseEvent *event)
 {
   ESPINA_SETTINGS(settings);
 
-  settings.beginGroup("Raw Information Analysis");
+  settings.beginGroup(SETTINGS_GROUP);
   settings.setValue("size", size());
   settings.setValue("pos", pos());
   settings.endGroup();

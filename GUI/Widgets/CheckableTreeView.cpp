@@ -30,11 +30,7 @@
 CheckableTreeView::CheckableTreeView(QWidget* parent)
 : QTreeView{parent}
 {
-}
-
-//------------------------------------------------------------------------
-CheckableTreeView::~CheckableTreeView()
-{
+  setUniformRowHeights(true);
 }
 
 //------------------------------------------------------------------------
@@ -54,4 +50,3 @@ void CheckableTreeView::mouseReleaseEvent(QMouseEvent* event)
     }
   }
 }
-

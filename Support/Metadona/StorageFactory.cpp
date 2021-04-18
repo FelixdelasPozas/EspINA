@@ -19,13 +19,72 @@
  *
  */
 
+// ESPINA
 #include "StorageFactory.h"
 
+// Metadona
 #include <IRODS_Storage.h>
+
+// Qt
+#include <QProcess>
 
 using namespace ESPINA;
 
-Metadona::StorageSPtr StorageFactory::newStorage()
+//----------------------------------------------------------------------------------------
+Metadona::StorageSPtr StorageFactory::newStorage(Type type)
 {
-  return Metadona::StorageSPtr{new Metadona::IRODS::Storage("metadona")};
+  // TODO: 17-06-2016 change for a generic, not Metadona.
+  Metadona::StorageSPtr storage = nullptr;
+
+  switch(type)
+  {
+    case StorageFactory::Type::IRODS:
+      storage = std::make_shared<Metadona::IRODS::Storage>("metadona");
+      break;
+    default:
+      break;
+  }
+
+  return storage;
+}
+
+//----------------------------------------------------------------------------------------
+bool StorageFactory::supported(Type type)
+{
+  auto value = false;
+
+  switch(type)
+  {
+    case StorageFactory::Type::IRODS:
+      {
+        QProcess process;
+        process.start("ienv");
+        if(!process.waitForFinished(1500))
+        {
+          value = false;
+          process.kill();
+        }
+      }
+      break;
+    default:
+      break;
+  }
+
+  return value;
+}
+
+//----------------------------------------------------------------------------------------
+QList<StorageFactory::Type> StorageFactory::supportedStorages()
+{
+  QList<Type> supportedStorages;
+
+  for(auto type: { Type::IRODS })
+  {
+    if(StorageFactory::supported(type))
+    {
+      supportedStorages << type;
+    }
+  }
+
+  return supportedStorages;
 }

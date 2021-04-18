@@ -18,32 +18,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "SegmhaReader.h"
 
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+// ESPINA
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
 #include <Core/Analysis/Data/VolumetricDataUtils.hxx>
+#include <Core/Analysis/Filters/SourceFilter.h>
 #include <Core/Analysis/Sample.h>
 #include <Core/Analysis/Segmentation.h>
 #include <Core/Analysis/Channel.h>
 #include <Core/Factory/CoreFactory.h>
-#include <Filters/SourceFilter.h>
-#include <Support/Readers/ChannelReader.h>
-
-// ESPINA
+#include <Core/Readers/ChannelReader.h>
 
 // Qt
 #include <QApplication>
 #include <QDebug>
-#include <QFileDialog>
 
 // VTK
 #include <vtkImageReslice.h>
 #include <vtkImageChangeInformation.h>
 
 // ITK
-#include <itkImageFileReader.h>
 #include <itkImageFileReader.h>
 #include <itkImageToVTKImageFilter.h>
 #include <itkLabelImageToShapeLabelMapFilter.h>
@@ -52,6 +49,8 @@
 #include <itkVTKImageToImageFilter.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::IO;
 
 using SegmentationLabelMap  = itk::Image<unsigned short , 3>;
 using LabelMapReader        = itk::ImageFileReader<SegmentationLabelMap>;
@@ -65,7 +64,7 @@ using Label2VolumeFilter    = itk::LabelMapToLabelImageFilter<LabelMap, itkVolum
 static const Filter::Type SEGMHA_FILTER = "SegmhaReader";
 
 //---------------------------------------------------------------------------
-IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
+const IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 {
   ExtensionList supportedExtensions;
 
@@ -78,9 +77,13 @@ IO::AnalysisReader::ExtensionList SegmhaReader::supportedFileExtensions() const
 }
 
 //---------------------------------------------------------------------------
-AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, ErrorHandlerSPtr handler)
+AnalysisSPtr SegmhaReader::read(const QFileInfo&      file,
+                                CoreFactorySPtr       factory,
+                                ProgressReporter     *reporter,
+                                ErrorHandlerSPtr      handler,
+                                const IO::LoadOptions options)
 {
-  ClassificationSPtr classification{new Classification()};
+  auto classification = std::make_shared<Classification>();
 
   QFileInfo localFile = file;
 
@@ -97,11 +100,10 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   QFileInfo channelFile = localFile.absoluteFilePath().replace(".segmha", ".mhd");
   ChannelReader channelReader;
 
-  auto analysis = channelReader.read(channelFile, factory, handler);
+  auto analysis = channelReader.read(channelFile, factory, nullptr, handler, options);
 
   LabelMapReader::Pointer labelMapReader = LabelMapReader::New();
 
-  qDebug() << "Reading segmentation's meta data from file:";
   QList<SegmentationObject> segmentationObjects;
   CategorySList categories;
 
@@ -117,14 +119,14 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
 
     if (infoType == "Object")
     {
-      SegmentationObject seg(line);
-      segmentationObjects << seg;
+      segmentationObjects << SegmentationObject(line);
     }
     else if (infoType == "Segment")
     {
       CategoryObject info(line);
-      CategorySPtr category = classification->createNode(info.name);
-      category->setColor(info.color);
+
+      auto category = classification->createNode(info.name);
+      category->setColor(info.color.hue());
       categories << category;
     }
     else if (infoType == "Counting Brick")
@@ -147,19 +149,16 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
 
   analysis->setClassification(classification);
 
-  int numSegmentations = segmentationObjects.size();
-  //this->SetSegCategories(segTaxonomies.toUtf8());
-  std::cout << "  Total Number of Segmentations: " << numSegmentations << std::endl;
-////   std::cout << "Total Number of Categories: " << taxonomies.split(";").size() << std::endl;
+  const auto shortName = getShortFileName(localFile.absoluteFilePath());
 
-  //qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
-  labelMapReader->SetFileName(localFile.absoluteFilePath().toUtf8().data());
+  labelMapReader->SetFileName(shortName);
+  labelMapReader->SetUseStreaming(false);
+  labelMapReader->SetNumberOfThreads(1);
   labelMapReader->SetImageIO(itk::MetaImageIO::New());
   labelMapReader->Update();
 
-  //qDebug() << "Invert ITK image's slices";
-  // ESPINA python used an inversed representation of the samples
+  // ESPINA python used an inverted representation of the samples
   auto originalImage = ImageToVTKImageFilter::New();
   originalImage->SetInput(labelMapReader->GetOutput());
   originalImage->Update();
@@ -178,21 +177,17 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
   vtk2itk_filter->SetInput(infoChanger->GetOutput());
   vtk2itk_filter->Update();
 
-  qDebug() << "Converting from ITK to LabelMap";
   // Convert labeled image to label map
   auto image2label = Image2LabelFilter::New();
   image2label->SetInput(vtk2itk_filter->GetOutput());
   image2label->Update();
 
   auto labelMap = image2label->GetOutput();
-  qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
+  auto sample   = analysis->samples().first();
+  auto channel  = analysis->channels().first();
+  auto spacing  = ItkSpacing<itkVolumeType>(channel->output()->spacing());
 
-  auto sourceFilter = factory->createFilter<SourceFilter>(InputSList(), SEGMHA_FILTER);
-
-  auto sample  = analysis->samples().first();
-  auto channel = analysis->channels().first();
-
-  auto spacing = ItkSpacing<itkVolumeType>(channel->output()->spacing());
+  auto sourceFilter = factory->createFilter<SourceFilter>(channel.get(), SEGMHA_FILTER);
 
   Output::Id id = 0;
 
@@ -221,21 +216,19 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
       label2volume->SetInput(segLabelMap);
       label2volume->Update();
 
-      auto volume = label2volume->GetOutput();
+      auto segmentationVolume = label2volume->GetOutput();
 
       auto output = std::make_shared<Output>(sourceFilter.get(), id, ToNmVector3<itkVolumeType>(spacing));
 
-      Bounds    bounds  = equivalentBounds<itkVolumeType>(volume, volume->GetLargestPossibleRegion());
-      NmVector3 spacing = ToNmVector3<itkVolumeType>(volume->GetSpacing());
+      auto segBounds  = equivalentBounds<itkVolumeType>(segmentationVolume, segmentationVolume->GetLargestPossibleRegion());
+      auto segSpacing = ToNmVector3<itkVolumeType>(segmentationVolume->GetSpacing());
 
-      DefaultVolumetricDataSPtr volumetricData{new SparseVolume<itkVolumeType>(bounds, spacing)};
-      volumetricData->draw(volume);
+      auto volume = std::make_shared<SparseVolume<itkVolumeType>>(segBounds, segSpacing);
+      volume->draw(segmentationVolume);
 
-      MeshDataSPtr meshData{new MarchingCubesMesh<itkVolumeType>(volumetricData)};
-
-      output->setData(volumetricData);
-      output->setData(meshData);
-      output->setSpacing(spacing);
+      output->setData(volume);
+      output->setData(std::make_shared<MarchingCubesMesh>(output.get()));
+      output->setSpacing(segSpacing);
 
       sourceFilter->addOutput(id, output);
 
@@ -251,7 +244,8 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo& file, CoreFactorySPtr factory, 
       segmentations << segmentation;
 
       id++;
-    } catch (...)
+    }
+    catch (...)
     {
       std::cerr << "Couldn't import segmentation " << segmentationObject.label << std::endl;
     }
@@ -292,29 +286,3 @@ SegmhaReader::CategoryObject::CategoryObject(const QString& line)
 
   color = QColor(r, g, b);
 }
-
-// //-----------------------------------------------------------------------------
-// QString SegmhaImporterReader::serialize() const
-// {
-//   QStringList blockList;
-//   foreach(FilterOutputId outputId, m_outputs.keys())
-//     blockList << QString::number(outputId);
-//
-//   m_args[BLOCKS] = blockList.join(",");
-//   return Filter::serialize();
-// }
-//
-//
-// //-----------------------------------------------------------------------------
-// TaxonomyElementSPtr SegmhaImporterReader::taxonomy(FilterOutputId i)
-// {
-//   return m_taxonomies.value(i, TaxonomyElementSPtr());
-// }
-//
-// //-----------------------------------------------------------------------------
-// void SegmhaImporterReader::initSegmentation(SegmentationSPtr seg, FilterOutputId i)
-// {
-//   seg->setTaxonomy(taxonomy(i));
-//
-//   seg->setNumber(m_labels.value(i,-1));
-// }

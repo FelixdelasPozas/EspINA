@@ -24,7 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/BinaryMask.hxx>
 #include <GUI/Model/NeuroItemAdapter.h>
 #include <GUI/View/EventHandler.h>
@@ -47,80 +47,87 @@ namespace ESPINA
   class EspinaGUI_EXPORT Selector
   : public EventHandler
   {
-  Q_OBJECT
-  public:
-    using SelectionTag      = QString;
-    using SelectionMask     = BinaryMaskSPtr<unsigned char>;
-    using SelectionMaskSPtr = std::shared_ptr<BinaryMask<unsigned char>>;
+      Q_OBJECT
+    public:
+      using SelectionMask     = BinaryMaskSPtr<unsigned char>;
+      using SelectionMaskSPtr = std::shared_ptr<BinaryMask<unsigned char>>;
 
-    static const SelectionTag SAMPLE;
-    static const SelectionTag CHANNEL;
-    static const SelectionTag SEGMENTATION;
+      enum SelectionTag { SAMPLE = 1, CHANNEL = 2, SEGMENTATION = 4 };
 
-    using SelectionFlags = QSet<SelectionTag>;
-    using SelectionItem  = QPair<SelectionMask, NeuroItemAdapterPtr>;
-    using Selection      = QList<SelectionItem>;
+      Q_DECLARE_FLAGS(SelectionFlags, SelectionTag);
 
-  public:
-    /** \brief Selector class constructor.
-     *
-     */
-    explicit Selector()
-    : m_enabled{true}
-    , m_multiSelection{false}
-    {}
+      using SelectionItem  = QPair<SelectionMask, NeuroItemAdapterPtr>;
+      using Selection      = QList<SelectionItem>;
 
-    /** \brief Selector class virtual destructor.
-     *
-     */
-    virtual ~Selector()
-    {};
+    public:
+      /** \brief Selector class constructor.
+       *
+       */
+      explicit Selector()
+      : m_enabled{true}
+      , m_multiSelection{false}
+      {}
 
-    /** \brief Enables/Disables the specified selection tag.
-     * \param[in] tag, tag to modify.
-     * \param[in] selectable, true to select false otherwise.
-     *
-     */
-    void setSelectionTag(const SelectionTag tag, bool selectable=true);
+      /** \brief Selector class virtual destructor.
+       *
+       */
+      virtual ~Selector()
+      {};
 
-    /** \brief Enables/Disables multiple item selection.
-     * \param[in] enabled, true to enable multiple selection false otherwise.
-     *
-     */
-    void setMultiSelection(bool enabled)
-    { m_multiSelection = enabled; }
+      /** \brief Returns true if the item is from one of the specified selection types.
+       * \param[in] item to check.
+       * \param[in] flags selection flags.
+       *
+       */
+      static bool IsValid(NeuroItemAdapterPtr item, SelectionFlags flags);
 
-    /** \brief Returns true if the multi-selection flag is true, false otherwise.
-     *
-     */
-    bool multiSelection()
-    { return m_multiSelection; }
+      /** \brief Enables/Disables the specified selection tag.
+       * \param[in] tag tag to modify.
+       * \param[in] selectable true to select false otherwise.
+       *
+       */
+      void setSelectionTag(const SelectionTag tag, bool selectable=true);
 
-    /** \brief Enables/Disables the selector.
-     * \param[in] value, true to enable, false otherwise.
-     *
-     */
-    void setEnabled(bool value)
-    { m_enabled = value; }
+      /** \brief Enables/Disables multiple item selection.
+       * \param[in] enabled, true to enable multiple selection false otherwise.
+       *
+       */
+      void setMultiSelection(bool enabled)
+      { m_multiSelection = enabled; }
 
-    /** \brief Returns true if the selector is enabled, false otherwise.
-     *
-     */
-    bool isEnabled() const
-    {return m_enabled; }
+      /** \brief Returns true if the multi-selection flag is true, false otherwise.
+       *
+       */
+      bool multiSelection()
+      { return m_multiSelection; }
 
-  signals:
-    void itemsSelected(Selector::Selection);
-    void startUsingSelector();
-    void stopUsingSelector();
+      /** \brief Enables/Disables the selector.
+       * \param[in] value, true to enable, false otherwise.
+       *
+       */
+      void setEnabled(bool value)
+      { m_enabled = value; }
 
-  protected:
-    bool           m_enabled;
-    SelectionFlags m_flags;
-    bool           m_multiSelection;
+      /** \brief Returns true if the selector is enabled, false otherwise.
+       *
+       */
+      bool isEnabled() const
+      {return m_enabled; }
+
+    signals:
+      void itemsSelected(Selector::Selection);
+      void startUsingSelector();
+      void stopUsingSelector();
+
+    protected:
+      bool           m_enabled;
+      SelectionFlags m_flags;
+      bool           m_multiSelection;
   };
 
   using SelectorSPtr = std::shared_ptr<Selector>;
 } // namespace ESPINA
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(ESPINA::Selector::SelectionFlags)
 
 #endif // ESPINA_SELECTOR_H

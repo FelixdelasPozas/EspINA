@@ -20,29 +20,35 @@
 
 // ESPINA
 #include "InformationSelector.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
+#include <GUI/Model/CategoryAdapter.h>
 
 // Qt
 #include <ui_InformationSelector.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::GUI;
 
-class InformationSelector::GUI
-: public  Ui::InformationSelector
+class InformationSelector::UI
+: public Ui::InformationSelector
 {
 };
 
 //----------------------------------------------------------------------------
 InformationSelector::InformationSelector(const InformationSelector::GroupedInfo &available,
                                          InformationSelector::GroupedInfo       &selection,
-                                         QWidget                                *parent,
-                                         Qt::WindowFlags                         flags)
-: QDialog    {parent, flags}
-, m_gui      {new GUI()}
+                                         const QString                          &title,
+                                         const bool                             exclusive,
+                                         QWidget                               *parent)
+: QDialog(parent)
+, m_gui      {new UI()}
+, m_exclusive{exclusive}
 , m_selection(selection)
 {
   m_gui->setupUi(this);
 
-  setWindowTitle(tr("Select Analysis' Information"));
+  setWindowTitle(title);
 
   for(auto group : available.keys())
   {
@@ -68,23 +74,33 @@ InformationSelector::InformationSelector(const InformationSelector::GroupedInfo 
 
     Qt::CheckState state;
     if (hasCheckedChildren && hasUnCheckedChildren)
+    {
       state = Qt::PartiallyChecked;
+    }
     else if (hasCheckedChildren)
+    {
       state = Qt::Checked;
+    }
     else
+    {
       state = Qt::Unchecked;
+    }
 
     groupNode->setData(0, Qt::UserRole,       state);
-    groupNode->setData(0, Qt::CheckStateRole, state);
+    if (!m_exclusive)
+    {
+      groupNode->setData(0, Qt::CheckStateRole, state);
+    }
   }
 
   connect(m_gui->treeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-          this, SLOT(updateCheckState(QTreeWidgetItem*,int)));
+          this,              SLOT(onItemClicked(QTreeWidgetItem*,int)));
 
   connect(m_gui->acceptChanges, SIGNAL(clicked(bool)),
-          this, SLOT(accept()));
+          this,                 SLOT(accept()));
+
   connect(m_gui->rejectChanges, SIGNAL(clicked(bool)),
-          this, SLOT(reject()));
+          this,                 SLOT(reject()));
 }
 
 //----------------------------------------------------------------------------
@@ -101,10 +117,14 @@ void InformationSelector::accept()
   QTreeWidgetItemIterator it(m_gui->treeWidget, QTreeWidgetItemIterator::Checked);
   while (*it)
   {
-    QTreeWidgetItem *node       = (*it);
-    QTreeWidgetItem *parentNode = node->parent();
+    auto node       = (*it);
+    auto parentNode = node->parent();
+
     if (parentNode)
+    {
       m_selection[parentNode->text(0)] << node->data(0,Qt::DisplayRole).toString();
+    }
+
     ++it;
   }
 
@@ -112,7 +132,36 @@ void InformationSelector::accept()
 }
 
 //----------------------------------------------------------------------------
-void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bool updateParent)
+void InformationSelector::onItemClicked(QTreeWidgetItem* item, const int column)
+{
+  if (m_exclusive)
+  {
+    if (item->parent())
+    {
+      unselectItems();
+      item->setCheckState(column, Qt::Checked);
+    }
+  }
+  else
+  {
+    updateCheckState(item, column, true);
+  }
+}
+
+//----------------------------------------------------------------------------
+void InformationSelector::unselectItems()
+{
+  QTreeWidgetItemIterator it(m_gui->treeWidget, QTreeWidgetItemIterator::Checked);
+  while (*it)
+  {
+    (*it)->setCheckState(0, Qt::Unchecked);
+
+    ++it;
+  }
+}
+
+//----------------------------------------------------------------------------
+void InformationSelector::updateCheckState(QTreeWidgetItem *item, const int column, const bool updateParent)
 {
   if (item->data(column, Qt::UserRole).toInt() != item->checkState(column))
   {
@@ -123,19 +172,116 @@ void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bo
     }
     item->setData(column, Qt::UserRole, item->checkState(column));
 
-    QTreeWidgetItem *parentNode = item->parent();
-    if (parentNode && updateParent && parentNode->parent())
+    auto parentNode = item->parent();
+    if (parentNode && updateParent)
     {
       Qt::CheckState state = item->checkState(column);
       int i = 0;
       while (state == item->checkState(column) && i < parentNode->childCount())
       {
         if (state != parentNode->child(i)->checkState(0))
+        {
           state = Qt::PartiallyChecked;
+        }
         ++i;
       }
       parentNode->setCheckState(column, state);
       parentNode->setData(column, Qt::UserRole, state);
     }
   }
+}
+
+//----------------------------------------------------------------------------
+bool validForSegmentations(const SegmentationExtensionPtr extension, const SegmentationAdapterList segmentations)
+{
+  bool result = !segmentations.isEmpty();
+
+  auto isValid = [&result, &extension](const SegmentationAdapterPtr seg)
+  {
+    result &= (extension->validCategory(seg->category()->classificationName())) &&
+              (extension->validData(seg->output()));
+  };
+  std::for_each(segmentations.cbegin(), segmentations.cend(), isValid);
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
+InformationSelector::GroupedInfo GUI::availableInformation(ModelFactorySPtr factory)
+{
+  InformationSelector::GroupedInfo info;
+
+  auto addInformation = [&info, &factory](const Core::SegmentationExtension::Type &t)
+  {
+    const auto extension = factory->createSegmentationExtension(t);
+    for (auto key : extension->availableInformation())
+    {
+      info[t] << key.value();
+    }
+  };
+  const auto types = factory->availableSegmentationExtensions();
+  std::for_each(types.cbegin(), types.cend(), addInformation);
+
+  return info;
+}
+
+//----------------------------------------------------------------------------
+InformationSelector::GroupedInfo GUI::availableInformation(const SegmentationAdapterList segmentations, ModelFactorySPtr factory)
+{
+  InformationSelector::GroupedInfo info;
+
+  const auto types = factory->availableSegmentationExtensions();
+
+  auto addInformation = [&info, &factory, &segmentations](const Core::SegmentationExtension::Type &t)
+  {
+    auto extension = factory->createSegmentationExtension(t);
+
+    if (validForSegmentations(extension.get(), segmentations))
+    {
+      for (auto key : extension->availableInformation())
+      {
+        info[t] << key.value();
+      }
+    }
+  };
+  std::for_each(types.cbegin(), types.cend(), addInformation);
+
+  auto addSegmentationInformation = [&info, &factory](const SegmentationAdapterPtr seg)
+  {
+    auto extensions = seg->readOnlyExtensions();
+
+    for(const auto &extension: extensions)
+    {
+      if(!info.keys().contains(extension->type()))
+      {
+        const auto keys =  extension->availableInformation();
+        for (const auto key : keys)
+        {
+          info[key.extension()] << key;
+        }
+      }
+      else
+      {
+        // fix for extensions with variable keys like stereological inclusion (variable number of counting frames).
+        const auto keys = extension->availableInformation();
+        for(const auto &key: keys)
+        {
+          if(!info[key.extension()].contains(key))
+          {
+            info[key.extension()] << key;
+          }
+        }
+      }
+    }
+  };
+  std::for_each(segmentations.cbegin(), segmentations.cend(), addSegmentationInformation);
+
+  auto removeDuplicates = [&info](const QString &tag)
+  {
+    info[tag].removeDuplicates();
+  };
+  const auto keys = info.keys();
+  std::for_each(keys.cbegin(), keys.cend(), removeDuplicates);
+
+  return info;
 }

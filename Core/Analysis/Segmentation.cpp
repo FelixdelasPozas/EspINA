@@ -1,6 +1,6 @@
 /*
 
- Copyright (C) <year>  <name of author>
+ Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
  This file is part of ESPINA.
 
@@ -22,14 +22,18 @@
 // ESPINA
 #include "Segmentation.h"
 #include "Category.h"
+#include "Data/SkeletonData.h"
+#include <Core/Utils/StatePair.h>
 
 // VTK
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkImageData.h>
+#include <vtkIntArray.h>
+#include <vtkPolyData.h>
+#include <vtkPointData.h>
 
 // Qt
-#include <QDebug>
 #include <QPainter>
 #include <QTextStream>
 #include <QUuid>
@@ -48,7 +52,8 @@ const QString STATE_CATEGORY = "Category";
 
 //------------------------------------------------------------------------
 Segmentation::Segmentation(InputSPtr input)
-: ViewItem  {input}
+: ViewItem  (input)
+, Extensible(this)
 , m_number  {0}
 , m_users   {QSet<QString>()}
 , m_category{nullptr}
@@ -59,87 +64,6 @@ Segmentation::Segmentation(InputSPtr input)
 Segmentation::~Segmentation()
 {
   m_category = nullptr;
-
-  for (auto extension: m_extensions)
-    extension = nullptr;
-
-  m_extensions.clear();
-}
-
-//------------------------------------------------------------------------
-void Segmentation::addExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Existing_Extension)
-{
-  if (m_extensions.contains(extension->type()))
-    throw SegmentationExtension::Existing_Extension();
-
-  extension->setExtendedItem(this);
-
-  m_extensions.insert(extension->type(), extension);
-}
-
-//------------------------------------------------------------------------
-void Segmentation::deleteExtension(SegmentationExtensionSPtr extension) throw (SegmentationExtension::Extension_Not_Found)
-{
-  if (!m_extensions.contains(extension->type()))
-    throw SegmentationExtension::Extension_Not_Found();
-
-  m_extensions.remove(extension->type());
-}
-
-//------------------------------------------------------------------------
-SegmentationExtensionSPtr Segmentation::extension(const SegmentationExtension::Type& type) const throw(SegmentationExtension::Extension_Not_Found)
-{
-  if (!m_extensions.contains(type))
-  {
-    throw SegmentationExtension::Extension_Not_Found();
-  }
-
-  return m_extensions.value(type, SegmentationExtensionSPtr());
-}
-
-//------------------------------------------------------------------------
-bool Segmentation::hasExtension(const SegmentationExtension::Type& type) const
-{
-  return m_extensions.keys().contains(type);
-}
-
-//------------------------------------------------------------------------
-QVariant Segmentation::information(const SegmentationExtension::InfoTag& tag) const
-{
-  for(auto extension: m_extensions.values())
-  {
-    if (extension->availableInformations().contains(tag))
-    {
-      return extension->information(tag);
-    }
-  }
-
-  return QVariant();
-}
-
-//------------------------------------------------------------------------
-bool Segmentation::isInformationReady(const QString& tag) const
-{
-  for(auto extension: m_extensions.values())
-  {
-    if (extension->availableInformations().contains(tag))
-    {
-      return extension->readyInformation().contains(tag);
-    }
-  }
-
-  return false;
-}
-
-//------------------------------------------------------------------------
-SegmentationExtension::InfoTagList Segmentation::informationTags() const
-{
-  SegmentationExtension::InfoTagList list;
-
-  for (auto extension: m_extensions.values())
-    list << extension->availableInformations();
-
-  return list;
 }
 
 //------------------------------------------------------------------------
@@ -147,7 +71,9 @@ Snapshot Segmentation::snapshot() const
 {
   Snapshot snapshot;
 
-  if (!m_extensions.isEmpty())
+  auto extensions = readOnlyExtensions();
+
+  if (!extensions->isEmpty())
   {
     QByteArray xml;
 
@@ -157,19 +83,28 @@ Snapshot Segmentation::snapshot() const
     stream.writeStartDocument();
     stream.writeStartElement("Segmentation");
     stream.writeAttribute("Name", name());
-    for(auto extension : m_extensions)
+
+    for(auto type: extensions->available())
     {
+      auto extension = extensions[type];
+
+      if(!extension)
+      {
+        qWarning() << "Segmentation::snapshot() -> Couldn't save " << type << "extension: null pointer. Name:" << name();
+        continue;
+      }
+
       stream.writeStartElement("Extension");
-      stream.writeAttribute("Type", extension->type());
+      stream.writeAttribute("Type", type);
       stream.writeAttribute("InvalidateOnChange", QString("%1").arg(extension->invalidateOnChange()));
-      for(auto tag : extension->readyInformation())
+      for(auto key : extension->readyInformation())
       {
         QByteArray data;
         QDataStream out(&data, QIODevice::WriteOnly);
-        out << extension->information(tag);
+        out << extension->information(key);
 
         stream.writeStartElement("Info");
-        stream.writeAttribute("Name", tag);
+        stream.writeAttribute("Name", key.value());
         stream.writeCharacters(data.toBase64());
         stream.writeEndElement();
       }
@@ -184,14 +119,14 @@ Snapshot Segmentation::snapshot() const
 
       for(auto data: extension->snapshot())
       {
-        QString file = extensionDataPath(extension, data.first);
+        auto file = extensionDataPath(extension, data.first);
         snapshot << SnapshotData(file, data.second);
       }
     }
     stream.writeEndElement();
     stream.writeEndDocument();
 
-    QString file = extensionsPath() + QString("%1.xml").arg(uuid());
+    auto file = extensionsPath() + QString("%1.xml").arg(uuid().toString());
     snapshot << SnapshotData(file, xml);
   }
 
@@ -201,27 +136,13 @@ Snapshot Segmentation::snapshot() const
 //------------------------------------------------------------------------
 State Segmentation::state() const
 {
-  State state = QString("%1=%2;").arg(STATE_NUMBER).arg(m_number);
-  QStringList usersList = m_users.toList();
-
-  QStringList::iterator it = usersList.begin();
-  state += QString("%1=").arg(STATE_USERS);
-  while (it != usersList.end())
-  {
-    state += (*it);
-    ++it;
-    if (it != usersList.end())
-      state += QString("/");
-  }
-  state += QString(";");
-
-//   if (output())
-//     state += QString("OUTPUT=%1;").arg(output()->id());
-  state += QString("%1=%2;").arg(STATE_CATEGORY).arg(m_category?m_category->classificationName():"");
+  State state = StatePair(STATE_NUMBER, m_number);
+  state += StatePair(STATE_USERS, m_users.toList().join(","));
+  state += StatePair(STATE_CATEGORY, m_category ? m_category->classificationName() : "");
 
   if (!m_alias.isEmpty())
   {
-    state += QString("%1=%2;").arg(STATE_ALIAS).arg(m_alias);
+    state += StatePair(STATE_ALIAS, m_alias);
   }
 
   return state;
@@ -233,18 +154,25 @@ void Segmentation::restoreState(const State& state)
   for (auto token : state.split(';'))
   {
     QStringList tokens = token.split('=');
-    if (tokens.size() != 2)
-      continue;
+    if (tokens.size() != 2) continue;
 
     if (STATE_NUMBER == tokens[0])
     {
       m_number = tokens[1].toUInt();
-    } else if (STATE_USERS == tokens[0])
+    }
+    else
     {
-      m_users = tokens[1].split(',').toSet();
-    } else if (STATE_ALIAS == tokens[0])
-    {
-      m_alias = tokens[1];
+      if (STATE_USERS == tokens[0])
+      {
+        m_users = tokens[1].split(',').toSet();
+      }
+      else
+      {
+        if (STATE_ALIAS == tokens[0])
+        {
+          m_alias = Core::Utils::simplifyString(tokens[1]);
+        }
+      }
     }
   }
 }
@@ -252,11 +180,40 @@ void Segmentation::restoreState(const State& state)
 //------------------------------------------------------------------------
 void Segmentation::unload()
 {
-  // TODO
+  // NOTE: Future versions?
 }
 
 //------------------------------------------------------------------------
 void Segmentation::setCategory(CategorySPtr category)
 {
+  auto oldCategory = m_category;
   m_category = category;
+
+  if(oldCategory && m_category && hasSkeletonData(output()))
+  {
+    const auto oldHue = oldCategory->color();
+    const auto newHue = m_category->color();
+
+    auto data     = writeLockSkeleton(output());
+    auto skeleton = data->skeleton();
+
+    auto strokeColors = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeColor"));
+    bool modified = false;
+    for(int i = 0; i < strokeColors->GetNumberOfTuples(); ++i)
+    {
+      if(strokeColors->GetValue(i) == oldHue)
+      {
+        modified = true;
+        strokeColors->SetValue(i, newHue);
+      }
+    }
+
+    if(modified) data->setSkeleton(skeleton);
+  }
+}
+
+//------------------------------------------------------------------------
+QString Segmentation::extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const
+{
+  return extensionPath(extension) + QString("%1_%2").arg(uuid().toString()).arg(path); 
 }

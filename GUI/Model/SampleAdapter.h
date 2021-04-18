@@ -23,8 +23,8 @@
 
 // ESPINA
 #include "GUI/Model/NeuroItemAdapter.h"
-#include <Core/Utils/NmVector3.h>
 #include <Core/Utils/Bounds.h>
+#include <Core/Utils/Vector3.hxx>
 
 namespace ESPINA
 {
@@ -54,7 +54,7 @@ namespace ESPINA
     /** \brief Implements ItemAdapter::setData().
      *
      */
-    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
+    virtual bool setData(const QVariant& value, int role);
 
     /** \brief Implements ItemAdapter::type().
      *
@@ -144,6 +144,12 @@ namespace ESPINA
    *
    */
   SampleAdapterPtr EspinaGUI_EXPORT samplePtr(ItemAdapterPtr item);
+
+  /** \brief Returns true if the given item is a sample item.
+   * \param[in] item item adapter raw pointer.
+   *
+   */
+  bool EspinaGUI_EXPORT isSample(ItemAdapterPtr item);
 
 }// namespace ESPINA
 

@@ -35,11 +35,6 @@ ViewItem::ViewItem(InputSPtr input)
 }
 
 //------------------------------------------------------------------------
-ViewItem::~ViewItem()
-{
-}
-
-//------------------------------------------------------------------------
 OutputSPtr ViewItem::output()
 {
   return m_input->output();
@@ -49,18 +44,6 @@ OutputSPtr ViewItem::output()
 const OutputSPtr ViewItem::output() const
 {
   return m_input->output();
-}
-
-//------------------------------------------------------------------------
-DataSPtr ViewItem::data(Data::Type type)
-{
-  return m_input->output()->data(type);
-}
-
-//------------------------------------------------------------------------
-const DataSPtr ViewItem::data(Data::Type type) const
-{
-  return m_input->output()->data(type);
 }
 
 //------------------------------------------------------------------------

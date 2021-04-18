@@ -24,8 +24,8 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
-#include <Core/Analysis/Extension.h>
+#include <Core/Types.h>
+#include <Core/Analysis/Extensions.h>
 
 // ITK
 #include <itkLabelImageToShapeLabelMapFilter.h>
@@ -34,64 +34,50 @@
 namespace ESPINA
 {
   class EspinaGUI_EXPORT VisualizationState
-  : public SegmentationExtension
+  : public Core::SegmentationExtension
   {
-  public:
-    static const Type TYPE;
+    public:
+      static const Type TYPE;
 
-  public:
-    /** \brief VisualizationState class constructor.
-     *
-     */
-    explicit VisualizationState();
+    public:
+      /** \brief VisualizationState class virtual destructor.
+       *
+       */
+      virtual ~VisualizationState();
 
-    /** \brief VisualizationState class virtual destructor.
-     *
-     */
-    virtual ~VisualizationState();
+      virtual Type type() const
+      { return TYPE; }
 
-    /** \brief Implements Extension::type().
-     *
-     */
-    virtual Type type() const
-    { return TYPE; }
+      virtual const TypeList dependencies() const
+      { return TypeList(); }
 
-    /** \brief Implements Extension::dependencies().
-     *
-     */
-    virtual TypeList dependencies() const
-    { return TypeList(); }
+      virtual bool validCategory(const QString& classificationName) const
+      { return true; }
 
-    /** \brief Implements SegmentationExtension::validCategory().
-     *
-     */
-    virtual bool validCategory(const QString& classificationName) const
-    { return true; }
+      virtual const InformationKeyList availableInformation() const;
 
-    /** \brief Implements Extension::availableInformations().
-     *
-     */
-    virtual InfoTagList availableInformations() const;
+      virtual QVariant information(const Key &tag) const;
 
-    /** \brief Shadows Extension::information(tag).
-     *
-     */
-    virtual QVariant information(const InfoTag &tag) const;
+      /** \brief Sets the state of a representation.
+       * \param[in] representation representation name.
+       * \param[in] state string with the state of the representation.
+       *
+       */
+      void setState(const QString& representation, const State& state);
 
-    /** \brief Sets the state of a representation.
-     * \param[in] representation, representation name.
-     * \param[in] state, string with the state of the representation.
-     *
-     */
-    void setState(const QString& representation, const QString& state);
+      /** \brief Returns the state of the representation as a string.
+       *
+       */
+      QString representationState(const QString& representation);
 
-    /** \brief Returns the state of the representation as a string.
-     *
-     */
-    QString state(const QString& representation);
+    private:
+      /** \brief VisualizationState class constructor.
+       * \param[in] infoCache data cache of the extension.
+       *
+       */
+      explicit VisualizationState(const State &state);
 
-  private:
-    QMap<QString, QString> m_state;
+      QMap<QString, QString> m_state;
   };
 
   using VisualizationStateSPtr = std::shared_ptr<VisualizationState>;

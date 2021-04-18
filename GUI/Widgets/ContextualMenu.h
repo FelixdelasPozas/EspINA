@@ -24,7 +24,7 @@
 #include "GUI/EspinaGUI_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include "GUI/Model/ViewItemAdapter.h"
 #include <GUI/View/SelectableView.h>
 
@@ -48,7 +48,7 @@ namespace ESPINA
 		/** \brief Sets the selection of the menu.
 		 *
 		 */
-    virtual void setSelection(SelectionSPtr selection) = 0;
+    virtual void setSelection(GUI::View::SelectionSPtr selection) = 0;
   };
 
   using ContextualMenuSPtr = std::shared_ptr<ContextualMenu>;

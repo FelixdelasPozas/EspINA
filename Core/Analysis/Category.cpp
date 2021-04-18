@@ -1,10 +1,20 @@
 #include "Core/Analysis/Category.h"
 
+// ESPINA
+#include <Core/Utils/EspinaException.h>
+#include <Core/Utils/QStringUtils.h>
+#include <Core/Types.h>
+
 // Qt
 #include <QString>
+#include <QColor>
 
 // C++
 #include <iostream>
+#include <algorithm>
+
+// VTK
+#include <vtkMath.h>
 
 using namespace ESPINA;
 
@@ -12,30 +22,34 @@ const QString Category::X_DIM = "Dim_X";
 const QString Category::Y_DIM = "Dim_Y";
 const QString Category::Z_DIM = "Dim_Z";
 
-#include <QDebug>
 //------------------------------------------------------------------------
 Category::Category(CategoryPtr parent,
                    const QString &name,
-                   const QString &RGBColor)
+                   const Hue color)
 : m_parent(parent)
-, m_name(name)
-, m_color(RGBColor)
+, m_color(color)
 {
+  setName(name);
 }
 
 //------------------------------------------------------------------------
 Category::~Category()
 {
-   //qDebug() << "Destroy node " << m_name;
+//  qDebug() << "Destroy category " << m_name;
 }
 
 //------------------------------------------------------------------------
 void Category::setName(const QString &name)
 {
-  if (m_parent != nullptr && m_parent->subCategory(name).get() != nullptr) {
-    throw AlreadyDefinedCategoryException();
+  if (m_parent != nullptr && m_parent->subCategory(name).get() != nullptr)
+  {
+    auto what = QObject::tr("Category already defined, category: %1").arg(name);
+    auto details = QObject::tr("Category::setName() -> ") + what;
+
+    throw Core::Utils::EspinaException(what, details);
   }
-  m_name = name;
+
+  m_name = Core::Utils::simplifyString(name);
 }
 
 //------------------------------------------------------------------------
@@ -48,24 +62,29 @@ QString Category::name() const
 QString Category::classificationName() const
 {
   if (m_parent && !m_parent->name().isEmpty())
+  {
     return m_parent->classificationName() + "/" + m_name;
-  else
-    return m_name;
+  }
+
+  return m_name;
 }
 
 //------------------------------------------------------------------------
-void Category::setColor(const QColor &color)
+void Category::setColor(const Hue color)
 {
-  if (m_color != color)
+  const Hue maxHue{359}, minHue{0};
+  Hue adjusted = std::min(maxHue, std::max(minHue, color));
+
+  if (m_color != adjusted)
   {
-    m_color = color;
+    m_color = adjusted;
   }
 }
 
 //------------------------------------------------------------------------
 CategorySPtr Category::createSubCategory(const QString& name)
 {
-  CategorySPtr subCategory(new Category(this, name));
+  CategorySPtr subCategory(new Category(this, Core::Utils::simplifyString(name)));
   subCategory->setColor(m_color);
 
   m_subCategories << subCategory;
@@ -77,10 +96,10 @@ CategorySPtr Category::createSubCategory(const QString& name)
 void Category::addSubCategory(CategorySPtr subCategory)
 {
   // check if already present
-  for(auto category: m_subCategories)
-  {
-    if(category == subCategory) return;
-  }
+  auto booleanOp = [subCategory](const CategorySPtr &category) { return (category.get() == subCategory.get()); };
+  auto exists = std::any_of(m_subCategories.constBegin(), m_subCategories.constEnd(), booleanOp);
+
+  if(exists) return;
 
   if (subCategory->m_parent)
   {
@@ -100,9 +119,13 @@ void Category::removeSubCategory(CategoryPtr subCategory)
   while (!subNode && index < m_subCategories.size())
   {
     if (m_subCategories[index].get() == subCategory)
+    {
       subNode = m_subCategories[index];
+    }
     else
+    {
       index++;
+    }
   }
 
   if (subNode)
@@ -121,7 +144,9 @@ CategorySPtr Category::subCategory(const QString& name) const
   while (!res && i < m_subCategories.size())
   {
     if (m_subCategories[i]->name() == name)
+    {
       res = m_subCategories[i];
+    }
 
     i++;
   }
@@ -139,7 +164,9 @@ void Category::addProperty(const QString& prop, const QVariant& value)
 void Category::deleteProperty(const QString& prop)
 {
   if (m_properties.contains(prop))
+  {
     m_properties.remove(prop);
+  }
 }
 
 //------------------------------------------------------------------------

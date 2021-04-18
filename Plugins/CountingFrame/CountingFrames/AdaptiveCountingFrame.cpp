@@ -1,53 +1,49 @@
 /*
-    
-    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This file is part of ESPINA.
+ *
+ *    ESPINA is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-    This file is part of ESPINA.
-
-    ESPINA is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-
+// Plugin
 #include "AdaptiveCountingFrame.h"
-
 #include "vtkCountingFrameSliceWidget.h"
 #include "Extensions/CountingFrameExtension.h"
+#include "vtkCountingFrame3DWidget.h"
 
+// ESPINA
 #include <Core/Analysis/Channel.h>
+#include <GUI/View/View2D.h>
+#include <GUI/View/View3D.h>
 
+// VTK
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include <vtkRenderWindow.h>
-#include "vtkCountingFrame3DWidget.h"
-#include <GUI/View/View2D.h>
-#include <GUI/View/View3D.h>
-#include <Extensions/EdgeDistances/ChannelEdges.h>
-#include <Extensions/ExtensionUtils.h>
 
 using namespace ESPINA;
 using namespace ESPINA::CF;
 
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
-                                             const Bounds &bounds,
                                              Nm inclusion[3],
-                                             Nm exclusion[3],
-                                             SchedulerSPtr scheduler)
-: CountingFrame(channelExt, inclusion, exclusion, scheduler)
-, m_channel(channelExt->extendedItem())
+                                             Nm exclusion[3])
+: CountingFrame{channelExt, inclusion, exclusion}
+, m_channel    {channelExt->extendedItem()}
 {
   updateCountingFrame();
 }
@@ -55,121 +51,35 @@ AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::~AdaptiveCountingFrame()
 {
-  for(auto view: m_widgets2D.keys())
-    unregisterView(view);
-
-  for(auto view: m_widgets3D.keys())
-    unregisterView(view);
-}
-
-//-----------------------------------------------------------------------------
-void AdaptiveCountingFrame::registerView(RenderView *view)
-{
-  QMutexLocker lock(&m_widgetMutex);
-
-  View3D *view3d = dynamic_cast<View3D *>(view);
-  if (view3d)
-  {
-    if (m_widgets3D.keys().contains(view3d))
-      return;
-
-    QReadLocker lockMargins(&m_marginsMutex);
-    auto wa = CountingFrame3DWidgetAdapter::New();
-    wa->SetCountingFrame(countingFramePolyData(), m_inclusion, m_exclusion);
-    wa->SetCurrentRenderer(view3d->mainRenderer());
-    wa->SetInteractor(view3d->renderWindow()->GetInteractor());
-    wa->SetEnabled(true);
-
-    m_widgets3D[view3d] = wa;
-  }
-  else
-  {
-    View2D *view2d = dynamic_cast<View2D *>(view);
-    if (view2d)
-    {
-      if(m_widgets2D.keys().contains(view2d))
-        return;
-
-      QReadLocker lockMargins(&m_marginsMutex);
-      auto wa = CountingFrame2DWidgetAdapter::New();
-      wa->AddObserver(vtkCommand::EndInteractionEvent, m_command);
-      wa->SetPlane(view2d->plane());
-      wa->SetSlicingStep(m_channel->output()->spacing());
-      wa->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion);
-      wa->SetSlice(view2d->crosshairPoint()[normalCoordinateIndex(view2d->plane())]);
-      wa->SetCurrentRenderer(view2d->mainRenderer());
-      wa->SetInteractor(view->mainRenderer()->GetRenderWindow()->GetInteractor());
-      wa->SetEnabled(true);
-
-      m_widgets2D[view2d] = wa;
-
-      connect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)), Qt::QueuedConnection);
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void AdaptiveCountingFrame::unregisterView(RenderView *view)
-{
-  QMutexLocker lock(&m_widgetMutex);
-
-  View3D *view3d = dynamic_cast<View3D *>(view);
-  if (view3d)
-  {
-    if(!m_widgets3D.keys().contains(view3d))
-      return;
-
-    m_widgets3D[view3d]->SetEnabled(false);
-    view3d->mainRenderer()->RemoveActor(m_widgets3D[view3d]->GetRepresentation());
-    m_widgets3D[view3d]->SetCurrentRenderer(nullptr);
-    m_widgets3D[view3d]->SetInteractor(nullptr);
-    m_widgets3D[view3d]->Delete();
-
-    m_widgets3D.remove(view3d);
-  }
-  else
-  {
-    View2D *view2d = dynamic_cast<View2D *>(view);
-    if (view2d)
-    {
-      if(!m_widgets2D.keys().contains(view2d))
-        return;
-
-      m_widgets2D[view2d]->SetEnabled(false);
-      view2d->mainRenderer()->RemoveActor(m_widgets2D[view2d]->GetRepresentation());
-      m_widgets2D[view2d]->SetCurrentRenderer(nullptr);
-      m_widgets2D[view2d]->SetInteractor(nullptr);
-      m_widgets2D[view2d]->RemoveObserver(m_command);
-      m_widgets2D[view2d]->Delete();
-
-      m_widgets2D.remove(view2d);
-
-      disconnect(view2d, SIGNAL(sliceChanged(Plane, Nm)), this, SLOT(sliceChanged(Plane, Nm)));
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------
 void AdaptiveCountingFrame::updateCountingFrameImplementation()
 {
-  //qDebug() << "Updating CountingFrame Implementation";
-  auto volume  = volumetricData(m_channel->output());
-  auto origin  = volume->origin();
-  auto spacing = volume->spacing();
+  updateVolumesAndInnerFramePolyData();
+
+  updateCountingFramePolyData();
+}
+
+//-----------------------------------------------------------------------------
+void AdaptiveCountingFrame::updateVolumesAndInnerFramePolyData()
+{
+  NmVector3 origin, spacing;
+  {
+    auto volume  = readLockVolume(m_channel->output());
+    origin  = volume->bounds().origin();
+    spacing = volume->bounds().spacing();
+  }
 
   m_inclusionVolume = 0;
-
-  auto edgesExtension = retrieveOrCreateExtension<ChannelEdges>(m_channel);
-
-  vtkSmartPointer<vtkPolyData> channelEdges = edgesExtension->channelEdges();
-
-  m_totalVolume = 0;
+  m_totalVolume     = 0;
 
   int frontSliceOffset = frontOffset() / spacing[2];
   int backSliceOffset  = backOffset()  / spacing[2];
 
   double bounds[6];
-  channelEdges->GetBounds(bounds);
+  auto stackEdges = channelEdgesPolyData();
+  stackEdges->GetBounds(bounds);
 
   int channelFrontSlice = (bounds[4] + spacing[2]/2) / spacing[2];
   int channelBackSlice  = (bounds[5] + spacing[2]/2) / spacing[2];
@@ -185,20 +95,24 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
   // upper and lower refer to Espina's orientation
   Q_ASSERT(frontSlice <= backSlice);
 
-  m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
-  m_channelEdges = channelEdges;
+  auto regionVertex = vtkSmartPointer<vtkPoints>::New();
+  auto faces        = vtkSmartPointer<vtkCellArray>::New();
+  auto faceData     = vtkSmartPointer<vtkIntArray>::New();
+  const auto maxPoints = stackEdges->GetNumberOfPoints();
 
-  vtkSmartPointer<vtkPoints>    regionVertex = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces        = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray>  faceData     = vtkSmartPointer<vtkIntArray>::New();
+  auto getPoint = [&stackEdges, maxPoints](vtkIdType i, double p[3])
+  {
+    auto idx = std::min(i, maxPoints-1);
+    if(maxPoints != 0) stackEdges->GetPoint(idx, p);
+  };
 
   for (int slice = channelFrontSlice; slice < channelBackSlice; slice++)
   {
     double LB[3], LT[3], RT[3], RB[3];
-    channelEdges->GetPoint(4*slice+0, LB);
-    channelEdges->GetPoint(4*slice+1, LT);
-    channelEdges->GetPoint(4*slice+2, RT);
-    channelEdges->GetPoint(4*slice+3, RB);
+    getPoint(4*slice+0, LB);
+    getPoint(4*slice+1, LT);
+    getPoint(4*slice+2, RT);
+    getPoint(4*slice+3, RB);
 
     Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], 0, 0};
     m_totalVolume += equivalentVolume(sliceBounds);
@@ -219,92 +133,101 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
       {
         zOffset -= frontSliceOffset*spacing[2];
       }
-    } else if (slice == backSlice)
+    }
+    else
     {
-      zOffset = -backOffset();
-      if (backSliceOffset > 0)
+      if (slice == backSlice)
       {
-        zOffset += backSliceOffset*spacing[2];
+        zOffset = -backOffset();
+        if (backSliceOffset > 0)
+        {
+          zOffset += backSliceOffset * spacing[2];
+        }
       }
     }
 
-
-    channelEdges->GetPoint(4*slice+0, LB);
+    getPoint(4*slice+0, LB);
     LB[0] += leftOffset();
     LB[1] -= bottomOffset();
     LB[2] += zOffset;
     cell[0] = regionVertex->InsertNextPoint(LB);
 
-    channelEdges->GetPoint(4*slice+1, LT);
+    getPoint(4*slice+1, LT);
     LT[0] += leftOffset();
     LT[1] += topOffset();
     LT[2] += zOffset;
     cell[1] = regionVertex->InsertNextPoint(LT);
 
-    channelEdges->GetPoint(4*slice+2, RT);
+    getPoint(4*slice+2, RT);
     RT[0] -= rightOffset();
     RT[1] += topOffset();
     RT[2] += zOffset;
     cell[2] = regionVertex->InsertNextPoint(RT);
 
-    channelEdges->GetPoint(4*slice+3, RB);
+    getPoint(4*slice+3, RB);
     RB[0] -= rightOffset();
     RB[1] -= bottomOffset();
     RB[2] += zOffset;
     cell[3] = regionVertex->InsertNextPoint(RB);
+
     if (slice == frontSlice)
     {
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(INCLUSION_FACE);
-    } else if (slice == backSlice)
+    }
+    else
     {
-      // Lower Inclusion Face
-      faces->InsertNextCell(4, cell);
-      faceData->InsertNextValue(EXCLUSION_FACE);
-    } else
-    {
-      Q_ASSERT(lastCell[0] != -1);
-      Q_ASSERT(lastCell[1] != -1);
-      Q_ASSERT(lastCell[2] != -1);
-      Q_ASSERT(lastCell[3] != -1);
-      // Create lateral faces
+      if (slice == backSlice)
+      {
+        // Lower Inclusion Face
+        faces->InsertNextCell(4, cell);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+      }
+      else
+      {
+        Q_ASSERT(lastCell[0] != -1);
+        Q_ASSERT(lastCell[1] != -1);
+        Q_ASSERT(lastCell[2] != -1);
+        Q_ASSERT(lastCell[3] != -1);
+        // Create lateral faces
 
-      // Left Inclusion Face
-      vtkIdType left[4];
-      left[0] = lastCell[0];
-      left[1] = lastCell[1];
-      left[2] = cell[1];
-      left[3] = cell[0];
-      faces->InsertNextCell(4, left);
-      faceData->InsertNextValue(INCLUSION_FACE);
+        // Left Inclusion Face
+        vtkIdType left[4];
+        left[0] = lastCell[0];
+        left[1] = lastCell[1];
+        left[2] = cell[1];
+        left[3] = cell[0];
+        faces->InsertNextCell(4, left);
+        faceData->InsertNextValue(INCLUSION_FACE);
 
-      // Right Exclusion Face
-      vtkIdType right[4];
-      right[0] = lastCell[2];
-      right[1] = lastCell[3];
-      right[2] = cell[3];
-      right[3] = cell[2];
-      faces->InsertNextCell(4, right);
-      faceData->InsertNextValue(EXCLUSION_FACE);
+        // Right Exclusion Face
+        vtkIdType right[4];
+        right[0] = lastCell[2];
+        right[1] = lastCell[3];
+        right[2] = cell[3];
+        right[3] = cell[2];
+        faces->InsertNextCell(4, right);
+        faceData->InsertNextValue(EXCLUSION_FACE);
 
-      // Top Inclusion Face
-      vtkIdType top[4];
-      top[0] = lastCell[1];
-      top[1] = lastCell[2];
-      top[2] = cell[2];
-      top[3] = cell[1];
-      faces->InsertNextCell(4, top);
-      faceData->InsertNextValue(INCLUSION_FACE);
+        // Top Inclusion Face
+        vtkIdType top[4];
+        top[0] = lastCell[1];
+        top[1] = lastCell[2];
+        top[2] = cell[2];
+        top[3] = cell[1];
+        faces->InsertNextCell(4, top);
+        faceData->InsertNextValue(INCLUSION_FACE);
 
-      // Bottom Exclusion Face
-      vtkIdType bottom[4];
-      bottom[0] = lastCell[3];
-      bottom[1] = lastCell[0];
-      bottom[2] = cell[0];
-      bottom[3] = cell[3];
-      faces->InsertNextCell(4, bottom);
-      faceData->InsertNextValue(EXCLUSION_FACE);
+        // Bottom Exclusion Face
+        vtkIdType bottom[4];
+        bottom[0] = lastCell[3];
+        bottom[1] = lastCell[0];
+        bottom[2] = cell[0];
+        bottom[3] = cell[3];
+        faces->InsertNextCell(4, bottom);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+      }
     }
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
@@ -319,12 +242,266 @@ void AdaptiveCountingFrame::updateCountingFrameImplementation()
     }
   }
 
+  m_innerFrame = vtkSmartPointer<vtkPolyData>::New();
+  m_innerFrame->SetPoints(regionVertex);
+  m_innerFrame->SetPolys(faces);
+
+  auto data = m_innerFrame->GetCellData();
+  data->SetScalars(faceData);
+  data->GetScalars()->SetName("Type");
+}
+
+//-----------------------------------------------------------------------------
+void AdaptiveCountingFrame::updateCountingFramePolyData()
+{
+  NmVector3 origin, spacing;
+  {
+    auto volume  = readLockVolume(m_channel->output());
+    origin  = volume->bounds().origin();
+    spacing = volume->bounds().spacing();
+  }
+
+  int frontSliceOffset = frontOffset() / spacing[2];
+  int backSliceOffset  = backOffset()  / spacing[2];
+
+  double bounds[6];
+  auto stackEdges = channelEdgesPolyData();
+  stackEdges->GetBounds(bounds);
+  const auto maxPoints = stackEdges->GetNumberOfPoints();
+
+  auto getPoint = [&stackEdges, maxPoints](vtkIdType i, double p[3])
+  {
+    auto idx = std::min(i, maxPoints-1);
+    if(maxPoints != 0) stackEdges->GetPoint(idx, p);
+  };
+
+  int channelFrontSlice = (bounds[4] + spacing[2]/2) / spacing[2];
+  int channelBackSlice  = (bounds[5] + spacing[2]/2) / spacing[2];
+
+  int frontSlice = channelFrontSlice + frontSliceOffset;
+  frontSlice = std::max(frontSlice, channelFrontSlice);
+  frontSlice = std::min(frontSlice, channelBackSlice);
+
+  int backSlice = channelBackSlice - backSliceOffset;
+  backSlice = std::max(backSlice, channelFrontSlice);
+  backSlice = std::min(backSlice, channelBackSlice);
+
+  // upper and lower refer to Espina's orientation
+  Q_ASSERT(frontSlice <= backSlice);
+
+  auto regionVertex = vtkSmartPointer<vtkPoints>::New();
+  auto faces        = vtkSmartPointer<vtkCellArray>::New();
+  auto faceData     = vtkSmartPointer<vtkIntArray>::New();
+
+  vtkIdType lastCell[4] = {-1, -1, -1, -1};
+  for (int slice = frontSlice; slice <= backSlice; slice++)
+  {
+    vtkIdType cell[4];
+
+    double LB[3], LT[3], RT[3], RB[3];
+    double zOffset = 0;
+
+    if (slice == frontSlice)
+    {
+      zOffset = frontOffset();
+      if (frontSliceOffset > 0)
+      {
+        zOffset -= frontSliceOffset*spacing[2];
+      }
+    }
+    else
+    {
+      if (slice == backSlice)
+      {
+        zOffset = -backOffset();
+        if (backSliceOffset > 0)
+        {
+          zOffset += backSliceOffset * spacing[2];
+        }
+      }
+    }
+
+    getPoint(4*slice+0, LB);
+    getPoint(4*slice+1, LT);
+    getPoint(4*slice+2, RT);
+    getPoint(4*slice+3, RB);
+
+    if(slice == backSlice)
+    {
+      LB[1] -= bottomOffset();
+      LB[2] += zOffset;
+      LT[2] += zOffset;
+      RT[0] -= rightOffset();
+      RT[2] += zOffset;
+      RB[0] -= rightOffset();
+      RB[1] -= bottomOffset();
+      RB[2] += zOffset;
+
+      cell[0] = regionVertex->InsertNextPoint(LB);
+      cell[1] = regionVertex->InsertNextPoint(LT);
+      cell[2] = regionVertex->InsertNextPoint(RT);
+      cell[3] = regionVertex->InsertNextPoint(RB);
+      faces->InsertNextCell(4, cell);
+      faceData->InsertNextValue(EXCLUSION_FACE);
+    }
+    else
+    {
+      LB[0] += leftOffset();
+      LB[1] -= bottomOffset();
+      LB[2] += zOffset;
+      cell[0] = regionVertex->InsertNextPoint(LB);
+
+      LT[0] += leftOffset();
+      LT[1] += topOffset();
+      LT[2] += zOffset;
+      cell[1] = regionVertex->InsertNextPoint(LT);
+
+      RT[0] -= rightOffset();
+      RT[1] += topOffset();
+      RT[2] += zOffset;
+      cell[2] = regionVertex->InsertNextPoint(RT);
+
+      RB[0] -= rightOffset();
+      RB[1] -= bottomOffset();
+      RB[2] += zOffset;
+      cell[3] = regionVertex->InsertNextPoint(RB);
+
+      if (slice == frontSlice)
+      {
+        // Upper Inclusion Face
+        faces->InsertNextCell(4, cell);
+        faceData->InsertNextValue(INCLUSION_FACE);
+
+        double edgesBounds[6];
+        stackEdges->GetBounds(edgesBounds);
+
+        // right face extension to the front
+        double EP1[3], EP2[3], EP3[3], EP4[4];
+        getPoint(4*slice+2, EP1);
+        EP1[0] -= rightOffset();
+        EP1[2] = edgesBounds[4];
+        getPoint(4*slice+3, EP2);
+        EP2[0] -= rightOffset();
+        EP2[1] -= bottomOffset();
+        EP2[2] = edgesBounds[4];
+        getPoint(4*slice+3, EP3);
+        EP3[0] -= rightOffset();
+        EP3[1] -= bottomOffset();
+        EP3[2] += zOffset;
+        getPoint(4*slice+2, EP4);
+        EP4[0] -= rightOffset();
+        EP4[2] += zOffset;
+
+        vtkIdType right[4];
+        right[0] = regionVertex->InsertNextPoint(EP1);
+        right[1] = regionVertex->InsertNextPoint(EP2);
+        right[2] = regionVertex->InsertNextPoint(EP3);
+        right[3] = regionVertex->InsertNextPoint(EP4);
+        faces->InsertNextCell(4, right);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+
+        // bottom face extension to the front.
+        getPoint(4*slice+3, EP1);
+        EP1[0] -= rightOffset();
+        EP1[1] -= bottomOffset();
+        EP1[2] = edgesBounds[4];
+        getPoint(4*slice+0, EP2);
+        EP2[1] -= bottomOffset();
+        EP2[2] = edgesBounds[4];
+        getPoint(4*slice+0, EP3);
+        EP3[1] -= bottomOffset();
+        EP3[2] += zOffset;
+        getPoint(4*slice+3, EP4);
+        EP4[0] -= rightOffset();
+        EP4[1] -= bottomOffset();
+        EP4[2] += zOffset;
+
+        vtkIdType bottom[4];
+        bottom[0] = regionVertex->InsertNextPoint(EP1);
+        bottom[1] = regionVertex->InsertNextPoint(EP2);
+        bottom[2] = regionVertex->InsertNextPoint(EP3);
+        bottom[3] = regionVertex->InsertNextPoint(EP4);
+        faces->InsertNextCell(4, bottom);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+      }
+      else
+      {
+        Q_ASSERT(lastCell[0] != -1);
+        Q_ASSERT(lastCell[1] != -1);
+        Q_ASSERT(lastCell[2] != -1);
+        Q_ASSERT(lastCell[3] != -1);
+        // Create lateral faces
+
+        // Left Inclusion Face
+        vtkIdType left[4];
+        left[0] = lastCell[0];
+        left[1] = lastCell[1];
+        left[2] = cell[1];
+        left[3] = cell[0];
+        faces->InsertNextCell(4, left);
+        faceData->InsertNextValue(INCLUSION_FACE);
+
+        // Top Inclusion Face
+        vtkIdType top[4];
+        top[0] = lastCell[1];
+        top[1] = lastCell[2];
+        top[2] = cell[2];
+        top[3] = cell[1];
+        faces->InsertNextCell(4, top);
+        faceData->InsertNextValue(INCLUSION_FACE);
+
+        // Right Exclusion Face
+        double EP1[3], EP2[3], EP3[3], EP4[3];
+        getPoint(4*(slice-1)+2, EP1);
+        EP1[0] -= rightOffset();
+        getPoint(4*(slice-1)+3, EP2);
+        EP2[0] -= rightOffset();
+        EP2[1] -= bottomOffset();
+        getPoint(4*slice+3,     EP3);
+        EP3[0] -= rightOffset();
+        EP3[1] -= bottomOffset();
+        getPoint(4*slice+2,     EP4);
+        EP4[0] -= rightOffset();
+
+        vtkIdType right[4];
+        right[0] = regionVertex->InsertNextPoint(EP1);
+        right[1] = regionVertex->InsertNextPoint(EP2);
+        right[2] = regionVertex->InsertNextPoint(EP3);
+        right[3] = regionVertex->InsertNextPoint(EP4);
+        faces->InsertNextCell(4, right);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+
+        // Bottom Exclusion Face
+        getPoint(4*(slice-1)+3, EP1);
+        EP1[0] -= rightOffset();
+        EP1[1] -= bottomOffset();
+        getPoint(4*(slice-1)+0, EP2);
+        EP2[1] -= bottomOffset();
+        getPoint(4*slice+0,     EP3);
+        EP3[1] -= bottomOffset();
+        getPoint(4*slice+3,     EP4);
+        EP4[0] -= rightOffset();
+        EP4[1] -= bottomOffset();
+
+        vtkIdType bottom[4];
+        bottom[0] = regionVertex->InsertNextPoint(EP1);
+        bottom[1] = regionVertex->InsertNextPoint(EP2);
+        bottom[2] = regionVertex->InsertNextPoint(EP3);
+        bottom[3] = regionVertex->InsertNextPoint(EP4);
+        faces->InsertNextCell(4, bottom);
+        faceData->InsertNextValue(EXCLUSION_FACE);
+      }
+    }
+
+    memcpy(lastCell,cell,4*sizeof(vtkIdType));
+  }
+
+  m_countingFrame = vtkSmartPointer<vtkPolyData>::New();
   m_countingFrame->SetPoints(regionVertex);
   m_countingFrame->SetPolys(faces);
 
-  vtkCellData *data = m_countingFrame->GetCellData();
+  auto data = m_countingFrame->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
-
-  //qDebug() << "CountingFrame Implementation Updated";
 }
+

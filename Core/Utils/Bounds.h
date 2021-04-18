@@ -29,13 +29,11 @@
 #ifndef ESPINA_BOUNDS_H
 #define ESPINA_BOUNDS_H
 
+#include <Core/Utils/Vector3.hxx>
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
 #include "Core/Utils/Spatial.h"
-#include "NmVector3.h"
-
-// C++
 #include <iostream>
 
 // Qt
@@ -45,10 +43,6 @@
 
 namespace ESPINA
 {
-  struct Wrong_Number_Initial_Values {};
-  struct Invalid_Bounds_Token {};
-  struct Invalid_Bounds_Exception{};
-
   /** \class Bounds
    * \brief Set of values defining a region in the 3D space.
    *
@@ -64,19 +58,27 @@ namespace ESPINA
       explicit Bounds();
 
       /** \brief Bounds class constructor.
+       * \param[in] bounds values in a dim 6 array.
+       *
+       * Constructs the bounds of a point.
+       *
+       */
+      explicit Bounds(Nm *bounds);
+
+      /** \brief Bounds class constructor.
        * \param[in] bounds initial list of values.
        *
        * Create Bounds from an initial list of values
        *
        *  There are three formats to initialize Bounds instances:
-       *  - {min_x, max_x, min_y, max_y, min_z, max_z} \n
-       *    Lower values are inlcuded.\n
-       *    Uppaer values are excluded.\n
+       *  - {min_x, max_x, min_y, max_y, min_z, max_z}
+       *    Lower values are included.
+       *    Upper values are excluded.
        *  - {'LI',min_x, max_x, min_y, max_y, min_z, max_z,'UI'}.
-       *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.\n
-       *    Lower values are included or not according to LI value.\n
-       *    '[' includes values and '(' excludes them.\n
-       *    Upper values are included or not according to UI value.\n
+       *  - {'LI',min_x, max_x,'UI','LI', min_y, max_y,'UI', 'LI', min_z, max_z,'UI'}.
+       *    Lower values are included or not according to LI value.
+       *    '[' includes values and '(' excludes them.
+       *    Upper values are included or not according to UI value.
        *    ']' includes values and ')' excludes them.
        */
       Bounds(std::initializer_list<double> bounds);
@@ -89,7 +91,6 @@ namespace ESPINA
        */
       explicit Bounds(const NmVector3 &point);
 
-
       /** \brief Bounds class constructor.
        * \param[in] strimg bounds serialization
        *
@@ -98,13 +99,27 @@ namespace ESPINA
        */
       explicit Bounds(const QString &string);
 
-      /** \brief Return whether or not Bounds define a valid region of the 3D space
+      /** \brief Returns whether or not Bounds define a valid region of the 3D space
        *
        *  Any region whose lower bounds are greater than its upper bounds is considered to be an
        *  empty region, and thus invalid.
        */
       bool areValid() const
-      { return m_bounds[0] <= m_bounds[1] && m_bounds[2] <= m_bounds[3] &&m_bounds[4] <= m_bounds[5]; }
+      {
+        bool valid = true;
+        int i = 0;
+        while (valid && i < 3)
+        {
+          auto lb = m_bounds[2*i];
+          auto ub = m_bounds[2*i+1];
+
+          valid = (lb <= ub) && !(lb == ub && !m_lowerInclusion[i] && !m_upperInclusion[i]);
+
+          ++i;
+        }
+
+        return valid;
+      }
 
       /** \brief Bounds operator[int]
        *
@@ -133,7 +148,7 @@ namespace ESPINA
       void setLowerInclusion(const bool value)
       { m_lowerInclusion[idx(Axis::X)] = m_lowerInclusion[idx(Axis::Y)] = m_lowerInclusion[idx(Axis::Z)] = value; }
 
-      /** \brief Return wheter or not lower bounds in the given direction should be included in the region defined by the bounds
+      /** \brief Returns wheter or not lower bounds in the given direction should be included in the region defined by the bounds
        * \param[in] dir axis direction.
        *
        */
@@ -155,13 +170,13 @@ namespace ESPINA
       void setUpperInclusion(const bool value)
       { m_upperInclusion[idx(Axis::X)] = m_upperInclusion[idx(Axis::Y)] = m_upperInclusion[idx(Axis::Z)] = value; }
 
-      /** \brief Return wheter or not upper bounds in the given direction should be included in the region defined by the bounds
+      /** \brief Returns wheter or not upper bounds in the given direction should be included in the region defined by the bounds
        * \param[in] dir axis direction.
        */
       bool areUpperIncluded(const Axis dir) const
       { return m_upperInclusion[idx(dir)]; }
 
-      /** \brief Return the distance between both sides of the bounds in a given direction
+      /** \brief Returns the distance between both sides of the bounds in a given direction
        * \param[in] dir axis direction.
        *
        */
@@ -181,7 +196,7 @@ namespace ESPINA
 
   using BoundsList = QList<Bounds>;
 
-  /** \brief Return wether b1 intersects b2 or not.
+  /** \brief Returns wether b1 intersects b2 or not.
    * \param[in] b1 bounds object.
    * \param[in] b2 bounds object.
    * \param[in] spacing.
@@ -191,7 +206,7 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT intersect(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
-  /** \brief Return the bounds which belong both to b1 and b2.
+  /** \brief Returns the bounds which belong both to b1 and b2.
    * \param[in] b1 bounds object.
    * \param[in] b2 bounds object.
    * \param[in] spacing.
@@ -201,7 +216,7 @@ namespace ESPINA
    */
   Bounds EspinaCore_EXPORT intersection(const Bounds& b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
-  /** \brief Return the minimum bouds containing b1 and b2
+  /** \brief Returns the minimum bounds containing b1 and b2
    * \param[in] b1 bounds object.
    * \param[in] b2 bounds object.
    * \param[in] spacing.
@@ -209,7 +224,34 @@ namespace ESPINA
    */
   Bounds EspinaCore_EXPORT boundingBox(const Bounds &b1, const Bounds& b2, NmVector3 spacing=NmVector3{1.0, 1.0, 1.0});
 
-  /** \brief Return whether a bound is contained inside another
+  /** \brief Returns the centroid of bounds
+   * \param[in] bounds to compute its centroid
+   *
+   */
+  NmVector3 EspinaCore_EXPORT centroid(const Bounds &bounds);
+
+  /** \brief Returns the start point of the lower voxel
+   * \param[in] bounds to compute its lower bound
+   *
+   *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
+   */
+  NmVector3 EspinaCore_EXPORT lowerPoint(const Bounds &bounds);
+
+  /** \brief Returns the end point of the upper voxel
+   * \param[in] bounds to compute its lower bound
+   *
+   *  It returns NmVector3{bounds[0], bounds[2], bounds[4]}
+   */
+  NmVector3 EspinaCore_EXPORT upperPoint(const Bounds &bounds);
+
+  /** \brief Add bounds to boundingBox
+   * \param[in] boundingBox to be updated
+   * \param[in] bounds to update boundingBox with
+   *
+   */
+  void EspinaCore_EXPORT updateBoundingBox(Bounds &boundingBox, const Bounds &bounds);
+
+  /** \brief Returns whether a bound is contained inside another
    * \param[in] container bounds object.
    * \param[in] contained bounds object.
    * \param[in] spacing
@@ -219,7 +261,7 @@ namespace ESPINA
    */
   bool EspinaCore_EXPORT contains(const Bounds& container, const Bounds& contained, const NmVector3 &spacing=NmVector3{1,1,1});
 
-  /** \brief Return whether a bound contains a point or not.
+  /** \brief Returns whether a bound contains a point or not.
    * \param[in] bounds bounds object.
    * \param[in] point point object.
    * \param[in] spacing.
@@ -228,6 +270,16 @@ namespace ESPINA
    *  are equally included
    */
   bool EspinaCore_EXPORT contains(const Bounds& bounds, const NmVector3& point, const NmVector3 &spacing=NmVector3{1,1,1});
+
+  /** \brief Returns whether position is inside bounds for the given direction
+   * \param[in] bounds bounds object.
+   * \param[in] axis axis direction
+   * \param[in] pos axis spatial position
+   *
+   *  Boundaires are inside if and only if both boundaries
+   *  are equally included
+   */
+  bool EspinaCore_EXPORT contains(const Bounds &bounds, const Axis axis, const Nm pos);
 
   /** \brief Bounds operator<< for streams.
    *
@@ -257,7 +309,18 @@ namespace ESPINA
    * third side.
    */
   bool EspinaCore_EXPORT areAdjacent(const Bounds &lhs, const Bounds &rhs);
-}
 
+  /** \brief Returns the surface area of the given bounds with no units.
+   * \param[in] bounds Bounds object.
+   *
+   */
+  float EspinaCore_EXPORT surfaceArea(const Bounds &bounds);
+
+  /** \brief Returns the surface area of the given bounds with no units.
+   * \param[in] bounds Bounds object.
+   *
+   */
+  float EspinaCore_EXPORT enclosingVolume(const Bounds &bounds);
+}
 
 #endif // ESPINA_BOUNDS_H

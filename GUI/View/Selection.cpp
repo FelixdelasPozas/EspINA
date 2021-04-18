@@ -20,27 +20,45 @@
  */
 
 // ESPINA
+#include <Core/Utils/ListUtils.hxx>
 #include "Selection.h"
 #include "GUI/Model/ChannelAdapter.h"
 #include "GUI/Model/SegmentationAdapter.h"
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::GUI::View;
+using namespace ESPINA::Core::Utils;
+
+//----------------------------------------------------------------------------
+Selection::Selection()
+: m_activeChannel{nullptr}
+{
+}
 
 //----------------------------------------------------------------------------
 ChannelAdapterList Selection::setChannels(ChannelAdapterList channelList)
 {
-  auto modifiedChannels = channels();
+  auto modifiedChannels = m_channels;
+  modifiedChannels.detach();
   m_channels.clear();
 
   for (auto channel : modifiedChannels)
+  {
     channel->setSelected(false);
+  }
 
   for(auto channel: channelList)
   {
     if(modifiedChannels.contains(channel))
+    {
       modifiedChannels.removeOne(channel);
+    }
     else
+    {
       modifiedChannels << channel;
+    }
 
     channel->setSelected(true);
     m_channels << channel;
@@ -50,34 +68,27 @@ ChannelAdapterList Selection::setChannels(ChannelAdapterList channelList)
 }
 
 //----------------------------------------------------------------------------
-void Selection::set(ChannelAdapterList selection)
-{
-  if(selection != m_channels)
-  {
-    auto modifiedChannels = setChannels(selection);
-
-    if(!modifiedChannels.empty())
-      emit selectionStateChanged(modifiedChannels);
-
-    emit selectionStateChanged();
-  }
-}
-
-//----------------------------------------------------------------------------
 SegmentationAdapterList Selection::setSegmentations(SegmentationAdapterList segmentationList)
 {
-  auto modifiedSegmentations = segmentations();
+  auto modifiedSegmentations = m_segmentations;
+  modifiedSegmentations.detach();
   m_segmentations.clear();
 
   for(auto segmentation: modifiedSegmentations)
+  {
     segmentation->setSelected(false);
+  }
 
   for(auto segmentation: segmentationList)
   {
     if (modifiedSegmentations.contains(segmentation))
+    {
       modifiedSegmentations.removeOne(segmentation);
+    }
     else
+    {
       modifiedSegmentations << segmentation;
+    }
 
     segmentation->setSelected(true);
     m_segmentations << segmentation;
@@ -87,53 +98,114 @@ SegmentationAdapterList Selection::setSegmentations(SegmentationAdapterList segm
 }
 
 //----------------------------------------------------------------------------
-void Selection::set(SegmentationAdapterList selection)
+void Selection::onChannelsModified(ChannelAdapterList channels)
 {
-  if(selection != m_segmentations)
+  if(!channels.isEmpty())
   {
-    auto modifiedSegmentations = setSegmentations(selection);
-
-    if(!modifiedSegmentations.empty())
-      emit selectionStateChanged(modifiedSegmentations);
-
-    emit selectionStateChanged();
+    emit selectionStateChanged(channels);
   }
 }
 
+//----------------------------------------------------------------------------
+void Selection::onSegmentationsModified(SegmentationAdapterList segmentations)
+{
+  if(!segmentations.isEmpty())
+  {
+    emit selectionStateChanged(segmentations);
+  }
+}
 
 //----------------------------------------------------------------------------
-void Selection::set(ViewItemAdapterList selection)
+void Selection::set(ChannelAdapterList selection)
 {
-  ChannelAdapterList      channels;
-  SegmentationAdapterList segmentations;
+  ChannelAdapterList modifiedChannels;
+  bool modified = false;
 
-  if(selection != items())
   {
-    for(auto item: selection)
+    QMutexLocker lock(&m_mutex);
+
+    if(selection != m_channels)
+    {
+      modifiedChannels = setChannels(selection);
+      modified = true;
+    }
+  }
+
+  if(modified)
+  {
+    onChannelsModified(modifiedChannels);
+
+    emit selectionStateChanged();
+
+    emit selectionChanged(m_channels);
+    emit selectionChanged();
+  }
+}
+
+//----------------------------------------------------------------------------
+void Selection::set(SegmentationAdapterList selection)
+{
+  SegmentationAdapterList modifiedSegmentations;
+  bool modified = false;
+
+  {
+    QMutexLocker lock(&m_mutex);
+
+    if(selection != m_segmentations)
+    {
+      modifiedSegmentations = setSegmentations(selection);
+      modified = true;
+    }
+  }
+
+  if(modified)
+  {
+    onSegmentationsModified(modifiedSegmentations);
+
+    emit selectionStateChanged();
+
+    emit selectionChanged(m_segmentations);
+    emit selectionChanged();
+  }
+}
+
+//----------------------------------------------------------------------------
+void Selection::setItems(ViewItemAdapterList list)
+{
+  ChannelAdapterList      channels, modifiedChannels;
+  SegmentationAdapterList segmentations, modifiedSegmentations;
+
+  if(list != items_implementation())
+  {
+    for(auto item: list)
+    {
       switch(item->type())
       {
         case ItemAdapter::Type::CHANNEL:
-          channels << dynamic_cast<ChannelAdapterPtr>(item);
+          channels << channelPtr(item);
           break;
         case ItemAdapter::Type::SEGMENTATION:
-          segmentations << dynamic_cast<SegmentationAdapterPtr>(item);
+          segmentations << segmentationPtr(item);
           break;
         default:
-          Q_ASSERT(false); // TODO: SAMPLES?
+          Q_ASSERT(false); // NOTE: SAMPLES?
           break;
       }
+    }
 
-    auto modifiedChannels      = setChannels(channels);
-    auto modifiedSegmentations = setSegmentations(segmentations);
+    {
+      QMutexLocker lock(&m_mutex);
+      modifiedChannels      = setChannels(channels);
+      modifiedSegmentations = setSegmentations(segmentations);
+    }
 
     if (!modifiedChannels.empty() || !modifiedSegmentations.empty())
+    {
       emit selectionStateChanged();
+    }
 
-    if(!modifiedSegmentations.empty())
-      emit selectionStateChanged(modifiedSegmentations);
-
-    if(!modifiedChannels.empty())
-      emit selectionStateChanged(modifiedChannels);
+    onChannelsModified(modifiedChannels);
+    onSegmentationsModified(modifiedSegmentations);
 
     emit selectionChanged();
     emit selectionChanged(m_channels);
@@ -142,29 +214,120 @@ void Selection::set(ViewItemAdapterList selection)
 }
 
 //----------------------------------------------------------------------------
-ViewItemAdapterList Selection::items() const
+void Selection::set(ViewItemAdapterList selection)
+{
+  setItems(selection);
+}
+
+//----------------------------------------------------------------------------
+void Selection::unset(ViewItemAdapterList itemList)
+{
+  ViewItemAdapterList toDeselect;
+  auto selection = items();
+
+  for(auto item: selection)
+  {
+    if(itemList.contains(item))
+    {
+      toDeselect << item;
+    }
+  }
+
+  if(!toDeselect.isEmpty())
+  {
+    for(auto item: toDeselect)
+    {
+      selection.removeOne(item);
+    }
+
+    setItems(selection);
+  }
+}
+
+//----------------------------------------------------------------------------
+void Selection::setActiveChannel(ChannelAdapterPtr channel)
+{
+  bool modified = false;
+  {
+    QMutexLocker lock(&m_mutex);
+
+    if (m_activeChannel != channel)
+    {
+      m_activeChannel = channel;
+      modified = true;
+    }
+  }
+
+  if(modified)
+  {
+    emit activeChannelChanged(channel);
+  }
+}
+
+//----------------------------------------------------------------------------
+ChannelAdapterPtr Selection::activeChannel() const
+{
+  QMutexLocker lock(&m_mutex);
+
+  return m_activeChannel;
+}
+
+//----------------------------------------------------------------------------
+ViewItemAdapterList Selection::items_implementation() const
 {
   ViewItemAdapterList selectedItems;
 
   for(auto channel: m_channels)
+  {
     selectedItems << channel;
+  }
 
   for(auto segmentation: m_segmentations)
+  {
     selectedItems << segmentation;
+  }
 
   return selectedItems;
 }
 
 //----------------------------------------------------------------------------
+ViewItemAdapterList Selection::items() const
+{
+  QMutexLocker lock(&m_mutex);
+
+  return items_implementation();
+}
+
+//----------------------------------------------------------------------------
 void Selection::clear()
 {
-  for(auto channel: m_channels)
-    channel->setSelected(false);
+  setItems(ViewItemAdapterList());
+}
 
-  m_channels.clear();
+//----------------------------------------------------------------------------
+void Selection::modified()
+{
+  emit selectionStateChanged();
+}
 
-  for(auto segmentation: m_segmentations)
-    segmentation->setSelected(false);
+//----------------------------------------------------------------------------
+ChannelAdapterList Selection::channels() const
+{
+  QMutexLocker lock(&m_mutex);
 
-  m_segmentations.clear();
+  auto channels = m_channels;
+  channels.detach();
+
+  return channels;
+}
+
+//----------------------------------------------------------------------------
+SegmentationAdapterList Selection::segmentations() const
+{
+  QMutexLocker lock(&m_mutex);
+
+  auto segmentations = m_segmentations;
+  segmentations.detach();
+
+  return segmentations;
 }

@@ -18,13 +18,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// Plugin
 #include "vtkCountingFrameRepresentationXZ.h"
-#include <GUI/View/View2D.h>
 
+// ESPINA
+#include <GUI/View/View2D.h>
+#include <Core/Utils/Spatial.h>
+
+// VTK
 #include <vtkObjectFactory.h>
 #include <vtkCellArray.h>
 #include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 
 vtkStandardNewMacro(vtkCountingFrameRepresentationXZ);
 
@@ -44,50 +50,82 @@ void vtkCountingFrameRepresentationXZ::SetSlice(ESPINA::Nm pos)
 
   bool visible = false;
   int  slice   = firstSlice;
-  // cheack all visible slices
-  while (!visible && slice <= lastSlice)
+  // check all slices
+  double lastSliceY = -VTK_DOUBLE_MAX;
+  while (slice <= lastSlice)
   {
     double sliceBounds[6];
     regionBounds(slice, sliceBounds);
-    visible = sliceBounds[2] + InclusionOffset [1] <= Slice
-           && Slice <= sliceBounds[3] - ExclusionOffset[1];
+    auto sliceY = sliceBounds[3] - ExclusionOffset[1];
+
+    if(!visible)
+    {
+      visible = (sliceBounds[2] + InclusionOffset[1] <= Slice) && (Slice <= sliceY);
+    }
+
+    if(sliceY > lastSliceY)
+    {
+      lastSliceY = sliceY;
+    }
+
     slice++;
   }
 
   if (visible)
   {
-    for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
-      this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
+    // check for back slice
+    if (ESPINA::areEqual(lastSliceY, pos, SlicingStep[1]))
+    {
+      for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
+      {
+        this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
+      }
+    }
+    else
+    {
+      for(EDGE i = LEFT; i <= TOP; i = EDGE(i+1))
+      {
+        this->EdgeActor[i]->SetProperty(InclusionEdgeProperty);
+      }
+    }
+
     for(EDGE i = RIGHT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(ExclusionEdgeProperty);
+    }
 
     CreateRegion();
-  } else
+  }
+  else
   {
     for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+    {
       this->EdgeActor[i]->SetProperty(InvisibleProperty);
+      this->EdgeActor[i]->GetProperty()->Modified();
+      this->EdgeActor[i]->Modified();
+    }
   }
 }
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXZ::CreateRegion()
 {
+  if(Region.GetPointer() == nullptr) return;
+
   double LT[3], LB[3];
   this->Region->GetPoint(0, LT);
   this->Region->GetPoint(NumPoints-4, LB);
 
-//   std::cout << "LT: " << LT[2] << std::endl;
-//   std::cout << "LB: " << LB[2] << std::endl;
-  int FrontSlice = sliceNumber(LT[2] + InclusionOffset[2]);
-  int BackSlice  = sliceNumber(LB[2] - ExclusionOffset[2]);
+  auto FrontSlice = sliceNumber(LT[2] + InclusionOffset[2]);
+  auto BackSlice  = sliceNumber(LB[2] - ExclusionOffset[2]);
   if (FrontSlice == BackSlice)
+  {
     FrontSlice--;
-//   std::cout << "Upper Slice: " << UpperSlice << std::endl;
-//   std::cout << "Lower Slice: " << LowerSlice << std::endl;
+  }
 
   int numRepSlices = BackSlice - FrontSlice + 1;
-  if (numRepSlices == 0)
-    return;
+
+  if (numRepSlices == 0) return;
 
   unsigned int numIntervals = numRepSlices - 1;
   unsigned int numVertex    = numRepSlices * 2;
@@ -98,95 +136,170 @@ void vtkCountingFrameRepresentationXZ::CreateRegion()
   // Even indexed points belong to the left edge
   // Odd indexed points belong to the right edge
   /*
-   *   0---------1
-   *    \       /
-   *     2     3
-   *    /       \
-   *   4         5
-   *   |         |
-   *   6---------7
+   *                   TOP   1'
+   *                         |
+   *               0---------1
+   *                \       /
+   *                 2     3
+   *      LEFT      /       \     RIGHT
+   *               4         5
+   *               |         |
+   *          6'---6---------7
+   *
+   *                  BOTTOM
    */
-  this->Vertex->SetNumberOfPoints(numVertex);
+  this->Vertex->Reset();
+  this->Vertex->SetNumberOfPoints(numVertex + 2);
+  double zeroPoint[3]{0.,0.,0.};
+  for(vtkIdType i = 0; i < this->Vertex->GetNumberOfPoints(); ++i) this->Vertex->SetPoint(i, zeroPoint);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
     this->EdgePolyData[i]->GetLines()->Reset();
-
-  this->EdgePolyData[LEFT]->GetLines()->Allocate(
-    this->EdgePolyData[LEFT]->GetLines()->EstimateSize(numIntervals,2));
-
-  for(unsigned int interval=0; interval < numIntervals; interval++)
-  {
-    this->EdgePolyData[LEFT]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(2*interval);
-    this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(2*interval+2);
   }
 
-  this->EdgePolyData[TOP]->GetLines()->Allocate(
-    this->EdgePolyData[TOP]->GetLines()->EstimateSize(numIntervals,2));
+  // TOP
+  double RT[3];
+  Region->GetPoint(FrontSlice*4+0,LT);
+  Region->GetPoint(FrontSlice*4+3,RT);
+  LT[0] += InclusionOffset[0];
+  LT[2] += FrontSlice == 0 ? InclusionOffset[2] : SlicingStep[2]/2;
+  RT[0] -= ExclusionOffset[0];
+  RT[2] += FrontSlice == 0 ? InclusionOffset[2] : SlicingStep[2]/2;
+  LT[1] = RT[1] = Slice + Depth;
+
+  this->EdgePolyData[TOP]->GetLines()->Allocate(this->EdgePolyData[TOP]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[TOP]->GetLines()->InsertNextCell(2);
-  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(0);
-  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(1);
+  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
+  this->EdgePolyData[TOP]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(RT));
 
-  this->EdgePolyData[RIGHT]->GetLines()->Allocate(
-    this->EdgePolyData[RIGHT]->GetLines()->EstimateSize(numIntervals,2));
-  for(unsigned int interval=0; interval < numIntervals; interval++)
-  {
-    this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
-    this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(2*interval+1);
-    this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(2*interval+3);
-  }
+  // BOTTOM
+  Region->GetPoint(BackSlice*4+0,LT);
+  Region->GetPoint(BackSlice*4+3,RT);
+  LT[2] += (BackSlice == NumSlices -1) ? -ExclusionOffset[2] : SlicingStep[2]/2;
+  RT[0] -= ExclusionOffset[0];
+  RT[2] += (BackSlice == NumSlices -1) ? -ExclusionOffset[2] : SlicingStep[2]/2;
+  LT[1] = RT[1] = Slice + Depth;
 
-  this->EdgePolyData[BOTTOM]->GetLines()->Allocate(
-    this->EdgePolyData[BOTTOM]->GetLines()->EstimateSize(1,2));
+  this->EdgePolyData[BOTTOM]->GetLines()->Allocate(this->EdgePolyData[BOTTOM]->GetLines()->EstimateSize(1,2));
   this->EdgePolyData[BOTTOM]->GetLines()->InsertNextCell(2);
-  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(numVertex-2);
-  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(numVertex-1);
+  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(LT));
+  this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(RT));
 
-  double point[3];
-  /// Loop over slices and create Top/Bottom Edges
-  for ( int slice=FrontSlice; slice <= BackSlice; slice++)
+  // LEFT
+  this->EdgePolyData[LEFT]->GetLines()->Allocate(this->EdgePolyData[LEFT]->GetLines()->EstimateSize(numIntervals,2));
+
+  vtkIdType previous_id = 0;
+  for(int slice = FrontSlice; slice <= BackSlice; ++slice)
   {
-    int interval = slice - FrontSlice;
-    // LEFT
-    Region->GetPoint(slice*4+0,point);
+    double point[3];
+
+    Region->GetPoint(slice*4+0, point);
     point[0] += InclusionOffset[0];
-    point[1] = Slice + ESPINA::View2D::WIDGET_SHIFT;
-    if (slice == 0)
-      point[2] += InclusionOffset[2];
-    else if (slice == NumSlices -1)
-      point[2] -= ExclusionOffset[2];
-    else
-      point[2] += SlicingStep[2]/2;
+    point[1] = Slice + Depth;
 
-    this->Vertex->SetPoint(2*interval+0, point);
-    //RIGHT
-    Region->GetPoint(slice*4+3,point);
-    point[0] -= ExclusionOffset[0];
-    point[1] = Slice + ESPINA::View2D::WIDGET_SHIFT;
     if (slice == 0)
+    {
       point[2] += InclusionOffset[2];
-    else if (slice == NumSlices -1)
-      point[2] -= ExclusionOffset[2];
+    }
     else
-      point[2] += SlicingStep[2]/2;
+    {
+      if (slice == NumSlices - 1)
+      {
+        point[2] -= ExclusionOffset[2];
+      }
+      else
+      {
+        point[2] += SlicingStep[2] / 2;
+      }
+    }
 
-    this->Vertex->SetPoint(2*interval+1, point);
+    auto id = this->Vertex->InsertNextPoint(point);
+    if(slice != FrontSlice)
+    {
+      this->EdgePolyData[LEFT]->GetLines()->InsertNextCell(2);
+      this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(previous_id);
+      this->EdgePolyData[LEFT]->GetLines()->InsertCellPoint(id);
+    }
+
+    previous_id = id;
   }
+
+  // RIGHT
+  this->EdgePolyData[RIGHT]->GetLines()->Allocate(this->EdgePolyData[RIGHT]->GetLines()->EstimateSize(numIntervals+1,2));
+  double p1[3], p2[3];
+  Region->GetPoint(             3, p1);
+  Region->GetPoint(FrontSlice*4+3, p2);
+  p2[0] -= ExclusionOffset[0];
+  p2[2] += (FrontSlice == 0) ? InclusionOffset[2] : SlicingStep[2]/2;
+  p1[0] = p2[0];
+  p2[1] = p1[1] = Slice + Depth;
+
+  this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
+  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(p1));
+  this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(this->Vertex->InsertNextPoint(p2));
+
+  previous_id = 0;
+  for(int slice = FrontSlice; slice <= BackSlice; ++slice)
+  {
+    double point[3];
+
+    Region->GetPoint(slice*4+3, point);
+    point[0] -= ExclusionOffset[0];
+    point[1] = Slice + Depth;
+
+    if (slice == 0)
+    {
+      point[2] += InclusionOffset[2];
+    }
+    else
+    {
+      if (slice == NumSlices - 1)
+      {
+        point[2] -= ExclusionOffset[2];
+      }
+      else
+      {
+        point[2] += SlicingStep[2] / 2;
+      }
+    }
+
+    auto id = this->Vertex->InsertNextPoint(point);
+    if(slice != FrontSlice)
+    {
+      this->EdgePolyData[RIGHT]->GetLines()->InsertNextCell(2);
+      this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(previous_id);
+      this->EdgePolyData[RIGHT]->GetLines()->InsertCellPoint(id);
+    }
+
+    previous_id = id;
+  }
+
+  this->Vertex->Modified();
+  this->Vertex->ComputeBounds();
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+  {
+    this->EdgePolyData[i]->GetLines()->Modified();
+    this->EdgePolyData[i]->BuildCells();
     this->EdgePolyData[i]->Modified();
+    this->EdgeMapper[i]->Update();
+    this->EdgeActor[i]->GetProperty()->Modified();
+    this->EdgeActor[i]->Modified();
+  }
 }
 
 
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXZ::MoveLeftEdge(double* p1, double* p2)
 {
-  double shift = p2[0] - p1[0];
-
-  ESPINA::Nm offset   = InclusionOffset[0] + shift;
+  auto shift  = p2[0] - p1[0];
+  auto offset = InclusionOffset[0] + shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -200,7 +313,7 @@ void vtkCountingFrameRepresentationXZ::MoveLeftEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -210,7 +323,9 @@ void vtkCountingFrameRepresentationXZ::MoveLeftEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset -= shift;
+    }
   }
 
   InclusionOffset[0] = offset;
@@ -220,13 +335,13 @@ void vtkCountingFrameRepresentationXZ::MoveLeftEdge(double* p1, double* p2)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXZ::MoveRightEdge(double* p1, double* p2)
 {
-
-  double shift = p2[0] - p1[0];
-
-  ESPINA::Nm offset = ExclusionOffset[0] - shift;
+  auto shift  = p2[0] - p1[0];
+  auto offset = ExclusionOffset[0] - shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     double firstSliceBounds[6];
@@ -240,7 +355,7 @@ void vtkCountingFrameRepresentationXZ::MoveRightEdge(double* p1, double* p2)
 
     bool collision = false;
     int  slice   = firstSlice;
-    // cheack all visible slices
+    // check all visible slices
     while (!collision && slice <= lastSlice)
     {
       double sliceBounds[6];
@@ -250,7 +365,9 @@ void vtkCountingFrameRepresentationXZ::MoveRightEdge(double* p1, double* p2)
     }
 
     if (collision)
+    {
       offset += shift;
+    }
   }
 
   ExclusionOffset[0] = offset;
@@ -260,19 +377,22 @@ void vtkCountingFrameRepresentationXZ::MoveRightEdge(double* p1, double* p2)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXZ::MoveTopEdge(double* p1, double* p2)
 {
-
-  double shift = p2[2] - p1[2];
-  ESPINA::Nm offset = InclusionOffset[2] + shift;
+  auto shift  = p2[2] - p1[2];
+  auto offset = InclusionOffset[2] + shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     ESPINA::Nm nextTopEdge = realTopEdge() + offset;
     ESPINA::Nm bottomEdgeLimit  = bottomEdge() - SlicingStep[2];
 
     if (nextTopEdge > bottomEdgeLimit)
+    {
       offset = bottomEdgeLimit - realTopEdge();
+    }
     else
     {
       double firstSliceBounds[6];
@@ -286,7 +406,7 @@ void vtkCountingFrameRepresentationXZ::MoveTopEdge(double* p1, double* p2)
 
       bool collision = false;
       int  slice = firstSlice;
-      // cheack all visible slices
+      // check all visible slices
       while (!collision && slice < lastSlice)
       {
         double sliceBounds[6];
@@ -296,10 +416,11 @@ void vtkCountingFrameRepresentationXZ::MoveTopEdge(double* p1, double* p2)
       }
 
       if (collision)
+      {
         InclusionOffset[0] = ExclusionOffset[0] = 0;
+      }
     }
   }
-
 
   InclusionOffset[2] = offset;
   CreateRegion();
@@ -308,20 +429,22 @@ void vtkCountingFrameRepresentationXZ::MoveTopEdge(double* p1, double* p2)
 //----------------------------------------------------------------------------
 void vtkCountingFrameRepresentationXZ::MoveBottomEdge(double* p1, double* p2)
 {
-
-  double shift = p2[2] - p1[2];
-
-  ESPINA::Nm offset = ExclusionOffset[2] - shift;
+  auto shift  = p2[2] - p1[2];
+  auto offset = ExclusionOffset[2] - shift;
 
   if (offset < 0)
+  {
     offset = 0;
+  }
   else
   {
     ESPINA::Nm nextBottomEdge = realBottomEdge() - offset;
     ESPINA::Nm topEdgeLimit = topEdge() + SlicingStep[2];
 
     if (topEdgeLimit > nextBottomEdge)
+    {
       offset = realBottomEdge() - topEdgeLimit;
+    }
     else
     {
       double firstSliceBounds[6];
@@ -335,7 +458,7 @@ void vtkCountingFrameRepresentationXZ::MoveBottomEdge(double* p1, double* p2)
 
       bool collision = false;
       int  slice = firstSlice;
-      // cheack all visible slices
+      // check all visible slices
       while (!collision && slice < lastSlice)
       {
         double sliceBounds[6];
@@ -345,7 +468,9 @@ void vtkCountingFrameRepresentationXZ::MoveBottomEdge(double* p1, double* p2)
       }
 
       if (collision)
+      {
         InclusionOffset[0] = ExclusionOffset[0] = 0;
+      }
     }
   }
 

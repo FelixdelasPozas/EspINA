@@ -23,99 +23,79 @@
 
 #include "CountingFramePlugin_Export.h"
 
+// ESPINA
 #include <Support/Plugin.h>
+#include <GUI/Model/ModelAdapter.h>
 
+// Plugin
 #include "CountingFrameManager.h"
+#include "ColorEngines/ColorEngine.h"
 
 namespace ESPINA
 {
+  class Panel;
+
   namespace CF
   {
     class CountingFramePlugin_EXPORT CountingFramePlugin
-    : public Plugin
+    : public Support::AppPlugin
     {
-      Q_OBJECT
-      Q_INTERFACES(ESPINA::Plugin)
+        Q_INTERFACES(ESPINA::Core::CorePlugin ESPINA::Support::AppPlugin)
+        Q_OBJECT
+        Q_PLUGIN_METADATA(IID "es.upm.cesvima.ESPINA.Core.Plugin/1.0" FILE "plugin.json")
+        Q_PLUGIN_METADATA(IID "es.upm.cesvima.ESPINA.Plugin/2.0" FILE "plugin.json")
 
-    public:
-      explicit CountingFramePlugin();
-      virtual ~CountingFramePlugin();
+      public:
+        /** \brief CountingFramePlugin class constructor.
+         *
+         */
+        explicit CountingFramePlugin();
 
-      /** \brief Implements Plugin::init().
-       *
-       */
-      virtual void init(ModelAdapterSPtr model,
-                        ViewManagerSPtr  viewManager,
-                        ModelFactorySPtr factory,
-                        SchedulerSPtr    scheduler,
-                        QUndoStack      *undoStack);
+        /** \brief CountingFramePlugin class virtual destructor.
+         *
+         */
+        virtual ~CountingFramePlugin()
+        {};
 
-      /** \brief Implements Plugin::colorEngines().
-       *
-       */
-      virtual NamedColorEngineSList colorEngines() const;
+        virtual const QString name() const
+        { return tr("Counting Frame Plugin"); }
 
-      /** \brief Implements Plugin::toolGroups().
-       *
-       */
-      virtual QList< ToolGroup* > toolGroups() const;
+        virtual const QString description() const
+        { return tr("Stereological inclusion methods to count segmentations per volume."); }
 
-      /** \brief Implements Plugin::dockWidgets().
-       *
-       */
-      virtual QList<DockWidget *> dockWidgets() const;
+        virtual const QString organization() const
+        { return tr("Universidad Politécnica de Madrid."); }
 
-      /** \brief Implements Plugin::channelExtensionFactories().
-       *
-       */
-      virtual ChannelExtensionFactorySList channelExtensionFactories() const;
+        virtual const QString maintainer() const
+        { return tr("felix.delaspozas@ctb.upm.es"); }
 
-      /** \brief Implements Plugin::segmentationExtensionFactories().
-       *
-       */
-      virtual SegmentationExtensionFactorySList segmentationExtensionFactories() const;
+        virtual void init(Support::Context &context);
 
-      /** \brief Implements Plugin::filterFactories().
-       *
-       */
-      virtual FilterFactorySList filterFactories() const;
+        virtual Core::StackExtensionFactorySList channelExtensionFactories() const;
 
-      /** \brief Implements Plugin::renderers().
-       *
-       */
-      virtual RendererSList renderers() const;
+        virtual Core::SegmentationExtensionFactorySList segmentationExtensionFactories() const;
 
-      /** \brief Implements Plugin::settingsPanels().
-       *
-       */
-      virtual SettingsPanelSList settingsPanels() const;
+        virtual Support::ColorEngineSwitchSList colorEngines() const;
 
-      /** \brief Implements Plugin::menuEntries().
-       *
-       */
-      virtual QList<MenuEntry> menuEntries() const;
+        virtual RepresentationFactorySList representationFactories() const;
 
-      /** \brief Implements Plugin::analysisReaders().
-       *
-       */
-      virtual AnalysisReaderSList analysisReaders() const;
+        virtual QList<Support::CategorizedTool> tools() const;
 
-    public slots:
-      virtual void onAnalysisClosed();
+        virtual void init(SchedulerSPtr scheduler = nullptr);
 
-    private:
-      CountingFrameManager m_manager;
-      ModelAdapterSPtr     m_model;
-      ViewManagerSPtr      m_viewManager;
-      SchedulerSPtr        m_scheduler;
-      QUndoStack          *m_undoStack;
+      public slots:
+        virtual void onAnalysisClosed();
 
-      NamedColorEngine     m_colorEngine;
-      DockWidget *         m_dockWidget;
-      ChannelExtensionFactorySPtr m_channelExtensionFactory;
-      SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;
-      RendererSPtr m_renderer3d;
-      RendererSPtr m_renderer2d;
+      private:
+        Support::Context                      *m_context;                        /** application context.                           */
+        SchedulerSPtr                          m_scheduler;                      /** application task scheduler.                    */
+        QUndoStack                            *m_undoStack;                      /** application undo stack.                        */
+        std::shared_ptr<CountingFrameManager>  m_manager;                        /** counting frame manager object.                 */
+        Panel                                 *m_dockWidget;                     /** counting frame panel.                          */
+        CountingFrameColorEngineSPtr           m_colorEngine;                    /** counting frame color engine.                   */
+        RepresentationFactorySPtr              m_representationFactory;          /** counting frame representation factory.         */
+        Core::SegmentationExtensionFactorySPtr m_segmentationExtensionFactory;   /** counting frame segmentation extension factory. */
+        Core::StackExtensionFactorySPtr        m_channelExtensionFactory;        /** counting frame channel extension factory.      */
     };
   }
 } // namespace ESPINA

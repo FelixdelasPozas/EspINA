@@ -22,253 +22,402 @@
 #ifndef ESPINA_COUNTING_FRAME_H
 #define ESPINA_COUNTING_FRAME_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
-
-#include <QStandardItemModel>
-
 #include "vtkCountingFrameSliceWidget.h"
 #include "vtkCountingFrame3DWidget.h"
 #include "CountingFrameInteractorAdapter.h"
-#include <Tasks/ApplyCountingFrame.h>
-#include <GUI/View/Widgets/EspinaWidget.h>
-#include <Core/Utils/Bounds.h>
 
+// Qt
+#include <QStandardItemModel>
+
+// ESPINA
+#include <Tasks/ApplyCountingFrame.h>
+#include <Core/Utils/Bounds.h>
+#include <GUI/ModelFactory.h>
+
+// VTK
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
 namespace ESPINA
 {
-namespace CF {
+  class RenderView;
 
-  enum CFType
+  namespace CF
   {
-    ADAPTIVE,
-    ORTOGONAL
-  };
-
-  class vtkCountingFrameCommand;
-  class CountingFrameExtension;
-
-  class CountingFramePlugin_EXPORT CountingFrame
-  : public QObject
-  , public EspinaWidget
-  {
-    Q_OBJECT
-  protected:
-    using CountingFrame2DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrameSliceWidget>;
-    using CountingFrame3DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrame3DWidget>;
-
-  public:
-    const int INCLUSION_FACE;
-    const int EXCLUSION_FACE;
-
-    enum Role
+    enum class CFType
     {
-      DescriptionRole = Qt::UserRole + 1
+      ADAPTIVE = 0,
+      ORTOGONAL = 1
     };
 
-    using Id = QString;
+    class vtkCountingFrameCommand;
+    class CountingFrameExtension;
 
-  public:
-    virtual ~CountingFrame();
-
-    virtual CFType cfType() const = 0;
-
-    CountingFrameExtension *extension()
-    { return m_extension; }
-
-    ChannelPtr channel() const;
-
-    void deleteFromExtension();
-
-    void setMargins(Nm inclusion[3], Nm exclusion[3]);
-
-    void margins(Nm inclusion[3], Nm exclusion[3]);
-
-    virtual QString typeName() const = 0;
-
-    virtual QString description() const;
-
-    Id id() const
-    { return m_id; }
-
-    void setId(Id id)
-    { m_id = id; }
-
-    void setVisible(bool visible);
-
-    void setEnabled(bool enable);
-
-    bool isVisible() const
-    { return m_visible; }
-
-    void setHighlighted(bool highlighted);
-
-    bool isHighlighted() const
-    { return m_highlight; }
-
-    /** \brief Return total volume in pixels
-     *
-     */
-    double totalVolume() const
+    class CountingFramePlugin_EXPORT CountingFrame
+    : public QObject
     {
-      QReadLocker lock(&m_volumeMutex);
-      return m_totalVolume;
-    }
+      Q_OBJECT
+    protected:
+      using CountingFrame2DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrameSliceWidget>;
+      using CountingFrame3DWidgetAdapter = CountingFrameInteractorAdapter<vtkCountingFrame3DWidget>;
 
-    /** \brief Return inclusion volume in pixels
-     *
-     */
-    double inclusionVolume() const
-    {
-      QReadLocker lock(&m_volumeMutex);
-      return m_inclusionVolume;
-    }
-
-    /** \brief Return exclusion volume in pixels
-     *
-     */
-    double exclusionVolume() const
-    {
-      QReadLocker lock(&m_volumeMutex);
-      return totalVolume() - inclusionVolume();
-    }
-
-    /** \brief Return the polydata defining the Counting Framge
-     *
-     */
-    virtual vtkSmartPointer<vtkPolyData> polyData() const
-    {
-      return countingFramePolyData();
-    }
-
-    Nm left()  const {return m_inclusion[0];}
-    Nm top()   const {return m_inclusion[1];}
-    Nm front() const {return m_inclusion[2];}
-    Nm right() const {return m_exclusion[0];}
-    Nm bottom()const {return m_exclusion[1];}
-    Nm back()  const {return m_exclusion[2];}
-
-    void setCategoryConstraint(const QString &category);
-
-    QString categoryConstraint() const { return m_categoryConstraint; }
-
-    virtual void registerView(RenderView *) = 0;
-    virtual void unregisterView(RenderView *) = 0;
-
-    // needed for the renderers
-    virtual vtkAbstractWidget *getWidget(RenderView *);
-
-    void apply();
-
-  signals:
-    void modified(CountingFrame *);
-    void changedVisibility();
-
-  protected:
-    explicit CountingFrame(CountingFrameExtension *extension,
-                           Nm inclusion[3],
-                           Nm exclusion[3],
-                           SchedulerSPtr scheduler);
-
-    void updateCountingFrame();
-
-    virtual void updateCountingFrameImplementation() = 0;
-
-    Nm equivalentVolume(const Bounds &bounds);
-
-    void setTotalVolume(double volume)
-    {
-//       QWriteLocker lock(&m_volumeMutex);
-      m_totalVolume = volume;
-    }
-
-    void setInclusionVolume(double volume)
-    {
-//       QWriteLocker lock(&m_volumeMutex);
-      m_inclusionVolume = volume;
-    }
-
-    vtkSmartPointer<vtkPolyData> channelEdgesPolyData() const;
-    vtkSmartPointer<vtkPolyData> countingFramePolyData() const;
-
-  protected slots:
-    void onCountingFrameApplied();
-    void sliceChanged(Plane, Nm);
-
-  protected:
-    SchedulerSPtr m_scheduler;
-
-    mutable QReadWriteLock       m_countingFrameMutex;
-    vtkSmartPointer<vtkPolyData> m_countingFrame;
-
-    mutable QReadWriteLock       m_channelEdgesMutex;
-    vtkSmartPointer<vtkPolyData> m_channelEdges;
-
-    mutable QReadWriteLock m_volumeMutex;
-    Nm                     m_inclusionVolume;
-    Nm                     m_totalVolume;
-
-    CountingFrameExtension *m_extension;
-
-    Id   m_id;
-
-    mutable QReadWriteLock m_marginsMutex;
-    Nm                     m_inclusion[3];
-    Nm                     m_exclusion[3];
-
-    QString m_categoryConstraint;
-
-    // TODO: Change to private (may need some changes in the API)
-    mutable QMutex m_widgetMutex;
-    QMap<View2D *, vtkCountingFrameSliceWidget *> m_widgets2D;
-    QMap<View3D *, vtkCountingFrame3DWidget *> m_widgets3D;
-    vtkSmartPointer<vtkCountingFrameCommand> m_command;
-
-  private:
-    friend class vtkCountingFrameCommand;
-
-    mutable QReadWriteLock m_stateMutex;
-    bool m_visible;
-    bool m_enable;
-    bool m_highlight;
-
-
-    mutable QMutex m_applyMutex;
-    ApplyCountingFrameSPtr m_applyCountingFrame;
-  };
-
-  using CountingFrameList = QList<CountingFrame *>;
-
-  class vtkCountingFrameCommand
-  : public vtkEspinaCommand
-  {
     public:
-      vtkTypeMacro(vtkCountingFrameCommand, vtkEspinaCommand);
+      const int INCLUSION_FACE;
+      const int EXCLUSION_FACE;
 
-      /** \brief VTK-style New() constructor, required for using vtkSmartPointer.
+      enum Role
+      {
+        DescriptionRole = Qt::UserRole + 1
+      };
+
+      using Id = QString;
+
+    public:
+      /** \brief CountingFrame class virtual destructor.
        *
        */
+      virtual ~CountingFrame();
+
+      /** \brief Returns the counting frame type.
+       *
+       */
+      virtual CFType cfType() const = 0;
+
+      /** \brief Returns a pointer to the counting frame's extension.
+       *
+       */
+      CountingFrameExtension *extension()
+      { return m_extension; }
+
+      /** \brief Returns the channel of the counting frame.
+       *
+       */
+      ChannelPtr channel() const;
+
+      /** \brief Deletes this object from it's own extension.
+       *
+       */
+      void deleteFromExtension();
+
+      /** \brief Sets the inclusion and exclusion margins of the counting frame.
+       * \param[in] inclusion inclusion margins in each of the axis.
+       * \param[in] exclusion exclusion margins in each of the axis.
+       *
+       */
+      void setMargins(Nm inclusion[3], Nm exclusion[3]);
+
+      /** \brief Returns the inclusion and exclusion margins.
+       * \param[out] inclusion inclusion margins in each of the axis.
+       * \param[out] exclusion exclusion margins in each of the axis.
+       *
+       */
+      void margins(Nm inclusion[3], Nm exclusion[3]);
+
+      /** \brief Returns the string corresponding to the counting frame type.
+       *
+       */
+      virtual QString typeName() const = 0;
+
+      /** \brief Returns the counting frame's description.
+       *
+       */
+      virtual QString description() const;
+
+      /** \brief Returns the counting frame's id.
+       *
+       */
+      const Id& id() const;
+
+      /** \brief Sets the id of the counting frame.
+       *
+       */
+      void setId(Id id);
+
+      /** \brief Shows/hides the counting frame.
+       * \param[in] visible true to show and false otherwise.
+       *
+       */
+      void setVisible(bool visible);
+
+      /** \brief Enables/disables the counting frame.
+       * \param[in] enable true to enable and false otherwise.
+       *
+       */
+      void setEnabled(bool enable);
+
+      /** \brief Returns true if the counting frame is visible and false otherwise.
+       *
+       */
+      bool isVisible() const
+      { return m_visible; }
+
+      /** \brief Highlights/dims the counting frame representation.
+       * \param[in] true to highlight and false to dim.
+       *
+       */
+      void setHighlighted(bool highlighted);
+
+      /** \brief Returns true if the counting frame representation is highlighted.
+       *
+       */
+      bool isHighlighted() const
+      { return m_highlight; }
+
+      /** \brief Return total volume of the counting frame in pixels.
+       *
+       */
+      double totalVolume() const
+      {
+        QReadLocker lock(&m_volumeMutex);
+        return m_totalVolume;
+      }
+
+      /** \brief Return inclusion volume of the counting frame in pixels.
+       *
+       */
+      double inclusionVolume() const
+      {
+        QReadLocker lock(&m_volumeMutex);
+        return m_inclusionVolume;
+      }
+
+      /** \brief Return exclusion volume of the counting frame in pixels.
+       *
+       */
+      double exclusionVolume() const
+      {
+        QReadLocker lock(&m_volumeMutex);
+        return totalVolume() - inclusionVolume();
+      }
+
+      /** \brief Returns the left counting frame margin.
+       *
+       */
+      Nm left()  const {return m_inclusion[0];}
+
+      /** \brief Returns the top counting frame margin.
+       *
+       */
+      Nm top()   const {return m_inclusion[1];}
+
+      /** \brief Returns the fron counting frame margin.
+       *
+       */
+      Nm front() const {return m_inclusion[2];}
+
+      /** \brief Returns the right counting frame margin.
+       *
+       */
+      Nm right() const {return m_exclusion[0];}
+
+      /** \brief Returns the bottom counting frame margin.
+       *
+       */
+      Nm bottom()const {return m_exclusion[1];}
+
+      /** \brief Returns the back counting frame margin.
+       *
+       */
+      Nm back()  const {return m_exclusion[2];}
+
+      /** \brief Sets the category of the segmentations this counting frame will apply to or an empty strin to apply to all.
+       * \param[in] category category name.
+       *
+       */
+      void setCategoryConstraint(const QString &category);
+
+      /** \brief Returns the category of the segmentations this counting frame applies to, or an empty string if applies to all.
+       *
+       */
+      QString categoryConstraint() const
+      { return m_categoryConstraint; }
+
+      /** \brief Creates a slice widget for this counting frame for the given view.
+       * \param[in] view view to show the widget.
+       *
+       */
+      vtkCountingFrameSliceWidget *createSliceWidget(RenderView *view);
+
+      /** \brief Creates a 3D widget for this counting frame for the given view.
+       * \param[in] view view to show the widget.
+       *
+       */
+      vtkCountingFrame3DWidget *createWidget(RenderView *view);
+
+      /** \brief Hides and deletes the given slice widget.
+       * \param[in] widget slice widget to delete.
+       *
+       */
+      void deleteSliceWidget(vtkCountingFrameSliceWidget *widget);
+
+      /** \brief Hides and deletes the given 3D widget.
+       * \param[in] widget 3D widget to delete.
+       *
+       */
+      void deleteWidget(vtkCountingFrame3DWidget *widget);
+
+      /** \brief Computes the inclusion of the constrained segmentations to the counting frame.
+       *
+       */
+      void apply();
+
+      /** \brief Emits the applied signal.
+       *
+       */
+      void applied();
+
+      /** \brief Returns the vtkPolyData object that defines the margins of the counting frame.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> countingFramePolyData() const;
+
+      /** \brief Returns the vtkPolyData object that defines the margins of the inner frame of the counting frame.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> innerFramePolyData() const;
+
+      /** \brief Sets the CF as editable/non-editable. setMargins() won't modify the margins if the CF is non-editable.
+       * \param[in] value True to set editable and false otherwise.
+       *
+       */
+      void setEditable(const bool value);
+
+      /** \brief Returns true if the CF is editable and false otherwise.
+       *
+       */
+      const bool isEditable() const;
+
+    signals:
+      void modified(CountingFrame *);
+
+      void apply(CountingFrame *);
+
+      void applied(CountingFrame *);
+
+      void changedVisibility();
+
+    protected:
+      /** \brief CountingFrame class constructor.
+       * \param[in] extension counting frame extension of this object.
+       * \param[in] inclusion inclusion margins in each of the axis.
+       * \param[in] exclusion exclusion margins in each of the axis.
+       *
+       */
+      explicit CountingFrame(CountingFrameExtension                *extension,
+                             Nm                                     inclusion[3],
+                             Nm                                     exclusion[3]);
+
+      /** \brief Updates the counting frame inclusion/exclusion values of all the constrained segmentations and
+       * recomputes the widgets geometry.
+       *
+       */
+      void updateCountingFrame();
+
+      /** \brief Actual implementation of the updating procedure for subclasses.
+       *
+       */
+      virtual void updateCountingFrameImplementation() = 0;
+
+      /** \brief Returns the volume in cubic nanometers of the given bounds.
+       * \param[in] bounds bounds of a volume.
+       *
+       */
+      Nm equivalentVolume(const Bounds &bounds);
+
+      /** \brief Sets the total volume of the counting frame.
+       *
+       */
+      void setTotalVolume(double volume)
+      {
+        m_totalVolume = volume;
+      }
+
+      /** \brief Sets the inclusion volume of the counting frame.
+       *
+       */
+      void setInclusionVolume(double volume)
+      {
+        m_inclusionVolume = volume;
+      }
+
+      /** \brief Returns the vtkPolyData object that defines the edges of the counting frame's channel.
+       *
+       */
+      vtkSmartPointer<vtkPolyData> channelEdgesPolyData() const;
+
+    protected:
+      mutable QReadWriteLock       m_countingFrameMutex;  /** lock for m_countingFrame.                       */
+      vtkSmartPointer<vtkPolyData> m_countingFrame;       /** counting frame limits.                          */
+      vtkSmartPointer<vtkPolyData> m_innerFrame;          /** inner frame of the counting frame.              */
+
+      mutable QReadWriteLock       m_channelEdgesMutex;   /** lock for m_channelEdges.                        */
+      vtkSmartPointer<vtkPolyData> m_channelEdges;        /** channel's margins.                              */
+
+      mutable QReadWriteLock       m_volumeMutex;         /** lock for total and inclusion volumes.           */
+      Nm                           m_inclusionVolume;     /** total volume of the counting frame.             */
+      Nm                           m_totalVolume;         /** inclusion volume of the counting frame.         */
+
+      CountingFrameExtension      *m_extension;           /** extension corresponding to this counting frame. */
+      Id                           m_id;                  /** counting frame id.                              */
+
+      mutable QReadWriteLock       m_marginsMutex;        /** lock for inclusion/exclusion margins.           */
+      Nm                           m_inclusion[3];        /** inclusion margins.                              */
+      Nm                           m_exclusion[3];        /** exclusion margins.                              */
+
+      QString                      m_categoryConstraint;  /** name of the category of the segmentation this counting frame will apply. */
+
+      // TODO: Change to private (may need some changes in the API)
+      mutable QMutex m_widgetMutex;                       /** lock for widget interacion. */
+      vtkSmartPointer<vtkCountingFrameCommand> m_command; /** vtk command to manage interaction in the views. */
+
+    private:
+      friend class vtkCountingFrameCommand;
+
+      mutable QReadWriteLock m_stateMutex;                /** lock of the visible/highlight properties of the widgets. */
+      bool m_visible;                                     /** true if widgets are visible and false otherwise. */
+      bool m_enable;                                      /** true if counting frame is enabled and false otherwise. */
+      bool m_highlight;                                   /** true if the widgets are highlighted and false otherwise. */
+
+      QList<vtkCountingFrameSliceWidget *> m_widgets2D;   /** list of 2D widgets of this counting frame. */
+      QList<vtkCountingFrame3DWidget    *> m_widgets3D;   /** list of 3D widgets of this counting frame. */
+
+      bool m_editable;                                    /** true if the CF margins can be modified and false otherwise. */
+    };
+
+    /** operator< for counting frames to use with std::sort
+     * \param[in] lhs
+     * \param[in] rhs
+     *
+     */
+    bool CountingFramePlugin_EXPORT lessThan(const CountingFrame *lhs, const CountingFrame *rhs);
+
+    using CountingFrameList = QList<CountingFrame *>;
+
+    class CountingFramePlugin_EXPORT vtkCountingFrameCommand
+    : public vtkCommand
+    {
+    public:
+      vtkTypeMacro(vtkCountingFrameCommand, vtkCommand);
+
       static vtkCountingFrameCommand *New()
       { return new vtkCountingFrameCommand(); }
 
-      /** \brief Implements vtkEspinaCommand::Execute.
-       *
-       */
-      void Execute(vtkObject *, unsigned long int, void*);
+      virtual void Execute(vtkObject *, unsigned long int, void*) override;
 
-      /** \brief Implements vtkEspinaCommand::setWidget();
-       *
+      /** \brief Sets the counting frame of the interacting widget this command is observing.
+       * \param[in] cf counting frame object pointer.
        */
-      void setWidget(EspinaWidgetPtr widget)
-      { m_widget = dynamic_cast<CountingFrame *>(widget); }
+      virtual void setCountingFrame(CountingFrame *cf)
+      { m_cf = cf; }
 
     private:
       /** \brief vtkCountingFrameCommand class private constructor.
        *
        */
       explicit vtkCountingFrameCommand()
-      : m_widget{nullptr}
+      : m_cf{nullptr}
       {}
 
       /** \brief vtkCountingFrameCommand class private destructor.
@@ -277,9 +426,9 @@ namespace CF {
       virtual ~vtkCountingFrameCommand()
       {};
 
-      CountingFrame *m_widget;
-  };
-} // namsepace CF
+      CountingFrame *m_cf; /** counting frame owner of the observed widget. */
+    };
+  } // namsepace CF
 } // namespace ESPINA
 
 #endif // BOUNDINGREGION_H

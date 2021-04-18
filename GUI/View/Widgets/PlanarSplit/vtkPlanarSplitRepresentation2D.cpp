@@ -21,11 +21,7 @@
 // ESPINA
 #include "vtkPlanarSplitRepresentation2D.h"
 
-// Qt
-#include <QtGlobal>
-#include <QDebug>
-
-// vtk
+// VTK
 #include <vtkPoints.h>
 #include <vtkObjectFactory.h>
 #include <vtkLineSource.h>
@@ -38,34 +34,34 @@
 #include <vtkProperty2D.h>
 
 using namespace ESPINA;
+using namespace ESPINA::GUI::View::Widgets;
 
 vtkStandardNewMacro(vtkPlanarSplitRepresentation2D);
 
-//----------------------------------------------------------------------
 vtkCxxSetObjectMacro(vtkPlanarSplitRepresentation2D,HandleRepresentation,vtkHandleRepresentation);
 
+//----------------------------------------------------------------------
 vtkPlanarSplitRepresentation2D::vtkPlanarSplitRepresentation2D()
+: m_line              {vtkSmartPointer<vtkLineSource>::New()}
+, m_lineActor         {vtkSmartPointer<vtkActor>::New()}
+, m_boundsPoints      {nullptr}
+, m_boundsActor       {nullptr}
+, HandleRepresentation{vtkPointHandleRepresentation2D::New()}
+, Point1Representation{nullptr}
+, Point2Representation{nullptr}
+, m_tolerance         {15}
+, m_plane             {Plane::UNDEFINED}
+, m_depth             {-1}
+, m_slice             {-1}
 {
-  m_plane = Plane::XY;
-  m_epsilon = -1;
-  m_slice = -1;
-  m_tolerance = 15;
   m_point1[0] = m_point1[1] = m_point1[2] = 0;
   m_point2[0] = m_point2[1] = m_point2[2] = 0;
 
-  m_line = vtkSmartPointer<vtkLineSource>::New();
   m_line->Update();
-  m_lineActor = vtkSmartPointer<vtkActor>::New();
-  m_boundsPoints = nullptr;
-  m_boundsActor = nullptr;
 
-  HandleRepresentation = vtkPointHandleRepresentation2D::New();
   vtkProperty2D *property = reinterpret_cast<vtkPointHandleRepresentation2D*>(HandleRepresentation)->GetProperty();
   property->SetColor(0,1,0);
   property->SetLineWidth(2);
-
-  Point1Representation = nullptr;
-  Point2Representation = nullptr;
 
   this->InteractionState = Outside;
 }
@@ -74,16 +70,24 @@ vtkPlanarSplitRepresentation2D::vtkPlanarSplitRepresentation2D()
 vtkPlanarSplitRepresentation2D::~vtkPlanarSplitRepresentation2D()
 {
   if (this->HandleRepresentation)
+  {
     this->HandleRepresentation->Delete();
+  }
 
   if (this->Point1Representation)
+  {
     this->Point1Representation->Delete();
+  }
 
   if (this->Point2Representation)
+  {
     this->Point2Representation->Delete();
+  }
 
-  if (m_boundsActor != nullptr)
+  if (m_boundsActor)
+  {
     this->Renderer->RemoveActor(m_boundsActor);
+  }
 }
 
 //----------------------------------------------------------------------
@@ -105,7 +109,7 @@ void vtkPlanarSplitRepresentation2D::setSlice(double slice)
   if(m_boundsActor)
   {
     auto index = normalCoordinateIndex(m_plane);
-    double value = slice + m_epsilon;
+    double value = slice + m_depth;
     double point[3];
     for(auto i: {0,1,2,3})
     {
@@ -140,12 +144,14 @@ void vtkPlanarSplitRepresentation2D::setPoints(vtkSmartPointer<vtkPoints> points
   points->GetPoint(0, m_point2);
 
   if (points->GetNumberOfPoints() == 2)
+  {
     points->GetPoint(1, m_point2);
+  }
 
   int i = normalCoordinateIndex(m_plane);
 
-  m_point1[i] = m_slice + m_epsilon;
-  m_point2[i] = m_slice + m_epsilon;
+  m_point1[i] = m_slice + m_depth;
+  m_point2[i] = m_slice + m_depth;
 
   this->BuildRepresentation();
 }
@@ -165,11 +171,11 @@ void vtkPlanarSplitRepresentation2D::setPoint1(Nm *point)
   m_point1[0] = worldPos[0];
   m_point1[1] = worldPos[1];
   m_point1[2] = worldPos[2];
-  m_point1[i] = m_slice + m_epsilon;
+  m_point1[i] = m_slice + m_depth;
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[i] = m_slice + m_epsilon;
+  m_point2[i] = m_slice + m_depth;
 
   this->BuildRepresentation();
 }
@@ -188,7 +194,7 @@ void vtkPlanarSplitRepresentation2D::setPoint2(Nm *point)
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[i] = m_slice + m_epsilon;
+  m_point2[i] = m_slice + m_depth;
 
   this->BuildRepresentation();
 }
@@ -201,7 +207,7 @@ void vtkPlanarSplitRepresentation2D::getPoint1(Nm *point)
   point[2] = m_point1[2];
 
   auto index = normalCoordinateIndex(m_plane);
-  point[index] = m_slice + m_epsilon;
+  point[index] = m_slice + m_depth;
 }
 
 //----------------------------------------------------------------------
@@ -212,7 +218,7 @@ void vtkPlanarSplitRepresentation2D::getPoint2(Nm *point)
   point[2] = m_point2[2];
 
   auto index = normalCoordinateIndex(m_plane);
-  point[index] = m_slice + m_epsilon;
+  point[index] = m_slice + m_depth;
 }
 
 //----------------------------------------------------------------------
@@ -260,13 +266,19 @@ int vtkPlanarSplitRepresentation2D::RenderOverlay(vtkViewport *v)
   int result = 0;
 
   if (m_lineActor->GetVisibility())
+  {
     result = m_lineActor->RenderOverlay(v);
+  }
 
   if (Point1Representation->GetVisibility())
+  {
     result |= Point1Representation->RenderOverlay(v);
+  }
 
   if (Point2Representation->GetVisibility())
+  {
     result |= Point2Representation->RenderOverlay(v);
+  }
 
   return result;
 }
@@ -279,13 +291,19 @@ int vtkPlanarSplitRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
   int result = 0;
 
   if (m_lineActor->GetVisibility())
+  {
     result = m_lineActor->RenderOpaqueGeometry(v);
+  }
 
   if (Point1Representation->GetVisibility())
+  {
     result |= Point1Representation->RenderOpaqueGeometry(v);
+  }
 
   if (Point2Representation->GetVisibility())
+  {
     result |= Point2Representation->RenderOpaqueGeometry(v);
+  }
 
   return result;
 }
@@ -293,7 +311,7 @@ int vtkPlanarSplitRepresentation2D::RenderOpaqueGeometry(vtkViewport *v)
 //----------------------------------------------------------------------
 int vtkPlanarSplitRepresentation2D::ComputeInteractionState(int vtkNotUsed(X), int vtkNotUsed(Y), int vtkNotUsed(modify))
 {
-  if (this->Point1Representation == nullptr || this->Point2Representation == nullptr)
+  if (!this->Point1Representation || !this->Point2Representation)
   {
     this->InteractionState = Outside;
     return this->InteractionState;
@@ -303,12 +321,20 @@ int vtkPlanarSplitRepresentation2D::ComputeInteractionState(int vtkNotUsed(X), i
   int handle2State = this->Point2Representation->GetInteractionState();
 
   if (handle1State == vtkHandleRepresentation::Nearby)
+  {
     this->InteractionState = NearP1;
+  }
   else
+  {
     if (handle2State == vtkHandleRepresentation::Nearby)
+    {
       this->InteractionState = NearP2;
+    }
     else
+    {
       this->InteractionState = Outside;
+    }
+  }
 
   return this->InteractionState;
 }
@@ -355,11 +381,21 @@ void vtkPlanarSplitRepresentation2D::InstantiateHandleRepresentation()
 }
 
 //----------------------------------------------------------------------
-void vtkPlanarSplitRepresentation2D::setOrientation(Plane plane)
+void vtkPlanarSplitRepresentation2D::setPlane(Plane plane)
 {
-  m_plane = plane;
-  m_epsilon = ((Plane::XY == m_plane) ? -5 : 5);
-  // TODO: m_epsilon should be dynamic (based on image spacing)
+  if(Plane::UNDEFINED == m_plane && plane != Plane::UNDEFINED)
+  {
+    m_plane = plane;
+  }
+}
+
+//----------------------------------------------------------------------
+void vtkPlanarSplitRepresentation2D::setRepresentationDepth(const Nm depth)
+{
+  if(m_depth != depth)
+  {
+    m_depth = depth;
+  }
 }
 
 //----------------------------------------------------------------------
@@ -380,13 +416,13 @@ void vtkPlanarSplitRepresentation2D::MoveHandle(int handleNum, int X, int Y)
       m_point1[0] = worldPos[0];
       m_point1[1] = worldPos[1];
       m_point1[2] = worldPos[2];
-      m_point1[i] = m_slice + m_epsilon;
+      m_point1[i] = m_slice + m_depth;
       break;
     case 1:
       m_point2[0] = worldPos[0];
       m_point2[1] = worldPos[1];
       m_point2[2] = worldPos[2];
-      m_point2[i] = m_slice + m_epsilon;
+      m_point2[i] = m_slice + m_depth;
       break;
     default:
       Q_ASSERT(false);
@@ -411,53 +447,53 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
     case Plane::XY:
       point[0] = bounds[0];
       point[1] = bounds[2];
-      point[2] = m_slice + m_epsilon;
+      point[2] = m_slice + m_depth;
       m_boundsPoints->InsertPoint(0, point);
       point[0] = bounds[0];
       point[1] = bounds[3];
-      point[2] = m_slice + m_epsilon;
+      point[2] = m_slice + m_depth;
       m_boundsPoints->InsertPoint(1, point);
       point[0] = bounds[1];
       point[1] = bounds[3];
-      point[2] = m_slice + m_epsilon;
+      point[2] = m_slice + m_depth;
       m_boundsPoints->InsertPoint(2, point);
       point[0] = bounds[1];
       point[1] = bounds[2];
-      point[2] = m_slice + m_epsilon;
+      point[2] = m_slice + m_depth;
       m_boundsPoints->InsertPoint(3, point);
       break;
     case Plane::XZ:
       point[0] = bounds[0];
-      point[1] = m_slice + m_epsilon;
+      point[1] = m_slice + m_depth;
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(0, point);
       point[0] = bounds[0];
-      point[1] = m_slice + m_epsilon;
+      point[1] = m_slice + m_depth;
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(1, point);
       point[0] = bounds[1];
-      point[1] = m_slice + m_epsilon;
+      point[1] = m_slice + m_depth;
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(2, point);
       point[0] = bounds[1];
-      point[1] = m_slice + m_epsilon;
+      point[1] = m_slice + m_depth;
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(3, point);
       break;
     case Plane::YZ:
-      point[0] = m_slice + m_epsilon;
+      point[0] = m_slice + m_depth;
       point[1] = bounds[2];
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(0, point);
-      point[0] = m_slice + m_epsilon;
+      point[0] = m_slice + m_depth;
       point[1] = bounds[2];
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(1, point);
-      point[0] = m_slice + m_epsilon;
+      point[0] = m_slice + m_depth;
       point[1] = bounds[3];
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(2, point);
-      point[0] = m_slice + m_epsilon;
+      point[0] = m_slice + m_depth;
       point[1] = bounds[3];
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(3, point);

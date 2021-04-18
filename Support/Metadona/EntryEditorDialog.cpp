@@ -29,7 +29,6 @@
 using namespace ESPINA;
 using namespace Metadona;
 
-
 //------------------------------------------------------------------------
 EntryEditorDialog::EntryEditorDialog(Metadona::Entry& entry,
                                      QWidget*         parent,
@@ -47,7 +46,7 @@ EntryEditorDialog::EntryEditorDialog(Metadona::Entry& entry,
   connect(m_cancel, SIGNAL(clicked(bool)),
           this,     SLOT(reject()));
 
-  auto layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout(this);
 
   createIdInput(layout);
 
@@ -81,10 +80,10 @@ void EntryEditorDialog::apply()
 //------------------------------------------------------------------------
 void EntryEditorDialog::createIdInput(QBoxLayout* layout)
 {
-  auto horizontalLayout = new QHBoxLayout();
+  auto horizontalLayout = new QHBoxLayout(this);
 
-  auto label = new QLabel(tr("%1 Id:").arg(m_entry.name().c_str()));
-  m_idInput  = new QLineEdit(m_entry.id().c_str());
+  auto label = new QLabel(tr("%1 Id:").arg(m_entry.name().c_str()), this);
+  m_idInput  = new QLineEdit(m_entry.id().c_str(), this);
 
   horizontalLayout->addWidget(label);
   horizontalLayout->addWidget(m_idInput);
@@ -99,31 +98,55 @@ void EntryEditorDialog::createFieldInputs(std::vector<Metadona::FieldSPtr> entri
   {
     auto fieldPtr = field.get();
 
-    switch (field->type())
+    if (field->type() == FieldTypes::STRING)
     {
-      case FieldType::STRING:
-        createStringInput(dynamic_cast<StringField*>(fieldPtr), layout);
-        break;
-      case FieldType::INTEGER:
+      createStringInput(dynamic_cast<StringField*>(fieldPtr), layout);
+    }
+    else
+    {
+      if (field->type() == FieldTypes::INTEGER)
+      {
         createIntegerInput(dynamic_cast<IntegerField*>(fieldPtr), layout);
-        break;
-      case FieldType::DECIMAL:
-        createDecimalInput(dynamic_cast<DecimalField*>(fieldPtr), layout);
-        break;
-      case FieldType::ENUM:
-        createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, false);
-        break;
-      case FieldType::SUGGESTION:
-        createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, true);
-        break;
-      case FieldType::GROUP:
-        createGroupInput(dynamic_cast<GroupField*>(fieldPtr), layout);
-        break;
-      case FieldType::LIST:
-        createListInput(dynamic_cast<ListField*>(fieldPtr), layout);
-        break;
-      default:
-        throw Scheme_Validation_Exception();
+      }
+      else
+      {
+        if (field->type() == FieldTypes::DECIMAL)
+        {
+          createDecimalInput(dynamic_cast<DecimalField*>(fieldPtr), layout);
+        }
+        else
+        {
+          if (field->type() == FieldTypes::ENUM)
+          {
+            createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, false);
+          }
+          else
+          {
+            if (field->type() == FieldTypes::SUGGESTION)
+            {
+              createEnumInput(dynamic_cast<SuggestionField*>(fieldPtr), layout, true);
+            }
+            else
+            {
+              if (field->type() == FieldTypes::GROUP)
+              {
+                createGroupInput(dynamic_cast<GroupField*>(fieldPtr), layout);
+              }
+              else
+              {
+                if (field->type() == FieldTypes::LIST)
+                {
+                  createListInput(dynamic_cast<ListField*>(fieldPtr), layout);
+                }
+                else
+                {
+                  throw Scheme_Validation_Exception();
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -131,10 +154,10 @@ void EntryEditorDialog::createFieldInputs(std::vector<Metadona::FieldSPtr> entri
 //------------------------------------------------------------------------
 void EntryEditorDialog::createStringInput(Metadona::StringField* field, QBoxLayout* layout)
 {
-  auto horizontalLayout = new QHBoxLayout();
+  auto horizontalLayout = new QHBoxLayout(this);
 
-  auto label = new QLabel(tr("%1:").arg(field->name().c_str()));
-  auto input = new QLineEdit(field->value().c_str());
+  auto label = new QLabel(tr("%1:").arg(field->name().c_str()), this);
+  auto input = new QLineEdit(field->value().c_str(), this);
 
   horizontalLayout->addWidget(label);
   horizontalLayout->addWidget(input);
@@ -147,10 +170,10 @@ void EntryEditorDialog::createStringInput(Metadona::StringField* field, QBoxLayo
 //------------------------------------------------------------------------
 void EntryEditorDialog::createIntegerInput(Metadona::IntegerField* field, QBoxLayout* layout)
 {
-  auto horizontalLayout = new QHBoxLayout();
+  auto horizontalLayout = new QHBoxLayout(this);
 
-  auto label = new QLabel(tr("%1:").arg(field->name().c_str()));
-  auto input = new QLineEdit(QString::number(field->value()));
+  auto label = new QLabel(tr("%1:").arg(field->name().c_str()), this);
+  auto input = new QLineEdit(QString::number(field->value()), this);
 
   input->setValidator(new QIntValidator(0, 10000, this));
 
@@ -171,7 +194,7 @@ void EntryEditorDialog::createIntegerInput(Metadona::IntegerField* field, QBoxLa
       units << unit.c_str();
     }
 
-    auto unitSelector = new QComboBox();
+    auto unitSelector = new QComboBox(this);
 
     unitSelector->insertItems(0, units);
 
@@ -190,10 +213,10 @@ void EntryEditorDialog::createIntegerInput(Metadona::IntegerField* field, QBoxLa
 //------------------------------------------------------------------------
 void EntryEditorDialog::createDecimalInput(Metadona::DecimalField* field, QBoxLayout* layout)
 {
-  auto horizontalLayout = new QHBoxLayout();
+  auto horizontalLayout = new QHBoxLayout(this);
 
-  auto label = new QLabel(tr("%1:").arg(field->name().c_str()));
-  auto input = new QLineEdit(QString::number(field->value()));
+  auto label = new QLabel(tr("%1:").arg(field->name().c_str()), this);
+  auto input = new QLineEdit(QString::number(field->value()), this);
 
   input->setValidator(new QDoubleValidator(0, 10000, 4, this));
 
@@ -214,7 +237,7 @@ void EntryEditorDialog::createDecimalInput(Metadona::DecimalField* field, QBoxLa
       units << unit.c_str();
     }
 
-    auto unitSelector = new QComboBox();
+    auto unitSelector = new QComboBox(this);
 
     unitSelector->insertItems(0, units);
 
@@ -232,10 +255,10 @@ void EntryEditorDialog::createDecimalInput(Metadona::DecimalField* field, QBoxLa
 //------------------------------------------------------------------------
 void EntryEditorDialog::createEnumInput(Metadona::SuggestionField* field, QBoxLayout* layout, bool enableSuggestions)
 {
-  auto horizontalLayout = new QHBoxLayout();
+  auto horizontalLayout = new QHBoxLayout(this);
 
-  auto label = new QLabel(tr("%1:").arg(field->name().c_str()));
-  auto input = new QComboBox();
+  auto label = new QLabel(tr("%1:").arg(field->name().c_str()), this);
+  auto input = new QComboBox(this);
 
   input->setEditable(enableSuggestions);
   input->setAutoCompletion(true);
@@ -260,8 +283,8 @@ void EntryEditorDialog::createEnumInput(Metadona::SuggestionField* field, QBoxLa
 //------------------------------------------------------------------------
 void EntryEditorDialog::createGroupInput(Metadona::GroupField* field, QBoxLayout* layout)
 {
-  auto group          = new QGroupBox(tr("%1:").arg(field->name().c_str()));
-  auto verticalLayout = new QVBoxLayout();
+  auto group          = new QGroupBox(tr("%1:").arg(field->name().c_str()), this);
+  auto verticalLayout = new QVBoxLayout(this);
 
   createFieldInputs(field->entries(), verticalLayout);
 
@@ -272,8 +295,8 @@ void EntryEditorDialog::createGroupInput(Metadona::GroupField* field, QBoxLayout
 //------------------------------------------------------------------------
 void EntryEditorDialog::createListInput(Metadona::ListField* field, QBoxLayout* layout)
 {
-  auto listGroup      = new QGroupBox(tr("%1:").arg(field->name().c_str()));
-  auto verticalLayout = new QVBoxLayout();
+  auto listGroup      = new QGroupBox(tr("%1:").arg(field->name().c_str()), this);
+  auto verticalLayout = new QVBoxLayout(this);
 
   createFieldInputs(field->entries(), verticalLayout);
 

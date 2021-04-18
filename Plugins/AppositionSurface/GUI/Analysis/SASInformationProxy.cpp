@@ -21,105 +21,119 @@
 // Plugin
 #include "SASInformationProxy.h"
 
-// ESPINA
-#include <Core/Analysis/Extension.h>
+#include "Core/Extensions/AppositionSurfaceExtension.h"
+#include <Core/Analysis/Extensions.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QString>
+#include "../../Plugin.h"
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::GUI::Model::Utils;
 
-const QString SAS = QObject::tr("SAS");
-const QString SASTAG_PREPEND = QObject::tr("SAS ");
+//----------------------------------------------------------------------------
+bool isSASInformation(SegmentationExtension::InformationKey& key)
+{
+  return key.extension() == AppositionSurfaceExtension::TYPE;
+}
 
+//----------------------------------------------------------------------------
 class SASInformationProxy::SASInformationFetcher
 : public InformationProxy::InformationFetcher
 {
-public:
-  SASInformationFetcher(SegmentationAdapterPtr segmentation,
-                        SegmentationAdapterPtr sas,
-                        const SegmentationExtension::InfoTagList &tags,
-                        SchedulerSPtr scheduler)
-  : InformationProxy::InformationFetcher(segmentation, tags, scheduler)
-  , m_sas{sas}
-  {
-    auto id = Segmentation->data(Qt::DisplayRole).toString();
-    setDescription(tr("%1 information").arg(id));
-    setHidden(true);
-
-    m_tags.removeOne(NameTag());
-    m_tags.removeOne(CategoryTag());
-
-    bool ready = true;
-    for (auto tag : m_tags)
+  public:
+    SASInformationFetcher(SegmentationAdapterPtr segmentation,
+                          SegmentationAdapterPtr sas,
+                          const SegmentationExtension::InformationKeyList &keys,
+                          SchedulerSPtr scheduler)
+    : InformationProxy::InformationFetcher(segmentation, keys, scheduler)
+    , m_sas{sas}
     {
-      if(tag.startsWith(SASTAG_PREPEND))
+      auto id = m_segmentation->data(Qt::DisplayRole).toString();
+      setDescription(tr("%1 information").arg(id));
+      setHidden(true);
+
+      m_keys.removeOne(NameKey());
+      m_keys.removeOne(CategoryKey());
+
+      bool ready = true;
+      for (auto key : m_keys)
       {
-        auto sasTag = QString(tag).remove(0,SASTAG_PREPEND.size());
-        ready &= m_sas->isInformationReady(sasTag);
-      }
-      else
-        ready &= Segmentation->isInformationReady(tag);
-
-      if (!ready) break;
-    }
-
-    setFinished(ready);
-  }
-
-  SegmentationAdapterPtr m_sas;
-
-protected:
-  virtual void run()
-  {
-    for (int i = 0; i < m_tags.size(); ++i)
-    {
-      if (!canExecute()) break;
-
-      auto tag = m_tags[i];
-      if (tag != NameTag() && tag != CategoryTag())
-      {
-        if(tag.startsWith(SASTAG_PREPEND))
+        if (m_sas && isSASInformation(key))
         {
-          auto sasTag = QString(tag).remove(0,SASTAG_PREPEND.size());
-          if(!m_sas->isInformationReady(sasTag))
-          {
-            setWaiting(true);
-            m_sas->information(sasTag);
-            setWaiting(false);
-            if (!canExecute()) break;
-          }
+          ready &= m_sas->isReady(key);
         }
         else
         {
-          if (!Segmentation->isInformationReady(tag))
+          if(m_segmentation)
           {
-            setWaiting(true);
-            Segmentation->information(tag);
-            setWaiting(false);
+            ready &= m_segmentation->isReady(key);
+          }
+        }
+
+        if (!ready) break;
+      }
+
+      setFinished(ready);
+    }
+
+  protected:
+    virtual void run()
+    {
+      for (int i = 0; i < m_keys.size(); ++i)
+      {
+        if (!canExecute()) break;
+
+        auto key = m_keys[i];
+
+        if (key != NameKey() && key != CategoryKey())
+        {
+          if(isSASInformation(key))
+          {
+            if (m_sas)
+            {
+              updateInformation(m_sas, key);
+              if (!canExecute()) break;
+            }
+          }
+          else
+          {
+            updateInformation(m_segmentation, key);
             if (!canExecute()) break;
           }
         }
-      }
 
-      m_progress = (100.0*i)/m_tags.size();
-      emit progress(m_progress);
+        reportProgress((100.0*i)/m_keys.size());
+      }
     }
-  }
+
+    void updateInformation(SegmentationAdapterPtr segmentation, SegmentationExtension::InformationKey &key)
+    {
+      if(!segmentation->isReady(key))
+      {
+        segmentation->information(key);
+      }
+    }
+
+  private:
+    SegmentationAdapterPtr m_sas;
 };
 
 //----------------------------------------------------------------------------
 QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) const
 {
-  if (!proxyIndex.isValid())
-    return QVariant();
+  if (!proxyIndex.isValid()) return QVariant();
 
   auto proxyItem = itemAdapter(proxyIndex);
-  if (!isSegmentation(proxyItem))
-    return QVariant();
+
+  if (!isSegmentation(proxyItem)) return QVariant();
 
   auto segmentation = segmentationPtr(proxyItem);
+
+  if(segmentation && !m_filter->isEmpty() && !m_filter->contains(segmentation)) return QVariant();
 
   if (role == Qt::TextAlignmentRole)
   {
@@ -133,102 +147,95 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
     if (m_pendingInformation.contains(segmentation))
     {
-      InformationFetcherSPtr task = m_pendingInformation[segmentation];
+      auto &task = m_pendingInformation[segmentation];
 
-      progress = task->hasFinished()?HIDE_PROGRESS:task->currentProgress();
+      progress = task->hasFinished() ? HIDE_PROGRESS : task->currentProgress();
     }
 
     return progress;
   }
 
-  if (role == Qt::BackgroundRole)
+  if(role == Qt::ForegroundRole || role == Qt::BackgroundRole)
   {
-    if (!m_pendingInformation.contains(segmentation) ||!m_pendingInformation[segmentation]->hasFinished())
+    if(proxyIndex.column() == 0) return QAbstractProxyModel::data(proxyIndex, role);
+
+    if(!m_pendingInformation.contains(segmentation) || !m_pendingInformation[segmentation]->hasFinished())
     {
-      return Qt::lightGray;
-    } else
-    {
-      return QAbstractProxyModel::data(proxyIndex, role);
+      return role == Qt::ForegroundRole ? QVariant::fromValue(Qt::black) : QVariant::fromValue(Qt::lightGray);
     }
+
+    auto info = data(proxyIndex, Qt::DisplayRole);
+    if(info.canConvert(QVariant::String) && (info.toString().contains("Fail", Qt::CaseInsensitive) || info.toString().contains("Error", Qt::CaseInsensitive)))
+    {
+      return role == Qt::ForegroundRole ? QVariant::fromValue(Qt::white) : QVariant::fromValue(Qt::red);
+    }
+
+    return QAbstractProxyModel::data(proxyIndex, role);
   }
 
-  if (role == Qt::DisplayRole && !m_tags.isEmpty())
+  if(role == Qt::ToolTipRole)
   {
-    auto tag = m_tags[proxyIndex.column()];
+    auto key = m_keys[proxyIndex.column()];
+    auto sas = AppositionSurfacePlugin::segmentationSAS(segmentation);
+    if(!sas && isSASInformation(key))
+    {
+      return tr("No SAS has been created for %1.").arg(segmentation->data().toString());
+    }
 
-    if (NameTag() == tag)
+    return QString();
+  }
+
+  if (role == Qt::DisplayRole && !m_keys.isEmpty())
+  {
+    auto key = m_keys[proxyIndex.column()];
+
+    if (NameKey() == key)
     {
       return segmentation->data(role);
     }
 
-    if (CategoryTag() == tag)
+    if (CategoryKey() == key)
     {
       return segmentation->category()->data(role);
     }
 
-    if (segmentation->informationTags().contains(tag))
+    if (segmentation->hasInformation(key) || isSASInformation(key))
     {
+      auto sas =  AppositionSurfacePlugin::segmentationSAS(segmentation);
+      if(!sas && isSASInformation(key))
+      {
+        return tr("No SAS has been created for %1.").arg(segmentation->data().toString());
+      }
+
       if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
       {
-        auto sasItem = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS).first().get();
-        auto sas = segmentationPtr(sasItem);
-
-        InformationFetcherSPtr task{new SASInformationFetcher(segmentation, sas, m_tags, m_scheduler)};
+        auto task = std::make_shared<SASInformationFetcher>(segmentation, sas, m_keys, m_scheduler);
         m_pendingInformation[segmentation] = task;
 
         if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
         {
           connect(task.get(), SIGNAL(progress(int)),
-                  this, SLOT(onProgessReported(int)));
+                  this,       SLOT(onProgressReported(int)));
           connect(task.get(), SIGNAL(finished()),
-                  this, SLOT(onTaskFininished()));
-          //qDebug() << "Launching Task";
+                  this,       SLOT(onTaskFininished()));
+
           Task::submit(task);
-        } else // we avoid overloading the scheduler
-        {
-          return segmentation->information(tag);
         }
-      } else if (m_pendingInformation[segmentation]->hasFinished())
-      {
-        return segmentation->information(tag);
-      }
-
-      return "";
-    }
-    else if(tag.startsWith(SASTAG_PREPEND))
-    {
-      auto sasItem = m_model->relatedItems(segmentation, RelationType::RELATION_OUT, SAS).first().get();
-      auto sas = segmentationPtr(sasItem);
-      auto sasTag = QString(tag).remove(0,SASTAG_PREPEND.size());
-
-      if(sas->informationTags().contains(sasTag))
-      {
-        if (!m_pendingInformation.contains(segmentation) || m_pendingInformation[segmentation]->isAborted())
+        else // we avoid overloading the scheduler
         {
-          InformationFetcherSPtr task{new SASInformationFetcher(segmentation, sas, m_tags, m_scheduler)};
-          m_pendingInformation[segmentation] = task;
-
-          if (!task->hasFinished()) // If all information is available on constructor, it is set as finished
-          {
-            connect(task.get(), SIGNAL(progress(int)),
-                    this, SLOT(onProgessReported(int)));
-            connect(task.get(), SIGNAL(finished()),
-                    this, SLOT(onTaskFininished()));
-            //qDebug() << "Launching Task";
-            Task::submit(task);
-          }
-          else // we avoid overloading the scheduler
-          {
-            return sas->information(sasTag);
-          }
+          return information(segmentation, sas, key);
+        }
+      }
+      else
+      {
+        if (m_pendingInformation[segmentation]->hasFinished())
+        {
+          return information(segmentation, sas, key);
         }
         else
-          if (m_pendingInformation[segmentation]->hasFinished())
-          {
-            return sas->information(sasTag);
-          }
-
-        return "";
+        {
+          return "";
+        }
       }
     }
     else
@@ -236,9 +243,51 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
       return tr("Unavailable");
     }
   }
-  else
-    if (proxyIndex.column() > 0)
-      return QVariant();//To avoid checkrole or other roles
+  else if (proxyIndex.column() > 0)
+  {
+    return QVariant(); //To avoid checkrole or other roles
+  }
 
   return QAbstractProxyModel::data(proxyIndex, role);
+}
+
+//----------------------------------------------------------------------------
+QVariant SASInformationProxy::information(SegmentationAdapterPtr segmentation,
+                                          SegmentationAdapterPtr sas,
+                                          SegmentationExtension::InformationKey& key) const
+{
+  if (isSASInformation(key))
+  {
+    if(sas)
+    {
+      return sas->information(key);
+    }
+    else
+    {
+      return tr("Unavailable SAS");
+    }
+  }
+  else
+  {
+    return segmentation->information(key);
+  }
+}
+
+//----------------------------------------------------------------------------
+QVariant SASInformationProxy::headerData(int section, Qt::Orientation orientation, int role) const
+{
+  if (!m_keys.isEmpty() && Qt::DisplayRole == role && section < m_keys.size())
+  {
+    const auto &pair = m_keys.at(section);
+    if(pair.extension() == AppositionSurfaceExtension::TYPE)
+    {
+      return AppositionSurfaceExtension::addSASPrefix(pair.value());
+    }
+    else
+    {
+      return pair.value();
+    }
+  }
+
+  return QAbstractProxyModel::headerData(section, orientation, role);
 }

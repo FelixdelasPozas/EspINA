@@ -24,29 +24,27 @@
 
 // ESPINA
 #include <Support/Settings/SettingsPanel.h>
-#include <Support/ViewManager.h>
+#include <GUI/Types.h>
 
 // Qt
 #include "ui_SeedGrowSegmentationSettingsPanel.h"
 
 namespace ESPINA
 {
-
   class SeedGrowSegmentationSettings;
 
   class SeedGrowSegmentationsSettingsPanel
-  : public SettingsPanel
+  : public Support::Settings::SettingsPanel
   , public Ui::SeedGrowSegmentationSettingsPanel
   {
     Q_OBJECT
   public:
     /** \brief SeedGrowSegmentationSettingsPanel class constructor.
-     * \param[in] settings, raw pointer to a SeedGrowSegmentationSettings object.
-     * \param[in] viewManager, view manager smart pointer.
+     * \param[in] settings SeedGrowSegmentation settings
+     * \param[in] context ESPINA context
      *
      */
-    explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings,
-                                                ViewManagerSPtr               viewManager);
+    explicit SeedGrowSegmentationsSettingsPanel(SeedGrowSegmentationSettings* settings);
 
     /** \brief SeedGrowSegmentationSettingsPanel class virtual destructor.
      *
@@ -54,67 +52,34 @@ namespace ESPINA
     virtual ~SeedGrowSegmentationsSettingsPanel()
     {}
 
-    /** \brief Overrides SerttingsPanel::shortDescription().
-     *
-     */
     virtual const QString shortDescription() override
-    { return tr("Seed Grow Segmentation"); }
+    { return tr("Grey Level Segmentation"); }
 
-    /** \brief Overrides SerttingsPanel::longDescription().
-     *
-     */
     virtual const QString longDescription() override
-    { return tr("Seed Grow Segmentation"); }
+    { return tr("Create segmentation using similar grey level voxels."); }
 
-    /** \brief Overrides SerttingsPanel::icon().
-     *
-     */
     virtual const QIcon icon() override
-    { return QIcon(":/espina/bestPixelSelector.svg"); }
+    { return QIcon(":/espina/grey_level_segmentation.svg"); }
 
-    /** \brief Overrides SerttingsPanel::acceptChanges().
-     *
-     */
     virtual void acceptChanges() override;
 
-    /** \brief Overrides SerttingsPanel::rejectChanges().
-     *
-     */
     virtual void rejectChanges() override;
 
-    /** \brief Overrides SerttingsPanel::modified().
-     *
-     */
     virtual bool modified() const override;
 
-    /** \brief Overrides SerttingsPanel::clone().
+    virtual Support::Settings::SettingsPanelPtr clone() override;
+
+  private slots:
+    /** \brief Manages the change of state of the taxonomical checkbox.
+     * \param[in] state checkbox state.
      *
      */
-    virtual SettingsPanelPtr clone() override;
-
-  public slots:
-		/** \brief Modifies the color of the pixel value.
-		 *
-		 */
-    void displayColor(int value);
-
-  protected slots:
-  	/** \brief Manages the change of state of the taxonomical checkbox.
-  	 * \param[in] state, checkbox state.
-  	 *
-  	 */
     void changeTaxonomicalCheck(int state);
-
-    /** \brief Stores the Z value.
-     * \param[in] value, unused value.
-     *
-     */
-    void zValueChanged(int unused);
 
   private:
     SeedGrowSegmentationSettings *m_settings;
-    ViewManagerSPtr               m_viewManager;
-    bool                          m_zValueChanged;
+
+    GUI::Widgets::PixelValueSelector *m_pixelSelector;
   };
 
 } // namespace ESPINA

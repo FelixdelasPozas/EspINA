@@ -21,9 +21,11 @@
 #ifndef VTK_COUNTING_FRAME_SLICE_WIDGET_H
 #define VTK_COUNTING_FRAME_SLICE_WIDGET_H
 
+// Plugin
 #include "CountingFramePlugin_Export.h"
-
 #include "vtkCountingFrameWidget.h"
+
+// VTK
 #include <vtkWidgetRepresentation.h>
 
 class vtkPolyData;
@@ -32,64 +34,100 @@ class vtkCountingFrameSliceRepresentation;
 class CountingFramePlugin_EXPORT vtkCountingFrameSliceWidget
 : public vtkCountingFrameWidget
 {
-public:
-  // Description:
-  // Instantiate the object.
-  static vtkCountingFrameSliceWidget *New();
+  public:
+    static vtkCountingFrameSliceWidget *New();
 
-  // Description:
-  // Standard class methods for type information and printing.
-  vtkTypeMacro(vtkCountingFrameSliceWidget, vtkCountingFrameWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+    vtkTypeMacro(vtkCountingFrameSliceWidget, vtkCountingFrameWidget);
+    void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetPlane(ESPINA::Plane plane);
+    /** \brief Sets the plane of the widget.
+     *
+     */
+    virtual void SetPlane(ESPINA::Plane plane);
 
-  virtual void SetSlice(ESPINA::Nm pos);
+    /** \brief Sets the depth of the widget in the plane direction.
+     * \param[in] depth depth in Nm.
+     *
+     */
+    virtual void SetRepresentationDepth(ESPINA::Nm depth);
 
-  virtual void SetSlicingStep(ESPINA::NmVector3 slicingStep);
+    /** \brief Sets the slice the widget must represent.
+     * \param[in] pos slice in Nm.
+     *
+     */
+    virtual void SetSlice(ESPINA::Nm pos);
 
-  virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> cf,
-                                ESPINA::Nm   inclusionOffset[3],
-                                ESPINA::Nm   exclusionOffset[3]);
+    /** \brief Toggles the editable/non-editable state of the widget.
+     * \param[in] value True to allow editing and false otherwise.
+     *
+     */
+    void setEditable(const bool value)
+    { this->Editable = value; };
 
-  // Description:
-  // Create the default widget representation if one is not set. By default,
-  // this is an instance of the vtkRectangularCountingFrameRepresentation class.
-  void CreateDefaultRepresentation();
+    /** \brief Returns true if the values of the representation can be manually modified and false otherwise.
+     *
+     */
+    const bool isEditable() const
+    { return this->Editable; }
 
-  void SetHighlighted(bool highlight);
+    virtual void SetCountingFrame(vtkSmartPointer<vtkPolyData> cf,
+                                  ESPINA::Nm   inclusionOffset[3],
+                                  ESPINA::Nm   exclusionOffset[3],
+                                  ESPINA::NmVector3 resolution);
 
-protected:
-  vtkCountingFrameSliceWidget();
+    // Description:
+    // Create the default widget representation if one is not set. By default,
+    // this is an instance of the vtkRectangularCountingFrameRepresentation class.
+    void CreateDefaultRepresentation();
 
-  ~vtkCountingFrameSliceWidget();
+    /** \brief Highlights the representation.
+     * \param[in] highlight true to highlight false otherwise.
+     *
+     */
+    void SetHighlighted(bool highlight);
 
-//BTX - manage the state of the widget
-  int WidgetState;
-  enum _WidgetState {Start=0, Active};
-//ETX
+    virtual void setVisible(bool visible);
 
-  // These methods handle events
-  static void SelectAction(vtkAbstractWidget*);
+  protected:
+    /** \brief vtkCountingFrameSliceWidget class constructor.
+     *
+     */
+    vtkCountingFrameSliceWidget();
 
-  static void EndSelectAction(vtkAbstractWidget*);
+    /** \brief vtkCountingFrameSliceWidget class destructor.
+     *
+     */
+    ~vtkCountingFrameSliceWidget()
+    {};
 
-  static void TranslateAction(vtkAbstractWidget*);
+    //BTX - manage the state of the widget
+    int WidgetState;
+    enum _WidgetState {Start=0, Active};
+    //ETX
 
-  static void MoveAction(vtkAbstractWidget*);
+    // These methods handle events
+    static void SelectAction(vtkAbstractWidget*);
+    static void EndSelectAction(vtkAbstractWidget*);
+    static void TranslateAction(vtkAbstractWidget*);
+    static void MoveAction(vtkAbstractWidget*);
 
-  // helper methods for cursoe management
-  virtual void SetCursor(int state);
+    // helper methods for cursor management
+    virtual void SetCursor(int state);
 
-  ESPINA::Plane     Plane;
-  ESPINA::Nm        Slice;
-  ESPINA::NmVector3 SlicingStep;
+    ESPINA::Plane     Plane;
+    ESPINA::Nm        Slice;
+    ESPINA::NmVector3 SlicingStep;
+    ESPINA::Nm        Depth;
+    bool              Editable;
 
-private:
-  vtkCountingFrameSliceWidget(const vtkCountingFrameSliceWidget&);  //Not implemented
-  void operator=(const vtkCountingFrameSliceWidget&);  //Not implemented
+  private:
+    vtkCountingFrameSliceWidget(const vtkCountingFrameSliceWidget&);  //Not implemented
+    void operator=(const vtkCountingFrameSliceWidget&);  //Not implemented
 
-  static void centerMarginsOnVoxelCenter(vtkCountingFrameSliceWidget* self);
+    /** \brief Helper method to center the inclusion and exclusion margins on the voxel center.
+     *
+     */
+    static void centerMarginsOnVoxelCenter(vtkCountingFrameSliceWidget* self);
 };
 
 #endif //VTKRBOUNDINGFRAMESLICEWIDGET_H

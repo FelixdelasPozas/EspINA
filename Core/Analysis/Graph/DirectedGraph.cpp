@@ -1,6 +1,6 @@
 /*
 
-    Copyright (C) <year>  <name of author>
+    Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This file is part of ESPINA.
 
@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "DirectedGraph.h"
+#include <Core/Utils/EspinaException.h>
 
 // C++
 #include <iostream>
@@ -35,6 +36,7 @@
 
 using namespace boost;
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 //-----------------------------------------------------------------------------
 DirectedGraph::DirectedGraph()
@@ -45,9 +47,23 @@ DirectedGraph::DirectedGraph()
 //-----------------------------------------------------------------------------
 void DirectedGraph::add(Vertex vertex)
 {
-  if (vertex == nullptr) throw (Null_Item_Exception());
+  QMutexLocker lock(&m_mutex);
 
-  if (contains(vertex)) throw (Existing_Item_Exception());
+  if (vertex == nullptr)
+  {
+    auto what    = QObject::tr("Attempt to add null item");
+    auto details = QObject::tr("DirectedGraph::add() -> ") + what;
+
+    throw EspinaException(what, details);
+  }
+
+  if (contains_implementation(vertex))
+  {
+    auto what    = QObject::tr("Attempt to add an already existing item");
+    auto details = QObject::tr("DirectedGraph::add() -> ") + what;
+
+    throw EspinaException(what, details);
+  }
 
   VertexDescriptor vd = add_vertex(m_graph);
 
@@ -57,6 +73,16 @@ void DirectedGraph::add(Vertex vertex)
 //-----------------------------------------------------------------------------
 void DirectedGraph::remove(Vertex vertex)
 {
+  QMutexLocker lock(&m_mutex);
+
+  if (!contains_implementation(vertex))
+  {
+    auto what    = QObject::tr("Attempt to remove a non existent item");
+    auto details = QObject::tr("DirectedGraph::add() -> ") + what;
+
+    throw EspinaException(what, details);
+  }
+
   VertexDescriptor vd = descriptor(vertex);
 
   clear_vertex (vd, m_graph);
@@ -66,32 +92,50 @@ void DirectedGraph::remove(Vertex vertex)
 //-----------------------------------------------------------------------------
 void DirectedGraph::addRelation(Vertex ancestor,
                                 Vertex successor,
-                                const QString&   description)
+                                const QString& description)
 {
-  if (ancestor == nullptr || successor == nullptr) throw (Null_Item_Exception());
-
-  EdgeProperty p;
-  p.relationship = description.toStdString();
-
-  if (ancestor == nullptr || successor == nullptr) throw (Item_Not_Found_Exception());
-
-  VertexDescriptor avd = descriptor(ancestor);
-  VertexDescriptor svd = descriptor(successor);
-
-  try
+  if (ancestor == nullptr || successor == nullptr)
   {
-   findRelation(avd, svd, description);
-   throw (Existing_Relation_Exception());
-  } catch (const Relation_Not_Found_Exception &e) {
-   add_edge(avd, svd, p, m_graph);
+    auto what    = QObject::tr("Invalid relation vertex: %1").arg((ancestor == nullptr ? "ancestor" : "successor"));
+    auto details = QObject::tr("DirectedGraph::addRelation() -> Invalid relation vertex: %1").arg((ancestor == nullptr ? "ancestor" : "successor"));
+
+    throw EspinaException(what, details);
+  }
+
+  bool alreadyInGraph = false;
+
+  {
+    QMutexLocker lock(&m_mutex);
+
+    EdgeProperty p;
+    p.relationship = description.toStdString();
+
+    auto avd = descriptor(ancestor);
+    auto svd = descriptor(successor);
+
+    OutEdgeIterator oei;
+
+    alreadyInGraph = existsRelation(avd, svd, description);
+
+    if(!alreadyInGraph) add_edge(avd, svd, p, m_graph);
+  }
+
+  if(alreadyInGraph)
+  {
+    auto what    = QObject::tr("Attempt to add and existing relation, ancestor: %1, successor: %2, relation: %3").arg(ancestor->name()).arg(successor->name()).arg(description);
+    auto details = QObject::tr("DirectedGraph::addRelation() -> Attempt to add and existing relation, ancestor: %1, successor: %2, relation: %3").arg(ancestor->name()).arg(successor->name()).arg(description);
+
+    throw EspinaException(what, details);
   }
 }
 
 //-----------------------------------------------------------------------------
-void DirectedGraph::removeRelation(Vertex   ancestor,
-                                       Vertex   successor,
-                                       const QString &description)
+void DirectedGraph::removeRelation(Vertex         ancestor,
+                                   Vertex         successor,
+                                   const QString &description)
 {
+  QMutexLocker lock(&m_mutex);
+
   VertexDescriptor avd = descriptor(ancestor);
   VertexDescriptor svd = descriptor(successor);
 
@@ -100,25 +144,22 @@ void DirectedGraph::removeRelation(Vertex   ancestor,
 }
 
 //-----------------------------------------------------------------------------
-bool DirectedGraph::contains(Vertex vertex)
+bool DirectedGraph::contains(Vertex vertex) const
 {
-  VertexIterator vi, vi_end;
-  for(tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; ++vi)
-  {
-    if (m_graph[*vi] == vertex) return true;
-  }
+  QMutexLocker lock(&m_mutex);
 
-  return false;
+  return contains_implementation(vertex);
 }
 
-
 //-----------------------------------------------------------------------------
-DirectedGraph::Edges DirectedGraph::edges(const QString &filter)
+DirectedGraph::Edges DirectedGraph::edges(const QString &filter) const
 {
+  QMutexLocker lock(&m_mutex);
+
   Edges result;
 
   EdgeIterator ei, ei_end;
-  for(boost::tie(ei, ei_end) = boost::edges(m_graph); ei != ei_end; ei++)
+  for(boost::tie(ei, ei_end) = boost::edges(m_graph); ei != ei_end; ++ei)
   {
     if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
     {
@@ -126,75 +167,51 @@ DirectedGraph::Edges DirectedGraph::edges(const QString &filter)
       e.source = m_graph[source(*ei, m_graph)];
       e.target = m_graph[target(*ei, m_graph)];
       e.relationship = m_graph[*ei].relationship;
+
       result << e;
     }
   }
+
   return result;
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Edges DirectedGraph::inEdges(Vertex vertex, const QString& filter)
+DirectedGraph::Edges DirectedGraph::inEdges(Vertex vertex, const QString& filter) const
 {
   return inEdges(vertex.get(), filter);
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Edges DirectedGraph::inEdges(VertexPtr vertex, const QString& filter)
+DirectedGraph::Edges DirectedGraph::inEdges(VertexPtr vertex, const QString& filter) const
 {
-  Edges result;
+  QMutexLocker lock(&m_mutex);
 
-  VertexDescriptor vd = descriptor(vertex);
-
-  InEdgeIterator ei, ei_end;
-  for(tie(ei, ei_end) = in_edges(vd, m_graph); ei != ei_end; ei++)
-  {
-    if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
-    {
-      Edge e;
-      e.source = m_graph[source(*ei, m_graph)];
-      e.target = m_graph[target(*ei, m_graph)];
-      e.relationship = m_graph[*ei].relationship;
-      result << e;
-    }
-  }
-  return result;
+  return inEdges_implementation(vertex, filter);
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Edges DirectedGraph::outEdges(Vertex vertex, const QString& filter)
+DirectedGraph::Edges DirectedGraph::outEdges(Vertex vertex, const QString& filter) const
 {
   return outEdges(vertex.get(), filter);
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Edges DirectedGraph::outEdges(VertexPtr vertex, const QString& filter)
+DirectedGraph::Edges DirectedGraph::outEdges(VertexPtr vertex, const QString& filter) const
 {
-  Edges result;
+  QMutexLocker lock(&m_mutex);
 
-  VertexDescriptor vd = descriptor(vertex);
-
-  OutEdgeIterator ei, ei_end;
-  for(tie(ei, ei_end) = out_edges(vd, m_graph); ei != ei_end; ei++)
-  {
-    if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
-    {
-      Edge e;
-      e.source = m_graph[source(*ei, m_graph)];
-      e.target = m_graph[target(*ei, m_graph)];
-      e.relationship = m_graph[*ei].relationship;
-      result << e;
-    }
-  }
-  return result;
+  return outEdges_implementation(vertex, filter);
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Edges DirectedGraph::edges(Vertex vertex, const QString& filter)
+DirectedGraph::Edges DirectedGraph::edges(Vertex vertex, const QString& filter) const
 {
+  QMutexLocker lock(&m_mutex);
+
   Edges result;
 
-  result << inEdges (vertex, filter);
-  result << outEdges(vertex, filter);
+  result << inEdges_implementation(vertex.get(), filter);
+  result << outEdges_implementation(vertex.get(), filter);
 
   return result;
 }
@@ -202,6 +219,10 @@ DirectedGraph::Edges DirectedGraph::edges(Vertex vertex, const QString& filter)
 //-----------------------------------------------------------------------------
 void DirectedGraph::removeEdges(Vertex vertex)
 {
+  QMutexLocker lock(&m_mutex);
+
+  Vertices ancestorList = ancestors_implementation(vertex.get());
+
   OutEdgeIterator oei, oei_end;
   VertexDescriptor vd = descriptor(vertex);
   boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph);
@@ -211,8 +232,7 @@ void DirectedGraph::removeEdges(Vertex vertex)
     boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph);
   }
 
-  Vertices ancestorList = ancestors(vertex);
-  for (int i = 0; i < ancestorList.size(); i++)
+  for (int i = 0; i < ancestorList.size(); ++i)
   {
     VertexDescriptor avd = descriptor(ancestorList[i]);
     boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph);
@@ -222,8 +242,11 @@ void DirectedGraph::removeEdges(Vertex vertex)
       {
         boost::remove_edge(oei, m_graph);
         boost::tie(oei, oei_end) = boost::out_edges(avd, m_graph);
-      } else
-        oei++;
+      }
+      else
+      {
+        ++oei;
+      }
     }
   }
 }
@@ -231,10 +254,12 @@ void DirectedGraph::removeEdges(Vertex vertex)
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::vertices() const
 {
+  QMutexLocker lock(&m_mutex);
+
   Vertices result;
 
   VertexIterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; ++vi)
   {
     result << m_graph[*vi];
   }
@@ -251,25 +276,10 @@ DirectedGraph::Vertices DirectedGraph::ancestors(Vertex vertex, const QString& f
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::ancestors(VertexPtr vertex, const QString& filter) const
 {
-  Vertices result;
-  InEdgeIterator iei, iei_end;
+  QMutexLocker lock(&m_mutex);
 
-  VertexDescriptor vd = descriptor(vertex);
-  //   qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
-  for(boost::tie(iei, iei_end) = boost::in_edges(vd, m_graph); iei != iei_end; iei++)
-  {
-    //     qDebug() << "\t" << source(*iei, m_graph) << m_graph[source(*iei,m_graph)].name.c_str();
-    if (filter.isEmpty() || m_graph[*iei].relationship == filter.toStdString())
-    {
-      //       qDebug() << "Pass Filter:"  << m_graph[source(*iei, m_graph)].descriptor << m_graph[source(*iei, m_graph)].name.c_str();
-      VertexDescriptor avd = source(*iei, m_graph);
-      result << m_graph[avd];
-    }
-  }
-
-  return result;
+  return ancestors_implementation(vertex, filter);
 }
-
 
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::successors(Vertex vertex, const QString& filter) const
@@ -280,14 +290,14 @@ DirectedGraph::Vertices DirectedGraph::successors(Vertex vertex, const QString& 
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertices DirectedGraph::successors(VertexPtr vertex, const QString& filter) const
 {
+  QMutexLocker lock(&m_mutex);
+
   Vertices result;
   OutEdgeIterator oei, oei_end;
 
   VertexDescriptor vd = descriptor(vertex);
-  //   qDebug() << "Successors of:" << m_graph[v].name.c_str();
-  for(boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph); oei != oei_end; oei++)
+  for(boost::tie(oei, oei_end) = boost::out_edges(vd, m_graph); oei != oei_end; ++oei)
   {
-    //     qDebug() << "\t" << m_graph[target(*oei,m_graph)].name.c_str();
     if (filter.isEmpty() || m_graph[*oei].relationship == filter.toStdString())
     {
       VertexDescriptor svd = target(*oei, m_graph);
@@ -319,46 +329,102 @@ DirectedGraph::VertexDescriptor DirectedGraph::descriptor(VertexPtr vertex) cons
     if (m_graph[*vi].get() == vertex) return *vi;
   }
 
-  throw (Item_Not_Found_Exception());
+  auto what    = QObject::tr("Descriptor not found, vertex: %1").arg(vertex->name());
+  auto details = QObject::tr("DirectedGraph::descriptor() -> Descriptor not found, vertex: %1").arg(vertex->name());
+
+  throw EspinaException(what, details);
+
+  return DirectedGraph::VertexDescriptor();
 }
 
+//-----------------------------------------------------------------------------
+bool DirectedGraph::existsRelation(const VertexDescriptor source,
+                                   const VertexDescriptor destination,
+                                   const QString         &relation) const
+{
+  OutEdgeIterator ei, oei_end;
+
+  for (tie(ei, oei_end) = out_edges(source, m_graph); ei != oei_end; ++ei)
+  {
+    if (target(*ei, m_graph) == destination)
+    {
+      if (m_graph[*ei].relationship == relation.toStdString())
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 //-----------------------------------------------------------------------------
 DirectedGraph::OutEdgeIterator DirectedGraph::findRelation(const VertexDescriptor source,
                                                            const VertexDescriptor destination,
-                                                           const QString&         relation) const
+                                                           const QString         &relation) const
 {
   OutEdgeIterator ei, oei_end;
 
-  for(tie(ei, oei_end) = out_edges(source, m_graph); ei != oei_end; ++ei)
+  for (tie(ei, oei_end) = out_edges(source, m_graph); ei != oei_end; ++ei)
   {
     if (target(*ei, m_graph) == destination)
-      if(m_graph[*ei].relationship == relation.toStdString())
+    {
+      if (m_graph[*ei].relationship == relation.toStdString())
+      {
         return ei;
+      }
+    }
   }
 
-  throw (Relation_Not_Found_Exception());
+  auto what    = QObject::tr("Relation not found, relation: %1").arg(relation);
+  auto details = QObject::tr("DirectedGraph::findRelation() -> Relation not found, relation: %1").arg(relation);
+
+  throw EspinaException(what, details);
+
   return oei_end;
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Vertices ESPINA::rootAncestors(DirectedGraph::Vertex vertex, DirectedGraphSPtr graph)
+bool DirectedGraph::contains_implementation(Vertex vertex) const
 {
-  return rootAncestors(vertex.get(), graph);
+  VertexIterator vi, vi_end;
+  for(tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; ++vi)
+  {
+    if (m_graph[*vi] == vertex) return true;
+  }
+
+  return false;
+
 }
 
 //-----------------------------------------------------------------------------
-DirectedGraph::Vertices ESPINA::rootAncestors(DirectedGraph::VertexPtr vertex, DirectedGraphSPtr graph)
+void DirectedGraph::clear()
 {
+  QMutexLocker lock(&m_mutex);
+
+  m_graph.clear();
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Vertices DirectedGraph::rootAncestors(DirectedGraph::Vertex vertex) const
+{
+  return rootAncestors(vertex.get());
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Vertices DirectedGraph::rootAncestors(DirectedGraph::VertexPtr vertex) const
+{
+  QMutexLocker lock(&m_mutex);
+
   DirectedGraph::Vertices rootAncestors;
 
-  auto ancestors = graph->ancestors(vertex);
+  auto ancestors = ancestors_implementation(vertex);
 
   while (!ancestors.isEmpty())
   {
     auto ancestor = ancestors.takeFirst();
 
-    auto grandAncestors = graph->ancestors(ancestor);
+    auto grandAncestors = ancestors_implementation(ancestor.get());
 
     if (grandAncestors.isEmpty())
     {
@@ -366,7 +432,8 @@ DirectedGraph::Vertices ESPINA::rootAncestors(DirectedGraph::VertexPtr vertex, D
       {
         rootAncestors << ancestor;
       }
-    } else
+    }
+    else
     {
       ancestors << grandAncestors;
     }
@@ -374,4 +441,72 @@ DirectedGraph::Vertices ESPINA::rootAncestors(DirectedGraph::VertexPtr vertex, D
 
 
   return rootAncestors;
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Edges DirectedGraph::inEdges_implementation(VertexPtr vertex, const QString& filter) const
+{
+  Edges result;
+
+  VertexDescriptor vd = descriptor(vertex);
+
+  InEdgeIterator ei, ei_end;
+  for(tie(ei, ei_end) = in_edges(vd, m_graph); ei != ei_end; ++ei)
+  {
+    if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
+    {
+      Edge e;
+      e.source = m_graph[source(*ei, m_graph)];
+      e.target = m_graph[target(*ei, m_graph)];
+      e.relationship = m_graph[*ei].relationship;
+
+      result << e;
+    }
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Edges DirectedGraph::outEdges_implementation(VertexPtr vertex, const QString& filter) const
+{
+  Edges result;
+
+  VertexDescriptor vd = descriptor(vertex);
+
+  OutEdgeIterator ei, ei_end;
+  for(tie(ei, ei_end) = out_edges(vd, m_graph); ei != ei_end; ++ei)
+  {
+    if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
+    {
+      Edge e;
+      e.source = m_graph[source(*ei, m_graph)];
+      e.target = m_graph[target(*ei, m_graph)];
+      e.relationship = m_graph[*ei].relationship;
+
+      result << e;
+    }
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+DirectedGraph::Vertices DirectedGraph::ancestors_implementation(VertexPtr vertex, const QString& filter) const
+{
+  Vertices result;
+  InEdgeIterator iei, iei_end;
+
+  VertexDescriptor vd = descriptor(vertex);
+
+  for(boost::tie(iei, iei_end) = boost::in_edges(vd, m_graph); iei != iei_end; ++iei)
+  {
+    if (filter.isEmpty() || m_graph[*iei].relationship == filter.toStdString())
+    {
+      VertexDescriptor avd = source(*iei, m_graph);
+      result << m_graph[avd];
+    }
+  }
+
+  return result;
 }

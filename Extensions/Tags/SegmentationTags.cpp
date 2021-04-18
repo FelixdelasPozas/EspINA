@@ -25,49 +25,70 @@
     SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
+// ESPINA
 #include "SegmentationTags.h"
-#include <GUI/Utils/Conditions.h>
+#include <GUI/Utils/Format.h>
 #include <Core/Analysis/Segmentation.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Core;
+using namespace ESPINA::Extensions;
+using namespace ESPINA::GUI::Utils::Format;
 
-const QString                        SegmentationTags::TYPE = "SegmentationTags";
-const SegmentationExtension::InfoTag SegmentationTags::TAGS = "Tags";
-QStringList SegmentationTags::s_availableTags;
+const SegmentationExtension::Type SegmentationTags::TYPE = "SegmentationTags";
+const SegmentationExtension::Key  SegmentationTags::TAGS = "Tags";
+
+QMap<QString, unsigned int> SegmentationTags::s_availableTags;
+QReadWriteLock              SegmentationTags::s_mutex;
+const QString TAG_STRING = "Tag '%1'";
 
 //------------------------------------------------------------------------
 SegmentationTags::SegmentationTags(const InfoCache &infoCache)
 : SegmentationExtension{infoCache}
 {
+  for (auto tag : infoCache[TAGS].toString().split(";"))
+  {
+    addTagImplementation(tag);
+  }
 }
 
 //------------------------------------------------------------------------
 SegmentationTags::~SegmentationTags()
 {
+  if(!m_tags.empty())
+  {
+    for(auto tag: m_tags)
+    {
+      removeFromAvailableTags(tag);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::onExtendedItemSet(Segmentation* item)
+const SegmentationExtension::InformationKeyList SegmentationTags::availableInformation() const
 {
+  InformationKeyList keys;
+
+  for(auto tag: s_availableTags.keys())
+  {
+    keys << createKey(TAG_STRING.arg(tag));
+  }
+
+  keys << createKey(TAGS);
+
+  return keys;
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension::InfoTagList SegmentationTags::availableInformations() const
-{
-  InfoTagList tags;
-
-  tags << TAGS;
-
-  return tags;
-}
-
-//------------------------------------------------------------------------
-QString SegmentationTags::toolTipText() const
+const QString SegmentationTags::toolTipText() const
 {
   QString toolTip;
-  if (!tags().isEmpty())
-    toolTip = condition(":/espina/tag.svg", tags().join(","));
+  auto tagList = tags();
+  if (!tagList.isEmpty())
+  {
+    tagList.removeDuplicates();
+    toolTip = createTable(":/espina/tag.svg", tagList.join(","));
+  }
 
   return toolTip;
 }
@@ -79,7 +100,7 @@ void SegmentationTags::addTag(const QString &tag)
 
   m_tags.sort();
 
-  updateAvailableTags();
+  updateInfoCache(TAGS, state());
 }
 
 //------------------------------------------------------------------------
@@ -92,7 +113,7 @@ void SegmentationTags::addTags(const QStringList &tags)
 
   m_tags.sort();
 
-  updateAvailableTags();
+  updateInfoCache(TAGS, state());
 }
 
 //------------------------------------------------------------------------
@@ -101,47 +122,93 @@ void SegmentationTags::removeTag(const QString &tag)
   if (m_tags.contains(tag))
   {
     m_tags.removeOne(tag);
-  }
 
-  updateAvailableTags();
+    removeFromAvailableTags(tag);
+
+    updateInfoCache(TAGS, state());
+  }
 }
 
 //------------------------------------------------------------------------
 void SegmentationTags::setTags(const QStringList &tags)
 {
+  for(auto tag: m_tags)
+  {
+    removeFromAvailableTags(tag);
+  }
+
   m_tags.clear();
 
   addTags(tags);
 }
 
 //------------------------------------------------------------------------
-QVariant SegmentationTags::cacheFail(const QString& tag) const
+QVariant SegmentationTags::cacheFail(const InformationKey& key) const
 {
-  return (TAGS == tag)?state():QVariant();
+  if(TAGS == key.value()) return m_tags.join(";");
+
+  for(auto tag: m_tags)
+  {
+    if(key.value().compare(TAG_STRING.arg(tag), Qt::CaseInsensitive) == 0)
+    {
+      return "1";
+    }
+  }
+
+  return "0";
 }
 
 //------------------------------------------------------------------------
 void SegmentationTags::addTagImplementation(const QString &tag)
 {
-  if (!m_tags.contains(tag))
+  if (!tag.isEmpty() && !m_tags.contains(tag.trimmed()))
   {
     m_tags << tag.trimmed();
+
+    addToAvailableTags(tag.trimmed());
   }
 }
 
 //------------------------------------------------------------------------
-void SegmentationTags::updateAvailableTags()
+QStringList SegmentationTags::availableTags()
 {
-  QStringList tags;
+  QReadLocker lock(&s_mutex);
 
-  for(auto entry: m_infoCache.values())
+  return s_availableTags.keys();
+}
+
+//------------------------------------------------------------------------
+void SegmentationTags::addToAvailableTags(const QString& tag)
+{
+  QWriteLocker lock(&s_mutex);
+
+  if(s_availableTags.keys().contains(tag))
   {
-  	if(!entry.isValid())
-  		continue;
+    s_availableTags[tag] += 1;
+  }
+  else
+  {
+    s_availableTags.insert(tag, 1);
+  }
+}
 
-  	tags << entry.toStringList();
-	}
+//------------------------------------------------------------------------
+void SegmentationTags::removeFromAvailableTags(const QString& tag)
+{
+  QWriteLocker lock(&s_mutex);
 
-  tags.removeDuplicates();
- 	s_availableTags = tags;
+  Q_ASSERT(s_availableTags.keys().contains(tag));
+
+  s_availableTags[tag] -= 1;
+
+  if(s_availableTags[tag] == 0)
+  {
+    s_availableTags.remove(tag);
+  }
+}
+
+//------------------------------------------------------------------------
+QStringList SegmentationTags::tags() const
+{
+  return m_tags;
 }

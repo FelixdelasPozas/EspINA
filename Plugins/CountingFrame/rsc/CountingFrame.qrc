@@ -5,6 +5,10 @@
     <file>adaptive-frame.png</file>
     <file>allPlanes.png</file>
     <file>apply.svg</file>
+    <file>color_by_cf.svg</file>
+    <file>cf-representation.svg</file>
+    <file>cf-switch2D.svg</file>
+    <file>cf-switch3D.svg</file>
     <file>Bottom.png</file>
     <file>deactivate.png</file>
     <file>Left.png</file>
@@ -15,5 +19,7 @@
     <file>trash-full.svg</file>
     <file>update-cr.svg</file>
     <file>Front.png</file>
+    <file>lock.svg</file>
+    <file>unlock.svg</file>
   </qresource>
 </RCC>

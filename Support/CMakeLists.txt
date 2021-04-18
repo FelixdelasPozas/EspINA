@@ -2,23 +2,29 @@ include (GenerateExportHeader)
 
 find_package(XLSLIB REQUIRED)
 
+find_package (VTK REQUIRED NO_MODULE)
+include (${VTK_USE_FILE})
+
 include_directories(
   ${CMAKE_BINARY_DIR}         # Exports & Generated EspinaConfig.h
   ${CMAKE_CURRENT_BINARY_DIR} #For wrap/ui files
   ${XLSLIB_INCLUDE_DIRS}
 )
 
-qt4_wrap_cpp(Support_MOC
+qt5_wrap_cpp(Support_MOC
   Plugin.h
-  ViewManager.h
-  Widgets/DockWidget.h
-  Widgets/ToolGroup.h  
+  Representations/RepresentationSwitch.h
+  Representations/Slice3DManager.h
+  Widgets/Panel.h
   Widgets/TabularReport.h
   Widgets/TabularReportEntry.h
+  Widgets/ProgressTool.h
+  Widgets/EditTool.h
+  Widgets/PanelSwitch.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
   )
 
-qt4_wrap_ui (Support_UI
+qt5_wrap_ui (Support_UI
   Widgets/TabularReportEntry.ui
   )
 
@@ -53,18 +59,27 @@ set (Support_SOURCES
   ${METADONA_MOC}
   ${METADONA_UI}
   ${METADONA_SOURCES}
-  Factory/DefaultChannelExtensionFactory.cpp
-  Factory/DefaultSegmentationExtensionFactory.cpp
-  Factory/FilterDelegateFactory.cpp
-  Readers/ChannelReader.cpp
+  Factory/FilterRefinerFactory.cpp
+  Representations/BasicRepresentationSwitch.cpp
+  Representations/RepresentationSwitch.cpp
+  Representations/Slice3DManager.cpp
+  Representations/SliceManager.cpp
+  ROIAccumulator.cpp
+  Settings/Settings.cpp
+  Settings/SettingsPanel.cpp
   Utils/FactoryUtils.cpp
-  Utils/SelectionUtils.cpp
   Utils/xlsUtils.cpp
-  Widgets/ToolGroup.cpp  
-  Widgets/ActionGroupWidget.cpp  
+  Context.cpp
+  Report.cpp
+  ContextFactories.cpp
+  Widgets/ActionGroupWidget.cpp
+  Widgets/Panel.cpp
   Widgets/TabularReport.cpp
   Widgets/TabularReportEntry.cpp
-  ViewManager.cpp
+  Widgets/ProgressTool.cpp
+  Widgets/PanelSwitch.cpp
+  Widgets/ColorEngineSwitch.cpp
+  Widgets/EditTool.cpp
   )
 
 set(Support_EXTERNAL_LIBS
@@ -99,6 +114,9 @@ if(APPLE)
 endif (APPLE)
 
 add_library (EspinaSupport SHARED ${Support_SOURCES})
+#if(DEFINED MINGW OR DEFINED MSVC)
+#  SET(Support_EXTERNAL_LIBS ${Support_EXTERNAL_LIBS} iconv)
+#endif(DEFINED MINGW OR DEFINED MSVC)
 
 target_link_libraries (EspinaSupport ${Support_EXTERNAL_LIBS})
 
@@ -122,4 +140,3 @@ install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION ${INSTALL_INCLUDE_DIR}/espina
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hxx" PATTERN "*.cxx" PATTERN "*.txx")
-

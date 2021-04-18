@@ -20,9 +20,10 @@
 
 // ESPINA
 #include "DilateFilter.h"
-#include "Utils/ItkProgressReporter.h"
 #include <Core/Analysis/Data/Volumetric/SparseVolume.hxx>
-#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.hxx>
+#include <Core/Analysis/Data/Mesh/MarchingCubesMesh.h>
+#include <Core/Utils/EspinaException.h>
+#include <Core/Utils/ITKProgressReporter.h>
 
 // ITK
 #include <itkBinaryBallStructuringElement.h>
@@ -33,21 +34,16 @@
 #include <QDebug>
 
 using namespace ESPINA;
+using namespace ESPINA::Core::Utils;
 
 using PadFilterType          = itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType>;
 using StructuringElementType = itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3>;
 using BinaryDilateFilter     = itk::DilateObjectMorphologyImageFilter<itkVolumeType, itkVolumeType, StructuringElementType>;
 
 //-----------------------------------------------------------------------------
-DilateFilter::DilateFilter(InputSList inputs, Filter::Type type, SchedulerSPtr scheduler)
+DilateFilter::DilateFilter(InputSList inputs, const Filter::Type &type, SchedulerSPtr scheduler)
 : MorphologicalEditionFilter{inputs, type, scheduler}
 {
-}
-
-//-----------------------------------------------------------------------------
-DilateFilter::~DilateFilter()
-{
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -55,13 +51,26 @@ void DilateFilter::execute()
 {
   Q_ASSERT(m_inputs.size() == 1);
 
-  if (m_inputs.size() != 1) throw Invalid_Number_Of_Inputs_Exception();
+  if (m_inputs.size() != 1)
+  {
+    auto what    = QObject::tr("Invalid number of inputs, number: %1").arg(m_inputs.size());
+    auto details = QObject::tr("DilateFilter::execute(id) -> Invalid number of inputs, number: %1").arg(m_inputs.size());
 
-  auto input       = m_inputs[0];
-  auto inputVolume = volumetricData(input->output());
-  if (!inputVolume) throw Invalid_Input_Data_Exception();
+    throw EspinaException(what, details);
+  }
 
-  emit progress(0);
+  auto input = m_inputs[0];
+
+  auto inputVolume = readLockVolume(input->output());
+  if (!inputVolume->isValid())
+  {
+    auto what    = QObject::tr("Invalid input volume");
+    auto details = QObject::tr("DilateFilter::execute(id) -> Invalid input volume");
+
+    throw EspinaException(what, details);
+  }
+
+  reportProgress(0);
   if (!canExecute()) return;
 
   //   qDebug() << "Compute Image Dilate";
@@ -80,10 +89,12 @@ void DilateFilter::execute()
   padFilter->SetInput(inputVolume->itkImage());
   padFilter->SetPadLowerBound(lowerExtendRegion);
   padFilter->SetPadUpperBound(upperExtendRegion);
-  padFilter->Update();
+
   ITKProgressReporter<PadFilterType> padReporter(this, padFilter, 0, 25);
 
-  emit progress(25);
+  padFilter->Update();
+
+  reportProgress(25);
   if (!canExecute()) return;
 
   StructuringElementType ball;
@@ -101,7 +112,8 @@ void DilateFilter::execute()
 
   filter->Update();
 
-  emit progress(100);
+  reportProgress(100);
+
   if (!canExecute()) return;
 
   finishExecution(filter->GetOutput());

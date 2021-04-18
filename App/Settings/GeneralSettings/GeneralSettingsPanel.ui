@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>359</width>
-    <height>263</height>
+    <width>442</width>
+    <height>568</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,60 +15,127 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>User</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="m_nameLabel">
+          <property name="toolTip">
+           <string/>
+          </property>
+          <property name="text">
+           <string>Name:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="m_userName">
+          <property name="toolTip">
+           <string>User name</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Auto-Save</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
+     <layout class="QVBoxLayout" name="verticalLayout_6">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,1,0">
+        <item>
+         <widget class="QLabel" name="m_pathLabel">
+          <property name="toolTip">
+           <string>Path where temporal auto-save files are stored</string>
+          </property>
+          <property name="text">
+           <string>Path:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="m_autosavePath">
+          <property name="toolTip">
+           <string>Path where temporal auto-save files are stored</string>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_browseSaveDirButton">
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,1">
+        <item>
+         <widget class="QLabel" name="m_intervalLabel">
+          <property name="toolTip">
+           <string>Time interval at which auto-saves are performed</string>
+          </property>
+          <property name="text">
+           <string>Interval:  </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="m_autosaveInterval">
+          <property name="toolTip">
+           <string>Time interval at which auto-saves are performed</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="suffix">
+           <string> min</string>
+          </property>
+          <property name="minimum">
+           <number>5</number>
+          </property>
+          <property name="maximum">
+           <number>90</number>
+          </property>
+          <property name="singleStep">
+           <number>5</number>
+          </property>
+          <property name="value">
+           <number>15</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="m_autoSaveBackground">
         <property name="toolTip">
-         <string>Path where temporal auto-save files are stored</string>
+         <string>Execute the auto-save process in background</string>
         </property>
         <property name="text">
-         <string>Path:</string>
+         <string>Execute in background</string>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QLabel" name="label_2">
-        <property name="toolTip">
-         <string>Time interval at which auto-saves are performed</string>
-        </property>
-        <property name="text">
-         <string>Interval:  </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="autosavePath">
-        <property name="toolTip">
-         <string>Path where temporal auto-save files are stored</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QSpinBox" name="autosaveInterval">
-        <property name="toolTip">
-         <string>Time interval at which auto-saves are performed</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-        <property name="suffix">
-         <string> min</string>
-        </property>
-        <property name="minimum">
-         <number>1</number>
-        </property>
-        <property name="maximum">
-         <number>60</number>
-        </property>
-        <property name="value">
-         <number>10</number>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -76,31 +143,138 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_2">
+    <widget class="QGroupBox" name="groupBox_4">
      <property name="title">
-      <string>Segmentation</string>
+      <string>Temporal file storage</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <widget class="QCheckBox" name="m_systemPathCheckbox">
+        <property name="toolTip">
+         <string>Use the system temporal directory for storage.</string>
+        </property>
+        <property name="text">
+         <string>Use system temporal directory</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
         <item>
-         <widget class="QLabel" name="label">
+         <widget class="QLabel" name="m_temporalPathLabel">
           <property name="toolTip">
-           <string/>
+           <string>Path to use for temporal file storage.</string>
           </property>
           <property name="text">
-           <string>User Name:</string>
+           <string>Path:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="userName">
+         <widget class="QLineEdit" name="m_temporalPath">
           <property name="toolTip">
-           <string/>
+           <string>Path to use for temporal file storage.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="m_browseDirButton">
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="toolTip">
+           <string>Select path to use for temporal file storage.</string>
+          </property>
+          <property name="text">
+           <string>...</string>
           </property>
          </widget>
         </item>
        </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>SEG Files</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QCheckBox" name="m_loadSEGSettings">
+        <property name="toolTip">
+         <string>Load the tool settings stored in the session file.</string>
+        </property>
+        <property name="text">
+         <string>Load settings stored inside the file.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Analysis Checks</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="QCheckBox" name="m_doCheck">
+        <property name="toolTip">
+         <string>Check session integrity after loading.</string>
+        </property>
+        <property name="text">
+         <string>Perform a check after loading a file.</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="title">
+      <string>Updater</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,1">
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>Check for updates:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="m_updateCombo">
+        <item>
+         <property name="text">
+          <string>Once a day</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Once a week</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Once a month</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Never</string>
+         </property>
+        </item>
+       </widget>
       </item>
      </layout>
     </widget>

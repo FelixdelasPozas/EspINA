@@ -23,7 +23,10 @@
 
 #include "Core/EspinaCore_Export.h"
 
-// VTK
+// ESPINA
+#include <Core/Types.h>
+#include <Core/Utils/BinaryMask.hxx>
+#include <Core/Utils/Vector3.hxx>
 #include <vtkSmartPointer.h>
 
 class vtkPolyData;
@@ -34,19 +37,57 @@ namespace ESPINA
 {
   namespace PolyDataUtils
   {
-    struct IO_Error_Exception{};
-
     /** \brief Converts the vtkPolyData object to a byte array and returns it.
-     * \param[in] polyData, smart pointer of the vtkPolyData object to convert.
+     * \param[in] polyData smart pointer of the vtkPolyData object to convert.
      *
      */
-    QByteArray EspinaCore_EXPORT savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polydata) throw (IO_Error_Exception);
+    QByteArray EspinaCore_EXPORT savePolyDataToBuffer(const vtkSmartPointer<vtkPolyData> polydata);
 
     /** \brief Converts a byte array to a vtkPolyData smart pointer and returns it.
-     * \param[in] filename, file name.
+     * \param[in] filename file name.
      *
      */
-    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT readPolyDataFromFile(QString fileName) throw (IO_Error_Exception);
+    vtkSmartPointer<vtkPolyData> EspinaCore_EXPORT readPolyDataFromFile(const QString &fileName);
+
+    /** \brief Scales the polydata given the ration in each coordinate.
+     * \param[inout] polydata polydata smart pointer.
+     * \param[in] ratio NmVector3 of scaling ratio in each coordinate.
+     *
+     */
+    void EspinaCore_EXPORT scalePolyData(vtkSmartPointer<vtkPolyData> polyData, const NmVector3 &ratio);
+
+    /** \brief Rasterizes the polyData to a vtkImageData.
+     * \param[in] polyData vtkPolyData raw pointer to rasterize to a volume.
+     * \param[in] plane orientation of the contour.
+     * \param[in] slice position of the contour.
+     * \param[in] spacing spacing of the volume.
+     *
+     */
+    vtkSmartPointer<vtkImageData> EspinaCore_EXPORT rasterizeContourToVTKImage(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing);
+
+    /** \brief Rasterizes the polyData to a BinaryMask object.
+     * \param[in] polyData vtkPolyData raw pointer to rasterize to a volume.
+     * \param[in] plane orientation of the contour.
+     * \param[in] slice position of the contour.
+     * \param[in] spacing spacing of the volume.
+     *
+     */
+    BinaryMaskSPtr<unsigned char> EspinaCore_EXPORT rasterizeContourToMask(vtkPolyData *contour, const Plane plane, const Nm slice, const NmVector3 &spacing);
+
+    /** \brief Returns he VolumeBounds for the given polydata, spacing and origin.
+     * \param[in] data vtkPolyData smart pointer.
+     * \param[in] spacing spacing vector.
+     * \param[in] origin origin vector.
+     *
+     */
+    VolumeBounds EspinaCore_EXPORT polyDataVolumeBounds(vtkSmartPointer<vtkPolyData> data, const NmVector3 &spacing, const NmVector3 &origin);
+
+    /** \brief Converts the given mesh to a OBJ format and returns the buffer.
+     * \param[in] data vtkPolyData smart pointer.
+     * \param[in] startIndex First index number of the OBJ buffer returned.
+     *
+     */
+    QByteArray EspinaCore_EXPORT convertPolyDataToOBJ(const vtkSmartPointer<vtkPolyData> data, int startIndex = 1);
   }
 }
 

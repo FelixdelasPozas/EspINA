@@ -23,6 +23,8 @@
 #include "TabularReportEntry.h"
 #include <GUI/Widgets/CheckableTableView.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
+#include <GUI/Model/Utils/SegmentationUtils.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Support/Utils/xlsUtils.h>
 
 // Qt
@@ -35,43 +37,23 @@
 #include <QTableView>
 
 using namespace ESPINA;
+using namespace ESPINA::Support;
+using namespace ESPINA::GUI;
+using namespace ESPINA::GUI::Model::Utils;
+using namespace ESPINA::Core::Utils;
 using namespace xlslib_core;
 
 //------------------------------------------------------------------------
-class DataSortFiler
-: public QSortFilterProxyModel
-{
-public:
-  DataSortFiler(QObject *parent = 0)
-  : QSortFilterProxyModel(parent) {}
-
-protected:
-  virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
-  {
-    int role = left.column()>0?Qt::DisplayRole:TypeRole+1;
-    bool ok1, ok2;
-    double lv = left.data(role).toDouble(&ok1);
-    double rv = right.data(role).toDouble(&ok2);
-
-    if (ok1 && ok2)
-      return lv < rv;
-    else
-      return left.data(role).toString() < right.data(role).toString();
-  }
-};
-
-
-//------------------------------------------------------------------------
-TabularReport::TabularReport(ModelFactorySPtr factory,
-                             ViewManagerSPtr  viewManager,
-                             QWidget         *parent,
-                             Qt::WindowFlags  flags)
-: m_factory       {factory}
-, m_viewManager   {viewManager}
+TabularReport::TabularReport(Support::Context &context,
+                             QWidget          *parent,
+                             Qt::WindowFlags   flags)
+: QAbstractItemView(parent)
+, m_context       (context)
+, m_model         {nullptr}
 , m_tabs          {new QTabWidget()}
 , m_multiSelection{false}
 {
-  QHBoxLayout *general = new QHBoxLayout();
+  auto general = new QHBoxLayout();
   general->setAlignment(Qt::AlignRight);
 
   m_exportButton = new QPushButton();
@@ -89,8 +71,9 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
 
   general->addWidget(m_exportButton);
 
-  QVBoxLayout *layout = new QVBoxLayout();
-  QPalette pal = this->palette();
+  auto layout = new QVBoxLayout();
+  auto pal    = this->palette();
+
   pal.setColor(QPalette::Base, pal.color(QPalette::Background));
   this->setPalette(pal);
 
@@ -99,8 +82,8 @@ TabularReport::TabularReport(ModelFactorySPtr factory,
 
   setLayout(layout);
 
-  connect(m_viewManager->selection().get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
-          this, SLOT(updateSelection(SegmentationAdapterList)));
+  connect(getSelection(context).get(), SIGNAL(selectionStateChanged(SegmentationAdapterList)),
+          this,                        SLOT(updateSelection(SegmentationAdapterList)));
 }
 
 //------------------------------------------------------------------------
@@ -109,13 +92,15 @@ TabularReport::~TabularReport()
   QStringList currentEntries;
 
   for (int i = 0; i < m_tabs->count(); ++i)
+  {
     currentEntries << m_tabs->tabText(i).replace("/",">");
+  }
 
   // Remove old extras
   if (m_model)
   {
     auto storage = m_model->storage();
-    for (auto data : storage->snapshots(extraPath(), TemporalStorage::Mode::NoRecursive))
+    for (auto data : storage->snapshots(extraPath(), TemporalStorage::Mode::NORECURSIVE))
     {
       QFileInfo file(data.first);
 
@@ -132,7 +117,7 @@ TabularReport::~TabularReport()
 }
 
 //------------------------------------------------------------------------
-void TabularReport::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
+void TabularReport::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &unused)
 {
   QAbstractItemView::dataChanged(topLeft, bottomRight);
   if (topLeft.isValid())
@@ -204,13 +189,15 @@ void TabularReport::reset()
 
   QAbstractItemView::reset();
 
-  if (m_model)
+  if (m_model && !m_model->isEmpty())
   {
     rowsInserted(m_model->segmentationRoot(), 0, model()->rowCount(m_model->segmentationRoot())-1);
 
     if (!m_filter.isEmpty())
     {
       QString tabText = m_filter.last()->category()->classificationName();
+      tabText.detach();
+
       for (int i = 0; i < m_tabs->count(); ++i)
       {
         if (m_tabs->tabText(i) == tabText)
@@ -228,17 +215,17 @@ void TabularReport::indexDoubleClicked(QModelIndex index)
 {
   QModelIndex sourceIndex = mapToSource(index);
 
-  auto sItem = itemAdapter(sourceIndex);
-  auto segmentation = segmentationPtr(sItem);
+  auto sItem        = itemAdapter(sourceIndex);
 
-  auto volume = volumetricData(segmentation->output());
+  if(sItem)
+  {
+    auto segmentation = segmentationPtr(sItem);
+    auto bounds       = segmentation->output()->bounds();
 
-  Bounds bounds = volume->bounds();
+    m_context.viewState().focusViewOn(centroid(bounds));
 
-  NmVector3 center{(bounds[0] + bounds[1]) / 2.0, (bounds[2] + bounds[3]) / 2.0, (bounds[4] + bounds[5]) / 2.0 };
-  m_viewManager->focusViewsOn(center);
-
-  emit doubleClicked(sourceIndex);
+    emit doubleClicked(sourceIndex);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -246,8 +233,12 @@ void TabularReport::updateRepresentation(const QModelIndex &index)
 {
   auto sItem = itemAdapter(mapToSource(index));
 
-  m_viewManager->updateSegmentationRepresentations(segmentationPtr(sItem));
-  m_viewManager->updateViews();
+  if(sItem)
+  {
+    auto segmentation = segmentationPtr(sItem);
+
+    segmentation->invalidateRepresentations();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -259,8 +250,8 @@ void TabularReport::updateSelection(SegmentationAdapterList selection)
   blockSignals(true);
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-    QTableView *tableView = entry->tableView;
+    auto entry     = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto tableView = entry->tableView;
 
     tableView->selectionModel()->clear();
   }
@@ -304,8 +295,8 @@ void TabularReport::updateSelection(SegmentationAdapterList selection)
 
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-    QTableView *tableView = entry->tableView;
+    auto entry     = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto tableView = entry->tableView;
 
     // Update all visible items
     tableView->viewport()->update();
@@ -321,55 +312,60 @@ void TabularReport::updateSelection(QItemSelection selected, QItemSelection dese
     return;
   }
 
-  ViewItemAdapterList selection;
+  ViewItemAdapterList selectedItems;
 
   if (m_multiSelection)
   {
     for (int i = 0; i < m_tabs->count(); ++i)
     {
-      Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-      QTableView *tableView = entry->tableView;
+      auto entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+      auto tableView = entry->tableView;
+      auto sortFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
 
-      QSortFilterProxyModel *sortFilter = dynamic_cast<QSortFilterProxyModel *>(tableView->model());
       for(auto index : tableView->selectionModel()->selectedRows())
       {
         auto sItem = itemAdapter(sortFilter->mapToSource(index));
 
-        if (ItemAdapter::Type::SEGMENTATION == sItem->type())
+        if (isSegmentation(sItem))
         {
-          selection << segmentationPtr(sItem);
+          selectedItems << segmentationPtr(sItem);
         }
       }
     }
   } else
   {
-    QItemSelectionModel *selectionModel = dynamic_cast<QItemSelectionModel *>(sender());
+    auto selectionModel = dynamic_cast<QItemSelectionModel *>(sender());
 
     QTableView *tableView = nullptr;
     for (int i = 0; i < m_tabs->count(); ++i)
     {
-      Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
-      if (entry->tableView->selectionModel() == selectionModel)
+      auto entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+      if (entry && (entry->tableView->selectionModel() == selectionModel))
       {
         tableView = entry->tableView;
         break;
       }
     }
 
-    DataSortFiler *sortFilter = dynamic_cast<DataSortFiler *>(tableView->model());
-    for(auto index : tableView->selectionModel()->selectedRows())
+    if(tableView && selectionModel)
     {
-      auto sItem = itemAdapter(sortFilter->mapToSource(index));
-
-      if (ItemAdapter::Type::SEGMENTATION == sItem->type())
+      auto sortFilter = dynamic_cast<DataSortFilter *>(tableView->model());
+      if(sortFilter)
       {
-        selection << segmentationPtr(sItem);
+        for(auto index : selectionModel->selectedRows())
+        {
+          auto sItem = itemAdapter(sortFilter->mapToSource(index));
+          if (sItem && isSegmentation(sItem))
+          {
+            selectedItems << segmentationPtr(sItem);
+          }
+        }
       }
     }
   }
 
   blockSignals(true);
-  m_viewManager->setSelection(selection);
+  getSelection(m_context)->set(selectedItems);
   blockSignals(false);
 }
 
@@ -393,27 +389,40 @@ void TabularReport::rowsRemoved(const QModelIndex &parent, int start, int end)
 //------------------------------------------------------------------------
 void TabularReport::exportInformation()
 {
-  QString filter = tr("Excel File (*.xls)") + ";;" + tr("CSV Text File (*.csv)");
-  QString fileName = QFileDialog::getSaveFileName(this,
-                                                  tr("Export Raw Data"),
-                                                  QString("raw information.xls"),
-                                                  filter);
+  auto title      = tr("Export Raw Data");
+  auto suggestion = tr("raw information.xls");
+  auto formats    = SupportedFormats().addExcelFormat().addCSVFormat();
+  auto fileName   = DefaultDialogs::SaveFile(title, formats, QDir::homePath(), ".xls", suggestion, this);
 
-  if (fileName.isEmpty())
-    return;
+  if (fileName.isEmpty()) return;
 
-  bool result = false;
-  if (fileName.endsWith(".csv"))
+  if(!fileName.endsWith(".csv", Qt::CaseInsensitive) && !fileName.endsWith(".xls", Qt::CaseInsensitive))
   {
-    result = exportToCSV(fileName);
-  }
-  else if (fileName.endsWith(".xls"))
-  {
-    result = exportToXLS(fileName);
+    fileName += tr(".xls");
   }
 
-  if (!result)
-    QMessageBox::warning(this, "ESPINA", tr("Unable to export %1").arg(fileName));
+  if (fileName.endsWith(".csv", Qt::CaseInsensitive))
+  {
+    try
+    {
+      exportToCSV(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title, e.details(), this);
+    }
+  }
+  else if (fileName.endsWith(".xls", Qt::CaseInsensitive))
+  {
+    try
+    {
+      exportToXLS(fileName);
+    }
+    catch(const EspinaException &e)
+    {
+      DefaultDialogs::InformationMessage(tr("Unable to export %1").arg(fileName), title, e.details(), this);
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -445,27 +454,31 @@ void TabularReport::createCategoryEntry(const QString &category)
   while (!found && i < m_tabs->count())
   {
     if (m_tabs->tabText(i) >= category)
+    {
       found = true;
+    }
     else
+    {
       i++;
+    }
   }
 
   if (m_tabs->tabText(i) != category)
   {
-    Entry *entry = new Entry(category, m_model, m_factory);
+    auto entry = new Entry(category, m_model, factory(), m_tabs);
 
     connect(entry, SIGNAL(informationReadyChanged()),
             this,  SLOT(updateExportStatus()));
 
-    InformationProxy *infoProxy = new InformationProxy(m_factory->scheduler());
+    InformationProxy *infoProxy = new InformationProxy(factory()->scheduler());
     infoProxy->setCategory(category);
     infoProxy->setFilter(&m_filter);
     infoProxy->setSourceModel(m_model);
-    connect (infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
-             this, SLOT(rowsRemoved(const QModelIndex &, int, int)));
+    connect(infoProxy, SIGNAL(rowsRemoved(const QModelIndex &, int, int)),
+            this,      SLOT(rowsRemoved(const QModelIndex &, int, int)));
     entry->setProxy(infoProxy);
 
-    DataSortFiler *sortFilter = new DataSortFiler();
+    DataSortFilter *sortFilter = new DataSortFilter();
     sortFilter->setSourceModel(infoProxy);
     sortFilter->setDynamicSortFilter(true);
 
@@ -473,8 +486,7 @@ void TabularReport::createCategoryEntry(const QString &category)
     tableView->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
     tableView->setModel(sortFilter);
     tableView->setSortingEnabled(true);
-    //
-    //       tableView->horizontalHeader()->setModel(header);
+
     connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
             this, SLOT(updateSelection(QItemSelection,QItemSelection)));
     connect(tableView, SIGNAL(itemStateChanged(QModelIndex)),
@@ -484,21 +496,28 @@ void TabularReport::createCategoryEntry(const QString &category)
 
     m_tabs->insertTab(i, entry, category);
   }
+
   updateExportStatus();
 }
 
 //------------------------------------------------------------------------
-bool TabularReport::exportToCSV(const QFileInfo &filename)
+void TabularReport::exportToCSV(const QFileInfo &filename)
 {
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto entry   = dynamic_cast<Entry *>(m_tabs->widget(i));
 
-    QString csvFile = filename.dir().absoluteFilePath(filename.baseName() + "-" + m_tabs->tabText(i).replace("/","-") + ".csv");
+    auto csvFile = filename.dir().absoluteFilePath(filename.baseName() + "-" + m_tabs->tabText(i).replace("/","-") + ".csv");
 
-    QFile file( csvFile);
+    QFile file(csvFile);
 
-    file.open(QIODevice::WriteOnly |  QIODevice::Text);
+    if(!file.open(QIODevice::WriteOnly|QIODevice::Text) || !file.isWritable() || !file.setPermissions(QFile::ReadOwner|QFile::WriteOwner|QFile::ReadOther|QFile::WriteOther))
+    {
+      auto what    = tr("exportToCSV: can't save file '%1'.").arg(filename.absoluteFilePath());
+      auto details = tr("Cause of failure: %1").arg(file.errorString());
+
+      throw EspinaException(what, details);
+    }
 
     QTextStream out(&file);
 
@@ -507,25 +526,25 @@ bool TabularReport::exportToCSV(const QFileInfo &filename)
       for (int c = 0; c < entry->columnCount(); c++)
       {
         if (c)
+        {
           out << ",";
+        }
         out << entry->value(r, c).toString();
       }
       out << "\n";
     }
     file.close();
   }
-
-  return true;
 }
 
 //------------------------------------------------------------------------
-bool TabularReport::exportToXLS(const QString &filename)
+void TabularReport::exportToXLS(const QString &filename)
 {
   workbook wb;
 
   for (int i = 0; i < m_tabs->count(); ++i)
   {
-    Entry *entry = dynamic_cast<Entry *>(m_tabs->widget(i));
+    auto entry = dynamic_cast<Entry *>(m_tabs->widget(i));
     worksheet *sheet = wb.sheet(m_tabs->tabText(i).replace("/",">").toStdString());
 
     for (int r = 0; r < entry->rowCount(); ++r)
@@ -537,15 +556,21 @@ bool TabularReport::exportToXLS(const QString &filename)
     }
   }
 
-  wb.Dump(filename.toStdString());
+  auto result = wb.Dump(filename.toStdString());
 
-  return true;
+  if(result != NO_ERRORS)
+  {
+    auto what    = tr("exportToXLS: can't save file '%1'.").arg(filename);
+    auto details = tr("Cause of failure: %1").arg(result == FILE_ERROR ? "file error" : "general error");
+
+    throw EspinaException(what, details);
+  }
 }
 
 //------------------------------------------------------------------------
 QModelIndex TabularReport::mapToSource(const QModelIndex &index)
 {
-  const QSortFilterProxyModel *sortFilter = dynamic_cast<const QSortFilterProxyModel *>(index.model());
+  auto sortFilter = dynamic_cast<const QSortFilterProxyModel *>(index.model());
 
   return sortFilter->mapToSource(index);
 }
@@ -563,4 +588,10 @@ void TabularReport::removeTabsAndWidgets()
   {
     delete m_tabs->widget(0);
   }
+}
+
+//------------------------------------------------------------------------
+ModelFactorySPtr TabularReport::factory() const
+{
+  return m_context.factory();
 }

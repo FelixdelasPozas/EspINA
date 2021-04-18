@@ -23,21 +23,22 @@
 #include <Core/Analysis/Query.h>
 #include <Core/Analysis/Sample.h>
 #include <GUI/Model/Utils/QueryAdapter.h>
-#include <GUI/Model/Utils/ModelAdapterUtils.h>
-
-// Qt
-#include <QDebug>
+#include <Extensions/BasicInformation/BasicSegmentationInformation.h>
+#include <Extensions/SkeletonInformation/SynapseInformation.h>
 
 using namespace ESPINA;
+using namespace ESPINA::Extensions;
 
 //----------------------------------------------------------------------------
 AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
                                    SampleAdapterSList      samples,
                                    ModelAdapterSPtr        model,
+                                   ConnectionList          connections,
                                    QUndoCommand           *parent)
-: QUndoCommand{parent}
-, m_samples   {samples}
-, m_model     {model}
+: QUndoCommand {parent}
+, m_samples    {samples}
+, m_model      {model}
+, m_connections{connections}
 {
   m_segmentations << segmentation;
 }
@@ -46,10 +47,12 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSPtr segmentation,
 AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
                                    SampleAdapterSList       samples,
                                    ModelAdapterSPtr         model,
+                                   ConnectionList           connections,
                                    QUndoCommand            *parent)
-: QUndoCommand{parent}
-, m_samples   {samples}
-, m_model     {model}
+: QUndoCommand {parent}
+, m_samples    {samples}
+, m_model      {model}
+, m_connections{connections}
 {
   m_segmentations << segmentations;
 }
@@ -57,26 +60,52 @@ AddSegmentations::AddSegmentations(SegmentationAdapterSList segmentations,
 //----------------------------------------------------------------------------
 void AddSegmentations::redo()
 {
-  unsigned int number = ModelAdapterUtils::firstUnusedSegmentationNumber(m_model);
-
-  for(auto segmentation : m_segmentations)
-  {
-    segmentation->setNumber(number++);
-  }
-
+  m_model->beginBatchMode();
   m_model->add(m_segmentations);
 
   for(auto segmentation : m_segmentations)
   {
     for(auto sample : m_samples)
+    {
       m_model->addRelation(sample, segmentation, Sample::CONTAINS);
+    }
   }
 
-  m_model->emitSegmentationsAdded(m_segmentations);
+  if(!m_connections.empty())
+  {
+    m_model->addConnections(m_connections);
+  }
+  std::for_each(m_connections.constBegin(), m_connections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
+
+  m_model->endBatchMode();
 }
 
 //----------------------------------------------------------------------------
 void AddSegmentations::undo()
 {
   m_model->remove(m_segmentations);
+
+  std::for_each(m_connections.constBegin(), m_connections.constEnd(), [&](const Connection& c) { invalidateSynapseExtensions(c); });
+}
+
+//-----------------------------------------------------------------------------
+void AddSegmentations::invalidateSynapseExtensions(const Connection& connection)
+{
+  auto segmentation = connection.item2;
+  if(segmentation->category()->classificationName().startsWith("Synapse"))
+  {
+    auto extensions = segmentation->extensions();
+
+    // We could use output()->updateModificationTime() to invalidate all extensions, but
+    // its better to just invalidate connection related extensions and not the rest.
+    if(extensions->hasExtension(SynapseConnectionInformation::TYPE))
+    {
+      extensions->get<SynapseConnectionInformation>()->invalidate();
+    }
+
+    if(extensions->hasExtension(BasicSegmentationInformationExtension::TYPE))
+    {
+      extensions->get<BasicSegmentationInformationExtension>()->invalidate();
+    }
+  }
 }

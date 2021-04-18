@@ -32,25 +32,31 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 
 // Qt
 #include <QObject>
 #include <QMutex>
 #include <QWaitCondition>
 #include <QReadWriteLock>
+#include <QStringList>
 
 // C++
 #include <cstdint>
+#include <atomic>
 
-namespace ESPINA {
-
+namespace ESPINA
+{
   enum class Priority: std::int8_t { VERY_LOW = 0, LOW = 1, NORMAL = 2, HIGH = 3, VERY_HIGH = 4 };
 
   class Task;
   using TaskPtr  = Task *;
   using TaskSPtr = std::shared_ptr<Task>;
 
+  /** \class Task
+   * \brief Espina threaded task base class.
+   *
+   */
   class EspinaCore_EXPORT Task
   : public QObject
   {
@@ -59,7 +65,7 @@ namespace ESPINA {
     typedef unsigned int Id;
   public:
     /** \brief Task class constructor.
-     * \param[in] scheduler, scheduler smart pointer.
+     * \param[in] scheduler scheduler smart pointer.
      *
      */
     explicit Task(SchedulerSPtr scheduler);
@@ -70,7 +76,7 @@ namespace ESPINA {
     virtual ~Task();
 
     /** \brief Sets task id.
-     * \param[in] id.
+     * \param[in] id of the task
      *
      */
     void setId(Id id)
@@ -83,7 +89,7 @@ namespace ESPINA {
     { return m_id;}
 
     /** \brief Sets task description.
-     * \param[in] description.
+     * \param[in] description of the task
      *
      */
     void setDescription(const QString& description)
@@ -119,23 +125,36 @@ namespace ESPINA {
      */
     virtual bool isPendingPause() const;
 
+    void restart();
+
     /** \brief Returns true if the task is running.
      *
      */
-    bool isRunning() const
-    {return m_isThreadAttached && !isPendingPause();}
+    virtual bool isRunning() const;
 
     /** \brief Returns true if the task has been aborted.
      *
      */
-    bool isAborted() const
-    { return m_isAborted; }
+    bool isAborted() const;
 
     /** \brief Returns true if the task has finished its execution.
      *
      */
-    bool hasFinished() const
-    { return m_hasFinished; }
+    bool hasFinished() const;
+
+    /** \brief Returns true if the task encountered any error in it's execution.
+     *         Override it if your task can or should report errors.
+     *
+     */
+    virtual bool hasErrors() const
+    { return false; }
+
+    /** \brief Returns the list of errors the task encountered during it's execution.
+     *         Override it if your task can or should report errors.
+     *
+     */
+    virtual const QStringList errors() const
+    { return QStringList(); }
 
     /** \brief Returns task priority.
      *
@@ -144,7 +163,7 @@ namespace ESPINA {
     { return m_priority; }
 
     /** \brief Sets the task as hidden.
-     * \param[in] hidden, true to set as hidden, false otherwise.
+     * \param[in] hidden true to set as hidden, false otherwise.
      *
      * Scheduler won't signal any action regarding hidden tasks.
      *
@@ -164,24 +183,20 @@ namespace ESPINA {
     bool isPaused() const
     { return m_isPaused; }
 
-    /** \brief The task is waiting waiting to another process to finish.
-     *
-     */
-    bool isWaiting() const {return m_isWaiting; }
+    int progress() const
+    { return m_progress; }
 
+  public slots:
     /** \brief Emits progress signal.
      *
      * NOTE: Need to be public so we can reuse itkProgressReporters.
      */
-    void reportProgress(int value)
-    { emit progress(value); }
+    void reportProgress(int value);
 
-
-  public slots:
-		/** \brief Sets task priority.
-		 * \param[in] value, priority level.
-		 *
-		 */
+    /** \brief Sets task priority.
+     * \param[in] value priority level.
+     *
+     */
     void setPriority(Priority value);
 
     /** \brief Notify the scheduler this task is ready to be executed.
@@ -202,42 +217,22 @@ namespace ESPINA {
      */
     bool canExecute();
 
+    /** \brief Returns true if the task is sheduled to start from the beginning aborting the current execution.
+     *
+     */
+    bool needsRestart() const;
+
+    /** \brief Sets the task as finished.
+     * \param[in] value finished value.
+     */
+    void setFinished(bool value);
+
+  private:
     /** \brief Executes the task.
      *
      */
     virtual void run() = 0;
 
-    /** \brief Change the waiting state of the task.
-     *
-     *  Usually a task should change its state before executing potentially blocking calls
-     *  and restore it after the call itself so the scheduler may execute other pending tasks
-     */
-    void setWaiting(bool value)
-    { m_isWaiting = value; }
-
-    /** \brief Sets the task as finished.
-     * \param[in] value, finished value.
-     */
-    void setFinished(bool value)
-    {
-      m_hasFinished = value;
-      emit finished();
-    }
-
-    /** \brief Method to be executed when a task is aborted
-     *
-     *  Overload this method when your task needs to do some processing when it is aborted
-     */
-    virtual void onAbort()
-    {}
-
-  protected slots:
-		/** \brief Helper method to set some values after execution.
-		 *
-		 */
-    void runWrapper();
-
-  protected:
     /** \brief Pauses the task from the scheduler.
      *
      */
@@ -258,39 +253,76 @@ namespace ESPINA {
      */
     void prepareToRun();
 
+    /** \brief Method to be executed when a task is aborted
+     *
+     *  Overload this method when your task needs to do some processing when it is aborted
+     */
+    virtual void onAbort()
+    {}
+
   private slots:
-		/** \brief Starts the thread.
-		 *
-		 */
-    void start();
+    /** \brief Helper method to set some values after execution.
+     *
+     */
+    void runWrapper();
+
+    /** \brief Starts the thread.
+     *
+     */
+    void startThreadExecution();
+
+    /** \brief Helper method to do actions once the run() execution of the thread has finished.
+     *
+     *
+     */
+    void onTaskFinished();
+
+  private:
+    /** \brief Returns the the execution to the originating thread and destroys the thread.
+     *
+     */
+    void finishThreadExecution();
+
+    /** \brief Returns true if the run() method is running on an independent (separated) thread.
+     *
+     */
+    bool isExecutingOnThread() const;
 
   signals:
     void progress(int);
     void resumed();
     void paused();
     void finished();
+    void aborted();
 
   protected:
-    SchedulerSPtr m_scheduler;
+    SchedulerSPtr m_scheduler; /** application task scheduler. */
 
   private:
+    QThread *m_thread;          /** thread that launches the task.                                  */
+    QThread *m_executingThread; /** thread where the task is executed.                              */
+    bool     m_submitted;       /** true if task has been submitted to the scheduler for execution. */
+    QMutex   m_submissionMutex; /** submission data protection mutex.                               */
+
     Priority m_priority;
 
-    bool m_pendingPause;
-    bool m_pendingUserPause;
-    bool m_isAborted;
-    bool m_hasFinished;
-    bool m_isPaused;
-    bool m_isWaiting;
+    std::atomic<bool> m_isRunning;        /** true if the task is on the 'running' state, false otherwise.                        */
+    std::atomic<bool> m_pendingPause;     /** true if the task is going to be paused by the scheduler, false otherwise.           */
+    std::atomic<bool> m_pendingUserPause; /** true if the task is going to be paused because the user paused it, false otherwise. */
+    std::atomic<bool> m_isAborted;        /** true if the task has been aborted, false otherwise.                                 */
+    std::atomic<bool> m_hasFinished;      /** true if the method run() has finished its execution, false otherwise.               */
+    std::atomic<bool> m_isPaused;         /** true if the task is paused (by scheduler or by user), false otherwise.              */
+    std::atomic<bool> m_needsRestart;     /** true if the task needs to be restarted, false otherwise.                            */
 
-    QMutex         m_mutex;
-    mutable QReadWriteLock m_descriptionLock;
-    QWaitCondition m_pauseCondition;
+    Id                m_id;               /** task identifier.                                                                    */
+    bool              m_hidden;           /** true to hide the task to the user interface, false to make it public.               */
+    QMutex            m_mutex;            /** data protection mutex.                                                              */
+    QWaitCondition    m_pauseCondition;   /** wait condition for the paused state.                                                */
 
-    QString  m_description;
-    Id m_id;
-    bool m_isThreadAttached;
-    bool m_hidden;
+    QString           m_description;      /** task description text.                                                              */
+    std::atomic<int>  m_progress;         /** task current progress value in [0-100]                                              */
+
+    mutable QReadWriteLock m_descriptionLock; /** lock for accessing the description data. */
 
     friend class Scheduler;
   };

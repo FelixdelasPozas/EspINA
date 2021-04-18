@@ -66,6 +66,12 @@
          </item>
          <item>
           <widget class="QLabel" name="icon">
+           <property name="minimumSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
              <width>32</width>
@@ -76,7 +82,7 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap resource="../../rsc/espina.qrc">:/espina/editor.ico</pixmap>
+            <pixmap>:/espina/editor.ico</pixmap>
            </property>
            <property name="scaledContents">
             <bool>true</bool>
@@ -104,8 +110,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>294</width>
-            <height>323</height>
+            <width>291</width>
+            <height>313</height>
            </rect>
           </property>
          </widget>
@@ -129,7 +135,7 @@
  </widget>
  <resources>
   <include location="../../rsc/espina.qrc"/>
-  <include location="../rsc/espina.qrc"/>
+  <include location="../../rsc/espina.qrc"/>
  </resources>
  <connections>
   <connection>

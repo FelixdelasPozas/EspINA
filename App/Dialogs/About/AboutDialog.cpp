@@ -20,14 +20,123 @@
 // ESPINA
 #include "AboutDialog.h"
 #include "EspinaConfig.h"
+#include <GUI/Dialogs/DefaultDialogs.h>
+
+// Qt
+#include <QDebug>
+#include <QEvent>
+#include <QMouseEvent>
+#include <QLabel>
+#include <QDesktopServices>
+#include <QtGlobal>
+
+// ITK
+#include <itkVersion.h>
+
+// VTK
+#include <vtkVersion.h>
+
+// Boost
+#include <boost/version.hpp>
+
+using namespace ESPINA;
+using namespace ESPINA::GUI;
 
 //-----------------------------------------------------------------------------
 AboutDialog::AboutDialog()
+: QDialog(DefaultDialogs::defaultParentWidget())
 {
   setupUi(this);
 
   setWindowTitle(tr("About ESPINA"));
+
+  // EspINA tab
   version->setText(QString("Version: %1").arg(ESPINA_VERSION));
+
+  // Adjust label pixmaps. If the ui file is modified those values need to be modified to be in sync. Don't like it but it does the job scaling
+  // the bitmap and SVG graphics without pixelating them.
+  constexpr auto fixedWidth = 158;
+  constexpr auto fixedHeight = 104;
+
+  logoUPM->setPixmap(QIcon(":/espina/upm.gif").pixmap(fixedHeight).scaled(fixedWidth, fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoUPM->setToolTip(trUtf8("Universidad Politécnica de Madrid"));
+  logoUPM->setAlignment(Qt::AlignCenter);
+  logoUPM->installEventFilter(this);
+
+  logoCeSViMa->setPixmap(QIcon(":/espina/cesvima.svg").pixmap(fixedWidth).scaled(fixedWidth, fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoCeSViMa->setToolTip(trUtf8("Centro de Supercomputación y Visualización de Madrid"));
+  logoCeSViMa->setAlignment(Qt::AlignCenter);
+  logoCeSViMa->installEventFilter(this);
+
+  logoCBBP->setPixmap(QIcon(":/espina/cajalbbp.svg").pixmap(fixedWidth).scaled(fixedWidth,fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoCBBP->setToolTip(trUtf8("Cajal Blue Brain Project"));
+  logoCBBP->setAlignment(Qt::AlignCenter);
+  logoCBBP->installEventFilter(this);
+
+  logoURJC->setPixmap(QIcon(":/espina/Logo_URJC.svg").pixmap(fixedWidth).scaled(fixedWidth,fixedHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  logoURJC->setToolTip(trUtf8("Universidad Rey Juan Carlos"));
+  logoURJC->setAlignment(Qt::AlignCenter);
+  logoURJC->installEventFilter(this);
+
+  espinaLogo->installEventFilter(this);
+  espinaText->installEventFilter(this);
+  version->installEventFilter(this);
+
+  // Libraries tab
+  m_itkVersion->setText("Version " + QString(ITK_VERSION));
+  m_vtkVersion->setText("Version " + QString(VTK_VERSION));
+  m_qtVersion->setText("Version " + QString(QT_VERSION_STR));
+  m_boostVersion->setText(tr("Version %1.%2.%3").arg(BOOST_VERSION / 100000).arg(BOOST_VERSION / 100 % 1000).arg(BOOST_VERSION % 100));
+  m_quazipVersion->setText("Version 0.7.3");
+  m_xlslibVersion->setText("Version 2.1.0");
+
+  tabWidget->setCurrentIndex(0);
 }
 
+//-----------------------------------------------------------------------------
+bool AboutDialog::eventFilter(QObject* object, QEvent* event)
+{
+  if(event->type() == QEvent::MouseButtonPress)
+  {
+    auto label = qobject_cast<QLabel *>(object);
+    if(label)
+    {
+      auto me = static_cast<const QMouseEvent*>(event);
 
+      if(me && me->button() == Qt::LeftButton)
+      {
+        if(label == logoUPM)
+        {
+          QDesktopServices::openUrl(QUrl("http://www.upm.es/"));
+          return true;
+        }
+
+        if(label == logoCeSViMa)
+        {
+          QDesktopServices::openUrl(QUrl("http://www.cesvima.upm.es/"));
+          return true;
+        }
+
+        if(label == logoCBBP)
+        {
+          QDesktopServices::openUrl(QUrl("https://cajalbbp.es/"));
+          return true;
+        }
+
+        if(label == logoURJC)
+        {
+          QDesktopServices::openUrl(QUrl("https://www.urjc.es/"));
+          return true;
+        }
+
+        if(label == version || label == espinaLogo || label == espinaText)
+        {
+          QDesktopServices::openUrl(QUrl("https://cajalbbp.es/espina/"));
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}

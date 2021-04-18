@@ -25,14 +25,31 @@
 using namespace ESPINA;
 
 //----------------------------------------------------------------------------
-ESPINA::DefaultVolumetricDataSPtr ESPINA::volumetricData(OutputSPtr output, DataUpdatePolicy policy)
-throw (Unavailable_Output_Data_Exception)
+Output::ReadLockData<DefaultVolumetricData> ESPINA::readLockVolume(Output *output, DataUpdatePolicy policy)
 {
-  return outputData<VolumetricData<itkVolumeType>>(output, policy);
+  return outputReadLockData<DefaultVolumetricData>(output, policy);
+}
+
+//----------------------------------------------------------------------------
+Output::ReadLockData<DefaultVolumetricData> ESPINA::readLockVolume(OutputSPtr output, DataUpdatePolicy policy)
+{
+  return readLockVolume(output.get(), policy);
+}
+
+//----------------------------------------------------------------------------
+Output::WriteLockData<DefaultVolumetricData> ESPINA::writeLockVolume(Output *output, DataUpdatePolicy policy)
+{
+  return outputWriteLockData<DefaultVolumetricData>(output, policy);
+}
+
+//----------------------------------------------------------------------------
+Output::WriteLockData<DefaultVolumetricData> ESPINA::writeLockVolume(OutputSPtr output, DataUpdatePolicy policy)
+{
+  return writeLockVolume(output.get(), policy);
 }
 
 //----------------------------------------------------------------------------
 bool ESPINA::hasVolumetricData(OutputSPtr output)
 {
-  return output->hasData(VolumetricData<itkVolumeType>::TYPE);
+  return output->hasData(DefaultVolumetricData::TYPE);
 }

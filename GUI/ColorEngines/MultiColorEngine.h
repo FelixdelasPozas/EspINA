@@ -24,47 +24,73 @@
 // ESPINA
 #include "ColorEngine.h"
 
+#include <GUI/Types.h>
+
 // Qt
 #include <QList>
+#include <QReadWriteLock>
 
 namespace ESPINA
 {
-  class EspinaGUI_EXPORT MultiColorEngine
-  : public ColorEngine
+  namespace GUI
   {
-  public:
- 		/** \brief Implements ColorEngine::color().
- 		 *
- 		 */
-    virtual QColor color(SegmentationAdapterPtr seg);
+    namespace ColorEngines
+    {
+      class EspinaGUI_EXPORT MultiColorEngine
+      : public ColorEngine
+      {
+        Q_OBJECT
 
- 		/** \brief Implements ColorEngine::lut().
- 		 *
- 		 */
-    virtual LUTSPtr lut(SegmentationAdapterPtr seg);
+      public:
+        explicit MultiColorEngine();
 
- 		/** \brief Implements ColorEngine::supportedComposition().
- 		 *
- 		 */
-    virtual ColorEngine::Composition supportedComposition() const;
+        virtual QColor color(ConstSegmentationAdapterPtr seg);
 
-    /** \brief Adds a color engine.
-     * \param[in] engine, color engine to add.
-     *
-     */
-    virtual void add(ColorEngineSPtr engine);
+        virtual LUTSPtr lut(ConstSegmentationAdapterPtr seg);
 
-    /** \brief Removes a color engine.
-     * \param[in] engine, color engine to remove.
-     *
-     */
-    virtual void remove(ColorEngineSPtr engine);
+        virtual ColorEngine::Composition supportedComposition() const;
 
-  protected:
-    QList<ColorEngineSPtr> m_engines;
-  };
+        /** \brief Adds a color engine.
+         * \param[in] engine to be added
+         *
+         */
+        virtual void add(ColorEngineSPtr engine);
 
-  using MultiColorEngineSPtr = std::shared_ptr<MultiColorEngine>;
+        /** \brief Removes a color engine.
+         * \param[in] engine to be removed
+         *
+         */
+        virtual void remove(ColorEngineSPtr engine);
+
+        /** \brief Returns the list of active color engines in this color engine.
+         *
+         */
+        const QList<ColorEngineSPtr> activeEngines() const;
+
+        /** \brief Returns the list of registered color engines within this color engine.
+         *
+         */
+        const QList<ColorEngineSPtr> availableEngines() const;
+
+        /** \brief Returns the engine with the given id or nullptr if not registered in this engine.
+         *
+         */
+        const ColorEngineSPtr getEngine(const QString &engineId);
+
+        virtual ColorEngineSPtr clone()
+        { return std::make_shared<MultiColorEngine>(); }
+
+      private slots:
+        void onColorEngineActivated(bool active);
+
+      private:
+        mutable QReadWriteLock m_lock;             /** protection mutex.               */
+
+        QList<ColorEngine *>   m_activeEngines;    /** list of active engines.         */
+        QList<ColorEngineSPtr> m_availableEngines; /** list of all registered engines. */
+      };
+    }
+  }
 }// namespace ESPINA
 
 #endif // ESPINA_MULTI_COLOR_ENGINE_H

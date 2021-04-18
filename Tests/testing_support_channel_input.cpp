@@ -31,33 +31,40 @@ using ChannelVolume = SparseVolume<itkVolumeType>;
 DummyChannelReader::DummyChannelReader()
 
 : Filter(InputSList(), "DummyChannelReader", SchedulerSPtr())
+, m_spacing({1, 1, 1})
 {
+}
+
+//----------------------------------------------------------------------------
+void DummyChannelReader::changeSpacing(const NmVector3& origin, const NmVector3& spacing)
+{
+  m_spacing = spacing;
+  Filter::changeSpacing(origin, spacing);
 }
 
 //----------------------------------------------------------------------------
 void DummyChannelReader::execute()
 {
-  Bounds bounds{-0.5, 99.5, -0.5,99.5,-0.5,99.5};
+  Bounds bounds{-0.5, 9.5, -0.5, 9.5,-0.5, 9.5};
 
-  DefaultVolumetricDataSPtr data{new ChannelVolume(bounds)};
+  auto data = std::make_shared<ChannelVolume>(bounds);
   data->setBackgroundValue(50);
+  data->setSpacing(m_spacing);
 
   if (!m_outputs.contains(0))
   {
-    m_outputs[0] = OutputSPtr{new Output(this, 0, NmVector3{1,1,1})};
+    m_outputs[0] = std::make_shared<Output>(this, 0, m_spacing);
   }
 
   m_outputs[0]->setData(data);
   m_outputs[0]->clearEditedRegions();
-
 }
 
 //----------------------------------------------------------------------------
 InputSPtr ESPINA::Testing::channelInput()
 {
 
-  std::shared_ptr<DummyChannelReader> filter{new DummyChannelReader()};
-
+  auto filter = std::make_shared<DummyChannelReader>();
   filter->update();
 
   return getInput(filter, 0);

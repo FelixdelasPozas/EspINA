@@ -24,8 +24,9 @@
 #include "Core/EspinaCore_Export.h"
 
 // ESPINA
-#include <Core/EspinaTypes.h>
+#include <Core/Types.h>
 #include <Core/Utils/SpatialUtils.hxx>
+#include <Core/Utils/EspinaException.h>
 
 // ITK
 #include <itkImage.h>
@@ -41,7 +42,8 @@
 
 namespace ESPINA
 {
-  template<typename T > class EspinaCore_EXPORT BinaryMask
+  template<typename T >
+  class EspinaCore_EXPORT BinaryMask
   {
     public:
 
@@ -62,13 +64,6 @@ namespace ESPINA
       using itkSize          = typename itkImageType::SizeType;
       using itkConstIterator = itk::ImageRegionConstIterator<itkImageType>;
 
-      struct Const_Violation_Exception{};
-      struct Out_Of_Bounds_Exception{}; // TODO: fix this throw
-      struct Overflow_Exception{};
-      struct Underflow_Exception{};
-      struct Region_Not_Contained_In_Mask_Exception{};
-      struct Invalid_Bounds_Exception{};
-
       //- BINARY MASK CLASS  ----------------------------------------------------------------
 
       /** \brief Binary Mask class constructor.
@@ -78,8 +73,7 @@ namespace ESPINA
        *
        *  Foreground and background will be set to default values.
        */
-      explicit BinaryMask(const Bounds& bounds, const NmVector3& spacing = NmVector3{1,1,1}, const NmVector3& origin = NmVector3())
-      throw(Invalid_Bounds_Exception);
+      explicit BinaryMask(const Bounds& bounds, const NmVector3& spacing = NmVector3{1,1,1}, const NmVector3& origin = NmVector3());
 
       /** \brief Binary Mask class constructor.
        * \param[in] image, itkImage smart pointer.
@@ -175,42 +169,42 @@ namespace ESPINA
        * \param[in] index, index to modify.
        *
        */
-      void setPixel(const IndexType& index) throw(Out_Of_Bounds_Exception);
+      void setPixel(const IndexType& index);
 
       /** \brief Set pixel value to background value
        * \param[in] index, index to modify.
        *
        */
-      void unsetPixel(const IndexType& index) throw(Out_Of_Bounds_Exception);
+      void unsetPixel(const IndexType& index);
 
       /** \brief Return the value of specified voxel in the mask.
        * \param[in] index, index to modify.
        *
        *  The returned value will be of type T.
        */
-      PixelType pixel(const IndexType& index) const throw(Out_Of_Bounds_Exception);
+      PixelType pixel(const IndexType& index) const;
 
       /** \brief Returns the itk::image<T> equivalent of a BinaryMask<T>
        *
        */
       typename itkImageType::Pointer itkImage() const;
 
-      friend class iterator;//NOTE: No hace falta
+      friend class iterator;
       friend class const_iterator;
       friend class region_iterator;
       friend class const_region_iterator;
 
     private:
-      VolumeBounds  m_bounds;
-      PixelType     m_backgroundValue;
-      PixelType     m_foregroundValue;
-      int          *m_image;
-      unsigned int  m_integerSize;
-      NmVector3     m_origin;
-      NmVector3     m_spacing;
-      unsigned long m_size[3];
-      IndexType     m_indexOrigin;
-      unsigned long long m_bufferSize;
+      VolumeBounds       m_bounds;           /** mask's bounds */
+      PixelType          m_backgroundValue;  /** mask's background value in [0-255] */
+      PixelType          m_foregroundValue;  /** mask's foreground value in [0-255] */
+      int               *m_image;            /** mask's data buffer pointer. */
+      unsigned int       m_integerSize;      /** size of mask data buffer integer */
+      NmVector3          m_origin;           /** mask's origin. */
+      NmVector3          m_spacing;          /** mask's spacing. */
+      unsigned long      m_size[3];          /** size of the mask volume. */
+      IndexType          m_indexOrigin;      /** index of origin point. */
+      unsigned long long m_bufferSize;       /** size of mask data buffer. */
 
     public:
       //- ITERATOR CLASS --------------------------------------------------------------------
@@ -221,7 +215,7 @@ namespace ESPINA
           /** \brief iterator class constructor.
            * \param[in] mask, mask to iterate.
            */
-          iterator(BinaryMask<T> *mask)
+          explicit iterator(BinaryMask<T> *mask)
           : m_mask(mask)
           , m_pos(0)
           , m_bitPos(0)
@@ -313,13 +307,18 @@ namespace ESPINA
 
           /** \brief Returns the value at the position of the iterator.
            *
-           *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the mask.
            */
-          const T& Get() const throw(Out_Of_Bounds_Exception)
+          const T& Get() const
           {
             if (isAtEnd())
-              throw Out_Of_Bounds_Exception();
+            {
+              auto what = QObject::tr("Access to value in end position.");
+              auto details = QObject::tr("BinaryMask::iterator::get() -> Access to value in end position.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             if ((m_mask->m_image[m_pos] & (1 << m_bitPos)) == (1 << m_bitPos))
               return m_mask->m_foregroundValue;
@@ -338,39 +337,55 @@ namespace ESPINA
 
           /** \brief Sets the value of the pointed element of the mask to foreground value.
            *
-           *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the mask.
            */
-          void Set() throw(Out_Of_Bounds_Exception)
+          void Set()
           {
             if (isAtEnd())
-              throw Out_Of_Bounds_Exception();
+            {
+              auto what = QObject::tr("Access to value in end position.");
+              auto details = QObject::tr("BinaryMask::iterator::Set() -> Access to value in end position.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             m_mask->m_image[m_pos] = m_mask->m_image[m_pos] | (1 << m_bitPos);
           }
 
           /** \brief Sets the value of the pointed element of the mask to background value.
            *
-           *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the mask.
            */
-          void Unset() throw(Out_Of_Bounds_Exception)
+          void Unset()
           {
             if (isAtEnd())
-              throw Out_Of_Bounds_Exception();
+            {
+              auto what = QObject::tr("Access to value in end position.");
+              auto details = QObject::tr("BinaryMask::iterator::Unset() -> Access to value in end position.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
+
 
             m_mask->m_image[m_pos] = m_mask->m_image[m_pos] & ~(1 << m_bitPos);
           }
 
           /** \brief Decrements the iterator position.
            *
-           *  NOTE: Can throw an Underflow_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  the beginning of the mask.
            */
-          iterator& operator--() throw(Underflow_Exception)
+          iterator& operator--()
           {
             if (m_pos == 0 && m_bitPos == 0)
-              throw Underflow_Exception();
+            {
+              auto what = QObject::tr("Iterator underflow.");
+              auto details = QObject::tr("BinaryMask::iterator::operator--() -> Underflow.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             if (m_bitPos == 0)
             {
@@ -385,13 +400,18 @@ namespace ESPINA
 
           /** \brief Increments the iterator position.
            *
-           *  NOTE: Can throw an Overflow_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the mask.
            */
-          iterator &operator++() throw (Overflow_Exception)
+          iterator &operator++()
           {
             if (isAtEnd())
-              throw Overflow_Exception();
+            {
+              auto what = QObject::tr("Iterator overflow.");
+              auto details = QObject::tr("BinaryMask::iterator::operator++() -> Overflow.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             if (m_bitPos == m_mask->m_integerSize-1)
             {
@@ -418,7 +438,7 @@ namespace ESPINA
           /** \brief const_iterator class constructor.
            * \param[in] mask, mask to iterate.
            */
-          const_iterator(BinaryMask<T>* mask)
+          explicit const_iterator(BinaryMask<T>* mask)
           : iterator(mask)
           {};
 
@@ -428,17 +448,27 @@ namespace ESPINA
           virtual ~const_iterator()
           {};
 
-          /** \brief Forbidden Set() will throw a Const_Violation_Exception exception.
+          /** \brief Forbidden Set() will throw a exception.
            *
            */
-          void Set() throw(Const_Violation_Exception)
-          { throw Const_Violation_Exception(); }
+          void Set()
+          {
+            auto what = QObject::tr("Iterator const violation.");
+            auto details = QObject::tr("BinaryMask::const_iterator::Set() -> const violation.");
 
-          /** \brief Forbidden Unset() will throw a Const_Violation_Exception exception.
+            throw Core::Utils::EspinaException(what, details);
+          }
+
+          /** \brief Forbidden Unset() will throw a exception.
            *
            */
-          void Unset() throw(Const_Violation_Exception)
-          { throw Const_Violation_Exception(); }
+          void Unset()
+          {
+            auto what = QObject::tr("Iterator const violation.");
+            auto details = QObject::tr("BinaryMask::const_iterator::Unset() -> const violation.");
+
+            throw Core::Utils::EspinaException(what, details);
+          }
       };
 
       //- REGION ITERATOR CLASS -------------------------------------------------------------
@@ -450,19 +480,22 @@ namespace ESPINA
            * \param[in] mask, mask to iterate.
            * \param[in] bounds, bounds of the region to iterate.
            *
-           *  NOTE: Can throw a Region_Not_Contained_In_Mask if the given region is not
+           *  NOTE: Can throw an exception if the given region is not
            *        inside the largest possible region of the mask.
            */
           region_iterator(BinaryMask<T> *mask, const Bounds &bounds)
-          throw (Region_Not_Contained_In_Mask_Exception)
-          : m_mask(mask)
+          : m_mask  {mask}
+          , m_bounds{bounds, mask->m_spacing, mask->m_origin}
           {
-            m_bounds = VolumeBounds(bounds, mask->m_spacing, mask->m_origin);
-
             if (!contains(mask->bounds(), m_bounds))
-              throw Region_Not_Contained_In_Mask_Exception();
+            {
+              auto what = QObject::tr("Invalid input bounds");
+              auto details = QObject::tr("BinaryMask::region_iterator::constructor() -> invalid input bounds, input bounds: %1, mask bounds: %2.").arg(bounds.toString()).arg(mask->bounds().toString());
 
-            itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(mask->m_origin, mask->m_spacing, bounds);
+              throw Core::Utils::EspinaException(what, details);
+            }
+
+            auto region = equivalentRegion<itkVolumeType>(mask->m_origin, mask->m_spacing, bounds);
 
             m_extent[0] = region.GetIndex(0);
             m_extent[1] = region.GetIndex(0) + region.GetSize(0) - 1;
@@ -606,13 +639,18 @@ namespace ESPINA
 
           /** \brief Returns the value at the position of the iterator.
            *
-           *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the mask.
            */
-          const T& Get() const throw(Out_Of_Bounds_Exception)
+          const T& Get() const
           {
             if (isAtEnd())
-              throw Out_Of_Bounds_Exception();
+            {
+              auto what = QObject::tr("Access to value in end position.");
+              auto details = QObject::tr("BinaryMask::region_iterator::get() -> Access to value in end position.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             // NOTE: we need this to avoid returning a temporary value
             m_getReturnValue = m_mask->pixel(m_index);
@@ -626,14 +664,17 @@ namespace ESPINA
            */
           bool isSet()
           {
-            NmVector3 point = {
-              m_mask->m_origin[0] + static_cast<Nm>(m_index.x)*m_mask->m_spacing[0],
-              m_mask->m_origin[1] + static_cast<Nm>(m_index.y)*m_mask->m_spacing[1],
-              m_mask->m_origin[2] + static_cast<Nm>(m_index.z)*m_mask->m_spacing[2]
-            };
+            NmVector3 point = { m_mask->m_origin[0] + static_cast<Nm>(m_index.x)*m_mask->m_spacing[0],
+                                m_mask->m_origin[1] + static_cast<Nm>(m_index.y)*m_mask->m_spacing[1],
+                                m_mask->m_origin[2] + static_cast<Nm>(m_index.z)*m_mask->m_spacing[2]};
 
             if (!contains(m_bounds, point))
-            	throw Out_Of_Bounds_Exception();
+            {
+              auto what = QObject::tr("Access to pixel not inside mask bounds, pixel coordinates: %1 %2 %3.").arg(m_index.x).arg(m_index.y).arg(m_index.z);
+              auto details = QObject::tr("BinaryMask::region_iterator::isSet() -> Access to pixel not inside mask bounds, pixel coordinates: %1 %2 %3.").arg(m_index.x).arg(m_index.y).arg(m_index.z);
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             // we must adjust the index
             IndexType newIndex;
@@ -651,42 +692,57 @@ namespace ESPINA
 
           /** \brief Sets the value of the pointed element of the mask to foreground value.
            *
-           *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the region.
            *
            */
-          void Set() throw(Out_Of_Bounds_Exception)
+          void Set()
           {
             if (isAtEnd())
-            	throw Out_Of_Bounds_Exception();
+            {
+              auto what = QObject::tr("Access to value in end position.");
+              auto details = QObject::tr("BinaryMask::region_iterator::Set() -> Access to value in end position.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             m_mask->setPixel(m_index);
           }
 
           /** \brief Sets the value of the pointed element of the mask to background value.
            *
-           *  NOTE: Can throw an Out_Of_Bounds_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the region.
            *
            */
-          void Unset() throw(Out_Of_Bounds_Exception)
+          void Unset()
           {
             if (isAtEnd())
-            	throw Out_Of_Bounds_Exception();
+            {
+              auto what = QObject::tr("Access to value in end position.");
+              auto details = QObject::tr("BinaryMask::region_iterator::Unset() -> Access to value in end position.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             m_mask->unsetPixel(m_index);
           }
 
           /** \brief Decrements the iterator position.
            *
-           *  NOTE: Can throw an Underflow_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  the beginning of the region.
            *
            */
-          region_iterator& operator--() throw(Underflow_Exception)
+          region_iterator& operator--()
           {
             if ((m_index.x == m_extent[0]) && (m_index.y == m_extent[2]) && (m_index.z == m_extent[4]))
-              throw Underflow_Exception();
+            {
+              auto what = QObject::tr("Region iterator underflow.");
+              auto details = QObject::tr("BinaryMask::region_iterator::operator--() -> Underflow.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             if (m_index.x == m_extent[0])
             {
@@ -707,14 +763,19 @@ namespace ESPINA
 
           /** \brief Increments the iterator position.
            *
-           *  NOTE: Can throw an Overflow_Exception if the iterator is positioned at
+           *  NOTE: Can throw an exception if the iterator is positioned at
            *  one-past-the-end element of the region.
            *
            */
-          region_iterator &operator++() throw(Overflow_Exception)
+          region_iterator &operator++()
           {
             if ((m_index.x == m_extent[1] + 1) && (m_index.y == m_extent[3] + 1) && (m_index.z == m_extent[5] + 1))
-              throw Overflow_Exception();
+            {
+              auto what = QObject::tr("Region iterator overflow.");
+              auto details = QObject::tr("BinaryMask::region_iterator::operator++() -> Overflow.");
+
+              throw Core::Utils::EspinaException(what, details);
+            }
 
             if ((m_index.x == m_extent[1]) && (m_index.y == m_extent[3]) && (m_index.z == m_extent[5]))
             {
@@ -769,17 +830,27 @@ namespace ESPINA
           virtual ~const_region_iterator()
           {};
 
-          /** \brief Forbidden Set() will throw a Const_Violation_Exception exception.
+          /** \brief Forbidden Set() will throw an exception.
            *
            */
-          void Set() throw(Const_Violation_Exception)
-          { throw Const_Violation_Exception(); }
+          void Set()
+          {
+            auto what = QObject::tr("Iterator const violation.");
+            auto details = QObject::tr("BinaryMask::const_region_iterator::Set() -> const violation.");
 
-          /** \brief Forbidden Unet() will throw a Const_Violation_Exception exception.
+            throw Core::Utils::EspinaException(what, details);
+          }
+
+          /** \brief Forbidden Unet() will throw an exception.
            *
            */
-          void Unset() throw(Const_Violation_Exception)
-          { throw Const_Violation_Exception(); }
+          void Unset()
+          {
+            auto what = QObject::tr("Iterator const violation.");
+            auto details = QObject::tr("BinaryMask::const_region_iterator::Unset() -> const violation.");
+
+            throw Core::Utils::EspinaException(what, details);
+          }
       };
 
   };
@@ -836,7 +907,6 @@ namespace ESPINA
   //-------------------------------------------------------------------------------------
   template<typename T>
   BinaryMask<T>::BinaryMask(const Bounds& bounds, const NmVector3& spacing, const NmVector3& origin)
-  throw(Invalid_Bounds_Exception)
   : m_backgroundValue(0)
   , m_foregroundValue(255)
   , m_integerSize(sizeof(int)*8)
@@ -844,7 +914,12 @@ namespace ESPINA
   , m_spacing(spacing)
   {
     if (!bounds.areValid())
-      throw Invalid_Bounds_Exception();
+    {
+      auto what = QObject::tr("Invalid input bounds");
+      auto details = QObject::tr("BinaryMask::constructor() -> invalid input bounds");
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     m_bounds = VolumeBounds(bounds, m_spacing, m_origin);
     itkVolumeType::RegionType region = equivalentRegion<itkVolumeType>(m_origin, m_spacing, bounds);
@@ -903,7 +978,6 @@ namespace ESPINA
   //-------------------------------------------------------------------------------------
   template<typename T>
   void BinaryMask<T>::setPixel(const IndexType& index)
-  throw(Out_Of_Bounds_Exception)
   {
     NmVector3 point = {
       m_origin[0] + static_cast<Nm>(index.x)*m_spacing[0],
@@ -912,7 +986,12 @@ namespace ESPINA
     };
 
     if (!contains(m_bounds, point))
-    	throw Out_Of_Bounds_Exception();
+    {
+      auto what    = QObject::tr("Attempt to access pixel out of bounds, pixel coords: %1 %2 %3").arg(index.x).arg(index.y).arg(index.z);
+      auto details = QObject::tr("BinaryMask::setPixel() -> Attempt to access pixel out of bounds, pixel coords: %1 %2 %3").arg(index.x).arg(index.y).arg(index.z);
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     // we must adjust the index
     IndexType newIndex;
@@ -932,7 +1011,6 @@ namespace ESPINA
   //-------------------------------------------------------------------------------------
   template<typename T>
   void BinaryMask<T>::unsetPixel(const IndexType& index)
-  throw(Out_Of_Bounds_Exception)
   {
     NmVector3 point = {
       m_origin[0] + static_cast<Nm>(index.x)*m_spacing[0],
@@ -941,7 +1019,12 @@ namespace ESPINA
     };
 
     if (!contains(m_bounds, point))
-    	throw Out_Of_Bounds_Exception();
+    {
+      auto what = QObject::tr("Attempt to access pixel out of bounds, pixel coords: %1 %2 %3").arg(index.x).arg(index.y).arg(index.z);
+      auto details = QObject::tr("BinaryMask::unsetPixel() -> Attempt to access pixel out of bounds, pixel coords: %1 %2 %3").arg(index.x).arg(index.y).arg(index.z);
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     // we must adjust the index
     IndexType newIndex;
@@ -960,7 +1043,6 @@ namespace ESPINA
   //-------------------------------------------------------------------------------------
   template<typename T> typename
   BinaryMask<T>::PixelType BinaryMask<T>::pixel(const IndexType& index) const
-  throw(Out_Of_Bounds_Exception)
   {
     NmVector3 point = {
       m_origin[0] + static_cast<Nm>(index.x)*m_spacing[0],
@@ -969,7 +1051,12 @@ namespace ESPINA
     };
 
     if (!contains(m_bounds, point))
-    	throw Out_Of_Bounds_Exception();
+    {
+      auto what = QObject::tr("Attempt to access pixel out of bounds, pixel coords: %1 %2 %3").arg(index.x).arg(index.y).arg(index.z);
+      auto details = QObject::tr("BinaryMask::pixel(index) -> Attempt to access pixel out of bounds, pixel coords: %1 %2 %3").arg(index.x).arg(index.y).arg(index.z);
+
+      throw Core::Utils::EspinaException(what, details);
+    }
 
     // we must adjust the index
     IndexType newIndex;
@@ -1054,6 +1141,17 @@ namespace ESPINA
   template<class T> using BinaryMaskPtr  = BinaryMask<T> *;
   template<class T> using BinaryMaskSPtr = std::shared_ptr<BinaryMask<T>>;
 
+  //-----------------------------------------------------------------------------
+  template<class T>
+  BinaryMaskSPtr<T> pointToMask(const NmVector3 &point, const NmVector3 &spacing)
+  {
+    auto mask = std::make_shared<BinaryMask<T>>(Bounds(point), spacing);
+    typename BinaryMask<T>::iterator it(mask.get());
+    it.goToBegin();
+    it.Set();
+
+    return mask;
+  }
 } // namespace ESPINA
 
 #endif // ESPINA_BINARY_MASK_H
