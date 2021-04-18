@@ -41,6 +41,7 @@ using namespace ESPINA::GUI::Model::Utils;
 SegmentationAdapter::SegmentationAdapter(SegmentationSPtr segmentation)
 : ViewItemAdapter(segmentation)
 , m_segmentation {segmentation}
+, m_category     {nullptr}
 , m_colorEngine  {nullptr}
 {
   connect(m_segmentation.get(), SIGNAL(outputModified()),
@@ -126,7 +127,8 @@ QVariant SegmentationAdapter::data(int role) const
       QPixmap icon(3, 16);
 
       // Category icon
-      icon.fill(m_category->color());
+      if(m_category) icon.fill(m_category->color());
+      else           icon.fill(Qt::red);
 
       // We should let the extensions decorate
       if (hasInformation(SegmentationIssues::ISSUES))

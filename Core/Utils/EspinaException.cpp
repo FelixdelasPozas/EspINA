@@ -751,12 +751,12 @@ void ESPINA::Core::Utils::backtrace_stack_print(QTextStream &stream)
 //--------------------------------------------------------------------
 void ESPINA::Core::Utils::installVTKErrorLogger()
 {
-  auto filename  = QDir::home().filePath("VTKErrors.txt");
-  const QString utfFilename = filename.toUtf8();
-  const QString asciiFilename = utfFilename.toAscii();
+  auto filename  = QDir::fromNativeSeparators(QDir::home().filePath("VTKErrors.txt"));
+  const auto shortName = filename.toLatin1().toStdString();
+
   auto VTKlogger = vtkSmartPointer<vtkFileOutputWindow>::New();
   VTKlogger->SetAppend(false);
-  VTKlogger->SetFileName(asciiFilename.toStdString().c_str());
+  VTKlogger->SetFileName(shortName.c_str());
 
   vtkOutputWindow::SetInstance(VTKlogger);
 }

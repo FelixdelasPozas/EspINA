@@ -693,3 +693,12 @@ void SkeletonWidget2D::renameStroke(const QString& oldName, const QString& newNa
     m_widget->renameStroke(oldName, newName);
   }
 }
+
+//--------------------------------------------------------------------
+void SkeletonWidget2D::setDefaultHue(const int value)
+{
+  if(m_widget)
+  {
+    m_widget->setDefaultHue(value % 360);
+  }
+}

@@ -394,22 +394,29 @@ void CheckDataTask::checkViewItemOutputs(ViewItemAdapterSPtr viewItem) const
     if(hasVolumetricData(output) && hasMeshData(output) && isSegmentation(viewItem.get()))
     {
       const auto segmentation = segmentationPtr(viewItem.get());
-      const auto category     = segmentation->category()->classificationName();
-      const auto isSAS        = category.startsWith("SAS/") || category.compare("SAS") == 0;
-
-      if(!isSAS)
+      const auto category     = segmentation->category();
+      if(category)
       {
-        const auto segMesh = readLockMesh(output)->mesh();
-        const auto mMesh   = std::make_shared<MarchingCubesMesh>(output.get());
-        const auto newMesh = mMesh->mesh();
+        const auto name  = category->classificationName();
+        const auto isSAS = name.startsWith("SAS/") || name.compare("SAS") == 0;
 
-        // current mesh & new mesh should be identical.
-        if((segMesh->GetNumberOfCells()  != newMesh->GetNumberOfCells()) ||
-           (segMesh->GetNumberOfPoints() != newMesh->GetNumberOfPoints()) ||
-           (segMesh->GetNumberOfPolys()  != newMesh->GetNumberOfPolys()))
+        if(!isSAS)
         {
-          // silent fix.
-          output->setData(mMesh);
+          const auto segMesh = readLockMesh(output)->mesh();
+          if(segMesh && segMesh->GetNumberOfPoints() > 0)
+          {
+            const auto mMesh   = std::make_shared<MarchingCubesMesh>(output.get());
+            const auto newMesh = mMesh->mesh();
+
+            // current mesh & new mesh should be identical.
+            if((segMesh->GetNumberOfCells()  != newMesh->GetNumberOfCells()) ||
+               (segMesh->GetNumberOfPoints() != newMesh->GetNumberOfPoints()) ||
+               (segMesh->GetNumberOfPolys()  != newMesh->GetNumberOfPolys()))
+            {
+              // silent fix.
+              output->setData(mMesh);
+            }
+          }
         }
       }
     }
@@ -652,6 +659,22 @@ void CheckSegmentationTask::checkSkeletonProblems() const
       const auto description = tr("Segmentation has %1 malformed path%2.").arg(malformedPaths).arg(malformedPaths > 1 ? "s" : "");
 
       reportIssue(m_segmentation, Issue::Severity::WARNING, description, editOrDeleteHint(m_item));
+    }
+
+    // fix colors
+    const auto category = m_segmentation->category();
+    if(category)
+    {
+      const auto hue = m_segmentation->category()->color().hue();
+      bool changed = false;
+      auto fixStrokeColor = [&hue, &changed](Core::SkeletonStroke &s) { if(s.colorHue == hue) { changed = true; s.colorHue = -1; } };
+      std::for_each(definition.strokes.begin(), definition.strokes.end(), fixStrokeColor);
+
+      if(changed)
+      {
+        auto newSkeleton = Core::toPolyData(definition);
+        writeLockSkeleton(m_segmentation->output())->setSkeleton(newSkeleton);
+      }
     }
 
     definition.clear();

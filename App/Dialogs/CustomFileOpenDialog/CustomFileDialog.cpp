@@ -30,6 +30,7 @@
 #include <QLabel>
 #include <QtCore>
 #include <QPushButton>
+#include <QDebug>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -38,14 +39,14 @@ using namespace ESPINA::IO;
 //--------------------------------------------------------------------
 CustomFileDialog::CustomFileDialog(QWidget* parent, Qt::WindowFlags flags)
 : QFileDialog{parent, flags}
-, m_options{nullptr}
+, m_options  {new OptionsPanel(this)}
 {
 }
 
 //--------------------------------------------------------------------
 CustomFileDialog::CustomFileDialog(QWidget* parent, const QString& caption, const QString& directory, const QString& filter)
 : QFileDialog{parent, caption, directory, filter}
-, m_options{nullptr}
+, m_options  {new OptionsPanel(this)}
 {
 }
 
@@ -112,13 +113,19 @@ void CustomFileDialog::modifyUI()
 {
   auto mainLayout = qobject_cast<QGridLayout *>(layout());
 
-  auto button = new QPushButton(tr("Options >>"), this);
-  button->setCheckable(true);
-  button->setChecked(false);
-  connect(button, SIGNAL(pressed()), this, SLOT(onOptionsToggled()));
-  mainLayout->addWidget(button, mainLayout->rowCount(), mainLayout->columnCount()-1, 1, 1);
+  if(mainLayout)
+  {
+    auto button = new QPushButton(tr("Options >>"), this);
+    button->setCheckable(true);
+    button->setChecked(false);
+    connect(button, SIGNAL(pressed()), this, SLOT(onOptionsToggled()));
+    mainLayout->addWidget(button, mainLayout->rowCount(), mainLayout->columnCount()-1, 1, 1);
 
-  m_options = new OptionsPanel(this);
-  mainLayout->addWidget(m_options, 0, mainLayout->columnCount(), mainLayout->rowCount(), 1);
-  m_options->setVisible(false);
+    mainLayout->addWidget(m_options, 0, mainLayout->columnCount(), mainLayout->rowCount(), 1);
+    m_options->setVisible(false);
+  }
+  else
+  {
+    qDebug() << "Couldn't add custom widget." << __FILE__ << __LINE__ ;
+  }
 }

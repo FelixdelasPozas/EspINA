@@ -144,6 +144,12 @@ namespace ESPINA
    *
    */
   bool EspinaCore_EXPORT removeTemporalDirectory(const QDir &path);
+
+  /** \brief Returns the 8.3 filename in Windows OS as a string. Returns just the string of filename in other OS.
+   * \param[in] filename Filename that can contain UTF-8 chars.
+   *
+   */
+  std::string EspinaCore_EXPORT getShortFileName(const QString &filename);
 }
 
 #endif // ESPINA_TEMPORAL_STORAGE_H

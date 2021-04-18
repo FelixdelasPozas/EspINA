@@ -148,8 +148,10 @@ void SkeletonEditionTool::initTool(bool value)
 
     onStrokeTypeChanged(m_strokeCombo->currentIndex());
 
+    const auto hue = segmentationPtr(getSelection()->segmentations().first())->category()->color().hue();
     for(auto widget: m_widgets)
     {
+      widget->setDefaultHue(hue);
       widget->updateRepresentation();
     }
 
@@ -449,14 +451,14 @@ void SkeletonEditionTool::initParametersWidgets()
 
   addSettingsWidget(m_eraseButton);
 
-  auto label = new QLabel("Points distance:");
+  auto label = new QLabel(tr("Points distance:"));
   label->setToolTip(tr("Manage distance between points"));
 
   connect(this, SIGNAL(toggled(bool)), label, SLOT(setVisible(bool)));
 
   addSettingsWidget(label);
 
-  m_minWidget = new DoubleSpinBoxAction(this);
+  m_minWidget = new DoubleSpinBoxAction();
   m_minWidget->setToolTip(tr("Minimum distance between points."));
 
   m_minWidget->setLabelText(tr("Minimum"));
@@ -470,7 +472,7 @@ void SkeletonEditionTool::initParametersWidgets()
 
   addSettingsWidget(m_minWidget->createWidget(nullptr));
 
-  m_maxWidget = new DoubleSpinBoxAction(this);
+  m_maxWidget = new DoubleSpinBoxAction();
   m_maxWidget->setToolTip(tr("Maximum distance between points."));
 
   m_maxWidget->setLabelText(tr("Maximum"));
@@ -825,6 +827,7 @@ void SkeletonEditionTool::updateStrokes()
     auto segmentation = segmentationPtr(m_item);
     auto category     = segmentation->category();
     const auto name   = category->classificationName();
+	const auto hue    = category->color().hue();
 
     m_strokeCombo->blockSignals(true);
     m_strokeCombo->clear();
@@ -841,7 +844,8 @@ void SkeletonEditionTool::updateStrokes()
 
       QPixmap original(ICONS.at(stroke.type));
       QPixmap copy(original.size());
-      copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+	    const auto color = stroke.colorHue == -1 ? hue : stroke.colorHue;
+      copy.fill(QColor::fromHsv(color,255,255));
       copy.setMask(original.createMaskFromColor(Qt::transparent));
 
       m_strokeCombo->insertItem(i, QIcon(copy), stroke.name);
@@ -849,7 +853,7 @@ void SkeletonEditionTool::updateStrokes()
 
     m_strokeCombo->blockSignals(false);
 
-    m_eventHandler->setStrokes(m_strokes, category->classificationName());
+    m_eventHandler->setStrokes(m_strokes, category);
 
     if(m_strokeCombo->currentIndex() < 0 || m_strokeCombo->currentIndex() >= m_strokes.size())
     {

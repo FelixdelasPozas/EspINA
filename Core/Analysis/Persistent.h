@@ -29,12 +29,16 @@
 #ifndef ESPINA_PERSISTENT_H
 #define ESPINA_PERSISTENT_H
 
+// ESPINA
 #include "Core/EspinaCore_Export.h"
-
-#include <memory>
-#include <QString>
-#include <QDebug>
 #include <Core/Utils/TemporalStorage.h>
+#include <Core/Utils/QStringUtils.h>
+
+// C++
+#include <memory>
+
+// Qt
+#include <QString>
 
 namespace ESPINA
 {
@@ -101,7 +105,7 @@ namespace ESPINA
        *
        */
       void setName(const QString& name)
-      { m_name = name; }
+      { m_name = Core::Utils::simplifyString(name); }
 
       /** \brief Returns the name of the object.
        *

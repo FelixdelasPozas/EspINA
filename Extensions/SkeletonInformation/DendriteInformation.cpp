@@ -42,30 +42,30 @@ using namespace ESPINA::Extensions;
 const SegmentationExtension::Type EspinaExtensions_EXPORT DendriteSkeletonInformation::TYPE = "DendriteInformation";
 const QString DendriteSkeletonInformation::SPINE_SNAPSHOT_FILE = "SpineInformation.csv";
 
-const SegmentationExtension::Key DENDRITE_SHAFT_LENGTH             = QObject::tr("Shaft Length (Nm)");
-const SegmentationExtension::Key DENDRITE_CONTACTED_AXONS_NUM      = QObject::tr("Num of axons contacted");
-const SegmentationExtension::Key DENDRITE_EXCITATORY_AXONS_NUM     = QObject::tr("Num of excitatory axons contacted");
-const SegmentationExtension::Key DENDRITE_INHIBITORY_AXONS_NUM     = QObject::tr("Num of inhibitory axons contacted");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_RATIO           = QObject::tr("Excitatory/inhibitory synapses ratio");
-const SegmentationExtension::Key DENDRITE_TOTAL_SPINES_NUM         = QObject::tr("Num of spines");
-const SegmentationExtension::Key DENDRITE_COMPLETE_SPINES_NUM      = QObject::tr("Num of complete spines");
-const SegmentationExtension::Key DENDRITE_TRUNCATED_SPINES_NUM     = QObject::tr("Num of truncated spines");
-const SegmentationExtension::Key DENDRITE_MONOSYNAPTIC_SPINES      = QObject::tr("Num of monosynaptic spines");
-const SegmentationExtension::Key DENDRITE_NONSYNAPTIC_SPINES       = QObject::tr("Num of non-synaptic spines");
-const SegmentationExtension::Key DENDRITE_MULTISYNAPTIC_SPINES     = QObject::tr("Num of multisynaptic spines");
-const SegmentationExtension::Key DENDRITE_BRANCHES_SPINES          = QObject::tr("Num of branched spines");
-const SegmentationExtension::Key DENDRITE_SPINES_LD                = QObject::tr("Linear density of spines");
-const SegmentationExtension::Key DENDRITE_SPINES_LENGTH            = QObject::tr("Total length of complete spines (Nm)");
-const SegmentationExtension::Key DENDRITE_SPINES_LENGTH_MEAN       = QObject::tr("Mean spine length (Nm)");
-const SegmentationExtension::Key DENDRITE_NEAREAST_NEIGHTBOUR_MEAN = QObject::tr("Mean nearest neighbour distance of spines (Nm)");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_NUM             = QObject::tr("Num of synapses");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_ON_SPINES       = QObject::tr("Num of synapses on spines");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_ON_SHAFT        = QObject::tr("Num of synapses on shaft");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_LOCATION_RATIO  = QObject::tr("Ratio of synapses on spines and shafts");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_LD              = QObject::tr("Linear density of synapses");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_SHAFT_LD        = QObject::tr("Linear density of synapses on shaft");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_SPINE_LD        = QObject::tr("Linear density of synapses on spines");
-const SegmentationExtension::Key DENDRITE_SYNAPSES_PER_SPINE_MEAN  = QObject::tr("Mean Num of Synapses per spine");
+const SegmentationExtension::Key DENDRITE_SHAFT_LENGTH                 = QObject::tr("Shaft Length (Nm)");
+const SegmentationExtension::Key DENDRITE_CONTACTED_AXONS_NUM          = QObject::tr("Num of axons contacted");
+const SegmentationExtension::Key DENDRITE_EXCITATORY_AXONS_NUM         = QObject::tr("Num of excitatory axons contacted");
+const SegmentationExtension::Key DENDRITE_INHIBITORY_AXONS_NUM         = QObject::tr("Num of inhibitory axons contacted");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_RATIO               = QObject::tr("Excitatory/inhibitory synapses ratio");
+const SegmentationExtension::Key DENDRITE_TOTAL_SPINES_NUM             = QObject::tr("Num of spines");
+const SegmentationExtension::Key DENDRITE_COMPLETE_SPINES_NUM          = QObject::tr("Num of complete spines");
+const SegmentationExtension::Key DENDRITE_TRUNCATED_SPINES_NUM         = QObject::tr("Num of truncated spines");
+const SegmentationExtension::Key DENDRITE_MONOSYNAPTIC_SPINES          = QObject::tr("Num of monosynaptic spines");
+const SegmentationExtension::Key DENDRITE_NONSYNAPTIC_SPINES           = QObject::tr("Num of non-synaptic spines");
+const SegmentationExtension::Key DENDRITE_MULTISYNAPTIC_SPINES         = QObject::tr("Num of multisynaptic spines");
+const SegmentationExtension::Key DENDRITE_BRANCHES_SPINES              = QObject::tr("Num of branched spines");
+const SegmentationExtension::Key DENDRITE_SPINES_LD                    = QObject::tr("Linear density of spines");
+const SegmentationExtension::Key DENDRITE_SPINES_LENGTH                = QObject::tr("Total length of complete spines (Nm)");
+const SegmentationExtension::Key DENDRITE_SPINES_LENGTH_MEAN           = QObject::tr("Mean spine length (Nm)");
+const SegmentationExtension::Key DENDRITE_NEAREAST_NEIGHTBOUR_MEAN     = QObject::tr("Mean nearest neighbour distance of spines (Nm)");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_NUM                 = QObject::tr("Num of synapses");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_ON_SPINES           = QObject::tr("Num of synapses on complete spines");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_ON_TRUNCATED_SPINES = QObject::tr("Num of synapses on truncated spines");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_ON_SHAFT            = QObject::tr("Num of synapses on shaft");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_LD                  = QObject::tr("Minimum linear density of synapses");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_SHAFT_LD            = QObject::tr("Linear density of synapses on shaft");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_SPINE_LD            = QObject::tr("Minimum linear density of synapses on spines");
+const SegmentationExtension::Key DENDRITE_SYNAPSES_PER_SPINE_MEAN      = QObject::tr("Mean Num of Synapses per complete spine");
 
 //--------------------------------------------------------------------
 DendriteSkeletonInformation::DendriteSkeletonInformation(const InfoCache& infoCache)
@@ -154,8 +154,8 @@ const SegmentationExtension::InformationKeyList DendriteSkeletonInformation::ava
                      DENDRITE_NEAREAST_NEIGHTBOUR_MEAN,
                      DENDRITE_SYNAPSES_NUM,
                      DENDRITE_SYNAPSES_ON_SPINES,
+                     DENDRITE_SYNAPSES_ON_TRUNCATED_SPINES,
                      DENDRITE_SYNAPSES_ON_SHAFT,
-                     DENDRITE_SYNAPSES_LOCATION_RATIO,
                      DENDRITE_SYNAPSES_LD,
                      DENDRITE_SYNAPSES_SHAFT_LD,
                      DENDRITE_SYNAPSES_SPINE_LD,
@@ -198,7 +198,7 @@ void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinitio
   int edgeStrokeIndex = -1;
   for(int i = 0; i < definition.strokes.size(); ++i)
   {
-    if(definition.strokes.at(i).name == "Spine")
+    if(definition.strokes.at(i).name.startsWith("spine", Qt::CaseInsensitive))
     {
       edgeStrokeIndex = i;
       break;
@@ -213,7 +213,7 @@ void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinitio
     for(auto node: nodes)
     {
       auto name = node->path.note;
-      if(name.startsWith("Spine", Qt::CaseInsensitive) || name.startsWith("Subspine", Qt::CaseInsensitive) || hasBranches(node->children))
+      if(name.startsWith("spine", Qt::CaseInsensitive) || name.startsWith("subspine", Qt::CaseInsensitive) || hasBranches(node->children))
       {
         return true;
       }
@@ -293,6 +293,12 @@ void DendriteSkeletonInformation::updateSpineInformation(const SkeletonDefinitio
     info.branched = hasBranches(pathNode->children);
     info.length  = length(pathNode);
     auto points = connectionsInNode(pathNode, pointList);
+
+    // 2020-05-23: fix spine name if child is truncated
+    if(!info.complete && !info.name.endsWith(" (truncated)", Qt::CaseInsensitive))
+    {
+      info.name += tr(" (Truncated)");
+    }
 
     auto connected = connectionsNumber(pathNode, info.numSynapses, info.numAsymmetric, info.numSymmetric);
     Q_ASSERT((connected.size() == info.numSynapses) && (info.numSynapses == info.numAsymmetric + info.numSymmetric));
@@ -391,6 +397,7 @@ void DendriteSkeletonInformation::updateInformation() const
     unsigned int mono = 0;
     unsigned int multi = 0;
     unsigned int connectionsOnSpine = 0;
+    unsigned int connectionsOnTruncatedSpine = 0;
     QList<double> spineDistances;
 
     for(auto spine: m_spines)
@@ -398,6 +405,8 @@ void DendriteSkeletonInformation::updateInformation() const
       if(!spine.complete)
       {
         ++truncated;
+
+        connectionsOnTruncatedSpine += spine.numSynapses;
       }
       else
       {
@@ -485,10 +494,11 @@ void DendriteSkeletonInformation::updateInformation() const
     updateInfoCache(DENDRITE_BRANCHES_SPINES, branched);
 
     auto markAsInvalid = [this](const QString &key) { updateInfoCache(key, tr("Failed to compute")); };
+    auto toDouble = [](unsigned int number) { return static_cast<double>(number); };
 
     if(shaftLength != 0)
     {
-      updateInfoCache(DENDRITE_SPINES_LD, static_cast<double>(spinesNum)/shaftLength);
+      updateInfoCache(DENDRITE_SPINES_LD, toDouble(spinesNum)/shaftLength);
     }
     else
     {
@@ -505,21 +515,11 @@ void DendriteSkeletonInformation::updateInformation() const
       markAsInvalid(DENDRITE_SPINES_LENGTH_MEAN);
     }
 
-    auto toDouble = [](unsigned int number) { return static_cast<double>(number); };
-
     auto totalConnections = connections.size();
     updateInfoCache(DENDRITE_SYNAPSES_NUM, totalConnections);
     updateInfoCache(DENDRITE_SYNAPSES_ON_SPINES, connectionsOnSpine);
-    updateInfoCache(DENDRITE_SYNAPSES_ON_SHAFT, totalConnections - connectionsOnSpine);
-
-    if(connectionsOnSpine != 0)
-    {
-      updateInfoCache(DENDRITE_SYNAPSES_LOCATION_RATIO, toDouble(totalConnections-connectionsOnSpine)/connectionsOnSpine);
-    }
-    else
-    {
-      markAsInvalid(DENDRITE_SYNAPSES_LOCATION_RATIO);
-    }
+    updateInfoCache(DENDRITE_SYNAPSES_ON_TRUNCATED_SPINES, connectionsOnTruncatedSpine);
+    updateInfoCache(DENDRITE_SYNAPSES_ON_SHAFT, totalConnections - connectionsOnSpine - connectionsOnTruncatedSpine);
 
     if(shaftLength != 0)
     {
@@ -532,7 +532,7 @@ void DendriteSkeletonInformation::updateInformation() const
 
     if(shaftLength != 0)
     {
-      updateInfoCache(DENDRITE_SYNAPSES_SHAFT_LD, toDouble(totalConnections-connectionsOnSpine)/shaftLength);
+      updateInfoCache(DENDRITE_SYNAPSES_SHAFT_LD, toDouble(totalConnections-connectionsOnSpine-connectionsOnTruncatedSpine)/shaftLength);
     }
     else
     {
@@ -541,7 +541,7 @@ void DendriteSkeletonInformation::updateInformation() const
 
     if(shaftLength != 0)
     {
-      updateInfoCache(DENDRITE_SYNAPSES_SPINE_LD, toDouble(connectionsOnSpine)/shaftLength);
+      updateInfoCache(DENDRITE_SYNAPSES_SPINE_LD, toDouble(connectionsOnSpine+connectionsOnTruncatedSpine)/shaftLength);
     }
     else
     {
@@ -599,7 +599,7 @@ void DendriteSkeletonInformation::updateInformation() const
 //---------------------------------------------------------------------
 const QList<struct DendriteSkeletonInformation::SpineInformation> DendriteSkeletonInformation::spinesInformation() const
 {
-  if(m_extendedItem && !isReady(createKey(DENDRITE_SHAFT_LENGTH)))
+  if(m_extendedItem && (!isReady(createKey(DENDRITE_SHAFT_LENGTH)) || m_spines.size() == 0))
   {
     updateInformation();
   }

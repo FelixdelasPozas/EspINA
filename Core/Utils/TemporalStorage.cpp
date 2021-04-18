@@ -31,12 +31,61 @@
 #include <QStack>
 #include <QObject>
 #include <QDebug>
+#include <QtGui>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
 
 QList<TemporalStorage *> TemporalStorage::s_Storages;
 const QString SETTINGS_FILE = "Settings/SessionSettings.ini";
+
+// C++
+#ifdef __WIN64__
+#include <fileapi.h>
+#endif
+
+//---------------------------------------------------------------------------
+std::string ESPINA::getShortFileName(const QString &filename)
+{
+  // NOTE 1: this seems to work if you pass this to the ITK filters. See note 2.
+  return QDir::fromNativeSeparators(filename).toLatin1().toStdString();
+
+  // NOTE 2: Opening files in Windows (with UTF-8 names) can be difficult with
+  // ITK methods that use "char *" for file names. The following code gets the
+  // 8.3 name of the given UTF-8 file name.
+#ifdef __WIN64__
+  long     length = 0;
+  TCHAR*   buffer = nullptr;
+  const auto name = QDir::fromNativeSeparators(filename).toLatin1().data();
+
+  // First obtain the size needed by passing NULL and 0.
+  length = GetShortPathNameA(name, nullptr, 0);
+  if (length == 0)
+  {
+    return filename.toLatin1().toStdString();
+  }
+
+  // Dynamically allocate the correct size
+  // (terminating null char was included in length)
+  buffer = new TCHAR[length];
+
+  // Now simply call again using same long path.
+  length = GetShortPathNameA(name, buffer, length);
+  if (length == 0)
+  {
+    delete [] buffer;
+
+    return filename.toLatin1().toStdString();
+  }
+
+  const auto result = std::string(buffer, length);
+
+  delete [] buffer;
+  return result;
+#else
+  return filename.toStdString();
+#endif
+}
 
 //----------------------------------------------------------------------------
 bool moveRecursively(const QString &sourceDir, const QString &destinationDir, bool createDestination = false)
@@ -185,7 +234,7 @@ QString TemporalStorage::findFile(const QString &fileName) const
       QStringList entries = subdir.entryList(QStringList() << fileName, QDir::Files);
       if (!entries.empty())
       {
-        return storage->m_storageDir.absoluteFilePath(fileName);
+        return QDir::fromNativeSeparators(storage->m_storageDir.absoluteFilePath(fileName));
       }
 
       QFileInfoList infoEntries = subdir.entryInfoList(QStringList(), QDir::AllDirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
@@ -231,6 +280,14 @@ void TemporalStorage::saveSnapshot(SnapshotData data)
       throw EspinaException(message, details);
     }
 
+    if(!file.flush() || file.error() != QFileDevice::NoError)
+    {
+      auto message = QObject::tr("Error flushing or writing file: %1. Error: %2").arg(fileName.absoluteFilePath()).arg(file.errorString());
+      auto details = QObject::tr("TemporalStorage::saveSnapshot() -> ") + message;
+
+      throw EspinaException(message, details);
+    }
+
     file.close();
   }
 }
@@ -238,7 +295,7 @@ void TemporalStorage::saveSnapshot(SnapshotData data)
 //----------------------------------------------------------------------------
 QByteArray TemporalStorage::snapshot(const QString &descriptor) const
 {
-  QString fileName = m_storageDir.absoluteFilePath(descriptor);
+  QString fileName = QDir::fromNativeSeparators(m_storageDir.absoluteFilePath(descriptor));
 
   QByteArray data;
 
@@ -253,6 +310,11 @@ QByteArray TemporalStorage::snapshot(const QString &descriptor) const
     qWarning() << "TemporalStorage::snapshot() -> can't open:" << fileName;
     qWarning() << "TemporalStorage::snapshot() -> Cause:" << file.errorString();
   }
+  
+  if(data.isEmpty())
+  {
+    qWarning() << "TemporalStorage::snapshot() -> Empty file in snapshot:" << fileName;
+  }
 
   return data;
 }
@@ -262,7 +324,7 @@ Snapshot TemporalStorage::snapshots(const QString &relativePath, TemporalStorage
 {
   Snapshot result;
 
-  QDir dir = m_storageDir.absoluteFilePath(relativePath);
+  QDir dir = QDir::fromNativeSeparators(m_storageDir.absoluteFilePath(relativePath));
 
   for (auto file : dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot))
   {
@@ -286,15 +348,15 @@ Snapshot TemporalStorage::snapshots(const QString &relativePath, TemporalStorage
 //----------------------------------------------------------------------------
 bool TemporalStorage::exists(const QString &name) const
 {
-  QFileInfo file(m_storageDir.absoluteFilePath(name));
+  QFileInfo file(m_storageDir.absoluteFilePath(QDir::fromNativeSeparators(name)));
   return file.exists();
 }
 
 //----------------------------------------------------------------------------
 bool TemporalStorage::rename(const QString &oldName, const QString &newName) const
 {
-  QFileInfo oldFile(m_storageDir.absoluteFilePath(oldName));
-  QFileInfo newFile(m_storageDir.absoluteFilePath(newName));
+  QFileInfo oldFile(m_storageDir.absoluteFilePath(QDir::fromNativeSeparators(oldName)));
+  QFileInfo newFile(m_storageDir.absoluteFilePath(QDir::fromNativeSeparators(newName)));
 
   return (oldFile.exists() && !newFile.exists() && QFile::rename(oldFile.absoluteFilePath(), newFile.absoluteFilePath()));
 }
@@ -302,7 +364,7 @@ bool TemporalStorage::rename(const QString &oldName, const QString &newName) con
 //----------------------------------------------------------------------------
 bool TemporalStorage::move(const QString &path, bool createDir)
 {
-  if(path == m_baseStorageDir.absolutePath())
+  if(QDir::fromNativeSeparators(path) == QDir::fromNativeSeparators(m_baseStorageDir.absolutePath()))
   {
     return true;
   }
@@ -333,7 +395,7 @@ bool TemporalStorage::move(const QString &path, bool createDir)
 //----------------------------------------------------------------------------
 std::shared_ptr<QSettings> TemporalStorage::sessionSettings()
 {
-  return std::make_shared<QSettings>(QDir::toNativeSeparators(m_storageDir.absoluteFilePath(SETTINGS_FILE)), QSettings::IniFormat);
+  return std::make_shared<QSettings>(QDir::fromNativeSeparators(m_storageDir.absoluteFilePath(SETTINGS_FILE)), QSettings::IniFormat);
 }
 
 //----------------------------------------------------------------------------

@@ -7,12 +7,12 @@ set (PLUGIN_VERSION_PATCH 1)
 
 include (GenerateExportHeader)
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.1.0)
 
 find_package(XLSLIB REQUIRED)
 
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+#include(${QT_USE_FILE})
 
 find_package (VTK REQUIRED NO_MODULE)
 include (${VTK_USE_FILE})
@@ -31,18 +31,18 @@ include_directories(
   ${XLSLIB_INCLUDE_DIRS}
   )
 
-qt4_add_resources (RCC_BUILT_SOURCES
+qt5_add_resources (RCC_BUILT_SOURCES
   rsc/CountingFrame.qrc
   )
 
 # Create Interface files
-qt4_wrap_ui (UI_BUILT_SOURCES
+qt5_wrap_ui (UI_BUILT_SOURCES
   Dialogs/CFTypeSelectorDialog.ui
   Panel.ui
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
-qt4_wrap_cpp(MOC_SRCS
+qt5_wrap_cpp(MOC_SRCS
   ColorEngines/ColorEngine.h
   ColorEngines/ColorEngineSwitch.h
   CountingFrameManager.h
@@ -118,10 +118,11 @@ GENERATE_EXPORT_HEADER(
              EXPORT_MACRO_NAME CountingFramePlugin_EXPORT
              EXPORT_FILE_NAME CountingFramePlugin_Export.h
   )
-ADD_COMPILER_EXPORT_FLAGS()
-if(DEFINED MINGW OR DEFINED MSVC)
-  SET(PLUGIN_LIBRARIES ${PLUGIN_LIBRARIES} iconv)
-endif(DEFINED MINGW OR DEFINED MSVC)
+  
+#if(DEFINED MINGW OR DEFINED MSVC)
+#  SET(PLUGIN_LIBRARIES ${PLUGIN_LIBRARIES} iconv)
+#endif(DEFINED MINGW OR DEFINED MSVC)
+
 target_link_libraries (CountingFramePlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

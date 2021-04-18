@@ -66,8 +66,6 @@ namespace ESPINA
     : public Core::CorePlugin
     {
       Q_OBJECT
-      Q_INTERFACES(ESPINA::Core::CorePlugin)
-
     public:
       /** \brief Plugin class virtual destructor.
        *

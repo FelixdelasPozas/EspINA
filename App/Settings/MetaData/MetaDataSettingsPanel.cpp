@@ -72,13 +72,13 @@ namespace ESPINA
       }
     }
 
-    auto label = new QLabel();
+    auto label = new QLabel(this);
     label->setText(text);
     label->setTextFormat(Qt::RichText);
 
     if(layout() == nullptr)
     {
-      setLayout(new QVBoxLayout());
+      setLayout(new QVBoxLayout(this));
     }
 
     layout()->setAlignment(Qt::AlignTop|Qt::AlignLeft);

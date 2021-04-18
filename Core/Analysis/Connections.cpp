@@ -40,9 +40,11 @@ bool ConnectionStorage::addConnection(const PersistentSPtr segmentation1, const 
 {
   QWriteLocker lock(&m_lock);
 
-  auto uuid1  = segmentation1->uuid();
-  auto uuid2  = segmentation2->uuid();
-  auto vector = QVector3D{point[0], point[1], point[2]};
+  auto uuid1  = segmentation1->uuid().toString();
+  auto uuid2  = segmentation2->uuid().toString();
+  auto vector = QVector3D{static_cast<float>(point[0]),
+                          static_cast<float>(point[1]),
+                          static_cast<float>(point[2])};
 
   if(m_data.keys().contains(uuid1) && m_data[uuid1].keys().contains(uuid2) && m_data[uuid1][uuid2].contains(vector))
   {
@@ -60,9 +62,11 @@ bool ConnectionStorage::removeConnection(const PersistentSPtr segmentation1, con
 {
   QWriteLocker lock(&m_lock);
 
-  auto uuid1  = segmentation1->uuid();
-  auto uuid2  = segmentation2->uuid();
-  auto vector = QVector3D{point[0], point[1], point[2]};
+  auto uuid1  = segmentation1->uuid().toString();
+  auto uuid2  = segmentation2->uuid().toString();
+  auto vector = QVector3D{static_cast<float>(point[0]),
+                          static_cast<float>(point[1]),
+                          static_cast<float>(point[2])};
 
   if(!m_data.keys().contains(uuid1) || !m_data[uuid1].keys().contains(uuid2) || !m_data[uuid1][uuid2].contains(vector))
   {
@@ -83,8 +87,8 @@ bool ConnectionStorage::removeConnections(const PersistentSPtr segmentation1, co
 {
   QWriteLocker lock(&m_lock);
 
-  auto uuid1 = segmentation1->uuid();
-  auto uuid2 = segmentation2->uuid();
+  auto uuid1 = segmentation1->uuid().toString();
+  auto uuid2 = segmentation2->uuid().toString();
 
   if(!m_data.keys().contains(uuid1) || !m_data[uuid1].keys().contains(uuid2))
   {
@@ -105,7 +109,7 @@ bool ConnectionStorage::removeSegmentation(const PersistentSPtr segmentation)
 {
   QWriteLocker lock(&m_lock);
 
-  auto uuid = segmentation->uuid();
+  auto uuid = segmentation->uuid().toString();
 
   if(!m_data.keys().contains(uuid)) return false;
 
@@ -127,7 +131,7 @@ ConnectionStorage::Connections ConnectionStorage::connections(const PersistentSP
 {
   QReadLocker lock(&m_lock);
 
-  auto uuid = segmentation->uuid();
+  auto uuid = segmentation->uuid().toString();
   ConnectionStorage::Connections result;
 
   if(!m_data.keys().contains(uuid)) return result;
@@ -153,8 +157,8 @@ ConnectionStorage::Connections ConnectionStorage::connections(const PersistentSP
 {
   QReadLocker lock(&m_lock);
 
-  auto uuid1 = segmentation1->uuid();
-  auto uuid2 = segmentation2->uuid();
+  auto uuid1 = segmentation1->uuid().toString();
+  auto uuid2 = segmentation2->uuid().toString();
   ConnectionStorage::Connections result;
 
   if(!m_data.keys().contains(uuid1) || !m_data[uuid1].keys().contains(uuid2))

@@ -130,7 +130,7 @@ void SegmentationSkeletonSwitch::onSettingsModified()
 //---------------------------------------------------------------------
 void SegmentationSkeletonSwitch::initWidgets()
 {
-  auto widthLabel = new QLabel("Width");
+  auto widthLabel = new QLabel(tr("Width"));
   widthLabel->setToolTip(tr("Skeleton representation line width"));
 
   addSettingsWidget(widthLabel);
@@ -145,7 +145,7 @@ void SegmentationSkeletonSwitch::initWidgets()
 
   addSettingsWidget(m_widthWidget);
 
-  m_annotationsWidget = createToolButton(":/espina/tubular_id.svg", tr("Show stroke names"), nullptr);
+  m_annotationsWidget = createToolButton(":/espina/tubular_id.svg", tr("Show stroke names"));
   m_annotationsWidget->setCheckable(true);
   m_annotationsWidget->setChecked(m_settings->showAnnotations());
 

@@ -93,7 +93,7 @@ RenderView::~RenderView()
 {
   disconnect();
 
-  delete m_view;
+  m_view->deleteLater();
 }
 
 //-----------------------------------------------------------------------------
@@ -231,7 +231,7 @@ void RenderView::takeSnapshot()
 
   auto imageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
   imageFilter->SetInput(renderwindow);
-  imageFilter->SetMagnification(1);
+  imageFilter->SetScale(1);
   imageFilter->Update();
 
   auto vtkImageData = imageFilter->GetOutput();
@@ -273,7 +273,7 @@ void RenderView::takeSnapshot()
 
       auto image = vtkSmartPointer<vtkWindowToImageFilter>::New();
       image->SetInput(renderwindow);
-      image->SetMagnification(outputMagnification);
+      image->SetScale(outputMagnification);
       image->Update();
 
       renderwindow->SetOffScreenRendering(offScreenRender);

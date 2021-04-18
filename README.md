@@ -14,7 +14,7 @@ EspINA relies in several external libraries, namely:
 - VTK
 - ITK
 - Boost
-- Qt4
+- Qt5
 - Metadona (optional)
 
 ## Compilation dependencies

@@ -57,12 +57,12 @@ namespace ESPINA
   QWidget* DoubleSpinBoxAction::createWidget(QWidget* parent)
   {
     QWidget*     widget = new QWidget(parent);
-    QHBoxLayout* layout = new QHBoxLayout();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
 
     widget->setLayout(layout);
 
-    m_label   = new QLabel(m_text);
-    m_spinBox = new QDoubleSpinBox();
+    m_label   = new QLabel(m_text, widget);
+    m_spinBox = new QDoubleSpinBox(widget);
 
     m_spinBox->setValue(m_value);
     m_spinBox->setMinimum(m_minimumValue);

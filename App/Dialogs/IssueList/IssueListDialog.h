@@ -72,19 +72,20 @@ namespace ESPINA
        */
       virtual bool operator<(const QTableWidgetItem & other) const override
       {
-        auto ownData = this->data(Qt::DisplayRole).toString();
-        auto otherData = other.data(Qt::DisplayRole).toString();
+        auto rData = this->data(Qt::DisplayRole).toString();
+        auto lData = other.data(Qt::DisplayRole).toString();
 
-        if(ownData.length() < otherData.length())
-          return true;
+        if(rData.length() < lData.length()) return true;
 
-        auto ownStrings = ownData.split(" ");
-        auto otherStrings = otherData.split(" ");
+        if(rData == lData)
+        {
+          auto rString = rData.split(" ");
+          auto lString = lData.split(" ");
 
-        if(ownStrings[1].toInt() < otherStrings[1].toInt())
-          return true;
+          if(rString[1].toInt() < lString[1].toInt()) return true;
+        }
 
-        return false;
+        return rData < lData;
       }
   };
 

@@ -57,13 +57,13 @@ namespace ESPINA
   QWidget* SpinBoxAction::createWidget(QWidget* parent)
   {
     QWidget*     widget = new QWidget(parent);
-    QHBoxLayout* layout = new QHBoxLayout();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
 
     widget->setLayout(layout);
     layout->setMargin(0);
 
-    m_label   = new QLabel(m_text);
-    m_spinBox = new QSpinBox();
+    m_label   = new QLabel(m_text, widget);
+    m_spinBox = new QSpinBox(widget);
 
     // only catching one of them will suffice
     connect(m_spinBox, SIGNAL(destroyed(QObject*)), this, SLOT(destroySignalEmmited()));

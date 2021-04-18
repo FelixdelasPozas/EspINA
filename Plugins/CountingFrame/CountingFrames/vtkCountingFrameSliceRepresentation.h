@@ -223,7 +223,7 @@ class CountingFramePlugin_EXPORT vtkCountingFrameSliceRepresentation
      * \param[in] pos Z coordinate in Nm.
      *
      */
-    int sliceNumber(ESPINA::Nm pos) const;
+    const int sliceNumber(ESPINA::Nm pos) const;
 
     /** \brief Creates the face representation.
      *

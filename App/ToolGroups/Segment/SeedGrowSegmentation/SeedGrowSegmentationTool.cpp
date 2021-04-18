@@ -49,6 +49,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QThread>
+#include <QPushButton>
 
 #include "GUI/Model/ViewItemAdapter.h"
 using namespace ESPINA;
@@ -262,8 +263,7 @@ void SeedGrowSegmentationTool::initBestPixelWidgets()
 
   m_colorSelector->setVisible(enabled);
   m_colorSelector->setToolTip(tr("Seed color."));
-
-  Styles::setBarStyle(m_colorSelector);
+  m_colorSelector->setFixedHeight(20);
 
   connect(m_colorSelector, SIGNAL(newValue(int)),
           this,            SLOT(onNewPixelValue(int)));
@@ -317,13 +317,13 @@ void SeedGrowSegmentationTool::onRadiusValueChanged(int value)
 void SeedGrowSegmentationTool::launchTask(Selector::Selection selectedItems)
 {
   // check if any selection is a channel, and then select the primary one.
-  auto isValidChannelOp = [](const Selector::SelectionItem &item) { return item.first && item.second && isChannel(item.second) && item.first->numberOfVoxels() == 1; };
+  auto isValidChannelOp = [](const Selector::SelectionItem &item) { return item.first && item.second && isChannel(item.second) && (item.first->numberOfVoxels() == 1); };
   auto it = std::find_if(selectedItems.constBegin(), selectedItems.constEnd(), isValidChannelOp);
   if(it == selectedItems.constEnd()) return;
 
-  auto element   = (*it);
+  auto element   = *it;
   auto seedPoint = centroid(element.first->bounds());
-  auto channel   = inputChannel();
+  auto channel   = inputChannel(); // get primary channel despite the selected one.
 
   if (!channel) return;
 
@@ -561,7 +561,7 @@ void SeedGrowSegmentationTool::updateCurrentCategoryROIValues(bool applyCategory
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::useBestPixelSelector(bool value)
 {
-  m_colorLabel->setVisible(false);
+  m_colorLabel->setVisible(value);
   m_colorSelector->setVisible(value);
 
   if(value)

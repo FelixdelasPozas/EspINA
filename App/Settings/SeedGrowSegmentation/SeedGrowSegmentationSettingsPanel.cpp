@@ -46,7 +46,7 @@ SeedGrowSegmentationsSettingsPanel::SeedGrowSegmentationsSettingsPanel(SeedGrowS
 
   m_pixelSelector->setFixedHeight(24);
 
-  m_colorFrame->setLayout(new QHBoxLayout());
+  m_colorFrame->setLayout(new QHBoxLayout(m_colorFrame));
   m_colorFrame->layout()->setMargin(0);
   m_colorFrame->layout()->addWidget(m_pixelSelector);
 

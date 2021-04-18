@@ -90,14 +90,14 @@ namespace ESPINA
         {
           returnValue = QApplication::notify(receiver, e);
         }
-        catch(ESPINA::Core::Utils::EspinaException &e)
+        catch(const ESPINA::Core::Utils::EspinaException &e)
         {
           std::cout << "ESPINA EXCEPTION IN SLOT/SIGNAL" << std::endl;
           std::cout << e.what() << std::endl;
           std::cout << e.details() << std::endl;
           std::cout << std::flush;
         }
-        catch(std::exception& e)
+        catch(const std::exception& e)
         {
           std::cout << "C++ EXCEPTION IN SLOT/SIGNAL" << std::endl;
           std::cout << e.what() << std::endl;

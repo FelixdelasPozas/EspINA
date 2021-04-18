@@ -18,11 +18,11 @@
  */
 
 #include "SASReport.h"
-#include "AppositionSurfacePlugin.h"
 #include "GUI/Analysis/SASReportDialog.h"
 
 #include <Core/Analysis/Segmentation.h>
 #include <Undo/AddCategoryCommand.h>
+#include "Plugin.h"
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;

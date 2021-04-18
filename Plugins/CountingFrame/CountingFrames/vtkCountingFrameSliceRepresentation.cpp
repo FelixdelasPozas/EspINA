@@ -252,7 +252,7 @@ void vtkCountingFrameSliceRepresentation::regionBounds(int regionSlice,
 }
 
 //----------------------------------------------------------------------------
-int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
+const int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
 {
   double point[3];
   for (int number = 0; number < NumSlices; number++)
@@ -261,7 +261,7 @@ int vtkCountingFrameSliceRepresentation::sliceNumber(ESPINA::Nm pos) const
 
     if (pos <= point[2])
     {
-      return (NumSlices == 2 || number == 0)?number : number - 1;
+      return (NumSlices == 2 || number == 0) ? number : number - 1;
     }
   }
 

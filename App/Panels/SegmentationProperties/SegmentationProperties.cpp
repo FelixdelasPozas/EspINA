@@ -453,11 +453,11 @@ void SegmentationProperties::showConnections()
       return numLeft < numRight;
     };
 
-    std::sort(names.constBegin(), names.constEnd(), pairLessThan);
+    std::sort(names.begin(), names.end(), pairLessThan);
 
     auto insertOp = [&layout, this](const std::pair<QString, QString> &pair)
     {
-      auto label = new QLabel{pair.second};
+      auto label = new QLabel{pair.second, this};
       label->setTextInteractionFlags(Qt::LinksAccessibleByMouse);
       label->setOpenExternalLinks(false);
       label->setTextFormat(Qt::RichText);

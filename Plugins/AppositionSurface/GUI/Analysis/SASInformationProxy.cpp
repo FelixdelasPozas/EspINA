@@ -22,13 +22,13 @@
 #include "SASInformationProxy.h"
 
 #include "Core/Extensions/AppositionSurfaceExtension.h"
-#include <AppositionSurfacePlugin.h>
 #include <Core/Analysis/Extensions.h>
 #include <GUI/Model/Proxies/InformationProxy.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 
 // Qt
 #include <QString>
+#include "../../Plugin.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -161,13 +161,13 @@ QVariant SASInformationProxy::data(const QModelIndex& proxyIndex, int role) cons
 
     if(!m_pendingInformation.contains(segmentation) || !m_pendingInformation[segmentation]->hasFinished())
     {
-      return role == Qt::ForegroundRole ? Qt::black : Qt::lightGray;
+      return role == Qt::ForegroundRole ? QVariant::fromValue(Qt::black) : QVariant::fromValue(Qt::lightGray);
     }
 
     auto info = data(proxyIndex, Qt::DisplayRole);
     if(info.canConvert(QVariant::String) && (info.toString().contains("Fail", Qt::CaseInsensitive) || info.toString().contains("Error", Qt::CaseInsensitive)))
     {
-      return role == Qt::ForegroundRole ? Qt::white : Qt::red;
+      return role == Qt::ForegroundRole ? QVariant::fromValue(Qt::white) : QVariant::fromValue(Qt::red);
     }
 
     return QAbstractProxyModel::data(proxyIndex, role);

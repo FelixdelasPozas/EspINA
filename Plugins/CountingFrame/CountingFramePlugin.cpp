@@ -46,6 +46,7 @@ void CountingFramePlugin::init(Support::Context &context)
   m_undoStack   = context.undoStack();
 
   m_manager->setContext(context);
+  m_manager->setExtensionFactory(m_segmentationExtensionFactory);
 
   m_dockWidget            = new Panel(m_manager.get(), context, DefaultDialogs::defaultParentWidget());
   m_colorEngine           = std::make_shared<CF::ColorEngine>();
@@ -158,6 +159,14 @@ void CountingFramePlugin::onAnalysisClosed()
 //------------------------------------------------------------------------
 void CountingFramePlugin::init(SchedulerSPtr scheduler)
 {
+  if(m_channelExtensionFactory == nullptr)
+  {
+    auto message = tr("Counting frame plugin not initialized.");
+    auto details = tr("CFPlugin::init() -> ") + message;
+
+    throw EspinaException(message, details);
+  }
+
   std::dynamic_pointer_cast<CFStackExtensionFactory>(m_channelExtensionFactory)->setScheduler(scheduler);
 }
 

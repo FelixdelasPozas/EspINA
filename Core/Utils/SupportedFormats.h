@@ -40,7 +40,8 @@ namespace ESPINA
           /** \brief SupportedFormats class constructor.
            *
            */
-          SupportedFormats();
+          SupportedFormats()
+          {};
 
           /** \brief SupportedFormats class constructor.
            * \param[in] name file filter name.

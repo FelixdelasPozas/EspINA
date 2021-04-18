@@ -144,6 +144,7 @@ void AdaptiveEdgesCreator::computeEdges()
     // Then, we keep last non-black pixel as the other side of the line
     auto nonBlackPixels = vtkSmartPointer<vtkPoints>::New();
     nonBlackPixels->SetDataTypeToDouble();
+
     for (auto y = yMin; y <= yMax; y++)
     {
       auto nonBlackPixelDetected = false;
@@ -385,6 +386,7 @@ void AdaptiveEdgesCreator::computeFaces()
     auto faceCells = vtkCellArray::New();
     auto facePoints = vtkPoints::New();
     facePoints->SetDataTypeToDouble();
+
     if (face < 4)
     {
       for (int i = 0; i < numSlices; i++)

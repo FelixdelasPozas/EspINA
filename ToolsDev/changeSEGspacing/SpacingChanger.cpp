@@ -316,7 +316,7 @@ void SpacingChanger::processXML(QByteArray& data)
 {
   QByteArray tokenBegin = "Spacing=";
   QByteArray tokenEnd   = ";";
-  QByteArray replacement = QString("%1,%2,%3").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value()).remove(' ').toAscii();
+  QByteArray replacement = QString("%1,%2,%3").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value()).remove(' ').toLatin1();
   NmVector3 spacing;
 
   int begin = 0;
@@ -333,8 +333,8 @@ void SpacingChanger::processXML(QByteArray& data)
         spacing = parseSpacing(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length()));
         writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromAscii(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
-                                               .arg(QString::fromAscii(replacement)));
+        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
+                                               .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+tokenBegin.length(), end-begin-tokenBegin.length());
         data.insert(begin+tokenBegin.length(), replacement);
@@ -367,8 +367,8 @@ void SpacingChanger::processXML(QByteArray& data)
         spacing = parseSpacing(data.mid(begin+10, end-begin-10));
         writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromAscii(data.mid(begin+10, end-begin-10)))
-                                               .arg(QString::fromAscii(replacement)));
+        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+10, end-begin-10)))
+                                               .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+10, end-begin-10);
         data.insert(begin+10, replacement);
@@ -384,7 +384,7 @@ void SpacingChanger::processXML(QByteArray& data)
     }
   }
 
-  tokenBegin = QString("bounds=").toAscii();
+  tokenBegin = QString("bounds=").toLatin1();
 
   begin = 0;
   while(begin != -1)
@@ -411,10 +411,10 @@ void SpacingChanger::processXML(QByteArray& data)
         bounds[4] = bounds[4]/spacing[2] * m_zSpacing->value();
         bounds[5] = bounds[5]/spacing[2] * m_zSpacing->value();
 
-        replacement = bounds.toString().remove(' ').remove('{').remove('}').toAscii();
+        replacement = bounds.toString().remove(' ').remove('{').remove('}').toLatin1();
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromAscii(data.mid(begin+9, end-begin-9)))
-                                               .arg(QString::fromAscii(replacement)));
+        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+9, end-begin-9)))
+                                               .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+9, end-begin-9);
         data.insert(begin+9, replacement);
@@ -431,7 +431,7 @@ void SpacingChanger::processXML(QByteArray& data)
   }
 
   // Counting frame
-  tokenBegin = QString("<Extension Type=\"CountingFrame\"").toAscii();
+  tokenBegin = QString("<Extension Type=\"CountingFrame\"").toLatin1();
 
   begin = 0;
   while(begin != -1)
@@ -440,8 +440,8 @@ void SpacingChanger::processXML(QByteArray& data)
 
     if(begin != -1)
     {
-      tokenBegin = QString("<State>").toAscii();
-      tokenEnd   = QString("</State>").toAscii();
+      tokenBegin = QString("<State>").toLatin1();
+      tokenEnd   = QString("</State>").toLatin1();
 
       auto cfbegin = data.indexOf(tokenBegin, begin);
       auto cfend = data.indexOf(tokenEnd, begin);
@@ -489,10 +489,10 @@ void SpacingChanger::processXML(QByteArray& data)
                                                              .arg(QString::number(exclusion[2]));
 
 
-          writeInfo(tr("Counting Frame: Replaced '%1' with '%2'").arg(QString::fromAscii(CF))
+          writeInfo(tr("Counting Frame: Replaced '%1' with '%2'").arg(QString::fromLatin1(CF))
                                                      .arg(CFreplacement));
 
-          replacement2.append(CFreplacement.toAscii());
+          replacement2.append(CFreplacement.toLatin1());
           if(CF != CFlist.last()) replacement2.append('\n');
         }
 
@@ -514,7 +514,7 @@ void SpacingChanger::processXML(QByteArray& data)
 //----------------------------------------------------------------------
 void SpacingChanger::processGraph(QByteArray& data)
 {
-  QByteArray replacement = QString("%1,%2,%3").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value()).toAscii();
+  QByteArray replacement = QString("%1,%2,%3").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value()).toLatin1();
   QByteArray tokenBegin = "Spacing=";
   QByteArray tokenEnd   = ";";
   NmVector3 spacing, seed;
@@ -532,8 +532,8 @@ void SpacingChanger::processGraph(QByteArray& data)
       {
         spacing = parseSpacing(data.mid(begin+8, end-begin-8));
         writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromAscii(data.mid(begin+8, end-begin-8)))
-                                               .arg(QString::fromAscii(replacement)));
+        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+8, end-begin-8)))
+                                               .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+8, end-begin-8);
         data.insert(begin+8, replacement);
@@ -569,10 +569,10 @@ void SpacingChanger::processGraph(QByteArray& data)
         seed[1] = seed[1]/spacing[1] * m_ySpacing->value();
         seed[2] = seed[2]/spacing[2] * m_zSpacing->value();
 
-        replacement = QString("%1,%2,%3").arg(seed[0]).arg(seed[1]).arg(seed[2]).toAscii();
+        replacement = QString("%1,%2,%3").arg(seed[0]).arg(seed[1]).arg(seed[2]).toLatin1();
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromAscii(data.mid(begin+5, end-begin-5)))
-                                               .arg(QString::fromAscii(replacement)));
+        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+5, end-begin-5)))
+                                               .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+8, end-begin-8);
         data.insert(begin+8, replacement);
@@ -586,7 +586,7 @@ void SpacingChanger::processGraph(QByteArray& data)
 //----------------------------------------------------------------------
 void SpacingChanger::processMHD(QByteArray &data)
 {
-  QByteArray replacement = QString("%1 %2 %3").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value()).toAscii();
+  QByteArray replacement = QString("%1 %2 %3").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value()).toLatin1();
   QByteArray tokenBegin = "Spacing = ";
   NmVector3 spacing;
 
@@ -603,8 +603,8 @@ void SpacingChanger::processMHD(QByteArray &data)
       {
         spacing = parseSpacing(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length()), ' ');
         writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromAscii(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
-                                               .arg(QString::fromAscii(replacement)));
+        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
+                                               .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+tokenBegin.length(), end-begin-tokenBegin.length());
         data.insert(begin+tokenBegin.length(), replacement);
@@ -634,10 +634,10 @@ void SpacingChanger::processMHD(QByteArray &data)
         offset[1] = offset[1]/spacing[1] * m_ySpacing->value();
         offset[2] = offset[2]/spacing[2] * m_zSpacing->value();
 
-        replacement = QString("%1 %2 %3").arg(offset[0]).arg(offset[1]).arg(offset[2]).toAscii();
+        replacement = QString("%1 %2 %3").arg(offset[0]).arg(offset[1]).arg(offset[2]).toLatin1();
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromAscii(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
-                                               .arg(QString::fromAscii(replacement)));
+        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
+                                               .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+tokenBegin.length(), end-begin-tokenBegin.length());
         data.insert(begin+tokenBegin.length(), replacement);
@@ -689,7 +689,7 @@ void SpacingChanger::purgeInfo(QByteArray& data)
 
       if(invalidate != -1 && ((invalidate < extEnd) || (extEnd == -1)))
       {
-        writeInfo(tr("Purging info of extension '%1'.").arg(QString::fromAscii(data.mid(begin+1, invalidate-begin-2))));
+        writeInfo(tr("Purging info of extension '%1'.").arg(QString::fromLatin1(data.mid(begin+1, invalidate-begin-2))));
         QByteArray infoBegin{"<Info Name="};
         QByteArray infoEnd{"Info>"};
 
@@ -700,7 +700,7 @@ void SpacingChanger::purgeInfo(QByteArray& data)
 
           if(iEnd != -1)
           {
-            writeInfo(tr("Purged: %1").arg(QString::fromAscii(data.mid(iBegin, iEnd+infoEnd.length()-iBegin))));
+            writeInfo(tr("Purged: %1").arg(QString::fromLatin1(data.mid(iBegin, iEnd+infoEnd.length()-iBegin))));
             data.remove(iBegin, iEnd+infoEnd.length()-iBegin);
             extEnd = data.indexOf(extBegin, begin+1);
           }
@@ -788,7 +788,7 @@ ESPINA::Bounds SpacingChanger::parseBounds(const QByteArray& data)
 
     result.setUpperInclusion(toAxis(i), (data[end]==']'));
 
-    auto parts = QString::fromAscii(data.mid(begin+1, end-begin-1)).split(',');
+    auto parts = QString::fromLatin1(data.mid(begin+1, end-begin-1)).split(',');
 
     result[2*i] = parts[0].toDouble();
     result[(2*i)+1] = parts[1].toDouble();
@@ -801,7 +801,7 @@ ESPINA::Bounds SpacingChanger::parseBounds(const QByteArray& data)
 //----------------------------------------------------------------------
 ESPINA::NmVector3 SpacingChanger::parseSpacing(const QByteArray& data, const QChar separator)
 {
-  auto numbers = QString::fromAscii(data).split(separator);
+  auto numbers = QString::fromLatin1(data).split(separator);
   if(numbers.size() != 3)
   {
     writeError("Error parsing spacing, numbers != 3.");
@@ -911,7 +911,7 @@ void SpacingChanger::processStencil(QByteArray &data)
 
     auto replacement = tr("%1 %2 %3").arg(m_xSpacing->value()).arg(m_ySpacing->value()).arg(m_zSpacing->value());
     data.remove(begin+spacingToken.length(), end-begin-spacingToken.length());
-    data.insert(begin+spacingToken.length(), replacement.toAscii());
+    data.insert(begin+spacingToken.length(), replacement.toLatin1());
 
     writeInfo(tr("Replaced spacing '%1' with '%2'.").arg(spacing.toString()).arg(replacement));
   }
@@ -932,7 +932,7 @@ void SpacingChanger::processStencil(QByteArray &data)
     auto replacement = tr("%1 %2 %3").arg(point[0]).arg(point[1]).arg(point[2]);
 
     data.remove(begin+spacingToken.length(), end-begin-spacingToken.length());
-    data.insert(begin+spacingToken.length(), replacement.toAscii());
+    data.insert(begin+spacingToken.length(), replacement.toLatin1());
 
     writeInfo(tr("Replaced origin '%1' with '%2'.").arg(origin.toString()).arg(replacement));
   }

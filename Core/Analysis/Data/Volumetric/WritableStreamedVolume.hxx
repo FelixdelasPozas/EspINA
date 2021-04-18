@@ -191,13 +191,12 @@ namespace ESPINA
 
       if(fileName.exists())
       {
-        const QString utfFilename = fileName.absoluteFilePath().toUtf8();
-        const QString asciiFilename = utfFilename.toAscii();
+        const auto shortName = getShortFileName(fileName.absoluteFilePath());
 
         // discards region, spacing and length parameters
         auto reader = itk::ImageFileReader<T>::New();
         reader->ReleaseDataFlagOn();
-        reader->SetFileName(asciiFilename.toStdString());
+        reader->SetFileName(shortName);
         reader->SetNumberOfThreads(1);
         reader->UpdateOutputInformation();
 
@@ -272,11 +271,10 @@ namespace ESPINA
         image->Allocate();
         image->Update();
 
-        const QString utfFilename = fileName.absoluteFilePath().toUtf8();
-        const QString asciiFilename = utfFilename.toAscii();
+        const QString lFilename = fileName.absoluteFilePath().toLatin1();
 
         auto writer = itk::ImageFileWriter<T>::New();
-        writer->SetFileName(asciiFilename.toStdString());
+        writer->SetFileName(lFilename.toStdString());
         writer->SetInput(image);
         writer->SetImageIO(itk::MetaImageIO::New());
         writer->Update();
@@ -341,16 +339,14 @@ namespace ESPINA
           throw Core::Utils::EspinaException(message, details);
         }
 
-        dataFile.flush();
-        dataFile.close();
-
-        if(dataFile.error() != QFile::NoError)
+        if(!dataFile.flush() || dataFile.error() != QFile::NoError)
         {
           auto message = QObject::tr("Couldn't close data file: %1, error: %2").arg(dataFile.fileName()).arg(dataFile.errorString());
           auto details = QObject::tr("WritableStreamedFileBase::constructor() -> ") + message;
 
           throw Core::Utils::EspinaException(message, details);
         }
+        dataFile.close();
       }
     }
 

@@ -111,7 +111,6 @@ RepresentationPipeline::ActorList SegmentationSmoothedMeshPipeline::createActors
 
     auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     mapper->ReleaseDataFlagOn();
-    mapper->ImmediateModeRenderingOff();
     mapper->ScalarVisibilityOff();
     mapper->SetInputConnection(normals->GetOutputPort());
     mapper->Update();

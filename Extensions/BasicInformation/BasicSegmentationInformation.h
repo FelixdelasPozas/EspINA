@@ -49,7 +49,7 @@ namespace ESPINA
         {};
 
         virtual Type type() const
-        { return TYPE; }
+        { return BasicSegmentationInformationExtension::TYPE; }
 
         virtual bool invalidateOnChange() const
         { return true; }

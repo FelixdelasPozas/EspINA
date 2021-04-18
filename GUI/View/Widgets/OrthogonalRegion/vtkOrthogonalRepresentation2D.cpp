@@ -315,6 +315,7 @@ void vtkOrthogonalRepresentation2D::UpdateXYFace()
   Vertex->SetPoint(1, LT);
   Vertex->SetPoint(2, RT);
   Vertex->SetPoint(3, RB);
+  Vertex->Modified();
 
   for(int i = 0; i < 4; ++i)
   {
@@ -343,6 +344,7 @@ void vtkOrthogonalRepresentation2D::UpdateYZFace()
   Vertex->SetPoint(1, LT);
   Vertex->SetPoint(2, RT);
   Vertex->SetPoint(3, RB);
+  Vertex->Modified();
 
   for(int i = 0; i < 4; ++i)
   {
@@ -371,6 +373,7 @@ void vtkOrthogonalRepresentation2D::UpdateXZFace()
   Vertex->SetPoint(1, LT);
   Vertex->SetPoint(2, RT);
   Vertex->SetPoint(3, RB);
+  Vertex->Modified();
 
   for(int i = 0; i < 4; ++i)
   {
@@ -460,6 +463,7 @@ void vtkOrthogonalRepresentation2D::PlaceWidget(double bds[6])
   Vertex->SetPoint(1, bounds[1], bounds[2], bounds[4]);
   Vertex->SetPoint(2, bounds[1], bounds[3], bounds[4]);
   Vertex->SetPoint(3, bounds[0], bounds[3], bounds[4]);
+  Vertex->Modified();
 
   for (int i=0; i<6; i++)
   {

@@ -46,10 +46,10 @@ SASReportDialog::SASReportDialog(SegmentationAdapterList segmentations,
   auto report = new SASTabularReport(context, this);
   report->setFilter(segmentations);
 
-  setLayout(new QVBoxLayout());
+  setLayout(new QVBoxLayout(this));
   layout()->addWidget(report);
 
-  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok, this);
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(accept()));
   layout()->addWidget(acceptButton);

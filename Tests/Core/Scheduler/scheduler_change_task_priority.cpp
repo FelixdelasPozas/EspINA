@@ -34,8 +34,6 @@
 #include <memory>
 #include <unistd.h>
 
-#include <QThreadPool>
- 
 using namespace ESPINA;
 using namespace std;
 

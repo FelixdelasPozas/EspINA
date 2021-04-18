@@ -32,6 +32,7 @@ PixelValueSelector::PixelValueSelector(QWidget *parent)
 , m_value {0}
 , m_pixmap{nullptr}
 {
+  setMinimumWidth(100);
 }
 
 //------------------------------------------------------------------------

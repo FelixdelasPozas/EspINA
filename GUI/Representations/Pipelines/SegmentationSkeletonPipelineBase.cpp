@@ -35,6 +35,7 @@
 #include <vtkPoints.h>
 #include <vtkCellArray.h>
 #include <vtkIntArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkDataArray.h>
 #include <vtkLine.h>
 #include <vtkMath.h>
@@ -46,6 +47,9 @@
 #include <vtkLabelPlacementMapper.h>
 #include <vtkFollower.h>
 #include <vtkGlyph3DMapper.h>
+#include <vtkImageData.h>
+#include <vtkPointData.h>
+#include <vtkTexture.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;
@@ -117,8 +121,9 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
 
       if (colors)
       {
+        const auto limit = data->GetNumberOfLines();
         data->GetLines()->InitTraversal();
-        for (int i = 0; i < data->GetNumberOfLines(); ++i)
+        for (int i = 0; i < limit; ++i)
         {
           double rgba[4];
 
@@ -129,7 +134,7 @@ void SegmentationSkeletonPipelineBase::updateColors(RepresentationPipeline::Acto
           else
           {
             unsigned char values[3];
-            colors->GetTupleValue(i, values);
+            colors->GetTypedTuple(i, values);
 
             auto custom = QColor::fromRgb(values[0], values[1], values[2]);
             s_highlighter.lut(custom, item->isSelected())->GetTableValue(1, rgba);
@@ -236,4 +241,61 @@ RepresentationState SegmentationSkeletonPipelineBase::representationState(ConstV
   }
 
   return state;
+}
+
+//--------------------------------------------------------------------
+void ESPINA::GUI::Representations::SegmentationSkeletonPipelineBase::stippledLine(vtkSmartPointer<vtkActor>& actor, int pattern, int repeat)
+{
+  // Create image texture
+  int dimension = 128 * repeat;
+  const unsigned char ON = 255;
+  const unsigned char OFF = 0;
+
+  auto image = vtkSmartPointer<vtkImageData>::New();
+  image->SetDimensions(dimension, 1, 1);
+  image->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
+  image->SetExtent(0, dimension - 1, 0, 0, 0, 0);
+  auto pixel = static_cast<unsigned char *>(image->GetScalarPointer());
+  for(int k = 0; k < 8; ++k)
+  {
+    for (int i = 0; i < 16; ++i)
+    {
+      unsigned int mask = (1 << i);
+      unsigned int bit = (pattern & mask) >> i;
+      unsigned char value = static_cast<unsigned char>(bit);
+
+      for (int j = 0; j < repeat; ++j)
+      {
+        *(pixel+0) = ON;
+        *(pixel+1) = ON;
+        *(pixel+2) = ON;
+        *(pixel+3) = (value == 0 ? OFF : ON);
+        pixel += 4;
+      }
+    }
+  }
+
+  auto polyData = vtkPolyData::SafeDownCast(actor->GetMapper()->GetInput());
+
+  // Create texture coordinates
+  auto tcoords = vtkSmartPointer<vtkDoubleArray>::New();
+  tcoords->SetNumberOfComponents(1);
+  const auto numPoints = polyData->GetNumberOfPoints();
+
+  tcoords->SetNumberOfTuples(numPoints);
+  for (int i = 0; i < numPoints; ++i)
+  {
+    double value = std::fmod(static_cast<double>(i) * .5, 128.*repeat);
+    tcoords->SetTypedTuple(i, &value);
+  }
+
+  polyData->GetPointData()->SetTCoords(tcoords);
+
+  auto texture = vtkSmartPointer<vtkTexture>::New();
+  texture->SetInputData(image);
+  texture->InterpolateOff();
+  texture->RepeatOn();
+  texture->Modified();
+
+  actor->SetTexture(texture);
 }

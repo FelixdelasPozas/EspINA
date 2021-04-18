@@ -70,7 +70,7 @@ namespace ESPINA
           else
           {
             auto what    = QObject::tr("Unknown item type.");
-            auto details = QObject::tr("GraphIO::type() -> Unknown item type in graph file, item name: %1, uuid: %2").arg(item->name()).arg(item->uuid());
+            auto details = QObject::tr("GraphIO::type() -> Unknown item type in graph file, item name: %1, uuid: %2").arg(item->name()).arg(item->uuid().toString());
             throw EspinaException(what, details);
           }
         }
@@ -143,6 +143,7 @@ namespace ESPINA
 
     in.getline(buff, MAX);
     State state(buff);
+    state = state.toLatin1();
 
     v = PersistentSPtr{new ReadOnlyVertex(vertexType(vType), uuid.toInt())};
     v->setName(name);

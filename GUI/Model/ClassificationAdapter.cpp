@@ -21,6 +21,7 @@
 // ESPINA
 #include "ClassificationAdapter.h"
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/QStringUtils.h>
 
 // Qt
 #include <QDebug>
@@ -168,7 +169,7 @@ CategoryAdapterSPtr ClassificationAdapter::createCategory(const QString& relativ
 //------------------------------------------------------------------------
 void ClassificationAdapter::setName(const QString& name)
 {
-  m_classification->setName(name);
+  m_classification->setName(Core::Utils::simplifyString(name));
 }
 
 //------------------------------------------------------------------------

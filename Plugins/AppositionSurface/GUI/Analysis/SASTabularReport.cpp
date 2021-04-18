@@ -21,9 +21,6 @@
 // Plugin
 #include "SASInformationProxy.h"
 #include "SASTabularReport.h"
-#include <AppositionSurfacePlugin.h>
-
-// ESPINA
 #include <Core/Utils/EspinaException.h>
 #include <GUI/Model/Utils/SegmentationUtils.h>
 #include <GUI/Widgets/InformationSelector.h>
@@ -34,6 +31,7 @@
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
+#include "../../Plugin.h"
 
 using namespace ESPINA;
 using namespace ESPINA::Core;

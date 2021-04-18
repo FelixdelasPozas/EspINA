@@ -25,6 +25,7 @@
 #include <Core/Utils/Vector3.hxx>
 #include <Core/Analysis/Category.h>
 #include <Core/Utils/ListUtils.hxx>
+#include <Core/Utils/QStringUtils.h>
 #include <GUI/Model/ModelAdapter.h>
 #include <GUI/ColorEngines/IntensitySelectionHighlighter.h>
 #include <GUI/Dialogs/DefaultDialogs.h>
@@ -240,7 +241,7 @@ void ClassificationLayout::contextMenu(const QPoint &pos)
   {
     if (!segmentationsSelected)
     {
-      contextMenu = new QMenu();
+      contextMenu = new QMenu(m_view);
     }
 
     auto createNode = createCategoryAction(contextMenu,
@@ -513,7 +514,8 @@ void ClassificationLayout::createCategory()
 
   if(QDialog::Accepted == dialog.exec())
   {
-    auto categoryName = dialog.categoryName();
+    auto categoryName = Core::Utils::simplifyString(dialog.categoryName());
+
     if(categoryName.isEmpty())
     {
       auto title   = tr("Create category");
@@ -572,7 +574,7 @@ void ClassificationLayout::createSubCategory()
 
     if(QDialog::Accepted == dialog.exec())
     {
-      name = uniqueCategoryName(category, dialog.categoryName());
+      name = uniqueCategoryName(category, Core::Utils::simplifyString(dialog.categoryName()));
 
       WaitingCursor cursor;
 
@@ -958,12 +960,12 @@ const QString ClassificationLayout::uniqueCategoryName(const CategoryAdapterPtr 
 //------------------------------------------------------------------------
 void ClassificationLayout::createChangeCategoryMenu(QMenu *menu)
 {
-   auto changeCategoryMenu = new QMenu(tr("C&hange Category"));
+   auto changeCategoryMenu = new QMenu(tr("C&hange Category"), m_view);
    auto categoryListAction = new QWidgetAction(changeCategoryMenu);
 
    auto model = getModel();
 
-   auto classification = new QTreeView();
+   auto classification = new QTreeView(m_view);
    classification->header()->setVisible(false);
    classification->setModel(model.get());
    classification->setRootIndex(model->classificationRoot());

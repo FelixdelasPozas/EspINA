@@ -144,6 +144,7 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
    *                 BOTTOM
    *
    */
+  this->Vertex->Reset();
   this->Vertex->SetNumberOfPoints(numVertex);
   double zeroPoint[3]{0.,0.,0.};
   for(vtkIdType i = 0; i < this->Vertex->GetNumberOfPoints(); ++i) this->Vertex->SetPoint(i, zeroPoint);
@@ -272,6 +273,7 @@ void vtkCountingFrameRepresentationYZ::CreateRegion()
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
   {
     this->EdgePolyData[i]->GetLines()->Modified();
+    this->EdgePolyData[i]->BuildCells();
     this->EdgePolyData[i]->Modified();
     this->EdgeMapper[i]->Update();
     this->EdgeActor[i]->GetProperty()->Modified();

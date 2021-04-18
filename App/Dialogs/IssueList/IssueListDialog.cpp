@@ -89,7 +89,7 @@ IssueListDialog::IssueListDialog(IssueList issuesList)
     ++row;
   }
 
-  m_issueTable->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  m_issueTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   m_issueTable->horizontalHeader()->setStretchLastSection(true);
   m_issueTable->adjustSize();
   m_issueTable->sortByColumn(0, Qt::AscendingOrder);

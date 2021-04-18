@@ -149,11 +149,10 @@ AnalysisSPtr SegmhaReader::read(const QFileInfo&      file,
 
   analysis->setClassification(classification);
 
-  const QString utfFilename = localFile.absoluteFilePath().toUtf8();
-  const QString asciiFilename = utfFilename.toAscii();
+  const auto shortName = getShortFileName(localFile.absoluteFilePath());
 
   // Read the original image, whose pixels are indeed labelmap object ids
-  labelMapReader->SetFileName(utfFilename.toStdString());
+  labelMapReader->SetFileName(shortName);
   labelMapReader->SetUseStreaming(false);
   labelMapReader->SetNumberOfThreads(1);
   labelMapReader->SetImageIO(itk::MetaImageIO::New());

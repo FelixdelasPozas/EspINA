@@ -132,7 +132,7 @@ void InformationSelector::accept()
 }
 
 //----------------------------------------------------------------------------
-void InformationSelector::onItemClicked(QTreeWidgetItem* item, int column)
+void InformationSelector::onItemClicked(QTreeWidgetItem* item, const int column)
 {
   if (m_exclusive)
   {
@@ -161,7 +161,7 @@ void InformationSelector::unselectItems()
 }
 
 //----------------------------------------------------------------------------
-void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bool updateParent)
+void InformationSelector::updateCheckState(QTreeWidgetItem *item, const int column, const bool updateParent)
 {
   if (item->data(column, Qt::UserRole).toInt() != item->checkState(column))
   {
@@ -192,15 +192,16 @@ void InformationSelector::updateCheckState(QTreeWidgetItem *item, int column, bo
 }
 
 //----------------------------------------------------------------------------
-bool validForSegmentations(SegmentationExtensionPtr extension, SegmentationAdapterList segmentations)
+bool validForSegmentations(const SegmentationExtensionPtr extension, const SegmentationAdapterList segmentations)
 {
-  bool result = true;
+  bool result = !segmentations.isEmpty();
 
-  for(auto i = 0; i < segmentations.size() && result; ++i)
+  auto isValid = [&result, &extension](const SegmentationAdapterPtr seg)
   {
-    result &= (extension->validCategory(segmentations.at(i)->category()->classificationName())) &&
-              (extension->validData(segmentations.at(i)->output()));
-  }
+    result &= (extension->validCategory(seg->category()->classificationName())) &&
+              (extension->validData(seg->output()));
+  };
+  std::for_each(segmentations.cbegin(), segmentations.cend(), isValid);
 
   return result;
 }
@@ -210,44 +211,51 @@ InformationSelector::GroupedInfo GUI::availableInformation(ModelFactorySPtr fact
 {
   InformationSelector::GroupedInfo info;
 
-  for (auto type : factory->availableSegmentationExtensions())
+  auto addInformation = [&info, &factory](const Core::SegmentationExtension::Type &t)
   {
-    auto extension = factory->createSegmentationExtension(type);
+    const auto extension = factory->createSegmentationExtension(t);
     for (auto key : extension->availableInformation())
     {
-      info[type] << key.value();
+      info[t] << key.value();
     }
-  }
+  };
+  const auto types = factory->availableSegmentationExtensions();
+  std::for_each(types.cbegin(), types.cend(), addInformation);
 
   return info;
 }
 
 //----------------------------------------------------------------------------
-InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterList segmentations, ModelFactorySPtr factory)
+InformationSelector::GroupedInfo GUI::availableInformation(const SegmentationAdapterList segmentations, ModelFactorySPtr factory)
 {
   InformationSelector::GroupedInfo info;
 
-  for (auto type : factory->availableSegmentationExtensions())
+  const auto types = factory->availableSegmentationExtensions();
+
+  auto addInformation = [&info, &factory, &segmentations](const Core::SegmentationExtension::Type &t)
   {
-    auto extension = factory->createSegmentationExtension(type);
+    auto extension = factory->createSegmentationExtension(t);
 
     if (validForSegmentations(extension.get(), segmentations))
     {
       for (auto key : extension->availableInformation())
       {
-        info[type] << key.value();
+        info[t] << key.value();
       }
     }
-  }
+  };
+  std::for_each(types.cbegin(), types.cend(), addInformation);
 
-  for (auto segmentation : segmentations)
+  auto addSegmentationInformation = [&info, &factory](const SegmentationAdapterPtr seg)
   {
-    auto extensions = segmentation->readOnlyExtensions();
-    for(auto extension: extensions)
+    auto extensions = seg->readOnlyExtensions();
+
+    for(const auto &extension: extensions)
     {
       if(!info.keys().contains(extension->type()))
       {
-        for (auto key : extension->availableInformation())
+        const auto keys =  extension->availableInformation();
+        for (const auto key : keys)
         {
           info[key.extension()] << key;
         }
@@ -255,7 +263,8 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
       else
       {
         // fix for extensions with variable keys like stereological inclusion (variable number of counting frames).
-        for(auto key: extension->availableInformation())
+        const auto keys = extension->availableInformation();
+        for(const auto &key: keys)
         {
           if(!info[key.extension()].contains(key))
           {
@@ -264,12 +273,15 @@ InformationSelector::GroupedInfo GUI::availableInformation(SegmentationAdapterLi
         }
       }
     }
-  }
+  };
+  std::for_each(segmentations.cbegin(), segmentations.cend(), addSegmentationInformation);
 
-  for (auto tag : info.keys())
+  auto removeDuplicates = [&info](const QString &tag)
   {
     info[tag].removeDuplicates();
-  }
+  };
+  const auto keys = info.keys();
+  std::for_each(keys.cbegin(), keys.cend(), removeDuplicates);
 
   return info;
 }

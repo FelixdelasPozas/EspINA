@@ -31,6 +31,11 @@
 #include <GUI/Representations/RepresentationState.h>
 #include <GUI/Types.h>
 
+// VTK
+#include <vtkSmartPointer.h>
+
+class vtkActor;
+
 namespace ESPINA
 {
   namespace GUI
@@ -69,6 +74,14 @@ namespace ESPINA
 
           virtual RepresentationState representationState(ConstViewItemAdapterPtr    item,
                                                           const RepresentationState &settings) override;
+
+          /** \brief Helper to make stippled line actors in the new OpenGL 2 backend as the GetProperty() old methods doesn't work.
+           * \param[in] actor Pointer of actor to modify.
+           * \param[in] pattern Line pattern.
+           * \param[in] repeat Repeat specifies how many times each bit in the pattern is to be repeated.
+           *
+           */
+          static void stippledLine(vtkSmartPointer<vtkActor> &actor, int pattern = 0xF0F0, int repeat = 2);
   
         protected:
           GUI::ColorEngines::ColorEngineSPtr m_colorEngine; /** color engine for skeleton representations. */

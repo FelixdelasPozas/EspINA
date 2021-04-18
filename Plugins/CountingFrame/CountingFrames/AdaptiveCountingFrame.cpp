@@ -41,10 +41,8 @@ using namespace ESPINA::CF;
 //-----------------------------------------------------------------------------
 AdaptiveCountingFrame::AdaptiveCountingFrame(CountingFrameExtension *channelExt,
                                              Nm inclusion[3],
-                                             Nm exclusion[3],
-                                             SchedulerSPtr scheduler,
-                                             Core::SegmentationExtensionFactorySPtr factory)
-: CountingFrame{channelExt, inclusion, exclusion, scheduler, factory}
+                                             Nm exclusion[3])
+: CountingFrame{channelExt, inclusion, exclusion}
 , m_channel    {channelExt->extendedItem()}
 {
   updateCountingFrame();
@@ -100,14 +98,21 @@ void AdaptiveCountingFrame::updateVolumesAndInnerFramePolyData()
   auto regionVertex = vtkSmartPointer<vtkPoints>::New();
   auto faces        = vtkSmartPointer<vtkCellArray>::New();
   auto faceData     = vtkSmartPointer<vtkIntArray>::New();
+  const auto maxPoints = stackEdges->GetNumberOfPoints();
+
+  auto getPoint = [&stackEdges, maxPoints](vtkIdType i, double p[3])
+  {
+    auto idx = std::min(i, maxPoints-1);
+    if(maxPoints != 0) stackEdges->GetPoint(idx, p);
+  };
 
   for (int slice = channelFrontSlice; slice < channelBackSlice; slice++)
   {
     double LB[3], LT[3], RT[3], RB[3];
-    stackEdges->GetPoint(4*slice+0, LB);
-    stackEdges->GetPoint(4*slice+1, LT);
-    stackEdges->GetPoint(4*slice+2, RT);
-    stackEdges->GetPoint(4*slice+3, RB);
+    getPoint(4*slice+0, LB);
+    getPoint(4*slice+1, LT);
+    getPoint(4*slice+2, RT);
+    getPoint(4*slice+3, RB);
 
     Bounds sliceBounds{LT[0], RT[0], LT[1], LB[1], 0, 0};
     m_totalVolume += equivalentVolume(sliceBounds);
@@ -141,25 +146,25 @@ void AdaptiveCountingFrame::updateVolumesAndInnerFramePolyData()
       }
     }
 
-    stackEdges->GetPoint(4*slice+0, LB);
+    getPoint(4*slice+0, LB);
     LB[0] += leftOffset();
     LB[1] -= bottomOffset();
     LB[2] += zOffset;
     cell[0] = regionVertex->InsertNextPoint(LB);
 
-    stackEdges->GetPoint(4*slice+1, LT);
+    getPoint(4*slice+1, LT);
     LT[0] += leftOffset();
     LT[1] += topOffset();
     LT[2] += zOffset;
     cell[1] = regionVertex->InsertNextPoint(LT);
 
-    stackEdges->GetPoint(4*slice+2, RT);
+    getPoint(4*slice+2, RT);
     RT[0] -= rightOffset();
     RT[1] += topOffset();
     RT[2] += zOffset;
     cell[2] = regionVertex->InsertNextPoint(RT);
 
-    stackEdges->GetPoint(4*slice+3, RB);
+    getPoint(4*slice+3, RB);
     RB[0] -= rightOffset();
     RB[1] -= bottomOffset();
     RB[2] += zOffset;
@@ -262,6 +267,13 @@ void AdaptiveCountingFrame::updateCountingFramePolyData()
   double bounds[6];
   auto stackEdges = channelEdgesPolyData();
   stackEdges->GetBounds(bounds);
+  const auto maxPoints = stackEdges->GetNumberOfPoints();
+
+  auto getPoint = [&stackEdges, maxPoints](vtkIdType i, double p[3])
+  {
+    auto idx = std::min(i, maxPoints-1);
+    if(maxPoints != 0) stackEdges->GetPoint(idx, p);
+  };
 
   int channelFrontSlice = (bounds[4] + spacing[2]/2) / spacing[2];
   int channelBackSlice  = (bounds[5] + spacing[2]/2) / spacing[2];
@@ -309,10 +321,10 @@ void AdaptiveCountingFrame::updateCountingFramePolyData()
       }
     }
 
-    stackEdges->GetPoint(4*slice+0, LB);
-    stackEdges->GetPoint(4*slice+1, LT);
-    stackEdges->GetPoint(4*slice+2, RT);
-    stackEdges->GetPoint(4*slice+3, RB);
+    getPoint(4*slice+0, LB);
+    getPoint(4*slice+1, LT);
+    getPoint(4*slice+2, RT);
+    getPoint(4*slice+3, RB);
 
     if(slice == backSlice)
     {
@@ -365,18 +377,18 @@ void AdaptiveCountingFrame::updateCountingFramePolyData()
 
         // right face extension to the front
         double EP1[3], EP2[3], EP3[3], EP4[4];
-        stackEdges->GetPoint(4*slice+2, EP1);
+        getPoint(4*slice+2, EP1);
         EP1[0] -= rightOffset();
         EP1[2] = edgesBounds[4];
-        stackEdges->GetPoint(4*slice+3, EP2);
+        getPoint(4*slice+3, EP2);
         EP2[0] -= rightOffset();
         EP2[1] -= bottomOffset();
         EP2[2] = edgesBounds[4];
-        stackEdges->GetPoint(4*slice+3, EP3);
+        getPoint(4*slice+3, EP3);
         EP3[0] -= rightOffset();
         EP3[1] -= bottomOffset();
         EP3[2] += zOffset;
-        stackEdges->GetPoint(4*slice+2, EP4);
+        getPoint(4*slice+2, EP4);
         EP4[0] -= rightOffset();
         EP4[2] += zOffset;
 
@@ -389,17 +401,17 @@ void AdaptiveCountingFrame::updateCountingFramePolyData()
         faceData->InsertNextValue(EXCLUSION_FACE);
 
         // bottom face extension to the front.
-        stackEdges->GetPoint(4*slice+3, EP1);
+        getPoint(4*slice+3, EP1);
         EP1[0] -= rightOffset();
         EP1[1] -= bottomOffset();
         EP1[2] = edgesBounds[4];
-        stackEdges->GetPoint(4*slice+0, EP2);
+        getPoint(4*slice+0, EP2);
         EP2[1] -= bottomOffset();
         EP2[2] = edgesBounds[4];
-        stackEdges->GetPoint(4*slice+0, EP3);
+        getPoint(4*slice+0, EP3);
         EP3[1] -= bottomOffset();
         EP3[2] += zOffset;
-        stackEdges->GetPoint(4*slice+3, EP4);
+        getPoint(4*slice+3, EP4);
         EP4[0] -= rightOffset();
         EP4[1] -= bottomOffset();
         EP4[2] += zOffset;
@@ -440,15 +452,15 @@ void AdaptiveCountingFrame::updateCountingFramePolyData()
 
         // Right Exclusion Face
         double EP1[3], EP2[3], EP3[3], EP4[3];
-        stackEdges->GetPoint(4*(slice-1)+2, EP1);
+        getPoint(4*(slice-1)+2, EP1);
         EP1[0] -= rightOffset();
-        stackEdges->GetPoint(4*(slice-1)+3, EP2);
+        getPoint(4*(slice-1)+3, EP2);
         EP2[0] -= rightOffset();
         EP2[1] -= bottomOffset();
-        stackEdges->GetPoint(4*slice+3,     EP3);
+        getPoint(4*slice+3,     EP3);
         EP3[0] -= rightOffset();
         EP3[1] -= bottomOffset();
-        stackEdges->GetPoint(4*slice+2,     EP4);
+        getPoint(4*slice+2,     EP4);
         EP4[0] -= rightOffset();
 
         vtkIdType right[4];
@@ -460,14 +472,14 @@ void AdaptiveCountingFrame::updateCountingFramePolyData()
         faceData->InsertNextValue(EXCLUSION_FACE);
 
         // Bottom Exclusion Face
-        stackEdges->GetPoint(4*(slice-1)+3, EP1);
+        getPoint(4*(slice-1)+3, EP1);
         EP1[0] -= rightOffset();
         EP1[1] -= bottomOffset();
-        stackEdges->GetPoint(4*(slice-1)+0, EP2);
+        getPoint(4*(slice-1)+0, EP2);
         EP2[1] -= bottomOffset();
-        stackEdges->GetPoint(4*slice+0,     EP3);
+        getPoint(4*slice+0,     EP3);
         EP3[1] -= bottomOffset();
-        stackEdges->GetPoint(4*slice+3,     EP4);
+        getPoint(4*slice+3,     EP4);
         EP4[0] -= rightOffset();
         EP4[1] -= bottomOffset();
 

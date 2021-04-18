@@ -42,15 +42,12 @@ using namespace ESPINA::CF;
 //-----------------------------------------------------------------------------
 CountingFrame::CountingFrame(CountingFrameExtension                *extension,
                              Nm                                     inclusion[3],
-                             Nm                                     exclusion[3],
-                             SchedulerSPtr                          scheduler,
-                             Core::SegmentationExtensionFactorySPtr factory)
+                             Nm                                     exclusion[3])
 : INCLUSION_FACE   {255}
 , EXCLUSION_FACE   {0}
-, m_scheduler      {scheduler}
-, m_factory        {factory}
 , m_countingFrame  {nullptr}
 , m_innerFrame     {nullptr}
+, m_channelEdges   {nullptr}
 , m_inclusionVolume{0}
 , m_totalVolume    {0}
 , m_extension      {extension}
@@ -59,7 +56,6 @@ CountingFrame::CountingFrame(CountingFrameExtension                *extension,
 , m_visible        {true}
 , m_enable         {true}
 , m_highlight      {false}
-, m_applyTask      {nullptr}
 , m_editable       {true}
 {
   QWriteLocker lock(&m_marginsMutex);
@@ -254,12 +250,12 @@ vtkCountingFrameSliceWidget *CountingFrame::createSliceWidget(RenderView *view)
   auto widget = CountingFrame2DWidgetAdapter::New();
 
   widget->AddObserver(vtkCommand::EndInteractionEvent, m_command);
-  widget->SetRepresentationDepth(view2D->widgetDepth());
-  widget->SetPlane(view2D->plane());
-  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
-  widget->SetSlice(slice);
   widget->SetCurrentRenderer(view2D->mainRenderer());
   widget->SetInteractor(view2D->mainRenderer()->GetRenderWindow()->GetInteractor());
+  widget->SetPlane(view2D->plane());
+  widget->SetRepresentationDepth(view2D->widgetDepth());
+  widget->SetCountingFrame(channelEdgesPolyData(), m_inclusion, m_exclusion, spacing);
+  widget->SetSlice(slice);
   widget->SetEnabled(true);
   widget->setEditable(m_editable);
 
@@ -351,39 +347,13 @@ void CountingFrame::updateCountingFrame()
 //-----------------------------------------------------------------------------
 void CountingFrame::apply()
 {
-  QMutexLocker lock(&m_taskMutex);
-
-  if(m_applyTask)
-  {
-    disconnect(m_applyTask.get(), SIGNAL(finished()),
-               this,              SLOT(onCountingFrameApplied()));
-
-    m_applyTask->abort();
-    m_applyTask = nullptr;
-  }
-
-  m_applyTask = std::make_shared<ApplyCountingFrame>(this, m_factory, m_scheduler);
-
-  connect(m_applyTask.get(), SIGNAL(finished()),
-          this,              SLOT(onCountingFrameApplied()), Qt::DirectConnection);
-
-  Task::submit(m_applyTask);
+  emit apply(this);
 }
 
 //-----------------------------------------------------------------------------
-void CountingFrame::onCountingFrameApplied()
+void CountingFrame::applied()
 {
-  QMutexLocker lock(&m_taskMutex);
-
-  if(!m_applyTask->isAborted())
-  {
-    emit applied(this);
-  }
-
-  disconnect(m_applyTask.get(), SIGNAL(finished()),
-             this,              SLOT(onCountingFrameApplied()));
-
-  m_applyTask = nullptr;
+  emit applied(this);
 }
 
 //-----------------------------------------------------------------------------

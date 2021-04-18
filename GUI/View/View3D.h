@@ -200,7 +200,6 @@ namespace ESPINA
     QPushButton *m_snapshot;
     QPushButton *m_export;
     QPushButton *m_cameraReset;
-    QPushButton *m_renderConfig;
 
     QDoubleSpinBox                   *m_zoomFactor;
     vtkSmartPointer<vtkCameraCommand> m_cameraCommand;

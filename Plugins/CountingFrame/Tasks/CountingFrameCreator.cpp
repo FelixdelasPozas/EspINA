@@ -52,10 +52,10 @@ void CountingFrameCreator::run()
   switch(m_data.type)
   {
     case CFType::ORTOGONAL:
-      m_cf = OrthogonalCountingFrame::New(m_data.extension, inclusion, exclusion, m_scheduler, m_factory);
+      m_cf = OrthogonalCountingFrame::New(m_data.extension, inclusion, exclusion);
       break;
     case CFType::ADAPTIVE:
-      m_cf = AdaptiveCountingFrame::New(m_data.extension, inclusion, exclusion, m_scheduler, m_factory);
+      m_cf = AdaptiveCountingFrame::New(m_data.extension, inclusion, exclusion);
       break;
     default:
       Q_ASSERT(false);

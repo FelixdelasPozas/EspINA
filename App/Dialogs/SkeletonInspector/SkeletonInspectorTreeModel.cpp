@@ -418,7 +418,7 @@ void SkeletonInspectorTreeModel::computeConnectionDistances(int distance)
   shown.removeOne(m_segmentation.get());
   emit segmentationsShown(shown);
 
-  reset();
+  resetInternalData();
 
   emit endResetModel();
 }

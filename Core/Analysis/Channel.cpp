@@ -194,7 +194,7 @@ Snapshot Channel::snapshot() const
     stream.writeEndElement();
     stream.writeEndDocument();
 
-    QString file = extensionsPath() + QString("%1.xml").arg(uuid());
+    QString file = extensionsPath() + QString("%1.xml").arg(uuid().toString());
     snapshot << SnapshotData(file, xml);
   }
 
@@ -347,12 +347,11 @@ QString Channel::metadata() const
 //------------------------------------------------------------------------
 QString Channel::extensionDataPath(const Core::StackExtensionSPtr extension, QString fileName) const
 {
-  return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(fileName); 
+  return extensionPath(extension) + QString("%1_%2").arg(uuid().toString()).arg(fileName); 
 }
 
 //------------------------------------------------------------------------
 QString Channel::metadataFile() const
 {
-  return QString("Metadata/%1/metadata.xml").arg(uuid()); 
+  return QString("Metadata/%1/metadata.xml").arg(uuid().toString()); 
 }
-

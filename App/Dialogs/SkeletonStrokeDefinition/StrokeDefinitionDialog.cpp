@@ -58,7 +58,7 @@ StrokeDefinitionDialog::StrokeDefinitionDialog(SkeletonStrokes &strokes, const C
 //--------------------------------------------------------------------
 void StrokeDefinitionDialog::onAddButtonPressed()
 {
-  auto categoryColor = m_category->color().hue();
+  const auto categoryColor = m_category->color().hue();
   QPixmap original(":/espina/line.svg");
   QPixmap copy(original.size());
   copy.fill(QColor::fromHsv(categoryColor,255,255));
@@ -183,12 +183,15 @@ void StrokeDefinitionDialog::updateStrokeList()
   m_list->blockSignals(true);
   m_list->clear();
 
+  const auto categoryColor = m_category->color().hue();
+
   for(int i = 0; i < m_strokes.size(); ++i)
   {
     auto stroke = m_strokes.at(i);
     QPixmap original(ICONS.at(stroke.type));
     QPixmap copy(original.size());
-    copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+    const auto color = stroke.colorHue == -1 ? categoryColor : stroke.colorHue;
+    copy.fill(QColor::fromHsv(color,255,255));
     copy.setMask(original.createMaskFromColor(Qt::transparent));
 
     auto item = new QListWidgetItem(copy, stroke.name);
@@ -249,7 +252,7 @@ void StrokeDefinitionDialog::updateStrokeProperties()
   enableProperties(!m_strokes.isEmpty());
 
   auto currentIndex = m_list->currentIndex();
-  auto categoryColor = m_category->color().hue();
+  const auto categoryColor = m_category->color().hue();
 
   if(currentIndex.isValid() && !m_strokes.isEmpty())
   {
@@ -263,11 +266,11 @@ void StrokeDefinitionDialog::updateStrokeProperties()
     m_useCategoryColor->blockSignals(true);
 
     m_name->setText(stroke.name);
-    m_hueWidget->setHueValue(stroke.colorHue);
-    m_hueWidget->setEnabled(stroke.colorHue != categoryColor);
+    m_hueWidget->setHueValue(stroke.colorHue == -1 ? categoryColor : stroke.colorHue);
+    m_hueWidget->setEnabled((stroke.colorHue != categoryColor) && (stroke.colorHue != -1));
     m_typeCombo->setCurrentIndex(stroke.type);
     m_validMeasure->setChecked(stroke.useMeasure);
-    m_useCategoryColor->setChecked(stroke.colorHue == categoryColor);
+    m_useCategoryColor->setChecked((stroke.colorHue == categoryColor) || (stroke.colorHue == -1));
 
     m_name->blockSignals(false);
     m_hueWidget->blockSignals(false);
@@ -325,6 +328,7 @@ void StrokeDefinitionDialog::onTextChanged(const QString& text)
 void StrokeDefinitionDialog::onTypeChanged(int index)
 {
   auto currentIndex = m_list->currentIndex();
+  const auto categoryColor = m_category->color().hue();
 
   if(currentIndex.isValid())
   {
@@ -333,7 +337,8 @@ void StrokeDefinitionDialog::onTypeChanged(int index)
 
     QPixmap original(ICONS.at(stroke.type));
     QPixmap copy(original.size());
-    copy.fill(QColor::fromHsv(stroke.colorHue,255,255));
+    const auto color = stroke.colorHue == -1 ? categoryColor : stroke.colorHue;
+    copy.fill(QColor::fromHsv(color,255,255));
     copy.setMask(original.createMaskFromColor(Qt::transparent));
 
     auto item = m_list->currentItem();
@@ -368,12 +373,17 @@ void StrokeDefinitionDialog::onCategoryColorChecked(int unused)
 
   if(currentIndex.isValid())
   {
+    auto &stroke = m_strokes[currentIndex.row()];
     if(checked)
     {
-      auto &stroke = m_strokes[currentIndex.row()];
-      stroke.colorHue = m_category->color().hue();
+      stroke.colorHue = -1;
 
-      m_hueWidget->setHueValue(stroke.colorHue);
+      const auto hueValue = m_category->color().hue();
+      m_hueWidget->setHueValue(hueValue);
+    }
+    else
+    {
+      stroke.colorHue = m_hueWidget->hueValue();
     }
 
     m_hueWidget->setEnabled(!checked);

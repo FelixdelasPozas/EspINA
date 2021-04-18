@@ -131,7 +131,7 @@ void SegmentationContourSwitch::initWidgets()
   connect(m_opacityWidget, SIGNAL(valueChanged(int)),
           this,            SLOT(onOpacityChanged()));
 
-  auto widthLabel = new QLabel("Width");
+  auto widthLabel = new QLabel(tr("Width"));
   widthLabel->setToolTip(tr("Contour representation width."));
   addSettingsWidget(widthLabel);
 
@@ -145,7 +145,7 @@ void SegmentationContourSwitch::initWidgets()
 
   addSettingsWidget(m_width);
 
-  auto patternLabel = new QLabel("Pattern");
+  auto patternLabel = new QLabel(tr("Pattern"));
   patternLabel->setToolTip(tr("Contour represnetation line pattern."));
   addSettingsWidget(patternLabel);
 

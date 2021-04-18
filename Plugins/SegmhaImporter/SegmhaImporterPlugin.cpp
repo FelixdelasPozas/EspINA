@@ -105,5 +105,3 @@ FilterFactorySList SegmhaImporterPlugin::filterFactories() const
 
   return factories;
 }
-
-Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, ESPINA::SegmhaImporterPlugin)

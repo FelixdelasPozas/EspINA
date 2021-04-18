@@ -63,7 +63,7 @@ namespace ESPINA
           int value() const;
 
         public slots:
-          /** \brief Sets the value to the given paramenter and updates the UI.
+          /** \brief Sets the value to the given parameter and updates the UI.
            * \param[in] value new value [0-255]
            *
            */

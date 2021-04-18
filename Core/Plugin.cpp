@@ -41,7 +41,7 @@ QList<QPluginLoader*> ESPINA::Core::loadPlugins(const QDir& path, CoreFactory* f
     {
         auto loader = new QPluginLoader(path.absoluteFilePath(fileName));
         auto plugin = loader->instance();
-
+	
         try
         {
           if(loadPlugin(plugin, factory))
@@ -79,7 +79,7 @@ bool ESPINA::Core::loadPlugin(QObject* instance, CoreFactory* factory)
 {
   if (instance)
   {
-    auto corePlugin = qobject_cast<Core::CorePlugin*>(instance);
+    auto corePlugin = qobject_cast<ESPINA::Core::CorePlugin*>(instance);
     if(corePlugin)
     {
       qDebug() << "Loading Core Plugin:" << corePlugin->name();

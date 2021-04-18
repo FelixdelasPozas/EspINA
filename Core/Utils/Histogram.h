@@ -22,6 +22,8 @@
 #ifndef CORE_UTILS_HISTOGRAM_H_
 #define CORE_UTILS_HISTOGRAM_H_
 
+#include <Core/EspinaCore_Export.h>
+
 // ESPINA
 #include <Core/Types.h>
 
@@ -44,7 +46,7 @@ namespace ESPINA
        * histogram.
        *
        */
-      class Histogram
+      class EspinaCore_EXPORT Histogram
       {
         public:
           /** \brief Histogram class constructor.

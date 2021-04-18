@@ -878,7 +878,7 @@ void vtkPlaneContourRepresentation::UpdateLines(int index)
     {
       int indices[2];
 
-      arr->GetTupleValue(i, indices);
+      arr->GetTypedTuple(i, indices);
       this->UpdateLine(indices[0], indices[1]);
     }
     arr->Delete();

@@ -25,10 +25,9 @@
 #include <Filters/FillHoles2DFilter.h>
 #include <Support/Widgets/EditTool.h>
 
-// QT
-#include <QComboBox>
-#include <QLabel>
-#include <QPushButton>
+class QPushButton;
+class QLabel;
+class QComboBox;
 
 namespace ESPINA
 {

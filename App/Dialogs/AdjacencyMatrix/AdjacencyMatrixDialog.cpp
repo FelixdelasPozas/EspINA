@@ -41,13 +41,13 @@ AdjacencyMatrixDialog::AdjacencyMatrixDialog(SegmentationAdapterList segmentatio
 {
   setWindowTitle(tr("Adjacency Matrix Report"));
   setWindowIconText(":/espina/espina.svg");
-  setLayout(new QVBoxLayout());
+  setLayout(new QVBoxLayout(this));
 
   auto report = new AdjacencyMatrixTabularReport(segmentations, context);
 
   layout()->addWidget(report);
 
-  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto acceptButton = new QDialogButtonBox(QDialogButtonBox::Ok, this);
 
   connect(acceptButton, SIGNAL(accepted()),
           this,         SLOT(close()));

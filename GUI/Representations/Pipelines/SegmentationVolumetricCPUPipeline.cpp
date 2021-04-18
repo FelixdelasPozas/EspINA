@@ -31,8 +31,7 @@
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 #include <vtkVolumeProperty.h>
-#include <vtkVolumeRayCastCompositeFunction.h>
-#include <vtkVolumeRayCastMapper.h>
+#include <vtkFixedPointVolumeRayCastMapper.h>
 
 using namespace ESPINA;
 using namespace ESPINA::GUI::ColorEngines;
@@ -77,12 +76,9 @@ RepresentationPipeline::ActorList SegmentationVolumetricCPUPipeline::createActor
       volume    = vtkImage(data, data->bounds());
     }
 
-    auto composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
-
-    auto mapper = vtkSmartPointer<vtkVolumeRayCastMapper>::New();
+    auto mapper = vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>::New();
     mapper->ReleaseDataFlagOn();
     mapper->SetBlendModeToComposite();
-    mapper->SetVolumeRayCastFunction(composite);
     mapper->IntermixIntersectingGeometryOn();
     mapper->SetInputData(volume);
     mapper->SetNumberOfThreads(1);

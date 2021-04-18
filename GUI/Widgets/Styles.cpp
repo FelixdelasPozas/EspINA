@@ -110,7 +110,5 @@ ToolButton* Styles::createToolButton(const QIcon& icon, const QString& tooltip, 
 void Styles::setBarStyle(QWidget* bar)
 {
   bar->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Expanding);
-  bar->setFixedHeight(20);
-  bar->setMinimumWidth(mediumBarWidth());
-  bar->setMaximumWidth(mediumBarWidth());
+  bar->setFixedSize(mediumBarWidth(), 20);
 }

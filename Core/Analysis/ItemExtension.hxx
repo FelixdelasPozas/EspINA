@@ -103,7 +103,7 @@ namespace ESPINA
         static QString ExtensionFilePath(T *item)
         {
           return QString("%1/%2.xml").arg(Path())
-                                     .arg(item->uuid());
+                                     .arg(item->uuid().toString());
         }
 
       public:
@@ -265,7 +265,7 @@ namespace ESPINA
         {
           return QString("%1/%2/%3_%4").arg(Path())
                                        .arg(type())
-                                       .arg(m_extendedItem->uuid())
+                                       .arg(m_extendedItem->uuid().toString())
                                        .arg(file);
         };
 

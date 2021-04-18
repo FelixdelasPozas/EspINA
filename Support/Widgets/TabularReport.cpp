@@ -117,7 +117,7 @@ TabularReport::~TabularReport()
 }
 
 //------------------------------------------------------------------------
-void TabularReport::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight)
+void TabularReport::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &unused)
 {
   QAbstractItemView::dataChanged(topLeft, bottomRight);
   if (topLeft.isValid())

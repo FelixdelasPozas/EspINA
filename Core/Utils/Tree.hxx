@@ -29,6 +29,7 @@
 // Qt
 #include <QMap>
 #include <QStringList>
+#include <QObject>
 
 // C++
 #include <memory>
@@ -50,7 +51,7 @@ namespace ESPINA
      * \param[in] name, tree name.
      *
      */
-    explicit Tree(const QString& name=QString());
+    explicit Tree(const QString &name = QString());
 
     /** \brief Class tree destructor.
      *

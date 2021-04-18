@@ -9,7 +9,7 @@ include_directories(
 
 include (GenerateExportHeader)
 
-qt4_wrap_cpp(FILTERS_MOC
+qt5_wrap_cpp(FILTERS_MOC
   MorphologicalEditionFilter.h
   SeedGrowSegmentationFilter.h
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED
@@ -18,6 +18,7 @@ qt4_wrap_cpp(FILTERS_MOC
 set (FILTERS_SOURCES
   ${FILTERS_MOC}
   ${FILTERS_UI}
+  CleanSegmentationVoxelsFilter.cpp
   CloseFilter.cpp
   DilateFilter.cpp
   ErodeFilter.cpp
@@ -32,12 +33,15 @@ set (FILTERS_SOURCES
   CleanSegmentationVoxelsFilter.cpp
   Utils/vtkTube.cpp
   Utils/Stencil.cpp
+  LibraryFiltersFactory.cpp
   )
 
 set(FILTERS_EXTERNAL_LIBS
   ${QT_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  EspinaCore
+  EspinaExtensions
 )
 
 if(DEFINED MINGW)

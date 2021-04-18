@@ -32,7 +32,6 @@
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 #include <vtkVolumeProperty.h>
-#include <vtkVolumeRayCastCompositeFunction.h>
 #include <vtkSmartVolumeMapper.h>
 
 using namespace ESPINA;

@@ -189,19 +189,24 @@ bool EdgeDistance::isOnEdge() const
   else
   {
     auto channels = QueryRelations::channels(m_extendedItem);
+	
+	ChannelSPtr channel = nullptr;
 
-    if(channels.empty())
-    {
-      qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any stack, cannot get edges information.";
-    }
+	switch(channels.size())
+	{
+	  case 0:
+	    qWarning() << "Segmentation" << m_extendedItem->name() << "is not related to any stack, cannot get edges information.";
+		break;
+	  default:
+	    qWarning() << "Tiling not supported by Stereological Inclusion Extension";
+	    // no break
+	  case 1:
+	    channel = channels.first();
+		break;
+	}
 
-    if (channels.size() > 1)
+    if(channel != nullptr)
     {
-      qWarning() << "Tiling not supported by Stereological Inclusion Extension";
-    }
-    else if (channels.size() == 1)
-    {
-      auto channel        = channels.first();
       auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(channel, m_factory);
       auto spacing        = channel->output()->spacing();
       const NmVector3 DELTA{ 0.5 * spacing[0], 0.5 * spacing[1], 0.5 * spacing[2] };

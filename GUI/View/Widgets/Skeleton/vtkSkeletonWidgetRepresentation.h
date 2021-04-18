@@ -440,6 +440,13 @@ namespace ESPINA
                *
                */
               const bool changeCoincidentHue() const;
+			  
+              /** \brief Sets the representation default HUE value.
+               * \param[in] value Hue value in (0-359).
+               *
+               */
+              void setDefaultHueValue(const int value)
+              { m_defaultHue = value % 360; }
 
             private:
               /** \brief vtkSkeletonWidgetRepresentation class private constructor.
@@ -450,7 +457,8 @@ namespace ESPINA
               /** \brief vtkSkeletonWidgetRepresentation class virtual destructor.
                *
                */
-              virtual ~vtkSkeletonWidgetRepresentation();
+              virtual ~vtkSkeletonWidgetRepresentation()
+              {}
 
               /** \brief Given a display position this computes the world position
                * using the renderer of this class.
@@ -537,6 +545,7 @@ namespace ESPINA
               Nm        m_slice;
               Nm        m_shift;
               NmVector3 m_spacing;
+			  int       m_defaultHue;
 
               static Core::SkeletonDefinition s_skeleton;
               static NmVector3                s_skeletonSpacing;

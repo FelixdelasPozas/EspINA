@@ -299,6 +299,14 @@ namespace ESPINA
        */
       Vertices ancestors_implementation(VertexPtr vertex, const QString& filter = QString()) const;
 
+      /** \brief Returns true if the relation is already in the graph, and false otherwise.
+       * \param[in] source, source vertex descriptor.
+       * \param[in] destination, destination vertex descriptor.
+       * \param[in] relation, relation description.
+       *
+       */
+      bool existsRelation(const VertexDescriptor source, const VertexDescriptor destination, const QString &relation) const;
+
     private:
       mutable Graph  m_graph;
       mutable QMutex m_mutex;

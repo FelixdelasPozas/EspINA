@@ -37,6 +37,7 @@
 
 class QAction;
 class vtkPlane;
+class QPushButton;
 
 namespace ESPINA
 {

@@ -94,6 +94,7 @@ namespace ESPINA
       static const Filter::Type SUBTRACTION_FILTER;         /** subtraction filter signature.         */
       static const Filter::Type SLICE_INTERPOLATION_FILTER; /** slice interpolation filter signature. */
       static const Filter::Type CLEAN_SEGMENTATION_FILTER;  /** clean segmentation filter signature.  */
+
     private:
       virtual const FilterTypeList providedFilters() const;
 

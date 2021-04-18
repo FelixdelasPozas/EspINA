@@ -97,8 +97,8 @@ TabularReport::Entry::Entry(const QString   &category,
   setupUi(this);
 
   tableView->setItemDelegate(new InformationDelegate());
-  tableView->horizontalHeader()->setMovable(true);
-  tableView->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  tableView->horizontalHeader()->setSectionsMovable(true);
+  tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   tableView->adjustSize();
   tableView->sortByColumn(0, Qt::AscendingOrder);
   tableView->horizontalHeader()->setSortIndicatorShown(true);
@@ -161,7 +161,7 @@ int TabularReport::Entry::rowCount() const
 //------------------------------------------------------------------------
 int TabularReport::Entry::columnCount() const
 {
-  return m_proxy->availableInformation().size();
+  return m_proxy ? m_proxy->availableInformation().size() : 0;
 }
 
 //------------------------------------------------------------------------
@@ -281,11 +281,14 @@ void TabularReport::Entry::extractInformation()
 //------------------------------------------------------------------------
 void TabularReport::Entry::refreshAllInformation()
 {
-  int c = m_proxy->columnCount() - 1;
-
-  for (int r = 1; r <= m_proxy->rowCount(); ++r)
+  if(m_proxy)
   {
-    auto data = value(r, c);
+    int c = m_proxy->columnCount() - 1;
+
+    for (int r = 1; r <= m_proxy->rowCount(); ++r)
+    {
+      auto data = value(r, c);
+    }
   }
 }
 
@@ -326,7 +329,7 @@ void TabularReport::Entry::refreshGUIImplementation()
   int  progress   = m_proxy->progress();
   bool inProgress = (progress < 100);
 
-  int informationSize = m_proxy->availableInformation().size();
+  const int informationSize = m_proxy->availableInformation().size();
   if (informationSize == 1)
   {
     inProgress = false;
@@ -405,8 +408,8 @@ void TabularReport::Entry::exportToXLS(const QString &filename)
 //------------------------------------------------------------------------
 InformationSelector::GroupedInfo TabularReport::Entry::availableInformation()
 {
-  auto segmentations = toList<SegmentationAdapter>(m_proxy->displayedItems());
-  auto availableInfo = GUI::availableInformation(segmentations, m_factory);
+  const auto segmentations = toList<SegmentationAdapter>(m_proxy->displayedItems());
+  const auto availableInfo = GUI::availableInformation(segmentations, m_factory);
 
   return availableInfo;
 }
@@ -447,7 +450,7 @@ SegmentationExtension::InformationKeyList TabularReport::Entry::lastInformationO
     {
       for(auto key: availableInformationTags)
       {
-        if(key.value() == tag)
+        if(key.value().compare(tag, Qt::CaseInsensitive) == 0)
         {
           informationTags << key;
         }

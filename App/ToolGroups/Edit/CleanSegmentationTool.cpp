@@ -131,7 +131,7 @@ void CleanSegmentationTool::onTaskFinished()
     }
     else
     {
-      DefaultDialogs::ErrorMessage(filter->errors().join("\n"), title);
+      DefaultDialogs::ErrorMessage(filter->errors().join('\n'), title);
     }
   }
   else

@@ -267,7 +267,7 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
         distItem->setEditable(false);
         distItem->setDragEnabled(false);
         distItem->setDropEnabled(false);
-        distItem->setData(Qt::blue, Qt::TextColorRole);
+        distItem->setData(QVariant::fromValue(Qt::blue), Qt::TextColorRole);
         distItem->setToolTip(tr("Does not comply with category selection."));
       }
       else
@@ -282,7 +282,7 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
         if(dist == -1)
         {
           distItem->setData(tr("Error"), Qt::DisplayRole);
-          distItem->setData(Qt::red, Qt::TextColorRole);
+          distItem->setData(QVariant::fromValue(Qt::red), Qt::TextColorRole);
           distItem->setToolTip(tr("Error occurred when computing this distance."));
           distItem->setFont(font);
         }
@@ -291,7 +291,7 @@ DistanceInformationTabularReport::Entry::Entry(const SegmentationAdapterList    
           if( ((options.maxDistance != 0) && (dist > options.maxDistance)) ||
               ((options.minDistance != 0) && (dist < options.minDistance)) )
           {
-            distItem->setData(Qt::red, Qt::TextColorRole);
+            distItem->setData(QVariant::fromValue(Qt::red), Qt::TextColorRole);
             distItem->setToolTip(tr("Distance outside of given limits."));
           }
         }

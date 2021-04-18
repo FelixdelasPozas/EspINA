@@ -3,14 +3,14 @@
 #
 project(CoreTools)
 
-cmake_minimum_required (VERSION 2.8.6)
+cmake_minimum_required (VERSION 3.1.0)
+
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+#include(${QT_USE_FILE})
 
 if (CMAKE_BUILD_TYPE MATCHES Debug)
-  set(CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_QTTEST_LIBRARY})
+  set(CORE_EXTERNAL_LIBS ${CORE_EXTERNAL_LIBS} ${QT_TEST_LIBRARY})
 endif (CMAKE_BUILD_TYPE MATCHES Debug)
-
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
@@ -23,16 +23,16 @@ include_directories(
 set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -std=c++11 -fpermissive")
 
 # Add Qt Resource files
-qt4_add_resources(RESOURCES
+qt5_add_resources(RESOURCES
   rsc/resources.qrc
   )
 
-qt4_wrap_ui(CORE_UI
+qt5_wrap_ui(CORE_UI
   # .ui para Qt
   SpacingChanger.ui
   )
 	
-qt4_wrap_cpp(CORE_MOC
+qt5_wrap_cpp(CORE_MOC
   # .h para Qt
   SpacingChanger.h
   )

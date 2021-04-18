@@ -21,7 +21,6 @@
 // plugin
 #include "AppositionSurfaceTool.h"
 
-#include "AppositionSurfacePlugin.h"
 #include <Filter/AppositionSurfaceFilter.h>
 
 // ESPINA
@@ -37,6 +36,7 @@
 #include <QVariant>
 #include <QDebug>
 #include <QMessageBox>
+#include "../Plugin.h"
 
 using namespace ESPINA;
 using namespace ESPINA::GUI;

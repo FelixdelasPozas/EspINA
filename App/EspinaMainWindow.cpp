@@ -60,6 +60,7 @@
 #include <App/ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h>
 #include <App/ToolGroups/Visualize/GenericTogglableTool.h>
 #include <App/ToolGroups/Visualize/FullscreenTool.h>
+#include <App/ToolGroups/Visualize/DayNightTool.h>
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationSettings.h>
 #include <App/ToolGroups/Segment/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <App/ToolGroups/Segment/Manual/ManualSegmentTool.h>
@@ -85,6 +86,7 @@
 // Qt
 #include <QtGui>
 #include <QDateTime>
+#include <QStatusBar>
 
 using namespace ESPINA;
 using namespace ESPINA::Extensions;
@@ -409,7 +411,7 @@ void EspinaMainWindow::showEvent(QShowEvent* event)
   {
     started = false;
 
-    // perform initialization actions after first show.
+    // perform initialization actions after the show event.
     QTimer::singleShot(0, this, SLOT(delayedInitActions()));
   }
 }
@@ -673,11 +675,14 @@ void EspinaMainWindow::showIssuesDialog(IssueList issues) const
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAutoSave(const QString& file)
 {
-  QApplication::processEvents();
+  if(!m_busy)
+  {
+    QApplication::processEvents();
 
-  m_saveAsTool->saveAnalysis(file);
+    m_saveAsTool->saveAnalysis(file);
 
-  QApplication::processEvents();
+    QApplication::processEvents();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -1162,6 +1167,11 @@ void EspinaMainWindow::createVisualizeToolGroup()
 
   m_visualizeToolGroup->addTool(fullscreenSwitch);
 
+  auto themeSwitch = std::make_shared<DayNightTool>(m_context);
+  themeSwitch->setOrder("1", "4-MainWindow");
+
+  m_visualizeToolGroup->addTool(themeSwitch);
+
   for(auto representation: m_context.representations())
   {
     registerRepresentationSwitches(representation);
@@ -1469,10 +1479,9 @@ void EspinaMainWindow::assignActiveStack()
 //------------------------------------------------------------------------
 void EspinaMainWindow::analyzeStackEdges()
 {
-  for (auto channel : m_context.model()->channels())
-  {
-    retrieveOrCreateStackExtension(channel, ChannelEdges::TYPE, m_context.factory());
-  }
+  const auto stacks = m_context.model()->channels();
+  auto createStackExtensionOp = [this](ChannelAdapterSPtr stack){ retrieveOrCreateStackExtension(stack, ChannelEdges::TYPE, m_context.factory()); };
+  std::for_each(stacks.begin(), stacks.end(), createStackExtensionOp);
 }
 
 //------------------------------------------------------------------------
@@ -1500,9 +1509,12 @@ void EspinaMainWindow::updateToolsSettings()
 //------------------------------------------------------------------------
 void EspinaMainWindow::onAboutToSaveSession()
 {
-  saveSessionSettings();
-  saveToolsSettings();
-  m_busy = true;
+  if(!m_busy)
+  {
+    m_busy = true;
+    saveSessionSettings();
+    saveToolsSettings();
+  }
 }
 
 //------------------------------------------------------------------------

@@ -34,7 +34,7 @@
 using namespace ESPINA;
 using namespace GUI;
 
-const QUrl ESPINA_URL{"http://cajalbbp.cesvima.upm.es/espina/#started"};
+const QUrl ESPINA_URL{"https://cajalbbp.es/espina/#started"};
 
 //--------------------------------------------------------------------
 UpdateAnnouncementDialog::UpdateAnnouncementDialog()

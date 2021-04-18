@@ -7,10 +7,10 @@ set (PLUGIN_VERSION_MAJOR 1)
 set (PLUGIN_VERSION_MINOR 0)
 set (PLUGIN_VERSION_PATCH 0)
 
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1.0)
 
-find_package(Qt4 REQUIRED)
-include(${QT_USE_FILE})
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Network Widgets Test)
+#include(${QT_USE_FILE})
 
 find_package (VTK REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
@@ -30,7 +30,7 @@ include_directories (
   ${CMAKE_CURRENT_SOURCE_DIR}
   )
 
-qt4_wrap_cpp(MOC_SOURCES
+qt5_wrap_cpp(MOC_SOURCES
   SegmhaImporterPlugin.h
 
   OPTIONS -DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED

@@ -23,6 +23,7 @@
 #include "Segmentation.h"
 #include "Category.h"
 #include "Data/SkeletonData.h"
+#include <Core/Utils/StatePair.h>
 
 // VTK
 #include <vtkAlgorithm.h>
@@ -125,7 +126,7 @@ Snapshot Segmentation::snapshot() const
     stream.writeEndElement();
     stream.writeEndDocument();
 
-    auto file = extensionsPath() + QString("%1.xml").arg(uuid());
+    auto file = extensionsPath() + QString("%1.xml").arg(uuid().toString());
     snapshot << SnapshotData(file, xml);
   }
 
@@ -135,27 +136,13 @@ Snapshot Segmentation::snapshot() const
 //------------------------------------------------------------------------
 State Segmentation::state() const
 {
-  State state = QString("%1=%2;").arg(STATE_NUMBER).arg(m_number);
-  QStringList usersList = m_users.toList();
-
-  QStringList::iterator it = usersList.begin();
-  state += QString("%1=").arg(STATE_USERS);
-  while (it != usersList.end())
-  {
-    state += (*it);
-    ++it;
-    if (it != usersList.end())
-      state += QString("/");
-  }
-  state += QString(";");
-
-//   if (output())
-//     state += QString("OUTPUT=%1;").arg(output()->id());
-  state += QString("%1=%2;").arg(STATE_CATEGORY).arg(m_category?m_category->classificationName():"");
+  State state = StatePair(STATE_NUMBER, m_number);
+  state += StatePair(STATE_USERS, m_users.toList().join(","));
+  state += StatePair(STATE_CATEGORY, m_category ? m_category->classificationName() : "");
 
   if (!m_alias.isEmpty())
   {
-    state += QString("%1=%2;").arg(STATE_ALIAS).arg(m_alias);
+    state += StatePair(STATE_ALIAS, m_alias);
   }
 
   return state;
@@ -183,7 +170,7 @@ void Segmentation::restoreState(const State& state)
       {
         if (STATE_ALIAS == tokens[0])
         {
-          m_alias = tokens[1];
+          m_alias = Core::Utils::simplifyString(tokens[1]);
         }
       }
     }
@@ -204,27 +191,29 @@ void Segmentation::setCategory(CategorySPtr category)
 
   if(oldCategory && m_category && hasSkeletonData(output()))
   {
-    auto oldHue = oldCategory->color();
-    auto newHue = m_category->color();
+    const auto oldHue = oldCategory->color();
+    const auto newHue = m_category->color();
 
     auto data     = writeLockSkeleton(output());
     auto skeleton = data->skeleton();
 
     auto strokeColors = vtkIntArray::SafeDownCast(skeleton->GetPointData()->GetAbstractArray("StrokeColor"));
+    bool modified = false;
     for(int i = 0; i < strokeColors->GetNumberOfTuples(); ++i)
     {
       if(strokeColors->GetValue(i) == oldHue)
       {
+        modified = true;
         strokeColors->SetValue(i, newHue);
       }
     }
 
-    data->setSkeleton(skeleton);
+    if(modified) data->setSkeleton(skeleton);
   }
 }
 
 //------------------------------------------------------------------------
 QString Segmentation::extensionDataPath(const Core::SegmentationExtensionSPtr extension, QString path) const
 {
-  return extensionPath(extension) + QString("%1_%2").arg(uuid()).arg(path); 
+  return extensionPath(extension) + QString("%1_%2").arg(uuid().toString()).arg(path); 
 }

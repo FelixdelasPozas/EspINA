@@ -42,6 +42,10 @@
 #include <Core/IO/DataFactory/RawDataFactory.h>
 #include <Core/Utils/TemporalStorage.h>
 #include <Core/Utils/EspinaException.h>
+#include <Core/Utils/QStringUtils.h>
+
+// Qt
+#include <QDataStream>
 
 using namespace ESPINA;
 using namespace ESPINA::Core;
@@ -150,8 +154,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
   reportProgress(CLASSIFICATION_PROGRESS);
 
-  unsigned i = 0;
-  unsigned total = m_zip.getFileNameList().size();
+  unsigned long i = 0;
+  const unsigned long total = m_zip.getFileNameList().size();
 
   bool hasFile = m_zip.goToFirstFile();
   while (hasFile)
@@ -181,7 +185,7 @@ AnalysisSPtr SegFile_V5::Loader::load()
 
     hasFile = m_zip.goToNextFile();
 
-    reportProgress(CLASSIFICATION_PROGRESS + SNAPSHOT_PROGRESS_CHUNK*(++i)/total);
+    reportProgress(CLASSIFICATION_PROGRESS + (SNAPSHOT_PROGRESS_CHUNK*(++i)/total));
   }
 
   loadContent();
@@ -200,13 +204,8 @@ AnalysisSPtr SegFile_V5::Loader::load()
 //-----------------------------------------------------------------------------
 DirectedGraph::Vertex SegFile_V5::Loader::findVertex(DirectedGraph::Vertices vertices, Persistent::Uuid uuid)
 {
-  for (auto vertex : vertices)
-  {
-    if (vertex->uuid() == uuid)
-    {
-      return vertex;
-    }
-  }
+  auto it = std::find_if(vertices.constBegin(), vertices.constEnd(), [&uuid](const DirectedGraph::Vertex &vertex) {return vertex->uuid() == uuid; });
+  if(it != vertices.constEnd()) return *it;
 
   return DirectedGraph::Vertex();
 }
@@ -291,10 +290,19 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
     filter = std::make_shared<ReadOnlyFilter>(inputs, roVertex->name());
     filter->setDataFactory(m_dataFactory);
   }
+
   filter->setErrorHandler(m_handler);
   filter->setName(roVertex->name());
   filter->setUuid(roVertex->uuid());
   filter->restoreState(roVertex->state());
+
+  auto reader = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
+  if(reader)
+  {
+    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
+                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+  }
+
   filter->setStorage(m_storage);
   filter->restorePreviousOutputs();
 
@@ -325,12 +333,6 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
   auto roOutput = findOutput(roVertex);
 
   auto filter   = roOutput.first;
-  auto reader   = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
-  if(reader)
-  {
-    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
-                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
-  }
   auto outputId = roOutput.second;
   auto channel  = m_factory->createChannel(filter, outputId);
 
@@ -349,9 +351,10 @@ ChannelSPtr SegFile_V5::Loader::createChannel(DirectedGraph::Vertex roVertex)
 //-----------------------------------------------------------------------------
 QString SegFile_V5::Loader::parseCategoryName(const State& state)
 {
-  auto params = state.split(";");
+  const auto params = state.split(";");
+  const auto name = params[2].split("=")[1];
 
-  return params[2].split("=")[1];
+  return Core::Utils::simplifyString(name);
 }
 
 //-----------------------------------------------------------------------------
@@ -365,7 +368,7 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
   if (!filter)
   {
     auto what    = QObject::tr("Invalid input, filter is null in vertex %1").arg(roVertex->name());
-    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
     throw EspinaException(what, details);
   }
 
@@ -384,6 +387,12 @@ SegmentationSPtr SegFile_V5::Loader::createSegmentation(DirectedGraph::Vertex ro
     auto category = m_analysis->classification()->node(categoryName);
 
     segmentation->setCategory(category);
+  }
+  else
+  {
+    auto what    = QObject::tr("Invalid input, category is null in vertex %1").arg(roVertex->name());
+    auto details = QObject::tr("SegFile_V5::createSegmentation() -> Invalid input from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+    throw EspinaException(what, details);
   }
 
   loadExtensions(segmentation);
@@ -417,7 +426,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         catch (const EspinaException &e)
         {
           auto what    = QObject::tr("Failed to create channel: %1. ").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create channel from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -435,7 +444,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         catch (const EspinaException &e)
         {
           auto what    = QObject::tr("Failed to create filter: %1. ").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create filter from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -453,7 +462,7 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
         catch (const EspinaException &e)
         {
           auto what    = QObject::tr("Failed to create segmentation: %1. ").arg(roVertex->name());
-          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+          auto details = QObject::tr("SegFile_V5::inflateVertex() -> Can't create segmentation from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
           what += QString(e.what());
           details += e.details();
@@ -464,16 +473,21 @@ DirectedGraph::Vertex SegFile_V5::Loader::inflateVertex(DirectedGraph::Vertex ro
       }
       default:
         auto what    = QObject::tr("Unknown vertex type: %1. ").arg(static_cast<int>(rov->type()));
-        auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid()).arg(roVertex->state());
+        auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unknown type from vertex %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
 
         throw EspinaException(what, details);
         break;
     }
 
-    if (vertex != nullptr)
+    if (vertex == nullptr)
     {
-      m_loadedVertices << vertex;
+       auto what    = QObject::tr("Unable to inflate vertex, type: %1. ").arg(static_cast<int>(rov->type()));
+       auto details = QObject::tr("SegFile_V5::inflateVertex() -> Unable to inflate vertex, type %1, uuid: %2, state %3").arg(roVertex->name()).arg(roVertex->uuid().toString()).arg(roVertex->state());
+
+       throw EspinaException(what, details);
     }
+	
+	m_loadedVertices << vertex;
   }
 
   return vertex;
@@ -491,14 +505,36 @@ void SegFile_V5::Loader::loadContent()
 
   DirectedGraph::Vertices loadedVertices;
 
-  int i     = 0;
-  int total = m_content->vertices().size();
+  auto vertices = m_content->vertices();
+  const unsigned long total = vertices.size();
 
-  for (DirectedGraph::Vertex roVertex : m_content->vertices())
+  auto sorter = [](const DirectedGraph::Vertex &lv, const DirectedGraph::Vertex &rv)
+  {
+    auto dlv = dynamic_cast<IO::Graph::ReadOnlyVertex *>(lv.get());
+    auto drv = dynamic_cast<IO::Graph::ReadOnlyVertex *>(rv.get());
+
+    if(!dlv || !drv) return false;
+
+    if(dlv->type() == IO::Graph::VertexType::SAMPLE) return true;
+    if(drv->type() == IO::Graph::VertexType::SAMPLE) return false;
+
+    if(dlv->type() == IO::Graph::VertexType::CHANNEL)
+    {
+      return drv->type() != IO::Graph::VertexType::CHANNEL;
+    }
+
+    return drv->type() == IO::Graph::VertexType::CHANNEL;
+  };
+
+  // NOTE: loads channel elements first.
+  std::sort(vertices.begin(), vertices.end(), sorter);
+
+  unsigned long i = 0;
+  for (DirectedGraph::Vertex roVertex : vertices)
   {
     inflateVertex(roVertex);
 
-    reportProgress(SNAPSHOT_PROGRESS + CONTENT_PROGRESS_CHUNK*(++i)/total);
+    reportProgress(SNAPSHOT_PROGRESS + (CONTENT_PROGRESS_CHUNK*(++i)/total));
   }
 }
 //-----------------------------------------------------------------------------
@@ -513,8 +549,8 @@ void SegFile_V5::Loader::loadRelations()
 
   auto loadedVertices = m_analysis->content()->vertices();
 
-  int i     = 0;
-  int total = relations->edges().size();
+  unsigned long i = 0;
+  const unsigned long total = relations->edges().size();
   for (auto edge : relations->edges())
   {
     PersistentSPtr source = findVertex(loadedVertices, edge.source->uuid());
@@ -522,7 +558,7 @@ void SegFile_V5::Loader::loadRelations()
 
     m_analysis->addRelation(source, target, edge.relationship.c_str());
 
-    reportProgress(CONTENT_PROGRESS + RELATIONS_PROGRESS_CHUNK*(++i)/total);
+    reportProgress(CONTENT_PROGRESS + (RELATIONS_PROGRESS_CHUNK*(++i)/total));
   }
 }
 
@@ -637,7 +673,7 @@ void SegFile_V5::Loader::createSegmentationExtension(SegmentationSPtr segmentati
 //-----------------------------------------------------------------------------
 void SegFile_V5::Loader::loadExtensions(SegmentationSPtr segmentation)
 {
-  auto xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid());
+  auto xmlFile = QString("Extensions/%1.xml").arg(segmentation->uuid().toString());
 
   if (!segmentation->storage()->exists(xmlFile)) return;
 
@@ -717,9 +753,14 @@ void SegFile_V5::Loader::loadConnections()
 }
 
 //-----------------------------------------------------------------------------
-void SegFile_V5::Loader::reportProgress(unsigned int progress)
+void SegFile_V5::Loader::reportProgress(unsigned int currentProgress)
 {
-  if (m_reporter) m_reporter->setProgress(progress);
+  static unsigned int progress = std::numeric_limits<unsigned int>::max();
+  if (m_reporter && (progress != currentProgress))
+ {
+	progress = currentProgress;
+	m_reporter->setProgress(progress);
+  }
 }
 
 //-----------------------------------------------------------------------------

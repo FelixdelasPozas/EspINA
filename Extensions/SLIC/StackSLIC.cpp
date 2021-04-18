@@ -47,6 +47,8 @@
 
 // Qt
 #include <QDataStream>
+#include <QtConcurrent/QtConcurrent>
+#include <QFuture>
 #include <QtCore>
 
 //Intrinsics
@@ -563,8 +565,10 @@ itkVolumeType::Pointer StackSLIC::getImageFromBounds(const Bounds &bounds) const
       }
     }
 
+    const auto shortName = getShortFileName(fileName);
+
     auto reader = itk::ImageFileReader<itkVolumeType>::New();
-    reader->SetFileName(fileName.toStdString().c_str());
+    reader->SetFileName(shortName);
     reader->SetNumberOfThreads(1);
     reader->Update();
 

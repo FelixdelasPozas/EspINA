@@ -324,9 +324,9 @@ void CrosshairManager::configure3DActors(const NmVector3 &crosshair)
 
   auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
   colors->SetNumberOfComponents(3);
-  colors->InsertNextTupleValue(intersections[0]);
-  colors->InsertNextTupleValue(intersections[1]);
-  colors->InsertNextTupleValue(intersections[2]);
+  colors->InsertNextTypedTuple(intersections[0]);
+  colors->InsertNextTypedTuple(intersections[1]);
+  colors->InsertNextTypedTuple(intersections[2]);
 
   lines->Modified();
   points->Modified();

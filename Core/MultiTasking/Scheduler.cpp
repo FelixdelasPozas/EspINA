@@ -37,7 +37,6 @@
 
 // Qt
 #include <QThread>
-#include <QThreadPool>
 #include <QApplication>
 #include <QDebug>
 
@@ -182,8 +181,8 @@ void Scheduler::changePriority(TaskSPtr task, Priority prevPriority)
 //-----------------------------------------------------------------------------
 unsigned int Scheduler::maxRunningTasks()
 {
-  /* NOTE: should be "QThreadPool::globalInstance()->maxThreadCount();" but produces starvation if a file has
-   * more counting frames.
+  /* NOTE: should be "QThreadPool::globalInstance()->maxThreadCount();" or "std::thread::hardware_concurrency();" 
+   * but produces starvation if a file has more counting frames.
    */
   return MAX_TASKS;
 }
@@ -235,10 +234,10 @@ void Scheduler::scheduleTasks()
 //        for (auto scheduledTask : m_scheduledTasks[priority])
 //        {
 //          auto task = scheduledTask.Task;
+          const auto isEdgesTask = (priority == Priority::VERY_HIGH) && task->description().contains("Edges", Qt::CaseInsensitive);
+          const auto is_thread_attached = task->isExecutingOnThread();
 
-          bool is_thread_attached = task->isExecutingOnThread();
-
-          if (num_running_threads < m_maxNumRunningTasks && canExecute(task))
+          if (((num_running_threads < m_maxNumRunningTasks) || isEdgesTask) && canExecute(task))
           {
             //printTask(task, "should be running");
             if (is_thread_attached)
@@ -346,7 +345,14 @@ void Scheduler::proccessTaskInsertion()
 
   for (auto task : m_insertionBuffer)
   {
-    m_scheduledTasks[task->priority()].orderedInsert(task);
+    if(task->description().contains("Edges:"))
+    {
+      m_scheduledTasks[Priority::VERY_HIGH].orderedInsert(task);
+    }
+    else
+    {
+      m_scheduledTasks[task->priority()].orderedInsert(task);
+    }
     m_priorityBuffer.remove(task.get());
   }
 

@@ -192,8 +192,8 @@ const FilterTypeList EditionFilterFactory::providedFilters() const
 
 //------------------------------------------------------------------------
 FilterSPtr EditionFilterFactory::createFilter(InputSList          inputs,
-                                                    const Filter::Type& filter,
-                                                    SchedulerSPtr       scheduler) const
+                                              const Filter::Type& filter,
+                                              SchedulerSPtr       scheduler) const
 {
   FilterSPtr editionFilter;
 

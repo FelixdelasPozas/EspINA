@@ -96,7 +96,12 @@ CategoryAdapterSPtr CategorySelector::selectedCategory()
 {
   if (!m_selectedCategory)
   {
-    m_selectedCategory = m_model->classification()->categories().first();
+    const auto categories = m_model->classification()->categories();
+
+    if(!categories.isEmpty())
+    {
+      m_selectedCategory = m_model->classification()->categories().first();
+    }
   }
 
   return m_selectedCategory;

@@ -46,7 +46,7 @@ ProgressAction::ProgressAction(const QIcon &icon, const QString &tooltip, QObjec
 QWidget* ProgressAction::createWidget(QWidget* parent)
 {
   auto widget = new QWidget(parent);
-  auto layout = new QVBoxLayout;
+  auto layout = new QVBoxLayout(widget);
 
   layout->setMargin(0);
   widget->setLayout(layout);

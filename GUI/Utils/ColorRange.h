@@ -23,6 +23,7 @@
 #include <GUI/EspinaGUI_Export.h>
 
 // Qt
+#include <QObject>
 #include <QColor>
 
 namespace ESPINA
@@ -161,6 +162,12 @@ namespace ESPINA
            *
            */
           explicit RangeHSV(const double min, const double max);
+
+          /** \brief RangeHSV class virtual destructor.
+           *
+           */
+          virtual ~RangeHSV()
+          {};
 
         private:
           virtual QColor computeColor(const double  value,

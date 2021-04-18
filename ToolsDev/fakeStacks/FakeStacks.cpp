@@ -206,7 +206,7 @@ void FakeStacks::parseStacks(const QByteArray& data)
 
     if(idStart != -1 && idEnd != -1)
     {
-      auto fileState = QString::fromAscii(data.mid(begin, end-begin));
+      auto fileState = QString::fromLatin1(data.mid(begin, end-begin));
       auto stateParts = fileState.split(';');
       stateParts = stateParts.first().split('=');
 
@@ -216,7 +216,7 @@ void FakeStacks::parseStacks(const QByteArray& data)
 
       if(!filename.contains("segmha", Qt::CaseInsensitive))
       {
-        auto id = QString::fromAscii(data.mid(idStart, idEnd-idStart+1));
+        auto id = QString::fromLatin1(data.mid(idStart, idEnd-idStart+1));
         m_ids.insert(filename, id);
         writeInfo(tr("Found file '%1' with id '%2'").arg(filename).arg(id));
       }
@@ -266,7 +266,7 @@ void FakeStacks::parseBounds(QuaZip& zip)
       }
     }
 
-    tokenBegin = QString("bounds=").toAscii();
+    tokenBegin = QString("bounds=").toLatin1();
 
     begin = content.indexOf(tokenBegin, 0);
     if(begin != -1)
@@ -371,7 +371,7 @@ ESPINA::Bounds FakeStacks::parseBounds(const QByteArray& data)
 
     result.setUpperInclusion(toAxis(i), (data[end]==']'));
 
-    auto parts = QString::fromAscii(data.mid(begin+1, end-begin-1)).split(',');
+    auto parts = QString::fromLatin1(data.mid(begin+1, end-begin-1)).split(',');
 
     result[2*i] = parts[0].toDouble();
     result[(2*i)+1] = parts[1].toDouble();
@@ -384,7 +384,7 @@ ESPINA::Bounds FakeStacks::parseBounds(const QByteArray& data)
 //----------------------------------------------------------------------
 ESPINA::NmVector3 FakeStacks::parseSpacing(const QByteArray& data, const QChar separator)
 {
-  auto numbers = QString::fromAscii(data).split(separator);
+  auto numbers = QString::fromLatin1(data).split(separator);
   if(numbers.size() != 3)
   {
     writeError("Error parsing spacing, numbers != 3.");

@@ -37,6 +37,7 @@ const SegmentationExtension::Key SYNAPSE_DENDRITE_CONNECTION = QObject::tr("Dend
 const SegmentationExtension::Key SYNAPSE_DENDRITE_LOCATION   = QObject::tr("Shaft/Spine");
 const SegmentationExtension::Key SYNAPSE_SPINE               = QObject::tr("Spine name");
 const SegmentationExtension::Key SYNAPSE_BRANCHED_SPINE      = QObject::tr("Branched spine");
+const SegmentationExtension::Key SYNAPSE_TRUNCATED_SPINE     = QObject::tr("Truncated spine");
 const SegmentationExtension::Key SYNAPSE_SPINE_LOCATION      = QObject::tr("Location in spine");
 const SegmentationExtension::Key SYNAPSE_AXON_CONNECTION     = QObject::tr("Axon connection");
 
@@ -67,6 +68,7 @@ const SegmentationExtension::InformationKeyList SynapseConnectionInformation::av
                      SYNAPSE_DENDRITE_LOCATION,
                      SYNAPSE_SPINE,
                      SYNAPSE_BRANCHED_SPINE,
+                     SYNAPSE_TRUNCATED_SPINE,
                      SYNAPSE_SPINE_LOCATION,
                      SYNAPSE_AXON_CONNECTION})
   {
@@ -110,6 +112,7 @@ void SynapseConnectionInformation::updateInformation() const
     QString spineLocation    = unconnected;
     QString spineName        = unconnected;
     QString branched         = unconnected;
+    QString truncated        = unconnected;
 
     const auto connections = m_extendedItem->analysis()->connections(m_extendedItem);
 
@@ -132,8 +135,8 @@ void SynapseConnectionInformation::updateInformation() const
 
         auto dendrite   = readLockSkeleton(other->output())->skeleton();
         auto definition = toSkeletonDefinition(dendrite);
-        auto pathList   = paths(definition.nodes, definition.edges, definition.strokes);
-        auto hierarchy  = pathHierarchy(pathList, definition.edges, definition.strokes);
+        const auto pathList   = paths(definition.nodes, definition.edges, definition.strokes);
+        const auto hierarchy  = pathHierarchy(pathList, definition.edges, definition.strokes);
 
         for(auto &path: pathList)
         {
@@ -145,15 +148,19 @@ void SynapseConnectionInformation::updateInformation() const
             spineName        = tr("No");
             spineLocation    = tr("No");
             branched         = tr("No");
+            truncated        = tr("No");
             break;
           }
+
+          auto pathNode = locatePathHierarchyNode(path, hierarchy);
 
           if(path.note.startsWith("Spine", Qt::CaseInsensitive))
           {
             dendriteLocation = tr("Spine");
-            spineName        = path.note;
             spineLocation    = tr("Spine head");
             branched         = tr("No");
+            truncated        = isTruncated(pathNode) ? tr("Yes"): tr("No");
+            spineName        = path.note;
             break;
           }
 
@@ -162,12 +169,12 @@ void SynapseConnectionInformation::updateInformation() const
             dendriteLocation = tr("Spine");
             spineLocation    = tr("Spine head");
             branched         = path.note;
-
-            auto pathNode = locatePathHierarchyNode(path, hierarchy);
-            Q_ASSERT(pathNode);
+            truncated        = tr("No");
 
             while(pathNode && !pathNode->path.note.startsWith("Spine", Qt::CaseInsensitive)) pathNode = pathNode->parent;
             spineName = (pathNode ? pathNode->path.note : tr("Failed to identify spine"));
+
+            if(pathNode) truncated = isTruncated(pathNode) ? tr("Yes"): tr("No");
             break;
           }
 
@@ -179,6 +186,7 @@ void SynapseConnectionInformation::updateInformation() const
               spineLocation    = tr("No");
               branched         = tr("No");
               spineName        = tr("No");
+              truncated        = tr("No");
               break;
             }
 
@@ -186,8 +194,6 @@ void SynapseConnectionInformation::updateInformation() const
             spineLocation    = path.note.contains("head", Qt::CaseInsensitive) ? tr("Spine head") : tr("Spine neck");
             branched         = tr("No");
 
-            auto pathNode = locatePathHierarchyNode(path, hierarchy);
-            Q_ASSERT(pathNode);
             while(pathNode && !pathNode->path.note.startsWith("Spine", Qt::CaseInsensitive))
             {
               if(pathNode->path.note.startsWith("Subspine", Qt::CaseInsensitive))
@@ -198,6 +204,7 @@ void SynapseConnectionInformation::updateInformation() const
               pathNode = pathNode->parent;
             }
 
+            truncated = isTruncated(pathNode) ? tr("Yes"): tr("No");
             spineName = (pathNode ? pathNode->path.note : tr("Failed to identify spine"));
             break;
           }
@@ -207,11 +214,18 @@ void SynapseConnectionInformation::updateInformation() const
       }
     }
 
+    // 2020-05-23: fix spine name if child is truncated
+    if(truncated.startsWith("yes", Qt::CaseInsensitive) && !spineName.endsWith(" (truncated)", Qt::CaseInsensitive))
+    {
+      spineName += tr(" (Truncated)");
+    }
+
     updateInfoCache(SYNAPSE_DENDRITE_CONNECTION, dendriteName);
     updateInfoCache(SYNAPSE_AXON_CONNECTION, axonName);
     updateInfoCache(SYNAPSE_DENDRITE_LOCATION, dendriteLocation);
     updateInfoCache(SYNAPSE_SPINE, spineName);
     updateInfoCache(SYNAPSE_BRANCHED_SPINE, branched);
+    updateInfoCache(SYNAPSE_TRUNCATED_SPINE, truncated);
     updateInfoCache(SYNAPSE_SPINE_LOCATION, spineLocation);
   }
 }

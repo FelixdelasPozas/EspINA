@@ -63,7 +63,7 @@ DefaultView::DefaultView(Support::Context &context,
 {
   setObjectName("viewXY");
 
-  setLayout(new QVBoxLayout());
+  setLayout(new QVBoxLayout(this));
   layout()->addWidget(m_viewXY);
   layout()->setMargin(0);
 

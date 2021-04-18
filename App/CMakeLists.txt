@@ -13,12 +13,13 @@ include_directories(
 
 #------------------------------------------------------------------------------
 # Add Qt Resource files
-qt4_add_resources(ESPINA_RCC
+qt5_add_resources(ESPINA_RCC
   rsc/espina.qrc
+  rsc/darktheme/style.qrc
   )
 
 # Create header's MOC files
-qt4_wrap_cpp (ESPINA_MOC
+qt5_wrap_cpp (ESPINA_MOC
   AutoSave.h
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.h
   Dialogs/AdjacencyMatrix/AdjacencyMatrixTabularReport.h
@@ -65,6 +66,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Explore/ResetViewTool.h
   ToolGroups/Explore/PositionMarksTool.h
   ToolGroups/Explore/ZoomRegionTool.h
+  ToolGroups/Edit/CleanSegmentationTool.h
   ToolGroups/Edit/CODERefineWidget.h
   ToolGroups/Edit/CODERefiner.h
   ToolGroups/Edit/CODETool.h
@@ -100,6 +102,7 @@ qt4_wrap_cpp (ESPINA_MOC
   ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.h
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.h
   ToolGroups/Visualize/FullscreenTool.h
+  ToolGroups/Visualize/DayNightTool.h
   ToolGroups/Visualize/Representations/Switches/CrosshairSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationConnectionsSwitch.h
   ToolGroups/Visualize/Representations/Switches/SegmentationContourSwitch.h
@@ -116,7 +119,7 @@ qt4_wrap_cpp (ESPINA_MOC
   )
 
 # Create Interface files
-qt4_wrap_ui (ESPINA_UI
+qt5_wrap_ui (ESPINA_UI
   Dialogs/About/AboutDialog.ui
   Dialogs/AdaptiveEdges/AdaptiveEdgesDialog.ui
   Dialogs/ColorEngineSelector/ColorEngineSelector.ui
@@ -219,6 +222,7 @@ set (ESPINA_SOURCES
   ToolGroups/Analyze/Reports/AdjacencyMatrixReport.cpp
   ToolGroups/Analyze/SelectionMeasure/SelectionMeasureTool.cpp
   ToolGroups/Analyze/SkeletonInspector/SkeletonInspectorTool.cpp
+  ToolGroups/Edit/CleanSegmentationTool.cpp
   ToolGroups/Edit/CODERefineWidget.cpp
   ToolGroups/Edit/CODERefiner.cpp
   ToolGroups/Edit/CODETool.cpp
@@ -260,6 +264,7 @@ set (ESPINA_SOURCES
   ToolGroups/Visualize/ColorEngines/ConnectionsColorEngineSwitch.cpp
   ToolGroups/Visualize/ColorEngines/InformationColorEngineSwitch.cpp
   ToolGroups/Visualize/FullscreenTool.cpp
+  ToolGroups/Visualize/DayNightTool.cpp
   ToolGroups/Visualize/GenericTogglableTool.cpp
   ToolGroups/Visualize/Representations/StackRepresentationFactory.cpp
   ToolGroups/Visualize/Representations/CrosshairRepresentationFactory.cpp

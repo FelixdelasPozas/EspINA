@@ -49,7 +49,8 @@ namespace ESPINA
       /** \brief ViewItem class destructor.
        *
        */
-      virtual ~ViewItem();
+      virtual ~ViewItem()
+      {};
 
       /** \brief Returns the ViewItem as an input object to use as input of other objects.
        *

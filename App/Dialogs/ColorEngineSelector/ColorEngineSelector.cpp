@@ -42,12 +42,12 @@ ColorEngineSelector::ColorEngineSelector(GUI::ColorEngines::MultiColorEngineSPtr
   m_useDefault->setChecked(true);
   m_useCustom->setChecked(false);
 
-  auto layout = new QVBoxLayout();
+  auto layout = new QVBoxLayout(this);
   m_colorEnginesBox->setLayout(layout);
 
   for(auto registeredEngine: engine->availableEngines())
   {
-    auto checkbox = new QCheckBox{registeredEngine->tooltip()};
+    auto checkbox = new QCheckBox{registeredEngine->tooltip(), this};
 
     if(registeredEngine->isActive())
     {

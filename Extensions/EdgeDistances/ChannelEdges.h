@@ -154,7 +154,7 @@ namespace ESPINA
     protected:
       virtual void onExtendedItemSet(Channel* item);
 
-      virtual QVariant cacheFail(const InformationKey& tag) const
+      virtual QVariant cacheFail(__attribute__((unused)) const InformationKey& tag) const
       { return QVariant(); }
 
     private:

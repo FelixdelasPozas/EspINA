@@ -34,6 +34,7 @@
 
 class QPushButton;
 class QAction;
+
 namespace ESPINA
 {
   class ROISettings;

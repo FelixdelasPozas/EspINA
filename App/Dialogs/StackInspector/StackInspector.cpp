@@ -68,6 +68,7 @@
 #include <QPainter>
 #include <QGraphicsScene>
 #include <QGraphicsItem>
+#include <QPushButton>
 
 // VTK
 #include <vtkMath.h>
@@ -124,9 +125,6 @@ StackInspector::StackInspector(ChannelAdapterSPtr channel, Support::Context &con
 #if USE_METADONA
   tabWidget->addTab(new MetadataViewer(channel.get(), getScheduler(), this), tr("Metadata"));
 #endif // USE_METADONA
-
-  // Disable SLIC momentarily.
-  //this->tabWidget->setTabEnabled(2,false);
 }
 
 //------------------------------------------------------------------------

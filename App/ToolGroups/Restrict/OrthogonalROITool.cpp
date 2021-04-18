@@ -34,6 +34,7 @@
 #include <QAction>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QPushButton>
 
 namespace ESPINA
 {
