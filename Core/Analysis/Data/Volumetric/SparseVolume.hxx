@@ -208,6 +208,15 @@ namespace ESPINA
       virtual QList<Data::Type> updateDependencies() const override
       { return QList<Data::Type>(); }
 
+      /** \brief Helper method to generate a snapshot for a image block.
+       * \param[in] volume Block image.
+       * \param[in] storage Temporal storage.
+       * \param[in] path Snapshot path.
+       * \param[in] id Image id (filename in storage).
+       *
+       */
+      Snapshot blockSnapshotMemory(typename T::Pointer volume, TemporalStorageSPtr storage, const QString &path, const QString &id);
+
     protected:
       const unsigned int s_blockSize = 25;
       QMap<lliVector3, typename T::Pointer> m_blocks;
@@ -766,15 +775,67 @@ namespace ESPINA
   {
     Snapshot snapshot;
 
-    QMapIterator<lliVector3, typename T::Pointer> it(m_blocks);
     int i = 0;
-    while(it.hasNext())
+    for(auto it = m_blocks.cbegin(); it != m_blocks.cend(); ++it, ++i)
     {
-      it.next();
+      auto filename = multiBlockPath(id, i);
 
-      auto filename = multiBlockPath(id, i++);
+      if(std::is_same<T, itkVolumeType>::value)
+      {
+        snapshot << blockSnapshotMemory(it.value(), storage, path, filename);
+      }
+      else
+      {
+        snapshot << createVolumeSnapshot<T>(it.value(), storage, path, filename);
+      }
+    }
 
-      snapshot << createVolumeSnapshot<T>(it.value(), storage, path, filename);
+    return snapshot;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  Snapshot SparseVolume<T>::blockSnapshotMemory(typename T::Pointer volume, TemporalStorageSPtr storage, const QString &path, const QString &id)
+  {
+    static const QString MHDheader = "ObjectType = Image\nNDims = 3\nBinaryData = True\nBinaryDataByteOrderMSB = False\nCompressedData = False\n"
+                                     "TransformMatrix = 1 0 0 0 1 0 0 0 1\nOffset = %1 %2 %3\nCenterOfRotation = 0 0 0\nAnatomicalOrientation = RAI\n"
+                                     "ElementSpacing = %4 %5 %6\nITK_InputFilterName = MetaImageIO\nDimSize = %7 %8 %9\nElementType = MET_UCHAR\n"
+                                     "ElementDataFile = %10";
+
+    Snapshot snapshot;
+
+    if(volume)
+    {
+      volume->Update();
+
+      QString mhd = path + id;
+      QString raw = mhd;
+      raw.replace(".mhd",".raw");
+
+      const auto spacing = volume->GetSpacing();
+      const auto origin  = volume->GetOrigin();
+      const auto region  = volume->GetLargestPossibleRegion();
+      const auto size    = region.GetSize();
+      const auto name    = QDir::fromNativeSeparators(storage->absoluteFilePath(raw)).split('/').last();
+
+      const int totalSize = size[0]*size[1]*size[2];
+
+      const double offset[3]{origin.GetElement(0) + (region.GetIndex(0) * spacing[0]),
+                             origin.GetElement(1) + (region.GetIndex(1) * spacing[1]),
+                             origin.GetElement(2) + (region.GetIndex(2) * spacing[2])};
+
+      auto header = MHDheader.arg(offset[0]).arg(offset[1]).arg(offset[2])
+                             .arg(spacing[0]).arg(spacing[1]).arg(spacing[2])
+                             .arg(size[0]).arg(size[1]).arg(size[2])
+                             .arg(name);
+
+      header = header.replace(',','.');
+
+      QByteArray data(totalSize,0);
+      std::memcpy(data.data(), volume->GetBufferPointer(), totalSize);
+
+      snapshot << SnapshotData(mhd, header.toLatin1());
+      snapshot << SnapshotData(raw, data);
     }
 
     return snapshot;
@@ -795,8 +856,17 @@ namespace ESPINA
       auto editedBounds = intersection(region, this->m_bounds);
       if (editedBounds.areValid())
       {
-        auto snapshotId    = editedRegionSnapshotId(id, regionId);
-        regionsSnapshot << createVolumeSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
+        auto snapshotId = editedRegionSnapshotId(id, regionId);
+
+        if(std::is_same<T, itkVolumeType>::value)
+        {
+          regionsSnapshot << blockSnapshotMemory(itkImage(editedBounds), storage, path, snapshotId);
+        }
+        else
+        {
+          regionsSnapshot << createVolumeSnapshot<T>(itkImage(editedBounds), storage, path, snapshotId);
+        }
+
         ++regionId;
       }
     }

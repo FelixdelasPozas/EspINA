@@ -57,13 +57,11 @@ void Scheduler::TaskQueue::orderedInsert(TaskSPtr worker)
 
   while (!found && w < size())
   {
-//    found = at(w).Task->id() > worker->id();
     found = at(w)->id() > worker->id();
 
     if (!found) ++w;
   }
 
-//  insert(w, ScheduledTask(worker));
   insert(w, worker);
 }
 

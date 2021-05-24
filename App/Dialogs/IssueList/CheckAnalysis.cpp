@@ -229,9 +229,9 @@ CheckAnalysis::CheckAnalysis(Support::Context &context)
     m_checkList << std::make_shared<CheckSampleTask>(context, sample);
   }
 
-  m_checkList << std::make_shared<CheckDuplicatedSegmentationsTask>(context);
-
   m_checkList << std::make_shared<CheckStacksSizes>(model->channels(), context);
+
+  m_checkList << std::make_shared<CheckDuplicatedSegmentationsTask>(context);
 }
 
 //------------------------------------------------------------------------
@@ -239,10 +239,11 @@ void CheckAnalysis::run()
 {
   m_tasksNum = m_checkList.size();
 
-  auto taskList = m_checkList;
-  taskList.detach();
-  for(auto task: taskList)
+  const auto maxTasks = std::min(4, m_tasksNum);
+  for(int i = 0; i < maxTasks; ++i)
   {
+    auto task = m_checkList.at(i);
+
     // needs to be direct connection because the mutexes.
     connect(task.get(), SIGNAL(finished()),
             this,       SLOT(finishedTask()), Qt::DirectConnection);
@@ -307,6 +308,22 @@ void CheckAnalysis::finishedTask()
     }
 
     resume();
+  }
+  else
+  {
+    auto validTask = [](std::shared_ptr<CheckTask> t){ return (!t->isRunning() && !t->hasFinished() && !t->isAborted() && !t->isPaused()); };
+    auto it = std::find_if(m_checkList.begin(), m_checkList.end(), validTask);
+    if(it != m_checkList.end())
+    {
+      auto nextTask = (*it);
+      connect(nextTask.get(), SIGNAL(finished()),
+              this,       SLOT(finishedTask()), Qt::DirectConnection);
+
+      connect(nextTask.get(), SIGNAL(issueFound(Extensions::IssueSPtr)),
+              this,       SLOT(addIssue(Extensions::IssueSPtr)), Qt::DirectConnection);
+
+      Task::submit(nextTask);
+    }
   }
 }
 
@@ -462,6 +479,7 @@ CheckSegmentationTask::CheckSegmentationTask(Support::Context &context,
 //------------------------------------------------------------------------
 void CheckSegmentationTask::run()
 {
+  bool failed = false;
   try
   {
     if(!canExecute()) return;
@@ -479,7 +497,35 @@ void CheckSegmentationTask::run()
   }
   catch(const EspinaException &e)
   {
-    reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Check crashed during testing."), e.details());
+    failed = true;
+  }
+
+  if(failed)
+  {
+    try
+    {
+      auto filter = m_segmentation->filter();
+      if(filter)
+      {
+        filter->update();
+
+        const auto message = tr("Segmentation had to be reconstructed after failure to load from disk.");
+        const auto details = tr("Re-check the segmentation.");
+
+        reportIssue(m_segmentation, Issue::Severity::WARNING, message, details);
+      }
+      else
+      {
+        const auto message = tr("Can't access filter.");
+        const auto details = tr("CheckSegmentationTask::run -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+    }
+    catch(const EspinaException &e)
+    {
+      reportIssue(m_segmentation, Issue::Severity::CRITICAL, tr("Check crashed during testing and failed to reconstruct."), e.details());
+    }
   }
 }
 
@@ -800,33 +846,44 @@ void CheckDuplicatedSegmentationsTask::run()
 {
   for (int i = 0; i < m_segmentations.size(); ++i)
   {
-    const auto seg_i    = m_segmentations[i].get();
-    if(!hasVolumetricData(seg_i->output())) continue;
-    const auto bounds_i = readLockVolume(seg_i->output())->bounds();
-
-    for (int j = i + 1; j < m_segmentations.size(); ++j)
+    const auto seg_i = m_segmentations[i].get();
+    if(seg_i)
     {
-      const auto seg_j    = m_segmentations[j].get();
-      if(!hasVolumetricData(seg_j->output())) continue;
-      const auto bounds_j = readLockVolume(seg_j->output())->bounds();
+      auto output_i = seg_i->output();
+      if(!output_i || !output_i->isValid() || !hasVolumetricData(output_i)) continue;
 
-      if(!canExecute()) return;
+      const auto bounds_i = readLockVolume(output_i)->bounds();
 
-      if (seg_i->category() == seg_j->category())
+      for (int j = i + 1; j < m_segmentations.size(); ++j)
       {
-        if(intersect(bounds_i, bounds_j))
+        const auto seg_j = m_segmentations[j].get();
+        if(seg_j)
         {
-          const auto commonBounds = intersection(bounds_i, bounds_j);
-          if(commonBounds.areValid())
-          {
-            const auto image1 = readLockVolume(seg_i->output())->itkImage(commonBounds);
-            const auto image2 = readLockVolume(seg_j->output())->itkImage(commonBounds);
-            auto duplicated   = compare_images<itkVolumeType>(image1, image2, commonBounds);
+          auto output_j = seg_j->output();
+          if(!output_j || !output_j->isValid() || !hasVolumetricData(output_j)) continue;
 
-            if(duplicated > 0)
+          const auto bounds_j = readLockVolume(output_j)->bounds();
+
+          if(!canExecute()) return;
+
+          if (seg_i->category() == seg_j->category())
+          {
+            if(intersect(bounds_i, bounds_j))
             {
-              reportIssue(seg_i, possibleDuplication(seg_i, seg_j, duplicated));
-              reportIssue(seg_j, possibleDuplication(seg_j, seg_i, duplicated));
+              const auto commonBounds = intersection(bounds_i, bounds_j);
+
+              if(commonBounds.areValid())
+              {
+                const auto image1 = readLockVolume(seg_i->output())->itkImage(commonBounds);
+                const auto image2 = readLockVolume(seg_j->output())->itkImage(commonBounds);
+                auto duplicated   = compare_images<itkVolumeType>(image1, image2, commonBounds);
+
+                if(duplicated > 0)
+                {
+                  reportIssue(seg_i, possibleDuplication(seg_i, seg_j, duplicated));
+                  reportIssue(seg_j, possibleDuplication(seg_j, seg_i, duplicated));
+                }
+              }
             }
           }
         }

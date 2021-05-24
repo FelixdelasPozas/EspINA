@@ -47,6 +47,10 @@
 #include <itkImageIOFactory.h>
 #include <itkImageRegionIteratorWithIndex.h>
 
+// C++
+#include <thread>
+#include <chrono>
+
 // Qt
 #include <QDir>
 #include <QString>
@@ -285,7 +289,7 @@ namespace ESPINA
   {
     if(!id.endsWith(".mhd", Qt::CaseInsensitive))
     {
-      auto message = QObject::tr("Specified filename doesn't end in mhd.").arg(id);
+      auto message = QObject::tr("Specified filename doesn't end in mhd: '%1'.").arg(id);
       auto details = QObject::tr("VolumetricDataUtils::createVolumeSnapshot() -> ") + message;
 
       throw Core::Utils::EspinaException(message, details);
@@ -301,8 +305,27 @@ namespace ESPINA
 
     exportVolume<T>(volume, storage->absoluteFilePath(mhd));
 
-    snapshot << SnapshotData(mhd, storage->snapshot(mhd));
-    snapshot << SnapshotData(raw, storage->snapshot(raw));
+    QByteArray header, data;
+    int i = 0;
+    do
+    {
+      if(++i % 10) std::this_thread::sleep_for(std::chrono::seconds(1));
+
+      if(i % 100)
+      {
+        auto message = QObject::tr("Unable to load saved volume from disk: '%1'.").arg(id);
+        auto details = QObject::tr("VolumetricDataUtils::createVolumeSnapshot() -> ") + message;
+
+        throw Core::Utils::EspinaException(message, details);
+      }
+
+      header = storage->snapshot(mhd);
+      data   = storage->snapshot(raw);
+    }
+    while(header.size() == 0 || data.size() == 0);
+
+    snapshot << SnapshotData(mhd, header);
+    snapshot << SnapshotData(raw, data);
 
     return snapshot;
   }

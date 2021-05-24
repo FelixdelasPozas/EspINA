@@ -33,7 +33,6 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QWidget>
-#include <QDebug>
 #include <QXmlStreamWriter>
 
 // VTK
@@ -56,24 +55,16 @@ namespace ESPINA
     { return xml.name() == "EditedRegion"; }
 
     Output::Id parseOutputId(const QXmlStreamReader& xml)
-    {
-      return xml.attributes().value("id").toString().toInt();
-    }
+    { return xml.attributes().value("id").toString().toInt(); }
 
     NmVector3 parseOutputSpacing(const QXmlStreamReader& xml)
-    {
-      return NmVector3(xml.attributes().value("spacing").toString());
-    }
+    { return NmVector3(xml.attributes().value("spacing").toString()); }
 
     Bounds parseEditedRegionsBounds(const QXmlStreamReader& xml)
-    {
-      return Bounds(xml.attributes().value("bounds").toString());
-    }
+    { return Bounds(xml.attributes().value("bounds").toString()); }
 
     Data::Type parseDataType(const QXmlStreamReader& xml)
-    {
-      return xml.attributes().value("type").toString();
-    }
+    { return xml.attributes().value("type").toString(); }
   }
 }
 
@@ -89,7 +80,6 @@ Snapshot Filter::snapshot() const
 {
   Snapshot snapshot;
 
-//   qDebug() << "Snapshot Request: " << m_type << uuid();
   if (!m_outputs.isEmpty())
   {
     QByteArray       buffer;
@@ -129,11 +119,8 @@ void Filter::unload()
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-//  QString debugPath;
-//  debugPath.append(QString("Update Request: %1").arg(m_type));
   if (m_outputs.isEmpty() || needUpdate())
   {
-//    debugPath.append(" - Accepted");
     bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
     for(auto input : m_inputs)
@@ -141,7 +128,6 @@ void Filter::update()
       input->update();
     }
 
-//    debugPath.append(QString(" - Executing: %1").arg(m_type));
     execute();
 
     if (invalidatePreviousEditedRegions)
@@ -156,8 +142,6 @@ void Filter::update()
        restoreEditedRegions();
     }
   }
-
-//  qDebug() << debugPath;
 }
 
 //----------------------------------------------------------------------------
@@ -282,7 +266,7 @@ bool Filter::restorePreviousOutputs() const
           }
           else if (isDataSection(xml) && output)
           {
-            // TODO: 07-10-2016 - @felix - Take into account data dependencies, requires data factory refactorization.
+            // TODO: 2016-10-07 - @felix - Take into account data dependencies, requires data factory refactorization.
             data = m_dataFactory->createData(output, storage(), prefix(), xml.attributes());
             if (!data)
             {
