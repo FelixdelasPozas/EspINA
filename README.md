@@ -37,7 +37,7 @@ EspINA is and open source software developed by the [Universidad Politécnica de
 
 # Repository information
 
-**Version**: 2.9.12
+**Version**: 2.9.13
 
 **Status**: finished
 
@@ -45,7 +45,7 @@ EspINA is and open source software developed by the [Universidad Politécnica de
 
 | Language                     |files          |blank        |comment           |code      |
 |:-----------------------------|--------------:|------------:|-----------------:|---------:|
-| C++                          | 783           | 27519       | 23917            | 101704   |
-| C/C++ Header                 | 513           | 12620       | 29138            |  25145   |
+| C++                          | 783           | 27528       | 23909            | 101742   |
+| C/C++ Header                 | 513           | 12620       | 29137            |  25147   |
 | CMake                        |  66           |   441       |   213            |   2814   |
-| **Total**                    | **1362**      | **40580**   | **53268**        | **129663** |
+| **Total**                    | **1362**      | **40569**   | **53259**        | **129703** |
