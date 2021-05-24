@@ -122,7 +122,6 @@ namespace ESPINA
        */
       void update();
 
-
       /** \brief Return the number of outputs of the filter.
        *
        */
@@ -236,7 +235,6 @@ namespace ESPINA
       DataFactorySPtr    m_dataFactory;
       ErrorHandlerSPtr   m_handler;
 
-      // NOTE: Remove with ESPINA 2.2
       friend class IO::SegFile::SegFile_V4;
   };
 } // namespace ESPINA

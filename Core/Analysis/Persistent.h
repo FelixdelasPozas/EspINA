@@ -36,6 +36,7 @@
 
 // C++
 #include <memory>
+#include <iostream>
 
 // Qt
 #include <QString>
@@ -59,6 +60,7 @@ namespace ESPINA
        */
       explicit Persistent()
       : m_quuid{QUuid::createUuid()}
+      , m_storage{nullptr}
       {}
 
       /** \brief Persistent class destructor.
@@ -97,6 +99,7 @@ namespace ESPINA
           // NOTE: last resort & for tests, temporal storage should be set on factory creation.
           m_storage = std::make_shared<TemporalStorage>();
         }
+
         return m_storage;
       }
 
