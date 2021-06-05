@@ -117,7 +117,6 @@ void FileOpenTool::onTriggered()
       m_errorHandler->setDefaultDir(fileInfo.absoluteDir());
 
       IO::LoadOptions options;
-      options.insert(VolumetricStreamReader::STREAMING_OPTION, QVariant::fromValue(false));
       options.insert(tr("Load Tool Settings"), QVariant::fromValue(true));
       options.insert(tr("Check analysis"), QVariant::fromValue(true));
 

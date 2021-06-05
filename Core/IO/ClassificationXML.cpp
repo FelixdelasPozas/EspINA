@@ -1,5 +1,4 @@
 /*
- *
  * Copyright (C) 2014  Jorge Peña Pastor <jpena@cesvima.upm.es>
  *
  * This file is part of ESPINA.
@@ -28,6 +27,7 @@
 #include <QXmlStreamReader>
 #include <QColor>
 #include <QDebug>
+#include <QObject>
 
 using namespace ESPINA;
 using namespace ESPINA::Core::Utils;
@@ -49,13 +49,24 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
   while (!stream.atEnd())
   {
     stream.readNextStartElement();
-    if (stream.name() == "category" || stream.name() == "node") //node was used by categories
+
+    if(stream.hasError())
+    {
+      const QString message = QObject::tr("Error parsing classification: %1 (%2,%3)").arg(stream.errorString()).arg(stream.lineNumber()).arg(stream.columnNumber());
+      const QString details = QString("ClassificationXML::parse() -> ") + message;
+
+      throw ESPINA::Core::Utils::EspinaException(message, details);
+    }
+
+    if (stream.name().toString().compare("category", Qt::CaseInsensitive) == 0 ||
+        stream.name().toString().compare("node", Qt::CaseInsensitive) == 0) //node was used by categories
     {
       if (stream.isStartElement())
       {
         stack.push(parent);
 
         name  = stream.attributes().value("name");
+
         QStringRef color = stream.attributes().value("color");
 
         CategorySPtr category = classification->createNode(name.toString(), parent);
@@ -75,7 +86,7 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
       }
       else if (stream.isEndElement())
       {
-        parent = stack.pop();
+        if(!stack.isEmpty()) parent = stack.pop();
       }
     }
   }

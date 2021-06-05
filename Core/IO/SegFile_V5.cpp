@@ -299,10 +299,11 @@ FilterSPtr SegFile_V5::Loader::createFilter(DirectedGraph::Vertex roVertex)
   auto reader = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
   if(reader)
   {
-    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
-                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+    if(m_options.contains(VolumetricStreamReader::STREAMING_OPTION))
+    {
+      reader->setStreaming(m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+    }
   }
-
   filter->setStorage(m_storage);
   filter->restorePreviousOutputs();
 

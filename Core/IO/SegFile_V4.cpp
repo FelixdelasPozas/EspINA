@@ -273,8 +273,10 @@ ChannelSPtr SegFile_V4::Loader::createChannel(DirectedGraph::Vertex roVertex)
   auto reader    = std::dynamic_pointer_cast<VolumetricStreamReader>(filter);
   if(reader)
   {
-    reader->setStreaming(m_options.contains(VolumetricStreamReader::STREAMING_OPTION) &&
-                         m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+    if(m_options.contains(VolumetricStreamReader::STREAMING_OPTION))
+    {
+      reader->setStreaming(m_options.value(VolumetricStreamReader::STREAMING_OPTION).toBool() == true);
+    }
   }
   filter->update(); // Existing outputs weren't stored in previous versions
 
