@@ -13,7 +13,7 @@ If you have used EspINA to get your results and you have published them (congrat
 
 ## Dependencies and compilation
 
-EspINA relies in several external libraries, namely:
+EspINA uses several external libraries, namely:
 
 - [zlib](https://zlib.net/)
 - [Quazip](https://github.com/stachenov/quazip)
@@ -37,7 +37,7 @@ EspINA is and open source software developed by the [Universidad Politécnica de
 
 # Repository information
 
-**Version**: 2.9.13
+**Version**: 2.9.15
 
 **Status**: finished
 
@@ -45,7 +45,7 @@ EspINA is and open source software developed by the [Universidad Politécnica de
 
 | Language                     |files          |blank        |comment           |code      |
 |:-----------------------------|--------------:|------------:|-----------------:|---------:|
-| C++                          | 783           | 27528       | 23909            | 101742   |
-| C/C++ Header                 | 513           | 12620       | 29137            |  25147   |
+| C++                          | 783           | 27558       | 23925            | 101885   |
+| C/C++ Header                 | 513           | 12624       | 29154            |  25153   |
 | CMake                        |  66           |   441       |   213            |   2814   |
-| **Total**                    | **1362**      | **40569**   | **53259**        | **129703** |
+| **Total**                    | **1362**      | **40623**   | **53292**        | **129852** |
