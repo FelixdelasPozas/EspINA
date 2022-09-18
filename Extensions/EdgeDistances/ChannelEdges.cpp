@@ -279,7 +279,7 @@ itkVolumeType::RegionType ChannelEdges::sliceRegion(unsigned int slice) const
     region = equivalentRegion<itkVolumeType>(origin, spacing, bounds);
   }
 
-  auto stackRegion = readLockVolume(m_extendedItem->output())->itkImage()->GetLargestPossibleRegion();
+  auto stackRegion = readLockVolume(m_extendedItem->output())->itkRegion();
   region.Crop(stackRegion);
 
   return region;

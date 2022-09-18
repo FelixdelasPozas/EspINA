@@ -559,11 +559,19 @@ void SpinesInformationDialog::ComputeInformationTask::run()
   {
     if(!canExecute()) return;
 
-    auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(segmentation, m_factory);
-    auto spines    = extension->spinesInformation();
+    try
+    {
+      auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(segmentation, m_factory);
+      auto spines    = extension->spinesInformation();
 
-    m_spinesMap.insert(segmentation, spines);
+      m_spinesMap.insert(segmentation, spines);
+    }
+    catch(...)
+    {
+      // do nothing, just continue.
+    }
 
-    reportProgress(++i/m_spinesMap.size());
+    const auto pValue = ++i/m_spinesMap.size();
+    reportProgress(pValue);
   }
 }

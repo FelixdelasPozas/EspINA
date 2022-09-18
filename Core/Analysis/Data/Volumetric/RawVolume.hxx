@@ -142,6 +142,12 @@ namespace ESPINA
      */
     virtual void resize(const Bounds &bounds) override;
 
+    virtual const typename T::RegionType itkRegion() const override;
+
+    virtual const typename T::SpacingType itkSpacing() const override;
+
+    virtual const typename T::PointType itkOriginalOrigin() const override;
+
     virtual bool isValid() const override;
 
     virtual bool isEmpty() const override;
@@ -407,6 +413,27 @@ namespace ESPINA
     }
 
     return true;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::RegionType RawVolume<T>::itkRegion() const
+  {
+    return this->m_image->GetLargestPossibleRegion();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::SpacingType RawVolume<T>::itkSpacing() const
+  {
+    return this->m_image->GetSpacing();
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::PointType RawVolume<T>::itkOriginalOrigin() const
+  {
+    return this->m_image->GetOrigin();
   }
 
   using RawVolumePtr  = RawVolume<itkVolumeType> *;

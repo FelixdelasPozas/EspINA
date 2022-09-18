@@ -102,6 +102,11 @@ namespace ESPINA
        */
       void exportSegmentationToOBJ();
 
+      /** \brief Saves the segmentation polydata to disk in VTK format.
+       *
+       */
+      void saveSegmentationVTP();
+
       /** \brief Helper method to execute code on current selection. Shouldn't be used in production.
        *
        */

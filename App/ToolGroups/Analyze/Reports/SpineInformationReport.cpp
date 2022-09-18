@@ -112,18 +112,24 @@ void SpineInformationReport::show(SegmentationAdapterList input) const
   int hasSpines = false;
   for(auto segmentation: valid)
   {
-    auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(segmentation, getFactory());
-    auto spineInfo = extension->spinesInformation();
+    try
+    {
+      auto extension = retrieveOrCreateSegmentationExtension<DendriteSkeletonInformation>(segmentation, getFactory());
+      auto spineInfo = extension->spinesInformation();
 
-    hasSpines = !spineInfo.isEmpty();
-
-    if(hasSpines) break;
+      hasSpines = !spineInfo.isEmpty();
+      if(hasSpines) break;
+    }
+    catch(...)
+    {
+      // do nothing, just continue with the next one.
+    }
   }
 
-  if(!hasSpines)
+  if (!hasSpines)
   {
     QString message;
-    if(input.isEmpty())
+    if (input.isEmpty())
     {
       message = tr("The dendrites in the session have no spines.");
     }

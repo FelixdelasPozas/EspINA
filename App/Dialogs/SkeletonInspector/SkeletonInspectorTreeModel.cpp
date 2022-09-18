@@ -21,13 +21,18 @@
 
 // ESPINA
 #include <Core/Utils/ListUtils.hxx>
+#include <Core/Analysis/Data/MeshData.h>
 #include <Core/Analysis/Data/SkeletonData.h>
+#include <Core/Utils/vtkPolyDataUtils.h>
 #include <GUI/Model/SegmentationAdapter.h>
 #include <GUI/Model/CategoryAdapter.h>
+#include <GUI/Dialogs/DefaultDialogs.h>
 #include <Dialogs/SkeletonInspector/SkeletonInspectorTreeModel.h>
 
 // VTK
 #include <vtkActor.h>
+#include <vtkSmartPointer.h>
+#include <vtkXMLPolyDataWriter.h>
 
 // Qt
 #include <QPixmap>
@@ -577,4 +582,61 @@ void SkeletonInspectorTreeModel::onSelectionChanged(SegmentationAdapterList segm
   toInvalidate << m_segmentation.get();
 
   emit invalidate(toInvalidate);
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspectorTreeModel::saveScene(QDir &path)
+{
+  int distance = 0;
+
+  std::function<void(TreeNode*, int)> saveSeg = [&path, &saveSeg](TreeNode* node, int dist)
+  {
+    if(node->type != TreeNode::Type::ROOT && node->type != TreeNode::Type::SEGMENTATION)
+      return;
+
+    auto seg = reinterpret_cast<SegmentationAdapterPtr>(node->data);
+    if(seg)
+    {
+      QString type;
+      vtkSmartPointer<vtkPolyData> data = nullptr;
+      if(hasMeshData(seg->output()))
+      {
+        type = "mesh";
+        data = readLockMesh(seg->output(), DataUpdatePolicy::Ignore)->mesh();
+      }
+      else
+        if(hasSkeletonData(seg->output()))
+        {
+          type = "skeleton";
+          data = readLockSkeleton(seg->output(), DataUpdatePolicy::Ignore)->skeleton();
+        }
+        else return;
+
+      auto name = tr("%1-%2-%3.vtp").arg(dist).arg(type).arg(seg->data().toString());
+      name.replace(' ','-');
+      auto filename = path.absoluteFilePath(name);
+      const auto buffer = PolyDataUtils::savePolyDataToBuffer(data);
+
+      QFile vtpFile(filename);
+      if(!vtpFile.open(QIODevice::Text|QIODevice::Truncate|QIODevice::WriteOnly))
+      {
+        const auto message = tr("Unable to create destination file '%1'.").arg(filename);
+        DefaultDialogs::InformationMessage(tr("Export scene tree"), message);
+        return;
+      }
+
+      vtpFile.setTextModeEnabled(false);
+      vtpFile.write(buffer.constData(), buffer.size());
+      vtpFile.flush();
+      vtpFile.close();
+    }
+
+    if(!node->children.isEmpty())
+    {
+      for(auto child: node->children)
+        saveSeg(child, dist+1);
+    }
+  };
+
+  saveSeg(m_ConnectTree, 0);
 }

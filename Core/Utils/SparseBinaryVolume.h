@@ -38,7 +38,6 @@ class vtkImageData;
 
 namespace ESPINA
 {
-
   class SparseBinaryVolume;
   using SparseBinaryVolumePtr  = SparseBinaryVolume *;
   using SparseBinaryVolumeSPtr = std::shared_ptr<SparseBinaryVolume>;

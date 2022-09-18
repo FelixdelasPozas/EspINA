@@ -118,6 +118,12 @@ namespace ESPINA
 
         virtual void resize(const Bounds &bounds) override;
 
+        virtual const typename T::RegionType itkRegion() const override;
+
+        virtual const typename T::SpacingType itkSpacing() const override;
+
+        virtual const typename T::PointType itkOriginalOrigin() const override;
+
         virtual bool isValid() const override
         { return QFileInfo(m_fileName).exists() && (m_vectorLength != 0); }
 
@@ -148,25 +154,6 @@ namespace ESPINA
          *
          */
         virtual void write(const typename T::Pointer &image);
-
-        /** \brief Returns the itk region of the image.
-         *
-         * NOTE: this region can have an index != (0,0,0). All StreamedVolumes must have an origin in (0,0,0).
-         *
-         */
-        const typename T::RegionType itkRegion() const;
-
-        /** \brief Returns the itk spacing of the image.
-         *
-         */
-        const typename T::SpacingType itkSpacing() const;
-
-        /** \brief Returns the itk original origin of the image, once opened the origin of the image is (0,0,0) and the
-         * itk region is adjusted for that. So if an image has an origin not (0,0,0) the index of the region won't be (0,0,0).
-         * This means StreamedVolumes in Espina are always adjusted to spacing grid positions.
-         *
-         */
-        const typename T::PointType itkOriginalOrigin() const;
 
         /** \brief Fills the volume with the given value.
          * \param[in] value Pixel value.
@@ -308,6 +295,11 @@ namespace ESPINA
     template<typename T>
     const typename T::Pointer StreamedVolume<T>::itkImage() const
     {
+      auto message = QObject::tr("Attemp to complete load an StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
+      auto details = QObject::tr("StreamedVolume::itkImage() -> ") + message;
+
+      throw Core::Utils::EspinaException(message, details);
+
       if (!isValid())
       {
         auto message = QObject::tr("Uninitialized StreamedVolume. File: %1").arg(m_fileName.absoluteFilePath());
@@ -356,9 +348,10 @@ namespace ESPINA
         throw Core::Utils::EspinaException(message, details);
       }
 
-      auto imageBounds = this->bounds();
+      const auto imageBounds = this->bounds();
+      const auto eqRegion = equivalentRegion<T>(imageBounds.origin(), imageBounds.spacing(), bounds);
 
-      return read(equivalentRegion<T>(imageBounds.origin(), imageBounds.spacing(), bounds));
+      return read(eqRegion);
     }
 
     //-----------------------------------------------------------------------------
@@ -508,6 +501,8 @@ namespace ESPINA
 
         throw Core::Utils::EspinaException(message, details);
       }
+
+      QReadLocker lock(&this->m_lock);
 
       return m_region;
     }

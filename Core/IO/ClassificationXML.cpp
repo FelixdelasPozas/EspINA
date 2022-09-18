@@ -50,13 +50,13 @@ ClassificationSPtr parse(QXmlStreamReader& stream)
   {
     stream.readNextStartElement();
 
-    if(stream.hasError())
-    {
-      const QString message = QObject::tr("Error parsing classification: %1 (%2,%3)").arg(stream.errorString()).arg(stream.lineNumber()).arg(stream.columnNumber());
-      const QString details = QString("ClassificationXML::parse() -> ") + message;
-
-      throw ESPINA::Core::Utils::EspinaException(message, details);
-    }
+//    if(stream.hasError())
+//    {
+//      const QString message = QObject::tr("Error parsing classification: %1 (%2,%3)").arg(stream.errorString()).arg(stream.lineNumber()).arg(stream.columnNumber());
+//      const QString details = QString("ClassificationXML::parse() -> ") + message;
+//
+//      throw ESPINA::Core::Utils::EspinaException(message, details);
+//    }
 
     if (stream.name().toString().compare("category", Qt::CaseInsensitive) == 0 ||
         stream.name().toString().compare("node", Qt::CaseInsensitive) == 0) //node was used by categories

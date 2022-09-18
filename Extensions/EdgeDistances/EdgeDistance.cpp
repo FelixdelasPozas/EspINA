@@ -199,7 +199,7 @@ bool EdgeDistance::isOnEdge() const
 		break;
 	  default:
 	    qWarning() << "Tiling not supported by Stereological Inclusion Extension";
-	    // no break
+	    /* fall through */
 	  case 1:
 	    channel = channels.first();
 		break;

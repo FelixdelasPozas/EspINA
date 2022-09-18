@@ -30,6 +30,7 @@
 
 // Qt
 #include <QAbstractItemModel>
+#include <QDir>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -189,6 +190,11 @@ namespace ESPINA
        *
        */
       void onSelectionChanged(SegmentationAdapterList segmentations);
+
+      /** \brief Saves the current scene data in VTK format. For debug purposes.
+       *
+       */
+      void saveScene(QDir &path);
 
     signals:
       void invalidate(ViewItemAdapterList segmentations);

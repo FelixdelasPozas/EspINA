@@ -114,6 +114,9 @@ SkeletonInspector::SkeletonInspector(Support::Context& context)
   initSpinesTable();
 
   restoreGeometry();
+
+  // Note: set not visible in release.
+  m_saveScene->setVisible(false);
 }
 
 //--------------------------------------------------------------------
@@ -525,6 +528,9 @@ void SkeletonInspector::initTreeView()
 
   connect(getSelection().get(), SIGNAL(selectionChanged(SegmentationAdapterList)),
           model,                SLOT(onSelectionChanged(SegmentationAdapterList)));
+
+  // For debug, disable in release.
+  //connect(m_saveScene, SIGNAL(pressed()), this, SLOT(onSaveScene()));
 }
 
 //--------------------------------------------------------------------
@@ -1082,7 +1088,6 @@ void SkeletonInspector::addSegmentations(const SegmentationAdapterList &segmenta
   };
   std::for_each(segmentations.constBegin(), segmentations.constEnd(), filterSegmentationsOp);
 
-
   if(!addedSegmentations.isEmpty())
   {
     auto addTemporalRepresentationOp = [this](SegmentationAdapterPtr item)
@@ -1299,5 +1304,18 @@ void SkeletonInspector::saveToXLS(const QString& filename) const
     auto details = tr("Cause of failure: %1").arg(result == FILE_ERROR ? "file error" : "general error");
 
     throw EspinaException(what, details);
+  }
+}
+
+//--------------------------------------------------------------------
+void SkeletonInspector::onSaveScene()
+{
+  auto title = tr("Saves scene");
+  auto dir = DefaultDialogs::SaveDirectory(title, QDir::homePath(), this);
+
+  auto model = qobject_cast<SkeletonInspectorTreeModel*>(m_treeView->model());
+  if(model)
+  {
+    model->saveScene(dir);
   }
 }

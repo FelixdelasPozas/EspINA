@@ -26,6 +26,7 @@
 #include <Core/Utils/EspinaException.h>
 #include <Core/Utils/VolumeBounds.h>
 #include <Core/Utils/vtkPolyDataUtils.h>
+#include <ToolsDev/changeSEGspacing/SpacingChanger.h>
 
 // Qt
 #include <QAbstractButton>
@@ -33,7 +34,6 @@
 
 // Quazip
 #include <quazip/quazip.h>
-#include <ToolsDev/changeSEGspacing/SpacingChanger.h>
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -237,7 +237,7 @@ void SpacingChanger::startConversion()
          !zFileName.endsWith(".dot", Qt::CaseInsensitive) && !zFileName.endsWith(".raw", Qt::CaseInsensitive) &&
          !zFileName.endsWith(".xml", Qt::CaseInsensitive) && !zFileName.endsWith(".bin", Qt::CaseInsensitive) &&
          !zFileName.endsWith(".ini", Qt::CaseInsensitive) && !zFileName.endsWith(".vtp", Qt::CaseInsensitive) &&
-         !zFileName.endsWith(".vti", Qt::CaseInsensitive))
+         !zFileName.endsWith(".vti", Qt::CaseInsensitive) && !zFileName.endsWith(".log", Qt::CaseInsensitive))
       {
         increaseErrors();
         writeError(tr("ERROR: unknown file '%1'").arg(zFileName));
@@ -331,10 +331,10 @@ void SpacingChanger::processXML(QByteArray& data)
       if(end != -1)
       {
         spacing = parseSpacing(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length()));
-        writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
+        writeInfo(tr("XML: Parsed spacing: %1").arg(spacing.toString()));
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
-                                               .arg(QString::fromLatin1(replacement)));
+        writeInfo(tr("XML: Replaced spacing '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
+                                                            .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+tokenBegin.length(), end-begin-tokenBegin.length());
         data.insert(begin+tokenBegin.length(), replacement);
@@ -365,10 +365,10 @@ void SpacingChanger::processXML(QByteArray& data)
       if(end != -1)
       {
         spacing = parseSpacing(data.mid(begin+10, end-begin-10));
-        writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
+        writeInfo(tr("XML: Parsed spacing: %1").arg(spacing.toString()));
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+10, end-begin-10)))
-                                               .arg(QString::fromLatin1(replacement)));
+        writeInfo(tr("XML: Replaced spacing '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+10, end-begin-10)))
+                                                            .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+10, end-begin-10);
         data.insert(begin+10, replacement);
@@ -404,17 +404,12 @@ void SpacingChanger::processXML(QByteArray& data)
         }
 
         auto bounds = parseBounds(data.mid(begin+9, end-begin-9));
-        bounds[0] = bounds[0]/spacing[0] * m_xSpacing->value();
-        bounds[1] = bounds[1]/spacing[0] * m_xSpacing->value();
-        bounds[2] = bounds[2]/spacing[1] * m_ySpacing->value();
-        bounds[3] = bounds[3]/spacing[1] * m_ySpacing->value();
-        bounds[4] = bounds[4]/spacing[2] * m_zSpacing->value();
-        bounds[5] = bounds[5]/spacing[2] * m_zSpacing->value();
+        processBounds(bounds);
 
         replacement = bounds.toString().remove(' ').remove('{').remove('}').toLatin1();
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+9, end-begin-9)))
-                                               .arg(QString::fromLatin1(replacement)));
+        writeInfo(tr("XML: Replaced bounds '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+9, end-begin-9)))
+                                                           .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+9, end-begin-9);
         data.insert(begin+9, replacement);
@@ -471,12 +466,8 @@ void SpacingChanger::processXML(QByteArray& data)
           exclusion[1] = parts[7].toDouble();
           exclusion[2] = parts[8].toDouble();
 
-          inclusion[0] = inclusion[0]/m_spacing[0] * m_xSpacing->value();
-          inclusion[1] = inclusion[1]/m_spacing[1] * m_ySpacing->value();
-          inclusion[2] = inclusion[2]/m_spacing[2] * m_zSpacing->value();
-          exclusion[0] = exclusion[0]/m_spacing[0] * m_xSpacing->value();
-          exclusion[1] = exclusion[1]/m_spacing[1] * m_ySpacing->value();
-          exclusion[2] = exclusion[2]/m_spacing[2] * m_zSpacing->value();
+          processVector(inclusion);
+          processVector(exclusion);
 
           auto CFreplacement = QString("%1,%2,%3,%4,%5,%6,%7,%8,%9").arg(QString(parts[0]))
                                                              .arg(QString(parts[1]))
@@ -489,8 +480,8 @@ void SpacingChanger::processXML(QByteArray& data)
                                                              .arg(QString::number(exclusion[2]));
 
 
-          writeInfo(tr("Counting Frame: Replaced '%1' with '%2'").arg(QString::fromLatin1(CF))
-                                                     .arg(CFreplacement));
+          writeInfo(tr("XML: Counting Frame: Replaced '%1' with '%2'").arg(QString::fromLatin1(CF))
+                                                                      .arg(CFreplacement));
 
           replacement2.append(CFreplacement.toLatin1());
           if(CF != CFlist.last()) replacement2.append('\n');
@@ -531,9 +522,9 @@ void SpacingChanger::processGraph(QByteArray& data)
       if(end != -1)
       {
         spacing = parseSpacing(data.mid(begin+8, end-begin-8));
-        writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+8, end-begin-8)))
-                                               .arg(QString::fromLatin1(replacement)));
+        writeInfo(tr("GRAPH: Parsed spacing: %1").arg(spacing.toString()));
+        writeInfo(tr("GRAPH: Replaced spacing '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+8, end-begin-8)))
+                                                              .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+8, end-begin-8);
         data.insert(begin+8, replacement);
@@ -563,15 +554,15 @@ void SpacingChanger::processGraph(QByteArray& data)
         }
 
         seed = parseSpacing(data.mid(begin+5, end-begin-5));
-        writeInfo(tr("Parsed seed: %1").arg(seed.toString()));
+        writeInfo(tr("GRAPH: Parsed seed: %1").arg(seed.toString()));
 
-        seed[0] = seed[0]/spacing[0] * m_xSpacing->value();
-        seed[1] = seed[1]/spacing[1] * m_ySpacing->value();
-        seed[2] = seed[2]/spacing[2] * m_zSpacing->value();
+        seed[0] = nearbyint(seed[0]/spacing[0]) * m_xSpacing->value();
+        seed[1] = nearbyint(seed[1]/spacing[1]) * m_ySpacing->value();
+        seed[2] = nearbyint(seed[2]/spacing[2]) * m_zSpacing->value();
 
         replacement = QString("%1,%2,%3").arg(seed[0]).arg(seed[1]).arg(seed[2]).toLatin1();
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+5, end-begin-5)))
+        writeInfo(tr("GRAPH: Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+5, end-begin-5)))
                                                .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+8, end-begin-8);
@@ -602,9 +593,9 @@ void SpacingChanger::processMHD(QByteArray &data)
       if(end != -1)
       {
         spacing = parseSpacing(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length()), ' ');
-        writeInfo(tr("Parsed spacing: %1").arg(spacing.toString()));
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
-                                               .arg(QString::fromLatin1(replacement)));
+        writeInfo(tr("MHD: Parsed spacing: %1").arg(spacing.toString()));
+        writeInfo(tr("MHD: Replaced spacing '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
+                                                            .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+tokenBegin.length(), end-begin-tokenBegin.length());
         data.insert(begin+tokenBegin.length(), replacement);
@@ -628,16 +619,18 @@ void SpacingChanger::processMHD(QByteArray &data)
       if(end != -1)
       {
         NmVector3 offset = parseSpacing(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length()), ' ');
-        writeInfo(tr("Parsed offset: %1").arg(offset.toString()));
+        writeInfo(tr("MHD: Parsed offset: %1").arg(offset.toString()));
 
-        offset[0] = offset[0]/spacing[0] * m_xSpacing->value();
-        offset[1] = offset[1]/spacing[1] * m_ySpacing->value();
-        offset[2] = offset[2]/spacing[2] * m_zSpacing->value();
+        offset[0] = nearbyint(offset[0]/spacing[0]) * m_xSpacing->value();
+        offset[1] = nearbyint(offset[1]/spacing[1]) * m_ySpacing->value();
+        offset[2] = nearbyint(offset[2]/spacing[2]) * m_zSpacing->value();
 
-        replacement = QString("%1 %2 %3").arg(offset[0]).arg(offset[1]).arg(offset[2]).toLatin1();
+        replacement = QString("%1 %2 %3").arg(QString::number(offset[0]))
+                                         .arg(QString::number(offset[1]))
+                                         .arg(QString::number(offset[2])).toLatin1();
 
-        writeInfo(tr("Replaced '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
-                                               .arg(QString::fromLatin1(replacement)));
+        writeInfo(tr("MHD: Replaced offset '%1' with '%2'").arg(QString::fromLatin1(data.mid(begin+tokenBegin.length(), end-begin-tokenBegin.length())))
+                                                           .arg(QString::fromLatin1(replacement)));
 
         data.remove(begin+tokenBegin.length(), end-begin-tokenBegin.length());
         data.insert(begin+tokenBegin.length(), replacement);
@@ -652,21 +645,16 @@ void SpacingChanger::processMHD(QByteArray &data)
 QByteArray SpacingChanger::processROI(const QByteArray &data)
 {
   auto original = deserializeVolumeBounds(data);
-  Bounds converted, oldBounds = original.bounds();
+  Bounds oldBounds = original.bounds();
   auto spacing = original.spacing();
 
-  converted[0] = oldBounds[0]/spacing[0] * m_xSpacing->value();
-  converted[1] = oldBounds[1]/spacing[0] * m_xSpacing->value();
-  converted[2] = oldBounds[2]/spacing[1] * m_ySpacing->value();
-  converted[3] = oldBounds[3]/spacing[1] * m_ySpacing->value();
-  converted[4] = oldBounds[4]/spacing[2] * m_zSpacing->value();
-  converted[5] = oldBounds[5]/spacing[2] * m_zSpacing->value();
+  processBounds(oldBounds);
 
-  VolumeBounds vBounds{converted,
+  VolumeBounds vBounds{oldBounds,
                        NmVector3{m_xSpacing->value(), m_ySpacing->value(), m_zSpacing->value()},
                        original.origin()/original.spacing() * NmVector3{m_xSpacing->value(), m_ySpacing->value(), m_zSpacing->value()}};
 
-  writeInfo(tr("Converted '%1' in '%2'").arg(original.toString()).arg(vBounds.toString()));
+  writeInfo(tr("ROI: Converted bounds '%1' in '%2'").arg(original.toString()).arg(vBounds.toString()));
 
   return serializeVolumeBounds(vBounds);
 }
@@ -689,7 +677,7 @@ void SpacingChanger::purgeInfo(QByteArray& data)
 
       if(invalidate != -1 && ((invalidate < extEnd) || (extEnd == -1)))
       {
-        writeInfo(tr("Purging info of extension '%1'.").arg(QString::fromLatin1(data.mid(begin+1, invalidate-begin-2))));
+        writeInfo(tr("INFO: Purging info of extension '%1'.").arg(QString::fromLatin1(data.mid(begin+1, invalidate-begin-2))));
         QByteArray infoBegin{"<Info Name="};
         QByteArray infoEnd{"Info>"};
 
@@ -700,7 +688,7 @@ void SpacingChanger::purgeInfo(QByteArray& data)
 
           if(iEnd != -1)
           {
-            writeInfo(tr("Purged: %1").arg(QString::fromLatin1(data.mid(iBegin, iEnd+infoEnd.length()-iBegin))));
+            writeInfo(tr("INFO: Purged: %1").arg(QString::fromLatin1(data.mid(iBegin, iEnd+infoEnd.length()-iBegin))));
             data.remove(iBegin, iEnd+infoEnd.length()-iBegin);
             extEnd = data.indexOf(extBegin, begin+1);
           }
@@ -913,7 +901,7 @@ void SpacingChanger::processStencil(QByteArray &data)
     data.remove(begin+spacingToken.length(), end-begin-spacingToken.length());
     data.insert(begin+spacingToken.length(), replacement.toLatin1());
 
-    writeInfo(tr("Replaced spacing '%1' with '%2'.").arg(spacing.toString()).arg(replacement));
+    writeInfo(tr("STENCIL: Replaced spacing '%1' with '%2'.").arg(spacing.toString()).arg(replacement));
   }
 
   begin = data.indexOf(originToken, 0);
@@ -927,13 +915,38 @@ void SpacingChanger::processStencil(QByteArray &data)
     if(areEqual(origin[1], 0, spacing[1])) origin[1] = 0;
     if(areEqual(origin[2], 0, spacing[2])) origin[2] = 0;
 
-    NmVector3 point{origin[0]/spacing[0] * m_xSpacing->value(), origin[1]/spacing[1] * m_ySpacing->value(), origin[2]/spacing[2] * m_zSpacing->value()};
+    processVector(origin);
 
-    auto replacement = tr("%1 %2 %3").arg(point[0]).arg(point[1]).arg(point[2]);
+    auto replacement = tr("%1 %2 %3").arg(origin[0]).arg(origin[1]).arg(origin[2]);
 
     data.remove(begin+spacingToken.length(), end-begin-spacingToken.length());
     data.insert(begin+spacingToken.length(), replacement.toLatin1());
 
-    writeInfo(tr("Replaced origin '%1' with '%2'.").arg(origin.toString()).arg(replacement));
+    writeInfo(tr("STENCIL: Replaced origin '%1' with '%2'.").arg(origin.toString()).arg(replacement));
   }
+}
+
+//----------------------------------------------------------------------
+void SpacingChanger::processBounds(ESPINA::Bounds &bounds)
+{
+  const double halfspacing[3]{ m_spacing[0]/2, m_spacing[1]/2, m_spacing[2] };
+
+  bounds[0] = (nearbyint(bounds[0] + halfspacing[0]) * m_xSpacing->value()) - (m_xSpacing->value()/2);
+  bounds[1] = (nearbyint(bounds[1] + halfspacing[0]) * m_xSpacing->value()) - (m_xSpacing->value()/2);
+
+  bounds[2] = (nearbyint(bounds[2] + halfspacing[1]) * m_ySpacing->value()) - (m_ySpacing->value()/2);
+  bounds[3] = (nearbyint(bounds[3] + halfspacing[1]) * m_ySpacing->value()) - (m_ySpacing->value()/2);
+
+  bounds[4] = (nearbyint(bounds[4] + halfspacing[2]) * m_zSpacing->value()) - (m_zSpacing->value()/2);
+  bounds[5] = (nearbyint(bounds[5] + halfspacing[2]) * m_zSpacing->value()) - (m_zSpacing->value()/2);
+}
+
+//----------------------------------------------------------------------
+void SpacingChanger::processVector(ESPINA::NmVector3 &vector)
+{
+  const double halfspacing[3]{ m_spacing[0]/2, m_spacing[1]/2, m_spacing[2] };
+
+  vector[0] = (nearbyint(vector[0] + halfspacing[0]) * m_xSpacing->value()) - (m_xSpacing->value()/2);
+  vector[1] = (nearbyint(vector[2] + halfspacing[1]) * m_ySpacing->value()) - (m_ySpacing->value()/2);
+  vector[2] = (nearbyint(vector[4] + halfspacing[2]) * m_zSpacing->value()) - (m_zSpacing->value()/2);
 }

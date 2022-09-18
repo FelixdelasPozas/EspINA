@@ -124,6 +124,12 @@ namespace ESPINA
 
       virtual void resize(const Bounds &bounds) override;
 
+      virtual const typename T::RegionType itkRegion() const override final;
+
+      virtual const typename T::SpacingType itkSpacing() const override final;
+
+      virtual const typename T::PointType itkOriginalOrigin() const override final;
+
       virtual bool isValid() const override;
 
       virtual bool isEmpty() const override;
@@ -318,26 +324,22 @@ namespace ESPINA
 
     VolumeBounds expectedBounds(bounds, spacing, origin);
 
+    constexpr unsigned long long MEGA = 1024*1024;
+    auto image = create_itkImage<T>(expectedBounds.bounds(), this->backgroundValue(), spacing, origin);
+
     if(!intersect(this->m_bounds, expectedBounds))
     {
-      auto what = QObject::tr("Invalid input bounds, no intersection");
-      auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds, input: %1, volume bounds: %2").arg(expectedBounds.toString()).arg(this->m_bounds.toString());
-
-      throw Core::Utils::EspinaException(what, details);
-    }
-
-//    if (!contains(this->m_bounds, expectedBounds))
-//    {
-//      auto what = QObject::tr("Invalid input bounds");
+      return image;
+// @felix disabled 2022 due to strange SEG files with 2 tiff with different spacing.
+//      auto what = QObject::tr("Invalid input bounds, no intersection");
 //      auto details = QObject::tr("SparseVolume::itkImage(bounds) -> Invalid input bounds, input: %1, volume bounds: %2").arg(expectedBounds.toString()).arg(this->m_bounds.toString());
 //
 //      throw Core::Utils::EspinaException(what, details);
-//    }
+    }
 
     m_blockMutex.lockForRead();
 
-    auto image = create_itkImage<T>(bounds, this->backgroundValue(), spacing, origin);
-    auto affectedIndexes = toBlockIndexes(bounds);
+    auto affectedIndexes = toBlockIndexes(expectedBounds.bounds());
 
     for(auto index: affectedIndexes)
     {
@@ -1047,6 +1049,39 @@ namespace ESPINA
     auto blockBounds = equivalentBounds<T>(block);
     return intersection(blockBounds, bounds);
   }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::RegionType SparseVolume<T>::itkRegion() const
+  {
+    return equivalentRegion<T>(this->m_bounds);
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::SpacingType SparseVolume<T>::itkSpacing() const
+  {
+    if(!this->m_blocks.isEmpty())
+    {
+      return m_blocks.first()->GetSpacing();
+    }
+
+    typename T::SpacingType spacing;
+    spacing.Fill(0);
+
+    return spacing;
+  }
+
+  //-----------------------------------------------------------------------------
+  template<typename T>
+  const typename T::PointType SparseVolume<T>::itkOriginalOrigin() const
+  {
+    typename T::PointType origin;
+    origin.Fill(0);
+
+    return origin;
+  }
+
 }
 
 #endif // ESPINA_SPARSE_VOLUME_H

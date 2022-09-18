@@ -51,7 +51,7 @@ void VolumetricStreamReader::restoreState(const State& state)
   for(auto element : state.split(";"))
   {
     auto tokens = element.split("=");
-    if ("File" == tokens[0])
+    if (tokens[0].compare("File", Qt::CaseInsensitive) == 0)
     {
       auto filename = tokens[1].simplified();
       auto file = QFileInfo(filename);
@@ -66,9 +66,9 @@ void VolumetricStreamReader::restoreState(const State& state)
       }
     }
 
-    if("Streaming" == tokens[0])
+    if(tokens[0].simplified().compare("Streaming", Qt::CaseInsensitive) == 0)
     {
-      m_streaming = (tokens[1].simplified() == "true");
+      m_streaming = (tokens[1].simplified().compare("true", Qt::CaseInsensitive) == 0);
     }
   }
 }

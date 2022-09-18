@@ -121,7 +121,7 @@ void Filter::update()
 {
   if (m_outputs.isEmpty() || needUpdate())
   {
-    bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
+    const bool invalidatePreviousEditedRegions = m_outputs.isEmpty() || ignoreStorageContent();
 
     for(auto input : m_inputs)
     {

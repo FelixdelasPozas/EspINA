@@ -145,6 +145,11 @@ namespace ESPINA
        */
       void onCellClicked(int row);
 
+      /** \brief Saves the contents of the 3d scene to disk in VTK format. For debug purposes.
+       *
+       */
+      void onSaveScene();
+
     private:
       /** \brief Creates the actors for the skeleton based on strokes.
        * \param[in] segmentation Skeleton segmentation object.

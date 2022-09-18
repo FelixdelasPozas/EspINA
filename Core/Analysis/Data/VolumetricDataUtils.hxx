@@ -50,6 +50,7 @@
 // C++
 #include <thread>
 #include <chrono>
+#include <iostream>
 
 // Qt
 #include <QDir>
@@ -179,8 +180,9 @@ namespace ESPINA
                                       const NmVector3              &origin  = {0, 0, 0})
   {
     typename T::Pointer image = define_itkImage<T>(origin, spacing);
+    const auto region = equivalentRegion<T>(image, bounds);
 
-    image->SetRegions(equivalentRegion<T>(image, bounds));
+    image->SetRegions(region);
     image->Allocate();
     image->FillBuffer(value);
 
@@ -718,8 +720,16 @@ namespace ESPINA
 
     if(destRegion.GetNumberOfPixels() != sourceRegion.GetNumberOfPixels())
     {
+      auto sourceString = QObject::tr("{o:%1,%2,%3-s:%4,%5,%6} %7 pixels.").arg(sourceRegion.GetIndex(0)).arg(sourceRegion.GetIndex(1)).arg(sourceRegion.GetIndex(1))
+                                                                           .arg(sourceRegion.GetSize(0)).arg(sourceRegion.GetSize(1)).arg(sourceRegion.GetSize(2))
+                                                                           .arg(sourceRegion.GetNumberOfPixels());
+      auto destString   = QObject::tr("{o:%1,%2,%3-s:%4,%5,%6} %7 pixels.").arg(destRegion.GetIndex(0)).arg(destRegion.GetIndex(1)).arg(destRegion.GetIndex(1))
+                                                                           .arg(destRegion.GetSize(0)).arg(destRegion.GetSize(1)).arg(destRegion.GetSize(2))
+                                                                           .arg(sourceRegion.GetNumberOfPixels());
+
       auto message = QObject::tr("Regions in source and destination doesn't have the same number of pixels.");
-      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message;
+      auto regions = QObject::tr(" Source: %1 - Destination: %2").arg(sourceString).arg(destString);
+      auto details = QObject::tr("copy_image(source, destination, bounds) -> ") + message + regions;
 
       throw Core::Utils::EspinaException(message, details);
     }

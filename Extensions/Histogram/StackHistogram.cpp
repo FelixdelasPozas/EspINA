@@ -96,8 +96,12 @@ void StackHistogram::checkHistogramValidity()
 
   if(m_histogram.isEmpty())
   {
-    auto image = readLockVolume(m_extendedItem->output())->itkImage();
-    const auto region = image->GetLargestPossibleRegion();
+    auto volume = readLockVolume(m_extendedItem->output());
+    const auto region = volume->itkRegion();
+    const auto origin = volume->itkOriginalOrigin();
+    const auto spacing = volume->itkSpacing();
+    const auto vOrigin = NmVector3{origin[0], origin[1], origin[2]};
+    const auto vSpacing = NmVector3{spacing[0], spacing[1], spacing[2]};
     int progressValue = 0;
 
     auto edgesExtension = retrieveOrCreateStackExtension<ChannelEdges>(m_extendedItem, m_factory);
@@ -107,7 +111,8 @@ void StackHistogram::checkHistogramValidity()
     for(auto z = region.GetIndex(2); z < region.GetIndex(2) + static_cast<long int>(region.GetSize(2)); ++z)
     {
       auto sliceRegion = edgesExtension->sliceRegion(z - region.GetIndex(2));
-      itk::ImageRegionConstIterator<itkVolumeType> it(image, sliceRegion);
+      auto sliceImage = volume->itkImage(equivalentBounds<itkVolumeType>(vOrigin, vSpacing, sliceRegion));
+      itk::ImageRegionConstIterator<itkVolumeType> it(sliceImage, sliceRegion);
       it.GoToBegin();
       while(!it.IsAtEnd())
       {

@@ -138,7 +138,6 @@ namespace ESPINA
       m_data->draw(bounds, value);
     }
 
-
     virtual void draw(const BinaryMaskSPtr<typename T::ValueType> mask,
                       const typename T::ValueType value = SEG_VOXEL_VALUE) override
     {
@@ -148,6 +147,21 @@ namespace ESPINA
     virtual void resize(const Bounds &bounds) override
     {
       m_data->resize(bounds);
+    }
+
+    virtual const typename T::RegionType itkRegion() const override
+    {
+      return m_data->itkRegion();
+    }
+
+    virtual const typename T::SpacingType itkSpacing() const override
+    {
+      return m_data->itkSpacing();
+    }
+
+    virtual const typename T::PointType itkOriginalOrigin() const override
+    {
+      return m_data->itkOriginalOrigin();
     }
 
     virtual TimeStamp lastModified() const override

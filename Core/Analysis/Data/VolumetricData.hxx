@@ -164,6 +164,26 @@ namespace ESPINA
      */
     virtual void resize(const Bounds &bounds) = 0;
 
+    /** \brief Returns the itk region of the image.
+     *
+     * NOTE: this region can have an index != (0,0,0). All StreamedVolumes must have an origin in (0,0,0).
+     *
+     */
+    virtual const typename T::RegionType itkRegion() const = 0;
+
+    /** \brief Returns the itk spacing of the image.
+     *
+     */
+    virtual const typename T::SpacingType itkSpacing() const = 0;
+
+    /** \brief Returns the itk original origin of the image, once opened the origin of the image is (0,0,0) and the
+     * itk region is adjusted for that. So if an image has an origin not (0,0,0) the index of the region won't be (0,0,0).
+     * This means StreamedVolumes in Espina are always adjusted to spacing grid positions.
+     *
+     */
+    virtual const typename T::PointType itkOriginalOrigin() const = 0;
+
+
   private:
     typename T::ValueType m_bgValue;
 

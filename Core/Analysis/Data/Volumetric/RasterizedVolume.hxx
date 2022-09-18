@@ -105,7 +105,6 @@ namespace ESPINA
   private:
     virtual QList<Data::Type> updateDependencies() const override;
 
-
     Output                      *m_output;
     mutable unsigned long long   m_rasterizationTime;
     mutable QMutex               m_mutex;

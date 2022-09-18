@@ -456,16 +456,27 @@ void DefaultContextualMenu::createGroupRenameEntry()
 //------------------------------------------------------------------------
 void DefaultContextualMenu::createExportEntry()
 {
+  auto hasRequiredData = [this]()
+  {
+    return hasMeshData(m_segmentations.first()->output()) || hasSkeletonData(m_segmentations.first()->output());
+  };
+
   auto action = addAction(tr("&Export to TIFF image..."));
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(exportSelectedSegmentations()));
 
   action = addAction(tr("E&xport to Wavefront OBJ..."));
-  action->setEnabled(m_segmentations.size() == 1);
+  action->setEnabled(m_segmentations.size() == 1 && hasRequiredData());
 
   connect(action, SIGNAL(triggered(bool)),
           this,   SLOT(exportSegmentationToOBJ()));
+
+  action = addAction(tr("&Save to polydata format..."));
+  action->setEnabled(m_segmentations.size() == 1 && hasRequiredData());
+
+  connect(action, SIGNAL(triggered(bool)),
+          this,   SLOT(saveSegmentationVTP()));
 }
 
 //------------------------------------------------------------------------
@@ -581,4 +592,55 @@ void DefaultContextualMenu::createFixesEntry()
 void DefaultContextualMenu::doFixes()
 {
   // FIXES
+}
+
+//------------------------------------------------------------------------
+void DefaultContextualMenu::saveSegmentationVTP()
+{
+  auto segmentation = m_segmentations.first();
+  const auto name   = segmentation->data().toString();
+
+  auto title      = tr("Save segmentation '%1'").arg(name);
+  auto suggestion = tr("%1.vtp").arg(name);
+  auto format     = SupportedFormats().addFormat(tr("VTP polydata file"), "vtp");
+
+  auto file = DefaultDialogs::SaveFile(title, format, QDir::homePath(), ".vtp", suggestion);
+
+  if (file.isEmpty()) return;
+
+  WaitingCursor cursor;
+
+  QByteArray buffer;
+
+  if(hasMeshData(segmentation->output()))
+  {
+    auto data = readLockMesh(segmentation->output());
+    buffer = PolyDataUtils::savePolyDataToBuffer(data->mesh());
+  }
+  else
+  {
+    if(hasSkeletonData(segmentation->output()))
+    {
+      auto data = readLockSkeleton(segmentation->output());
+      buffer = PolyDataUtils::savePolyDataToBuffer(data->skeleton());
+    }
+    else
+    {
+      const auto message = tr("Segmentation '%1' has no mesh or skeleton data to be exported.").arg(name);
+      DefaultDialogs::InformationMessage(title, message);
+      return;
+    }
+  }
+
+  QFile objFile(file);
+  if(!objFile.open(QIODevice::Text|QIODevice::Truncate|QIODevice::WriteOnly))
+  {
+    const auto message = tr("Unable to create destination file '%1'.").arg(file);
+    DefaultDialogs::InformationMessage(title, message);
+    return;
+  }
+
+  objFile.write(buffer);
+  objFile.flush();
+  objFile.close();
 }

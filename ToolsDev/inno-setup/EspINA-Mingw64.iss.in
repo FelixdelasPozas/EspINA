@@ -85,6 +85,9 @@ Source: "@XLSLIB_LIBRARY@"; DestDir: "{app}"; Components: program
 Source: "@Boost_GRAPH_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
 Source: "@Boost_REGEX_LIBRARY_RELEASE@"; DestDir: "{app}"; Components: program
 
+; HDF5  (Comment if static lib)
+Source: "W:\build\App\hdf5*.dll"; DestDir: "{app}"; Components: program
+
 ; Manual libraries, add if configured with it
 ; HDF5 libraries if VTK-ITK were configured with it. TODO: search CMake variable for them.
 

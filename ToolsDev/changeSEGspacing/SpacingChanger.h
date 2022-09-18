@@ -149,6 +149,18 @@ class SpacingChanger
      */
     ESPINA::NmVector3 getSpacing(const QByteArray &data);
 
+    /** \brief Replaces the given bounds with the processed ones.
+     * \param[in] bounds Reference of bounds to process.
+     *
+     */
+    void processBounds(ESPINA::Bounds &bounds);
+
+    /** \brief Replaces the given vector with the processed ones.
+     * \param[in] vector Reference of vector to process.
+     *
+     */
+    void processVector(ESPINA::NmVector3 &vector);
+
     QList<QFileInfo> m_files;
     ESPINA::NmVector3 m_spacing;
 };
