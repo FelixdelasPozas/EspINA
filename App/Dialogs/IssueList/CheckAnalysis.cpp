@@ -239,7 +239,7 @@ void CheckAnalysis::run()
 {
   m_tasksNum = m_checkList.size();
 
-  const auto maxTasks = std::min(1, m_tasksNum);
+  const auto maxTasks = std::min(4, m_tasksNum);
   for(int i = 0; i < maxTasks; ++i)
   {
     auto task = m_checkList.at(i);
