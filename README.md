@@ -7,7 +7,7 @@ An interactive neuron analyzer.
 
 EspINA is a user-friendly tool which performs segmentation and analysis of elements in a reconstructed 3D volume of the brain, and greatly facilitates and accelerates these processes. It allows visualization and segmentation of large image stacks datasets, both from electron microscopy (e.g. FIB/SEM) and confocal laser microscopy.
 
-You can find a much more detailed description of EspINA in its [official webpage](https://cajalbbp.es/espina/). You can see some videos of EspINA [here](https://www.youtube.com/channel/UCN3kLTMxaJXkEJrvsJbx-ww).
+You can find a much more detailed description of EspINA in its [official webpage](https://cajalbbp.csic.es/espina-2/). You can see some videos of EspINA [here](https://www.youtube.com/channel/UCN3kLTMxaJXkEJrvsJbx-ww).
 
 If you have used EspINA to get your results and you have published them (congratulations!!) please, let us know and your publication will also appear [here](https://cajalbbp.es/espina/#publications).
 
@@ -37,7 +37,7 @@ EspINA is and open source software developed by the [Universidad Politécnica de
 
 # Repository information
 
-**Version**: 2.9.15
+**Version**: 2.10.0
 
 **Status**: finished
 
